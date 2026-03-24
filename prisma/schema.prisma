@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  AGENT
+}
+
+enum LeadSource {
+  WHATSAPP
+  WEBSITE
+  MANUAL
+  REFERRAL
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  UNQUALIFIED
+}
+
+enum MessageSender {
+  LEAD
+  AI
+  AGENT
+}
+
+enum AutomationTrigger {
+  STAGE_CHANGE
+  TIME_AFTER_STAGE
+  NEW_LEAD
+  NO_RESPONSE
+}
+
+enum AutomationAction {
+  SEND_WHATSAPP
+  MOVE_STAGE
+  ASSIGN_AGENT
+  CREATE_REMINDER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(AGENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deals     Deal[]
+  messages  Message[] @relation("SentByUser")
+}
+
+model Service {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  slug        String       @unique
+  description String?
+  icon        String?
+  color       String       @default("#6366f1")
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  leads       Lead[]
+  deals       Deal[]
+  pipelines   Pipeline[]
+  automations Automation[]
+}
+
+model Lead {
+  id             String          @id @default(cuid())
+  name           String
+  phone          String          @unique
+  email          String?
+  company        String?
+  source         LeadSource      @default(WHATSAPP)
+  status         LeadStatus      @default(NEW)
+  serviceId      String?
+  service        Service?        @relation(fields: [serviceId], references: [id])
+  notes          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deals          Deal[]
+  conversations  Conversation[]
+  automationLogs AutomationLog[]
+
+  @@index([serviceId])
+  @@index([status])
+  @@index([phone])
+}
+
+model Pipeline {
+  id        String          @id @default(cuid())
+  name      String
+  serviceId String
+  service   Service         @relation(fields: [serviceId], references: [id])
+  stages    PipelineStage[]
+  createdAt DateTime        @default(now())
+
+  @@index([serviceId])
+}
+
+model PipelineStage {
+  id         String   @id @default(cuid())
+  name       String
+  order      Int
+  color      String   @default("#6366f1")
+  pipelineId String
+  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  deals      Deal[]
+
+  @@index([pipelineId])
+}
+
+model Deal {
+  id           String        @id @default(cuid())
+  title        String
+  value        Float?
+  leadId       String
+  lead         Lead          @relation(fields: [leadId], references: [id])
+  serviceId    String
+  service      Service       @relation(fields: [serviceId], references: [id])
+  stageId      String
+  stage        PipelineStage @relation(fields: [stageId], references: [id])
+  assignedToId String?
+  assignedTo   User?         @relation(fields: [assignedToId], references: [id])
+  closedAt     DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([serviceId])
+  @@index([stageId])
+  @@index([leadId])
+  @@index([assignedToId])
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  leadId        String
+  lead          Lead      @relation(fields: [leadId], references: [id])
+  isAiActive    Boolean   @default(true)
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  messages      Message[]
+
+  @@index([leadId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  content        String
+  sender         MessageSender
+  sentByUserId   String?
+  sentByUser     User?        @relation("SentByUser", fields: [sentByUserId], references: [id])
+  evolutionMsgId String?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+model Automation {
+  id            String            @id @default(cuid())
+  name          String
+  description   String?
+  serviceId     String?
+  service       Service?          @relation(fields: [serviceId], references: [id])
+  trigger       AutomationTrigger
+  triggerConfig Json
+  action        AutomationAction
+  actionConfig  Json
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  logs          AutomationLog[]
+
+  @@index([serviceId])
+  @@index([trigger])
+}
+
+model AutomationLog {
+  id           String     @id @default(cuid())
+  automationId String
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  leadId       String
+  lead         Lead       @relation(fields: [leadId], references: [id])
+  status       String
+  executedAt   DateTime   @default(now())
+  result       Json?
+
+  @@index([automationId])
+  @@index([leadId])
+}
