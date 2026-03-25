@@ -13,17 +13,63 @@ import type {
 
 export type { User, Service, Lead, Pipeline, PipelineStage, Deal, Conversation, Message, Automation, AutomationLog };
 
+// Activity type (not yet a Prisma model)
+export interface Activity {
+  id: string;
+  type: string;
+  title: string;
+  description: string | null;
+  leadId: string | null;
+  dealId: string | null;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type ActivityWithRelations = Activity & {
+  lead: Lead | null;
+  deal: Deal | null;
+  user: User;
+};
+
+// Task type (not yet a Prisma model)
+export interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: string;
+  status: string;
+  dueDate: Date | null;
+  leadId: string | null;
+  dealId: string | null;
+  assignedToId: string | null;
+  createdById: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type TaskWithRelations = Task & {
+  lead: Lead | null;
+  deal: Deal | null;
+  assignedTo: User | null;
+  createdBy: User;
+};
+
 export type DealWithRelations = Deal & {
   lead: Lead;
   service: Service;
   stage: PipelineStage;
   assignedTo: User | null;
+  activities: Activity[];
+  tasks: Task[];
 };
 
 export type LeadWithRelations = Lead & {
   service: Service | null;
   deals: Deal[];
   conversations: Conversation[];
+  activities: Activity[];
+  tasks: Task[];
 };
 
 export type ConversationWithRelations = Conversation & {
@@ -41,6 +87,25 @@ export type AutomationWithLogs = Automation & {
   service: Service | null;
   logs: AutomationLog[];
 };
+
+export interface NotificationData {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
+  userId: string;
+  linkUrl: string | null;
+  createdAt: Date;
+}
+
+export interface ReportData {
+  revenueByMonth: { month: string; revenue: number }[];
+  conversionByService: { service: string; rate: number; color: string }[];
+  leadsBySource: { source: string; count: number }[];
+  pipelineVelocity: { stage: string; avgDays: number }[];
+  topDeals: { id: string; title: string; value: number; stage: string; leadName: string }[];
+}
 
 export interface DashboardStats {
   totalLeads: number;

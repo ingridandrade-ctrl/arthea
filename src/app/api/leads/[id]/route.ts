@@ -22,6 +22,15 @@ export async function GET(
         include: { messages: { orderBy: { createdAt: "desc" }, take: 1 } },
         orderBy: { lastMessageAt: "desc" },
       },
+      activities: {
+        include: { user: true },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      },
+      tasks: {
+        include: { assignedTo: true },
+        orderBy: [{ completed: "asc" }, { dueDate: "asc" }, { createdAt: "desc" }],
+      },
     },
   });
 

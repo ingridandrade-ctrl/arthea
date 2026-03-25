@@ -12,6 +12,8 @@ import {
   Settings,
   LogOut,
   Briefcase,
+  CheckSquare,
+  BarChart3,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -20,7 +22,9 @@ const navigation = [
   { name: "Leads", href: "/leads", icon: Users },
   { name: "Pipeline", href: "/pipeline", icon: KanbanSquare },
   { name: "Conversas", href: "/conversations", icon: MessageCircle },
+  { name: "Tarefas", href: "/tarefas", icon: CheckSquare },
   { name: "Automações", href: "/automations", icon: Zap },
+  { name: "Relatórios", href: "/relatorios", icon: BarChart3 },
   { name: "Serviços", href: "/services", icon: Briefcase },
   { name: "Configurações", href: "/settings", icon: Settings },
 ];

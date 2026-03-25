@@ -48,15 +48,19 @@ enum AutomationAction {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(AGENT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deals     Deal[]
-  messages  Message[] @relation("SentByUser")
+  id             String         @id @default(cuid())
+  name           String
+  email          String         @unique
+  password       String
+  role           Role           @default(AGENT)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deals          Deal[]
+  messages       Message[]      @relation("SentByUser")
+  activities     Activity[]     @relation("UserActivities")
+  assignedTasks  Task[]         @relation("AssignedTasks")
+  createdTasks   Task[]         @relation("CreatedTasks")
+  notifications  Notification[]
 }
 
 model Service {
@@ -82,6 +86,8 @@ model Lead {
   company        String?
   source         LeadSource      @default(WHATSAPP)
   status         LeadStatus      @default(NEW)
+  tags           String[]
+  score          Int             @default(0)
   serviceId      String?
   service        Service?        @relation(fields: [serviceId], references: [id])
   notes          String?
@@ -90,6 +96,8 @@ model Lead {
   deals          Deal[]
   conversations  Conversation[]
   automationLogs AutomationLog[]
+  activities     Activity[]
+  tasks          Task[]
 
   @@index([serviceId])
   @@index([status])
@@ -120,20 +128,24 @@ model PipelineStage {
 }
 
 model Deal {
-  id           String        @id @default(cuid())
-  title        String
-  value        Float?
-  leadId       String
-  lead         Lead          @relation(fields: [leadId], references: [id])
-  serviceId    String
-  service      Service       @relation(fields: [serviceId], references: [id])
-  stageId      String
-  stage        PipelineStage @relation(fields: [stageId], references: [id])
-  assignedToId String?
-  assignedTo   User?         @relation(fields: [assignedToId], references: [id])
-  closedAt     DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id                String        @id @default(cuid())
+  title             String
+  value             Float?
+  probability       Int?
+  expectedCloseDate DateTime?
+  leadId            String
+  lead              Lead          @relation(fields: [leadId], references: [id])
+  serviceId         String
+  service           Service       @relation(fields: [serviceId], references: [id])
+  stageId           String
+  stage             PipelineStage @relation(fields: [stageId], references: [id])
+  assignedToId      String?
+  assignedTo        User?         @relation(fields: [assignedToId], references: [id])
+  closedAt          DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  activities        Activity[]
+  tasks             Task[]
 
   @@index([serviceId])
   @@index([stageId])
@@ -198,4 +210,60 @@ model AutomationLog {
 
   @@index([automationId])
   @@index([leadId])
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  type        String   // "note", "call", "email", "stage_change", "deal_created", "message", "task_completed", "automation"
+  description String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  leadId      String?
+  lead        Lead?    @relation(fields: [leadId], references: [id])
+  dealId      String?
+  deal        Deal?    @relation(fields: [dealId], references: [id])
+  userId      String?
+  user        User?    @relation("UserActivities", fields: [userId], references: [id])
+
+  @@index([leadId, createdAt])
+  @@index([dealId, createdAt])
+}
+
+model Task {
+  id           String    @id @default(cuid())
+  title        String
+  description  String?
+  dueDate      DateTime?
+  completed    Boolean   @default(false)
+  completedAt  DateTime?
+  priority     String    @default("medium") // low, medium, high, urgent
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  leadId       String?
+  lead         Lead?     @relation(fields: [leadId], references: [id])
+  dealId       String?
+  deal         Deal?     @relation(fields: [dealId], references: [id])
+  assignedToId String?
+  assignedTo   User?     @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  createdById  String?
+  createdBy    User?     @relation("CreatedTasks", fields: [createdById], references: [id])
+
+  @@index([assignedToId, completed])
+  @@index([dueDate])
+  @@index([leadId])
+  @@index([dealId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // "handoff", "task_due", "deal_won", "new_lead", "mention"
+  title     String
+  body      String
+  data      Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, read])
 }
