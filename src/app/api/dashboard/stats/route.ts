@@ -10,27 +10,31 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const serviceSlug = searchParams.get("service");
 
-  const serviceFilter: any = {};
+  // Build filter for leads with service tag
+  const leadWhere: any = {};
+  const dealWhere: any = {};
+
   if (serviceSlug && serviceSlug !== "all") {
-    serviceFilter.service = { slug: serviceSlug };
+    leadWhere.services = { some: { service: { slug: serviceSlug } } };
+    dealWhere.service = { slug: serviceSlug };
   }
 
   const [totalLeads, totalDeals, closedDeals, recentLeads, services] =
     await Promise.all([
-      prisma.lead.count({ where: serviceFilter }),
-      prisma.deal.count({ where: serviceFilter }),
+      prisma.lead.count({ where: leadWhere }),
+      prisma.deal.count({ where: dealWhere }),
       prisma.deal.findMany({
         where: {
-          ...serviceFilter,
+          ...dealWhere,
           stage: { name: "Fechado Ganho" },
         },
         select: { value: true },
       }),
       prisma.lead.findMany({
-        where: serviceFilter,
+        where: leadWhere,
         orderBy: { createdAt: "desc" },
         take: 5,
-        include: { service: true },
+        include: { services: { include: { service: true } } },
       }),
       prisma.service.findMany({
         include: {
@@ -49,18 +53,46 @@ export async function GET(request: NextRequest) {
     color: s.color,
   }));
 
-  // Get deals by stage
-  const stages = await prisma.pipelineStage.findMany({
-    include: { _count: { select: { deals: true } } },
-    orderBy: { order: "asc" },
-    distinct: ["name"],
+  // Get pipeline stages with deal counts
+  const pipeline = await prisma.pipeline.findFirst({
+    include: {
+      stages: {
+        orderBy: { order: "asc" },
+        include: {
+          _count: {
+            select: { deals: true },
+          },
+        },
+      },
+    },
   });
 
-  const dealsByStage = stages.map((s) => ({
+  const dealsByStage = (pipeline?.stages || []).map((s) => ({
     stage: s.name,
     count: s._count.deals,
     color: s.color,
   }));
+
+  // Follow-up stats
+  const now = new Date();
+  const todayEnd = new Date(now);
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const [pendingFollowUpsToday, staleLeadsCount] = await Promise.all([
+    prisma.followUp.count({
+      where: {
+        status: "pending",
+        scheduledAt: { lte: todayEnd },
+      },
+    }),
+    prisma.deal.count({
+      where: {
+        ...dealWhere,
+        stage: { order: { lt: 5 } }, // Not closed
+        updatedAt: { lt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) },
+      },
+    }),
+  ]);
 
   return NextResponse.json({
     totalLeads,
@@ -70,5 +102,7 @@ export async function GET(request: NextRequest) {
     leadsByService,
     dealsByStage,
     recentLeads,
+    pendingFollowUpsToday,
+    staleLeadsCount,
   });
 }

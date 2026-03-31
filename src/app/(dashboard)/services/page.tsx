@@ -15,21 +15,13 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/pipeline")
+    fetch("/api/dashboard/stats")
       .then((r) => r.json())
-      .then((pipelines) => {
-        const svcs = pipelines.map((p: any) => ({
-          ...p.service,
-          pipeline: p,
-          stageCount: p.stages.length,
-          dealCount: p.stages.reduce(
-            (sum: number, s: any) => sum + s.deals.length,
-            0
-          ),
-        }));
-        setServices(svcs);
+      .then((data) => {
+        setServices(data.leadsByService || []);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   if (loading) {
@@ -40,16 +32,54 @@ export default function ServicesPage() {
     );
   }
 
+  // Hardcoded service info since we only have 4 services
+  const serviceDetails = [
+    {
+      name: "Trafego Pago",
+      slug: "trafego-pago",
+      description: "Gestao de campanhas de midia paga (Google Ads, Meta Ads, TikTok Ads)",
+      icon: "target",
+      color: "#ef4444",
+    },
+    {
+      name: "Google Meu Negocio",
+      slug: "google-meu-negocio",
+      description: "Otimizacao e gestao de perfil no Google Meu Negocio",
+      icon: "map-pin",
+      color: "#22c55e",
+    },
+    {
+      name: "CRM / Automacao",
+      slug: "crm-automacao",
+      description: "Consultoria e implementacao de CRM e automacoes para empresas",
+      icon: "users",
+      color: "#6366f1",
+    },
+    {
+      name: "Landing Pages",
+      slug: "landing-pages",
+      description: "Criacao de landing pages de alta conversao",
+      icon: "layout",
+      color: "#f59e0b",
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Serviços</h1>
+      <div>
+        <h1 className="text-2xl font-bold">Servicos</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Servicos funcionam como tags nos leads. Um lead pode ter mais de um servico.
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {services.map((service) => {
+        {serviceDetails.map((service) => {
           const Icon = iconMap[service.icon] || Target;
+          const stats = services.find((s) => s.service === service.name);
           return (
             <div
-              key={service.id}
+              key={service.slug}
               className="bg-card rounded-xl border border-border p-6"
             >
               <div className="flex items-start gap-4">
@@ -69,12 +99,8 @@ export default function ServicesPage() {
                   </p>
                   <div className="flex items-center gap-4 mt-4">
                     <div className="text-center">
-                      <p className="text-xl font-bold">{service.dealCount}</p>
-                      <p className="text-xs text-muted-foreground">Deals</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xl font-bold">{service.stageCount}</p>
-                      <p className="text-xs text-muted-foreground">Estágios</p>
+                      <p className="text-xl font-bold">{stats?.count || 0}</p>
+                      <p className="text-xs text-muted-foreground">Leads</p>
                     </div>
                   </div>
                 </div>

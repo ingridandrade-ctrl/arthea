@@ -13,9 +13,14 @@ export async function GET(
   const lead = await prisma.lead.findUnique({
     where: { id: params.id },
     include: {
-      service: true,
+      services: { include: { service: true } },
       deals: {
-        include: { stage: true, service: true, assignedTo: true },
+        include: {
+          stage: true,
+          service: true,
+          assignedTo: true,
+          followUps: { orderBy: { order: "asc" } },
+        },
         orderBy: { createdAt: "desc" },
       },
       conversations: {
@@ -49,15 +54,38 @@ export async function PUT(
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { name, phone, email, company, status, serviceId, notes } = body;
+  const { name, phone, email, company, status, notes, serviceIds } = body;
 
   const lead = await prisma.lead.update({
     where: { id: params.id },
-    data: { name, phone, email, company, status, serviceId, notes },
-    include: { service: true },
+    data: {
+      ...(name !== undefined && { name }),
+      ...(phone !== undefined && { phone }),
+      ...(email !== undefined && { email }),
+      ...(company !== undefined && { company }),
+      ...(status !== undefined && { status }),
+      ...(notes !== undefined && { notes }),
+    },
   });
 
-  return NextResponse.json(lead);
+  // Update service associations if provided
+  if (serviceIds && Array.isArray(serviceIds)) {
+    // Remove existing associations
+    await prisma.leadService.deleteMany({ where: { leadId: params.id } });
+    // Create new ones
+    for (const serviceId of serviceIds) {
+      await prisma.leadService.create({
+        data: { leadId: params.id, serviceId },
+      });
+    }
+  }
+
+  const result = await prisma.lead.findUnique({
+    where: { id: params.id },
+    include: { services: { include: { service: true } } },
+  });
+
+  return NextResponse.json(result);
 }
 
 export async function DELETE(

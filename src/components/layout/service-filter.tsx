@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 
 const services = [
   { slug: "all", name: "Todos", color: "#6366f1" },
-  { slug: "trafego-pago", name: "Tráfego Pago", color: "#ef4444" },
-  { slug: "google-meu-negocio", name: "Google Meu Negócio", color: "#22c55e" },
-  { slug: "crm", name: "CRM", color: "#6366f1" },
+  { slug: "trafego-pago", name: "Trafego Pago", color: "#ef4444" },
+  { slug: "google-meu-negocio", name: "Google Meu Negocio", color: "#22c55e" },
+  { slug: "crm-automacao", name: "CRM / Automacao", color: "#6366f1" },
   { slug: "landing-pages", name: "Landing Pages", color: "#f59e0b" },
 ];
 

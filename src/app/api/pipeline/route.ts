@@ -10,21 +10,24 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const serviceSlug = searchParams.get("service");
 
-  const where: any = {};
+  // Build deal filter for service tag filtering
+  const dealWhere: any = {};
   if (serviceSlug && serviceSlug !== "all") {
-    where.service = { slug: serviceSlug };
+    dealWhere.service = { slug: serviceSlug };
   }
 
-  const pipelines = await prisma.pipeline.findMany({
-    where,
+  // Single pipeline — get the first (and only) pipeline
+  const pipeline = await prisma.pipeline.findFirst({
     include: {
-      service: true,
       stages: {
         orderBy: { order: "asc" },
         include: {
           deals: {
+            where: dealWhere,
             include: {
-              lead: true,
+              lead: {
+                include: { services: { include: { service: true } } },
+              },
               service: true,
               assignedTo: true,
             },
@@ -35,5 +38,9 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json(pipelines);
+  if (!pipeline) {
+    return NextResponse.json([]);
+  }
+
+  return NextResponse.json(pipeline);
 }

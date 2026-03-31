@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
   const where: any = {};
 
   if (serviceSlug && serviceSlug !== "all") {
-    where.service = { slug: serviceSlug };
+    where.services = {
+      some: { service: { slug: serviceSlug } },
+    };
   }
   if (status) {
     where.status = status;
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
   const leads = await prisma.lead.findMany({
     where,
     include: {
-      service: true,
+      services: { include: { service: true } },
       deals: true,
       conversations: { orderBy: { lastMessageAt: "desc" }, take: 1 },
     },
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { name, phone, email, company, source, serviceId, notes } = body;
+  const { name, phone, email, company, source, serviceIds, notes } = body;
 
   if (!name || !phone) {
     return NextResponse.json({ error: "Nome e telefone são obrigatórios" }, { status: 400 });
@@ -65,11 +67,23 @@ export async function POST(request: NextRequest) {
       email,
       company,
       source: source || "MANUAL",
-      serviceId,
       notes,
     },
-    include: { service: true },
   });
 
-  return NextResponse.json(lead, { status: 201 });
+  // Associate services (many-to-many)
+  if (serviceIds && Array.isArray(serviceIds)) {
+    for (const serviceId of serviceIds) {
+      await prisma.leadService.create({
+        data: { leadId: lead.id, serviceId },
+      });
+    }
+  }
+
+  const result = await prisma.lead.findUnique({
+    where: { id: lead.id },
+    include: { services: { include: { service: true } } },
+  });
+
+  return NextResponse.json(result, { status: 201 });
 }

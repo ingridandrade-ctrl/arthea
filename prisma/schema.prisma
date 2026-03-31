@@ -18,6 +18,7 @@ enum LeadSource {
   WEBSITE
   MANUAL
   REFERRAL
+  QUIZ
 }
 
 enum LeadStatus {
@@ -72,10 +73,8 @@ model Service {
   color       String       @default("#6366f1")
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
-  leads       Lead[]
+  leads       LeadService[]
   deals       Deal[]
-  pipelines   Pipeline[]
-  automations Automation[]
 }
 
 model Lead {
@@ -88,41 +87,55 @@ model Lead {
   status         LeadStatus      @default(NEW)
   tags           String[]
   score          Int             @default(0)
-  serviceId      String?
-  service        Service?        @relation(fields: [serviceId], references: [id])
   notes          String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  quizAnswers    Json?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  services       LeadService[]
   deals          Deal[]
   conversations  Conversation[]
   automationLogs AutomationLog[]
   activities     Activity[]
   tasks          Task[]
 
-  @@index([serviceId])
   @@index([status])
   @@index([phone])
 }
 
-model Pipeline {
-  id        String          @id @default(cuid())
-  name      String
+// Many-to-many: Lead <-> Service
+model LeadService {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
   serviceId String
-  service   Service         @relation(fields: [serviceId], references: [id])
-  stages    PipelineStage[]
-  createdAt DateTime        @default(now())
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 
+  @@unique([leadId, serviceId])
+  @@index([leadId])
   @@index([serviceId])
 }
 
+// Single pipeline — no more serviceId
+model Pipeline {
+  id        String          @id @default(cuid())
+  name      String
+  stages    PipelineStage[]
+  createdAt DateTime        @default(now())
+}
+
 model PipelineStage {
-  id         String   @id @default(cuid())
+  id         String     @id @default(cuid())
   name       String
   order      Int
-  color      String   @default("#6366f1")
+  color      String     @default("#6366f1")
   pipelineId String
-  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  pipeline   Pipeline   @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
   deals      Deal[]
+  followUps  FollowUp[]
 
   @@index([pipelineId])
 }
@@ -133,6 +146,7 @@ model Deal {
   value             Float?
   probability       Int?
   expectedCloseDate DateTime?
+  diagnosticNotes   Json?
   leadId            String
   lead              Lead          @relation(fields: [leadId], references: [id])
   serviceId         String
@@ -146,11 +160,48 @@ model Deal {
   updatedAt         DateTime      @updatedAt
   activities        Activity[]
   tasks             Task[]
+  followUps         FollowUp[]
 
   @@index([serviceId])
   @@index([stageId])
   @@index([leadId])
   @@index([assignedToId])
+}
+
+model FollowUp {
+  id              String    @id @default(cuid())
+  dealId          String
+  deal            Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  stageId         String
+  stage           PipelineStage @relation(fields: [stageId], references: [id])
+  order           Int
+  delayHours      Int
+  messageTemplate String
+  channel         String    @default("whatsapp")
+  isAutomatic     Boolean   @default(false)
+  status          String    @default("pending") // pending, sent, skipped
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([dealId])
+  @@index([stageId])
+  @@index([status, scheduledAt])
+}
+
+model FollowUpTemplate {
+  id              String   @id @default(cuid())
+  name            String
+  stageOrder      Int
+  followUpOrder   Int
+  channel         String   @default("whatsapp")
+  messageTemplate String
+  isAutomatic     Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([stageOrder, followUpOrder])
 }
 
 model Conversation {
@@ -183,8 +234,6 @@ model Automation {
   id            String            @id @default(cuid())
   name          String
   description   String?
-  serviceId     String?
-  service       Service?          @relation(fields: [serviceId], references: [id])
   trigger       AutomationTrigger
   triggerConfig Json
   action        AutomationAction
@@ -194,7 +243,6 @@ model Automation {
   updatedAt     DateTime          @updatedAt
   logs          AutomationLog[]
 
-  @@index([serviceId])
   @@index([trigger])
 }
 
@@ -214,7 +262,7 @@ model AutomationLog {
 
 model Activity {
   id          String   @id @default(cuid())
-  type        String   // "note", "call", "email", "stage_change", "deal_created", "message", "task_completed", "automation"
+  type        String
   description String
   metadata    Json?
   createdAt   DateTime @default(now())
@@ -236,7 +284,7 @@ model Task {
   dueDate      DateTime?
   completed    Boolean   @default(false)
   completedAt  DateTime?
-  priority     String    @default("medium") // low, medium, high, urgent
+  priority     String    @default("medium")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   leadId       String?
@@ -256,7 +304,7 @@ model Task {
 
 model Notification {
   id        String   @id @default(cuid())
-  type      String   // "handoff", "task_due", "deal_won", "new_lead", "mention"
+  type      String
   title     String
   body      String
   data      Json?

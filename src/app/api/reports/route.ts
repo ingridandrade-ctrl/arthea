@@ -10,9 +10,9 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const serviceSlug = searchParams.get("service");
 
-  const serviceFilter: any = {};
+  const dealWhere: any = {};
   if (serviceSlug && serviceSlug !== "all") {
-    serviceFilter.service = { slug: serviceSlug };
+    dealWhere.service = { slug: serviceSlug };
   }
 
   // Revenue by month (last 6 months)
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
   const closedDeals = await prisma.deal.findMany({
     where: {
-      ...serviceFilter,
+      ...dealWhere,
       stage: { name: "Fechado Ganho" },
       closedAt: { gte: sixMonthsAgo },
     },
@@ -67,9 +67,14 @@ export async function GET(request: NextRequest) {
   }));
 
   // Leads by source
+  const leadWhere: any = {};
+  if (serviceSlug && serviceSlug !== "all") {
+    leadWhere.services = { some: { service: { slug: serviceSlug } } };
+  }
+
   const leadsBySourceRaw = await prisma.lead.groupBy({
     by: ["source"],
-    where: serviceFilter,
+    where: leadWhere,
     _count: { id: true },
   });
 
@@ -78,6 +83,7 @@ export async function GET(request: NextRequest) {
     WEBSITE: "Website",
     MANUAL: "Manual",
     REFERRAL: "Indicação",
+    QUIZ: "Quiz",
   };
 
   const leadsBySource = leadsBySourceRaw.map((item) => ({
@@ -85,9 +91,9 @@ export async function GET(request: NextRequest) {
     count: item._count.id,
   }));
 
-  // Pipeline velocity - avg days per stage
+  // Pipeline velocity
   const allDeals = await prisma.deal.findMany({
-    where: serviceFilter,
+    where: dealWhere,
     select: {
       stageId: true,
       stage: { select: { name: true, order: true, color: true } },
@@ -117,7 +123,7 @@ export async function GET(request: NextRequest) {
   // Top deals
   const topDeals = await prisma.deal.findMany({
     where: {
-      ...serviceFilter,
+      ...dealWhere,
       value: { not: null },
     },
     orderBy: { value: "desc" },

@@ -14,6 +14,7 @@ import {
   Briefcase,
   CheckSquare,
   BarChart3,
+  FileText,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -23,10 +24,11 @@ const navigation = [
   { name: "Pipeline", href: "/pipeline", icon: KanbanSquare },
   { name: "Conversas", href: "/conversations", icon: MessageCircle },
   { name: "Tarefas", href: "/tarefas", icon: CheckSquare },
-  { name: "Automações", href: "/automations", icon: Zap },
-  { name: "Relatórios", href: "/relatorios", icon: BarChart3 },
-  { name: "Serviços", href: "/services", icon: Briefcase },
-  { name: "Configurações", href: "/settings", icon: Settings },
+  { name: "Automacoes", href: "/automations", icon: Zap },
+  { name: "Templates", href: "/admin/templates", icon: FileText },
+  { name: "Relatorios", href: "/relatorios", icon: BarChart3 },
+  { name: "Servicos", href: "/services", icon: Briefcase },
+  { name: "Configuracoes", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -36,7 +38,7 @@ export function Sidebar() {
     <aside className="w-64 bg-sidebar border-r border-border h-screen flex flex-col fixed left-0 top-0">
       <div className="p-6">
         <h1 className="text-2xl font-bold text-primary">Arthea</h1>
-        <p className="text-xs text-muted-foreground">CRM & Automações</p>
+        <p className="text-xs text-muted-foreground">CRM & Automacoes</p>
       </div>
 
       <nav className="flex-1 px-3 space-y-1">

@@ -8,6 +8,8 @@ import {
   DollarSign,
   TrendingUp,
   BarChart3,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import type { DashboardStats } from "@/types";
 
@@ -42,7 +44,7 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatsCard
           title="Total de Leads"
           value={stats.totalLeads.toString()}
@@ -65,18 +67,34 @@ export default function DashboardPage() {
           bgColor="bg-green-50"
         />
         <StatsCard
-          title="Taxa de Conversão"
+          title="Taxa de Conversao"
           value={`${stats.conversionRate}%`}
           icon={TrendingUp}
           color="text-orange-600"
           bgColor="bg-orange-50"
         />
+        <StatsCard
+          title="Follow-ups Hoje"
+          value={stats.pendingFollowUpsToday.toString()}
+          icon={Clock}
+          color="text-indigo-600"
+          bgColor="bg-indigo-50"
+          alert={stats.pendingFollowUpsToday > 0}
+        />
+        <StatsCard
+          title="Leads Esquecidos"
+          value={stats.staleLeadsCount.toString()}
+          icon={AlertTriangle}
+          color="text-red-600"
+          bgColor="bg-red-50"
+          alert={stats.staleLeadsCount > 0}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Leads por Serviço */}
+        {/* Leads por Servico */}
         <div className="bg-card rounded-xl border border-border p-6">
-          <h2 className="text-lg font-semibold mb-4">Leads por Serviço</h2>
+          <h2 className="text-lg font-semibold mb-4">Leads por Servico</h2>
           <div className="space-y-3">
             {stats.leadsByService.map((item) => (
               <div key={item.service} className="flex items-center justify-between">
@@ -96,9 +114,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Deals por Estágio */}
+        {/* Deals por Estagio */}
         <div className="bg-card rounded-xl border border-border p-6">
-          <h2 className="text-lg font-semibold mb-4">Deals por Estágio</h2>
+          <h2 className="text-lg font-semibold mb-4">Deals por Estagio</h2>
           <div className="space-y-3">
             {stats.dealsByStage.map((item) => (
               <div key={item.stage} className="flex items-center justify-between">
@@ -128,7 +146,7 @@ export default function DashboardPage() {
               <tr className="text-left text-muted-foreground border-b border-border">
                 <th className="pb-3 font-medium">Nome</th>
                 <th className="pb-3 font-medium">Telefone</th>
-                <th className="pb-3 font-medium">Serviço</th>
+                <th className="pb-3 font-medium">Servicos</th>
                 <th className="pb-3 font-medium">Status</th>
                 <th className="pb-3 font-medium">Data</th>
               </tr>
@@ -139,16 +157,21 @@ export default function DashboardPage() {
                   <td className="py-3 font-medium">{lead.name}</td>
                   <td className="py-3">{lead.phone}</td>
                   <td className="py-3">
-                    {lead.service ? (
-                      <span
-                        className="px-2 py-1 rounded-full text-xs text-white"
-                        style={{ backgroundColor: lead.service.color }}
-                      >
-                        {lead.service.name}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
+                    <div className="flex flex-wrap gap-1">
+                      {lead.services && lead.services.length > 0 ? (
+                        lead.services.map((ls: any) => (
+                          <span
+                            key={ls.service.id}
+                            className="px-2 py-0.5 rounded-full text-[10px] font-medium text-white"
+                            style={{ backgroundColor: ls.service.color }}
+                          >
+                            {ls.service.name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3">
                     <StatusBadge status={lead.status} />
@@ -179,22 +202,28 @@ function StatsCard({
   icon: Icon,
   color,
   bgColor,
+  alert,
 }: {
   title: string;
   value: string;
   icon: any;
   color: string;
   bgColor: string;
+  alert?: boolean;
 }) {
   return (
-    <div className="bg-card rounded-xl border border-border p-6">
+    <div
+      className={`bg-card rounded-xl border p-4 ${
+        alert ? "border-orange-300" : "border-border"
+      }`}
+    >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold mt-1">{value}</p>
+          <p className="text-xs text-muted-foreground">{title}</p>
+          <p className="text-xl font-bold mt-1">{value}</p>
         </div>
-        <div className={`${bgColor} p-3 rounded-lg`}>
-          <Icon className={`w-6 h-6 ${color}`} />
+        <div className={`${bgColor} p-2 rounded-lg`}>
+          <Icon className={`w-5 h-5 ${color}`} />
         </div>
       </div>
     </div>

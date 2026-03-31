@@ -9,11 +9,27 @@ import type {
   Message,
   Automation,
   AutomationLog,
+  LeadService,
+  FollowUp,
+  FollowUpTemplate,
 } from "@prisma/client";
 
-export type { User, Service, Lead, Pipeline, PipelineStage, Deal, Conversation, Message, Automation, AutomationLog };
+export type {
+  User,
+  Service,
+  Lead,
+  Pipeline,
+  PipelineStage,
+  Deal,
+  Conversation,
+  Message,
+  Automation,
+  AutomationLog,
+  LeadService,
+  FollowUp,
+  FollowUpTemplate,
+};
 
-// Activity type (not yet a Prisma model)
 export interface Activity {
   id: string;
   type: string;
@@ -32,7 +48,6 @@ export type ActivityWithRelations = Activity & {
   user: User;
 };
 
-// Task type (not yet a Prisma model)
 export interface Task {
   id: string;
   title: string;
@@ -55,17 +70,22 @@ export type TaskWithRelations = Task & {
   createdBy: User;
 };
 
+export type LeadWithServices = Lead & {
+  services: (LeadService & { service: Service })[];
+};
+
 export type DealWithRelations = Deal & {
-  lead: Lead;
+  lead: LeadWithServices;
   service: Service;
   stage: PipelineStage;
   assignedTo: User | null;
   activities: Activity[];
   tasks: Task[];
+  followUps: FollowUp[];
 };
 
 export type LeadWithRelations = Lead & {
-  service: Service | null;
+  services: (LeadService & { service: Service })[];
   deals: Deal[];
   conversations: Conversation[];
   activities: Activity[];
@@ -84,9 +104,23 @@ export type PipelineWithStages = Pipeline & {
 };
 
 export type AutomationWithLogs = Automation & {
-  service: Service | null;
   logs: AutomationLog[];
 };
+
+export interface DiagnosticProblem {
+  id: string;
+  description: string;
+  suggestedService: string;
+  priority: "high" | "medium" | "low";
+  notes: string;
+}
+
+export interface DiagnosticNotes {
+  problems: DiagnosticProblem[];
+  currentInvestment?: string;
+  mainGoal?: string;
+  timeline?: string;
+}
 
 export interface NotificationData {
   id: string;
@@ -114,5 +148,7 @@ export interface DashboardStats {
   conversionRate: number;
   leadsByService: { service: string; count: number; color: string }[];
   dealsByStage: { stage: string; count: number; color: string }[];
-  recentLeads: Lead[];
+  recentLeads: LeadWithServices[];
+  pendingFollowUpsToday: number;
+  staleLeadsCount: number;
 }
