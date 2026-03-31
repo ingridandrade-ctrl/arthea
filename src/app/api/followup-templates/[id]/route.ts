@@ -7,7 +7,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession({ req: request as any, ...authOptions } as any) ?? await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
@@ -31,7 +31,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession({ req: request as any, ...authOptions } as any) ?? await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   await prisma.followUpTemplate.delete({ where: { id: params.id } });
