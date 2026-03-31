@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { processIncomingMessage } from "@/lib/chatbot/processor";
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession({ req: request as any, ...authOptions } as any) ?? await getServerSession(authOptions);
+  const session = await getServerSession(authOptions) as any;
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
