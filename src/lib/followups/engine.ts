@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { sendWhatsAppMessage } from "@/lib/evolution";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
 /**
  * Schedule follow-ups for a deal based on its current stage.

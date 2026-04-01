@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { sendWhatsAppMessage } from "@/lib/evolution";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
 const HANDOFF_MESSAGE =
   "Vou te conectar com um dos nossos especialistas que pode te ajudar melhor com isso! 😊 Aguarde um momento, por favor.";

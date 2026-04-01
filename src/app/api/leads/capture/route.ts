@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendWhatsAppMessage } from "@/lib/evolution";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { scheduleFollowUpsForDeal } from "@/lib/followups/engine";
 import { renderTemplate } from "@/lib/followups/engine";
 

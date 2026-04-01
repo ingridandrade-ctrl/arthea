@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { sendWhatsAppMessage } from "@/lib/evolution";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { AutomationTrigger } from "@prisma/client";
 
 interface EventContext {

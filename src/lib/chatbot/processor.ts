@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { generateChatResponse } from "@/lib/anthropic";
-import { sendWhatsAppMessage } from "@/lib/evolution";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { SYSTEM_PROMPT, shouldHandoff } from "./prompts";
 import { performHandoff } from "./handoff";
 import { scheduleFollowUpsForDeal } from "@/lib/followups/engine";
