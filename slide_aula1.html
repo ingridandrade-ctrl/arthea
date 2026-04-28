@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>Aula 1 — Tudo começa no porquê</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Outfit:wght@300;400;500&family=Inconsolata:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal-deep: #0C4747;
+      --teal-mid:  #1A6868;
+      --umber:     #4C362D;
+      --terracotta:#A85C35;
+      --almond:    #D4B99A;
+      --offwhite:  #F7F4F0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .slideshow {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 1280px;
+      height: 720px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 100px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Backgrounds */
+    .bg-deep    { background: var(--teal-deep); }
+    .bg-mid     { background: var(--teal-mid); }
+    .bg-offwhite{ background: var(--offwhite); }
+
+    /* Label */
+    .label {
+      font-family: 'Inconsolata', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+      margin-bottom: 28px;
+    }
+
+    /* Títulos */
+    .title-xl {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 72px;
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.01em;
+    }
+    .title-lg {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 58px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+    .title-md {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 46px;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    .italic { font-style: italic; }
+
+    /* Cores de texto */
+    .text-white   { color: #fff; }
+    .text-almond  { color: var(--almond); }
+    .text-umber   { color: var(--umber); }
+    .text-terracotta { color: var(--terracotta); }
+    .text-almond-60  { color: rgba(212,185,154,0.60); }
+    .text-almond-70  { color: rgba(212,185,154,0.70); }
+    .text-umber-70   { color: rgba(76,54,45,0.70); }
+    .text-umber-60   { color: rgba(76,54,45,0.60); }
+
+    /* Body text */
+    .body-lg {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 300;
+      line-height: 1.65;
+    }
+    .body-md {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 300;
+      line-height: 1.65;
+    }
+    .body-sm {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    /* Spacers */
+    .spacer-8  { height: 8px; }
+    .spacer-16 { height: 16px; }
+    .spacer-24 { height: 24px; }
+    .spacer-32 { height: 32px; }
+    .spacer-40 { height: 40px; }
+    .spacer-48 { height: 48px; }
+
+    /* Divider */
+    .divider {
+      width: 56px;
+      height: 2px;
+      background: var(--terracotta);
+      margin-top: 36px;
+    }
+    .divider-full {
+      width: 100%;
+      height: 1px;
+      background: rgba(168,92,53,0.30);
+      margin: 32px 0;
+    }
+
+    /* Bullets */
+    .bullets { display: flex; flex-direction: column; gap: 20px; }
+    .bullet {
+      display: flex;
+      align-items: baseline;
+      gap: 18px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 21px;
+      font-weight: 300;
+      line-height: 1.4;
+    }
+    .bullet-arrow {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      color: var(--terracotta);
+      flex-shrink: 0;
+    }
+
+    /* Quote box */
+    .quote-box {
+      border: 1px solid rgba(168,92,53,0.25);
+      background: rgba(168,92,53,0.08);
+      padding: 36px 44px;
+      border-radius: 2px;
+    }
+    .quote-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 19px;
+      font-weight: 300;
+      line-height: 1.75;
+    }
+    .quote-sig {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-style: italic;
+      color: var(--terracotta);
+      margin-top: 20px;
+    }
+
+    /* Decorative number */
+    .deco-number {
+      position: absolute;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: 340px;
+      line-height: 1;
+      color: rgba(212,185,154,0.10);
+      right: 60px;
+      bottom: -40px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .deco-question {
+      position: absolute;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: 480px;
+      line-height: 1;
+      color: rgba(212,185,154,0.08);
+      right: 80px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* Three columns (slide 9) */
+    .three-cols {
+      display: flex;
+      gap: 0;
+      margin-top: 8px;
+    }
+    .col-block {
+      flex: 1;
+      padding-right: 40px;
+    }
+    .col-block:not(:last-child) {
+      border-right: 1px solid rgba(212,185,154,0.15);
+      margin-right: 40px;
+    }
+    .col-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: 52px;
+      color: var(--terracotta);
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+    .col-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 300;
+      line-height: 1.5;
+      color: var(--almond);
+    }
+
+    /* Slide subtitle */
+    .subtitle {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      margin-top: 24px;
+    }
+
+    /* Counter */
+    .counter {
+      position: fixed;
+      bottom: 28px;
+      right: 36px;
+      font-family: 'Inconsolata', monospace;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: rgba(212,185,154,0.40);
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    /* Align helpers */
+    .center { text-align: center; align-items: center; }
+    .slide.center {
+      align-items: center;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="slideshow">
+
+  <!-- SLIDE 1 — ABERTURA -->
+  <div class="slide bg-deep active">
+    <div class="label">Módulo 1 · Alma · Aula 1</div>
+    <div class="title-xl text-white">Tudo começa<br>no porquê</div>
+    <div class="subtitle text-almond-60">8–12 min</div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- SLIDE 2 — GANCHO -->
+  <div class="slide bg-deep">
+    <div class="label">Você já tentou isso?</div>
+    <div class="spacer-16"></div>
+    <div class="title-md text-almond italic">
+      "Você já tentou seguir uma estratégia<br>
+      que funcionou para outra pessoa<br>
+      — e não funcionou para você?"
+    </div>
+  </div>
+
+  <!-- SLIDE 3 — DIAGNÓSTICO -->
+  <div class="slide bg-mid">
+    <div class="label">O que aconteceu</div>
+    <div class="spacer-24"></div>
+    <div class="bullets">
+      <div class="bullet text-almond">
+        <span class="bullet-arrow">→</span>
+        <span>Não foi preguiça</span>
+      </div>
+      <div class="bullet text-almond">
+        <span class="bullet-arrow">→</span>
+        <span>Não foi falta de esforço</span>
+      </div>
+    </div>
+    <div class="spacer-40"></div>
+    <div class="title-md text-white">Era uma base que não era sua.</div>
+  </div>
+
+  <!-- SLIDE 4 — CONCEITO CENTRAL -->
+  <div class="slide bg-offwhite">
+    <div class="label">O que torna seu negócio único</div>
+    <div class="spacer-16"></div>
+    <div class="title-lg text-umber">
+      Você e o seu negócio<br>são únicos.
+    </div>
+    <div class="spacer-32"></div>
+    <div class="body-lg text-umber-70">
+      A sua história, forma de ver o mundo,<br>
+      de comunicar — isso transmite a alma<br>
+      do seu negócio.
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- SLIDE 5 — HONESTIDADE -->
+  <div class="slide bg-offwhite">
+    <div class="label">Sendo sincera</div>
+    <div class="spacer-24"></div>
+    <div class="quote-box">
+      <div class="quote-text text-umber">
+        "Por muito tempo eu deixei — e ainda deixo<br>
+        — de compartilhar por medo de um julgamento<br>
+        que é mais meu do que de qualquer outra pessoa."
+      </div>
+      <div class="quote-sig">Flora</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6 — A PERGUNTA CENTRAL -->
+  <div class="slide bg-deep" style="align-items:center; text-align:center;">
+    <div class="deco-question">?</div>
+    <div class="label" style="text-align:center;">Antes de qualquer estratégia</div>
+    <div class="spacer-24"></div>
+    <div class="title-xl text-white">
+      Por que você faz<br>o que você faz?
+    </div>
+    <div class="spacer-32"></div>
+    <div class="body-md text-almond-70">Não a versão bonita. A versão real.</div>
+  </div>
+
+  <!-- SLIDE 7 — SEM CLAREZA -->
+  <div class="slide bg-mid">
+    <div class="label">Quando o porquê não está claro</div>
+    <div class="spacer-32"></div>
+    <div class="bullets">
+      <div class="bullet text-almond">
+        <span class="bullet-arrow">→</span>
+        <span>Você muda de estratégia toda vez que vê algo novo</span>
+      </div>
+      <div class="bullet text-almond">
+        <span class="bullet-arrow">→</span>
+        <span>Você imita porque não tem clareza do que é seu</span>
+      </div>
+      <div class="bullet text-almond">
+        <span class="bullet-arrow">→</span>
+        <span>Você começa e para porque não tem raiz</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8 — POSICIONAMENTO -->
+  <div class="slide bg-offwhite">
+    <div class="label">Posicionamento</div>
+    <div class="spacer-16"></div>
+    <div class="title-lg text-umber italic">Não é uma técnica.</div>
+    <div class="spacer-32"></div>
+    <div class="body-lg text-umber-70">
+      É uma decisão que se sustenta<br>
+      na repetição.
+    </div>
+    <div class="spacer-16"></div>
+    <div class="body-lg text-umber-70">E essa decisão começa aqui.</div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- SLIDE 9 — O QUE MUDA -->
+  <div class="slide bg-deep">
+    <div class="label">Quando o porquê está claro</div>
+    <div class="spacer-40"></div>
+    <div class="three-cols">
+      <div class="col-block">
+        <div class="col-num">01</div>
+        <div class="col-text">Você para<br>de imitar</div>
+      </div>
+      <div class="col-block">
+        <div class="col-num">02</div>
+        <div class="col-text">A comunicação<br>fica mais fácil</div>
+      </div>
+      <div class="col-block" style="padding-right:0; border-right:none; margin-right:0;">
+        <div class="col-num">03</div>
+        <div class="col-text">A consistência<br>aparece</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10 — TRANSIÇÃO PARA O EXERCÍCIO -->
+  <div class="slide bg-offwhite">
+    <div class="label">Agora é com você</div>
+    <div class="spacer-16"></div>
+    <div class="title-lg text-umber">Exercício — Parte 1</div>
+    <div class="spacer-32"></div>
+    <div class="body-lg text-umber-70">
+      Abre o material da aula.<br>
+      Três perguntas.<br>
+      Não tem resposta certa.<br>
+      Tem a sua resposta.
+    </div>
+    <div class="divider-full" style="margin-top: 44px;"></div>
+  </div>
+
+</div>
+
+<div class="counter">1 / 10</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.querySelector('.counter');
+  const total = slides.length;
+  let current = 0;
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    current = (n + total) % total;
+    slides[current].classList.add('active');
+    counter.textContent = (current + 1) + ' / ' + total;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  document.querySelector('.slideshow').addEventListener('click', e => {
+    const x = e.clientX;
+    const mid = window.innerWidth / 2;
+    goTo(x >= mid ? current + 1 : current - 1);
+  });
+</script>
+</body>
+</html>

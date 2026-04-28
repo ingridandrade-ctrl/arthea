@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>Aula 2 — Você não fala para todo mundo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Outfit:wght@300;400;500&family=Inconsolata:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal-deep: #0C4747;
+      --teal-mid:  #1A6868;
+      --umber:     #4C362D;
+      --terracotta:#A85C35;
+      --almond:    #D4B99A;
+      --offwhite:  #F7F4F0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .slideshow {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 1280px;
+      height: 720px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 100px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Backgrounds */
+    .bg-deep    { background: var(--teal-deep); }
+    .bg-mid     { background: var(--teal-mid); }
+    .bg-offwhite{ background: var(--offwhite); }
+
+    /* Label */
+    .label {
+      font-family: 'Inconsolata', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+      margin-bottom: 28px;
+    }
+
+    /* Títulos */
+    .title-xl {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 66px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+    .title-lg {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 54px;
+      font-weight: 700;
+      line-height: 1.12;
+      letter-spacing: -0.01em;
+    }
+    .title-md {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 44px;
+      font-weight: 700;
+      line-height: 1.18;
+    }
+    .italic { font-style: italic; }
+
+    /* Cores de texto */
+    .text-white      { color: #fff; }
+    .text-almond     { color: var(--almond); }
+    .text-umber      { color: var(--umber); }
+    .text-terracotta { color: var(--terracotta); }
+    .text-almond-60  { color: rgba(212,185,154,0.60); }
+    .text-almond-70  { color: rgba(212,185,154,0.70); }
+    .text-almond-40  { color: rgba(212,185,154,0.40); }
+    .text-umber-70   { color: rgba(76,54,45,0.70); }
+    .text-umber-60   { color: rgba(76,54,45,0.60); }
+
+    /* Body text */
+    .body-lg {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 300;
+      line-height: 1.65;
+    }
+    .body-md {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 300;
+      line-height: 1.65;
+    }
+    .body-sm {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    /* Spacers */
+    .spacer-8  { height: 8px; }
+    .spacer-16 { height: 16px; }
+    .spacer-24 { height: 24px; }
+    .spacer-32 { height: 32px; }
+    .spacer-40 { height: 40px; }
+    .spacer-48 { height: 48px; }
+
+    /* Divider */
+    .divider {
+      width: 56px;
+      height: 2px;
+      background: var(--terracotta);
+      margin-top: 36px;
+    }
+    .divider-full {
+      width: 100%;
+      height: 1px;
+      background: rgba(168,92,53,0.30);
+      margin: 32px 0;
+    }
+
+    /* Bullets */
+    .bullets { display: flex; flex-direction: column; gap: 20px; }
+    .bullet {
+      display: flex;
+      align-items: baseline;
+      gap: 18px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 21px;
+      font-weight: 300;
+      line-height: 1.4;
+    }
+    .bullet-arrow {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      color: var(--terracotta);
+      flex-shrink: 0;
+    }
+
+    /* Quote box */
+    .quote-box {
+      border: 1px solid rgba(168,92,53,0.25);
+      background: rgba(168,92,53,0.08);
+      padding: 36px 44px;
+      border-radius: 2px;
+    }
+    .quote-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 19px;
+      font-weight: 300;
+      line-height: 1.75;
+    }
+    .quote-sig {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-style: italic;
+      color: var(--terracotta);
+      margin-top: 20px;
+    }
+
+    /* Terracotta highlight text */
+    .highlight-terra {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 400;
+      line-height: 1.6;
+      color: var(--terracotta);
+    }
+
+    /* Decorative number */
+    .deco-number {
+      position: absolute;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: 380px;
+      line-height: 1;
+      color: rgba(212,185,154,0.08);
+      right: 60px;
+      bottom: -60px;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* Subtitle */
+    .subtitle {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      margin-top: 24px;
+    }
+
+    /* Italic small bottom */
+    .caption-italic {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-style: italic;
+      font-weight: 400;
+      margin-top: 8px;
+    }
+
+    /* Counter */
+    .counter {
+      position: fixed;
+      bottom: 28px;
+      right: 36px;
+      font-family: 'Inconsolata', monospace;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: rgba(212,185,154,0.40);
+      z-index: 100;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="slideshow">
+
+  <!-- SLIDE 1 — ABERTURA -->
+  <div class="slide bg-deep active">
+    <div class="label">Módulo 1 · Alma · Aula 2</div>
+    <div class="title-xl text-white">
+      Você não fala<br>
+      para todo mundo.<br>
+      Escolhe para quem existe.
+    </div>
+    <div class="subtitle text-almond-60">8–12 min</div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- SLIDE 2 — GANCHO -->
+  <div class="slide bg-mid">
+    <div class="label">Você já sentiu isso?</div>
+    <div class="spacer-16"></div>
+    <div class="title-md text-almond">
+      Publicou. Alguém curtiu.<br>
+      Mas ninguém se identificou de verdade.<br>
+      Ninguém mandou mensagem falando<br>
+      <span class="italic">'isso sou eu'.</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 3 — A FRASE QUE TRAVA TUDO -->
+  <div class="slide bg-deep" style="align-items:center; text-align:center;">
+    <div class="label" style="text-align:center;">A resposta mais comum</div>
+    <div class="spacer-24"></div>
+    <div class="title-lg text-almond italic">
+      "Para qualquer pessoa<br>
+      que precise do que ofereço."
+    </div>
+    <div class="spacer-32"></div>
+    <div class="body-md text-almond-60">
+      Parece generoso. É o que faz<br>
+      a comunicação não chegar em ninguém.
+    </div>
+  </div>
+
+  <!-- SLIDE 4 — O PORQUÊ -->
+  <div class="slide bg-offwhite">
+    <div class="label">Por quê não funciona</div>
+    <div class="spacer-16"></div>
+    <div class="title-lg text-umber">
+      É impossível falar com todo mundo<br>
+      e fazer alguém se sentir visto.
+    </div>
+    <div class="spacer-32"></div>
+    <div class="highlight-terra">
+      Mensagem genérica passa.<br>
+      Mensagem específica ressoa.
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- SLIDE 5 — A VIRADA -->
+  <div class="slide bg-deep">
+    <div class="deco-number">01</div>
+    <div class="label">A escolha</div>
+    <div class="spacer-24"></div>
+    <div class="title-lg text-white">
+      Definir para quem você existe<br>
+      não é uma técnica.
+    </div>
+    <div class="spacer-32"></div>
+    <div class="body-lg text-almond-70">
+      É uma escolha.<br>
+      E ela precisa estar alinhada<br>
+      com o porquê da aula anterior.
+    </div>
+  </div>
+
+  <!-- SLIDE 6 — A PERGUNTA -->
+  <div class="slide bg-offwhite">
+    <div class="label">A pergunta certa</div>
+    <div class="spacer-16"></div>
+    <div class="title-lg text-umber italic">
+      Quem mais precisa<br>
+      exatamente do que você tem?
+    </div>
+    <div class="spacer-32"></div>
+    <div class="body-lg text-umber-70">
+      Quem está vivendo a dor<br>
+      que você sabe resolver?<br>
+      Essa é a pessoa para quem você existe.
+    </div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- SLIDE 7 — O MEDO -->
+  <div class="slide bg-mid">
+    <div class="label">Sendo sincera</div>
+    <div class="spacer-24"></div>
+    <div class="quote-box">
+      <div class="quote-text text-almond">
+        "Eu sei que essa escolha dá medo.<br>
+        Parece que você está fechando portas.<br>
+        Às vezes ainda sinto isso."
+      </div>
+      <div class="quote-sig">Flora</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8 — O QUE MUDA -->
+  <div class="slide bg-offwhite">
+    <div class="label">Na prática, três coisas mudam</div>
+    <div class="spacer-24"></div>
+    <div class="bullets">
+      <div class="bullet text-umber">
+        <span class="bullet-arrow">→</span>
+        <span>O conteúdo fica mais fácil de criar</span>
+      </div>
+      <div class="bullet text-umber">
+        <span class="bullet-arrow">→</span>
+        <span>A oferta fica mais clara</span>
+      </div>
+      <div class="bullet text-umber">
+        <span class="bullet-arrow">→</span>
+        <span>O atendimento muda</span>
+      </div>
+    </div>
+    <div class="spacer-32"></div>
+    <div class="body-sm text-umber-60">
+      Não porque você melhorou.<br>
+      Porque você sabe com quem está falando.
+    </div>
+  </div>
+
+  <!-- SLIDE 9 — TRANSIÇÃO PARA O EXERCÍCIO -->
+  <div class="slide bg-deep">
+    <div class="label">Agora é com você</div>
+    <div class="spacer-16"></div>
+    <div class="title-lg text-white">Exercício — Parte 2</div>
+    <div class="spacer-32"></div>
+    <div class="body-lg text-almond-70">
+      Abre o material da aula.<br>
+      A pergunta não é fácil —<br>
+      mas é a mais importante.
+    </div>
+    <div class="divider-full" style="margin-top: 44px;"></div>
+    <div class="caption-italic text-almond-40">Para quem você realmente quer existir?</div>
+  </div>
+
+</div>
+
+<div class="counter">1 / 9</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.querySelector('.counter');
+  const total = slides.length;
+  let current = 0;
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    current = (n + total) % total;
+    slides[current].classList.add('active');
+    counter.textContent = (current + 1) + ' / ' + total;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+
+  document.querySelector('.slideshow').addEventListener('click', e => {
+    const x = e.clientX;
+    const mid = window.innerWidth / 2;
+    goTo(x >= mid ? current + 1 : current - 1);
+  });
+</script>
+</body>
+</html>
