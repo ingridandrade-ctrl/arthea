@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ArrowLeft, Pencil, Check, Plus, Trash2, ExternalLink, FileCheck2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
@@ -126,9 +127,16 @@ export default function ContratoDetailPage() {
 
   return (
     <div className="space-y-6">
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/financeiro" className="hover:text-foreground">Financeiro</Link>
+        <span>/</span>
+        <Link href="/financeiro/clientes" className="hover:text-foreground">Clientes</Link>
+        <span>/</span>
+        <span className="text-foreground">{contract.number}</span>
+      </nav>
       <div className="flex items-center gap-4">
-        <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="w-5 h-5" />
+        <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm">
+          <ArrowLeft className="w-4 h-4" /> Voltar
         </button>
         <h1 className="text-2xl font-bold">Cliente {contract.number}</h1>
         <button onClick={() => setEditing(true)} className="p-1.5 rounded-lg hover:bg-muted">

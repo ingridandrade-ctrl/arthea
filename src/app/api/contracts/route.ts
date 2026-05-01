@@ -122,8 +122,8 @@ export async function POST(request: NextRequest) {
     include: { lead: true, deal: true, service: true },
   });
 
-  // Auto-generate installments unless explicitly disabled or temporary
-  const shouldGenerate = generateInvoices !== false && contract.clientType !== "TEMPORARY";
+  // Auto-generate installments when explicitly requested by the form
+  const shouldGenerate = generateInvoices === true;
   if (shouldGenerate && contract.durationMonths > 0) {
     const invCount = await prisma.invoice.count();
     const invoiceData = Array.from({ length: contract.durationMonths }, (_, i) => {

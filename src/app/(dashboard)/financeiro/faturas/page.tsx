@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import Link from "next/link";
 import {
-  Check, ExternalLink, FileCheck2, Pencil, Plus, Search, Trash2,
+  ArrowLeft, Check, ExternalLink, FileCheck2, Pencil, Plus, Search, Trash2,
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 
@@ -148,6 +149,13 @@ export default function FaturasPage() {
 
   return (
     <div className="space-y-6">
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/financeiro" className="inline-flex items-center gap-1 hover:text-foreground">
+          <ArrowLeft className="w-4 h-4" /> Financeiro
+        </Link>
+        <span>/</span>
+        <span className="text-foreground">Faturas</span>
+      </nav>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Faturas e pagamentos</h1>

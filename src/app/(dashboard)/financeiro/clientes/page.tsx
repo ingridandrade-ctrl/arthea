@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Plus, Search, Pencil, Trash2, FileText } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, FileText, ArrowLeft } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 
 const CLIENT_TYPES = [
@@ -102,6 +102,13 @@ export default function ClientesPage() {
 
   return (
     <div className="space-y-6">
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Link href="/financeiro" className="inline-flex items-center gap-1 hover:text-foreground">
+          <ArrowLeft className="w-4 h-4" /> Financeiro
+        </Link>
+        <span>/</span>
+        <span className="text-foreground">Clientes</span>
+      </nav>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Clientes</h1>
