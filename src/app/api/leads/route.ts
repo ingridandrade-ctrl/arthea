@@ -33,10 +33,10 @@ export async function GET(request: NextRequest) {
 
   const leads = await prisma.lead.findMany({
     where,
+    take: 50,
     include: {
       services: { include: { service: true } },
-      deals: true,
-      conversations: { orderBy: { lastMessageAt: "desc" }, take: 1 },
+      _count: { select: { deals: true, conversations: true } },
     },
     orderBy: { createdAt: "desc" },
   });

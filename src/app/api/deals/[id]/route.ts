@@ -57,6 +57,55 @@ export async function PUT(
       fromStageId: currentDeal.stageId,
       toStageId: stageId,
     }).catch(console.error);
+
+    // Auto-create contract when deal moves to "Fechado" (last stage)
+    const newStage = await prisma.pipelineStage.findUnique({ where: { id: stageId } });
+    const allStages = await prisma.pipelineStage.findMany({
+      where: { pipelineId: newStage?.pipelineId || "" },
+      orderBy: { order: "desc" },
+      take: 1,
+    });
+    const isLastStage = allStages[0]?.id === stageId;
+
+    if (isLastStage) {
+      const existingContract = await prisma.contract.findUnique({ where: { dealId: params.id } });
+      if (!existingContract) {
+        const contractCount = await prisma.contract.count();
+        const year = new Date().getFullYear();
+        const contractNumber = `CTR-${year}-${String(contractCount + 1).padStart(3, "0")}`;
+        const durationMonths = 12;
+
+        const contract = await prisma.contract.create({
+          data: {
+            number: contractNumber,
+            dealId: params.id,
+            leadId: deal.leadId,
+            serviceId: deal.serviceId,
+            monthlyValue: deal.value ?? 0,
+            durationMonths,
+            startDate: new Date(),
+            paymentDay: 10,
+          },
+        });
+
+        const invoiceCount = await prisma.invoice.count();
+        const invoiceData = Array.from({ length: durationMonths }, (_, i) => {
+          const due = new Date();
+          due.setMonth(due.getMonth() + i);
+          due.setDate(10);
+          return {
+            number: `INV-${year}-${String(invoiceCount + i + 1).padStart(3, "0")}`,
+            contractId: contract.id,
+            leadId: deal.leadId,
+            amount: deal.value ?? 0,
+            dueDate: due,
+            description: `Parcela ${i + 1}/${durationMonths}`,
+          };
+        });
+
+        await prisma.invoice.createMany({ data: invoiceData });
+      }
+    }
   }
 
   return NextResponse.json(deal);

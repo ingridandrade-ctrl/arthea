@@ -48,6 +48,28 @@ enum AutomationAction {
   CREATE_REMINDER
 }
 
+enum Recurrence {
+  ONE_TIME
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum ContractStatus {
+  ACTIVE
+  PAUSED
+  CANCELED
+  COMPLETED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELED
+  REFUNDED
+}
+
 model User {
   id             String         @id @default(cuid())
   name           String
@@ -72,9 +94,12 @@ model Service {
   icon        String?
   color       String       @default("#6366f1")
   isActive    Boolean      @default(true)
+  basePrice     Float?
+  setupFee      Float?
   createdAt   DateTime     @default(now())
   leads       LeadService[]
   deals       Deal[]
+  contracts Contract[]
 }
 
 model Lead {
@@ -100,6 +125,8 @@ model Lead {
   automationLogs AutomationLog[]
   activities     Activity[]
   tasks          Task[]
+  contracts Contract[]
+  invoices Invoice[]
 
   @@index([status])
   @@index([phone])
@@ -161,6 +188,7 @@ model Deal {
   activities        Activity[]
   tasks             Task[]
   followUps         FollowUp[]
+  contract Contract?
 
   @@index([serviceId])
   @@index([stageId])
@@ -300,6 +328,52 @@ model Task {
   @@index([dueDate])
   @@index([leadId])
   @@index([dealId])
+}
+
+model Contract {
+  id             String         @id @default(cuid())
+  number         String         @unique
+  dealId         String         @unique
+  deal           Deal           @relation(fields: [dealId], references: [id])
+  leadId         String
+  lead           Lead           @relation(fields: [leadId], references: [id])
+  serviceId      String?
+  service        Service?       @relation(fields: [serviceId], references: [id])
+  monthlyValue   Float
+  setupValue     Float?
+  durationMonths Int            @default(12)
+  recurrence     Recurrence     @default(MONTHLY)
+  status         ContractStatus @default(ACTIVE)
+  startDate      DateTime
+  endDate        DateTime?
+  paymentDay     Int            @default(10)
+  invoices       Invoice[]
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([status])
+  @@index([leadId])
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  number        String        @unique
+  contractId    String?
+  contract      Contract?     @relation(fields: [contractId], references: [id])
+  leadId        String
+  lead          Lead          @relation(fields: [leadId], references: [id])
+  amount        Float
+  status        InvoiceStatus @default(PENDING)
+  dueDate       DateTime
+  paidAt        DateTime?
+  paymentMethod String?
+  description   String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status, dueDate])
+  @@index([leadId])
 }
 
 model Notification {
