@@ -10,7 +10,9 @@ import {
   Plus,
   Calendar,
   X,
+  Pencil,
 } from "lucide-react";
+import { Modal } from "@/components/ui/modal";
 
 interface Task {
   id: string;
@@ -56,6 +58,7 @@ export default function TarefasPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterTab>("todas");
   const [showForm, setShowForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   async function fetchTasks() {
     setLoading(true);
@@ -224,6 +227,10 @@ export default function TarefasPage() {
                     )}
                   </div>
                 </div>
+
+                <button onClick={() => setEditingTask(task)} className="shrink-0 p-1 rounded hover:bg-muted">
+                  <Pencil className="w-4 h-4 text-muted-foreground" />
+                </button>
               </li>
             ))}
           </ul>
@@ -240,7 +247,67 @@ export default function TarefasPage() {
           }}
         />
       )}
+
+      {/* Modal - Editar Tarefa */}
+      {editingTask && (
+        <Modal title="Editar Tarefa" onClose={() => setEditingTask(null)}>
+          <EditTaskForm
+            task={editingTask}
+            onSaved={() => { setEditingTask(null); fetchTasks(); }}
+          />
+        </Modal>
+      )}
     </div>
+  );
+}
+
+function EditTaskForm({ task, onSaved }: { task: Task; onSaved: () => void }) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    const fd = new FormData(e.currentTarget);
+    await fetch(`/api/tasks/${task.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: fd.get("title"),
+        description: fd.get("description") || null,
+        priority: fd.get("priority"),
+        dueDate: fd.get("dueDate") || null,
+      }),
+    });
+    onSaved();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Titulo</label>
+        <input name="title" defaultValue={task.title} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Descricao</label>
+        <textarea name="description" rows={3} defaultValue={task.description || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Prioridade</label>
+        <select name="priority" defaultValue={task.priority} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+          <option value="low">Baixa</option>
+          <option value="medium">Media</option>
+          <option value="high">Alta</option>
+          <option value="urgent">Urgente</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Data de Vencimento</label>
+        <input name="dueDate" type="date" defaultValue={task.dueDate ? task.dueDate.split("T")[0] : ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
+        {loading ? "Salvando..." : "Salvar"}
+      </button>
+    </form>
   );
 }
 

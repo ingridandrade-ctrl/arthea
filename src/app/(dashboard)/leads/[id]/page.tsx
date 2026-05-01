@@ -12,8 +12,10 @@ import {
   AlertCircle,
   Clock,
   Tag,
+  Pencil,
 } from "lucide-react";
 import Link from "next/link";
+import { Modal } from "@/components/ui/modal";
 
 const PRIORITY_STYLES: Record<string, string> = {
   high: "bg-red-100 text-red-700",
@@ -26,14 +28,19 @@ export default function LeadDetailPage() {
   const router = useRouter();
   const [lead, setLead] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
 
-  useEffect(() => {
+  function fetchLead() {
     fetch(`/api/leads/${params.id}`)
       .then((r) => r.json())
       .then((data) => {
         setLead(data);
         setLoading(false);
       });
+  }
+
+  useEffect(() => {
+    fetchLead();
   }, [params.id]);
 
   if (loading) {
@@ -55,6 +62,9 @@ export default function LeadDetailPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-2xl font-bold">{lead.name}</h1>
+        <button onClick={() => setEditing(true)} className="p-1.5 rounded-lg hover:bg-muted">
+          <Pencil className="w-4 h-4 text-muted-foreground" />
+        </button>
         {/* Service tags */}
         <div className="flex gap-1">
           {lead.services?.map((ls: any) => (
@@ -218,6 +228,65 @@ export default function LeadDetailPage() {
           )}
         </div>
       </div>
+
+      {editing && (
+        <Modal title="Editar Lead" onClose={() => setEditing(false)}>
+          <EditLeadForm
+            lead={lead}
+            onSaved={() => { setEditing(false); fetchLead(); }}
+          />
+        </Modal>
+      )}
     </div>
+  );
+}
+
+function EditLeadForm({ lead, onSaved }: { lead: any; onSaved: () => void }) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    const fd = new FormData(e.currentTarget);
+    await fetch(`/api/leads/${lead.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: fd.get("name"),
+        phone: fd.get("phone"),
+        email: fd.get("email") || null,
+        company: fd.get("company") || null,
+        notes: fd.get("notes") || null,
+      }),
+    });
+    onSaved();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Nome</label>
+        <input name="name" defaultValue={lead.name} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Telefone</label>
+        <input name="phone" defaultValue={lead.phone} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Email</label>
+        <input name="email" type="email" defaultValue={lead.email || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Empresa</label>
+        <input name="company" defaultValue={lead.company || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Observacoes</label>
+        <textarea name="notes" rows={3} defaultValue={lead.notes || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
+        {loading ? "Salvando..." : "Salvar"}
+      </button>
+    </form>
   );
 }

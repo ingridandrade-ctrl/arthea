@@ -15,8 +15,9 @@ import {
   CheckSquare,
   BarChart3,
   FileText,
+  DollarSign,
 } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -27,12 +28,20 @@ const navigation = [
   { name: "Automacoes", href: "/automations", icon: Zap },
   { name: "Templates", href: "/admin/templates", icon: FileText },
   { name: "Relatorios", href: "/relatorios", icon: BarChart3 },
+  { name: "Financeiro", href: "/financeiro", icon: DollarSign, roles: ["ADMIN"] as string[] },
   { name: "Servicos", href: "/services", icon: Briefcase },
   { name: "Configuracoes", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const userRole = (session?.user as any)?.role;
+
+  const filteredNavigation = navigation.filter((item) => {
+    if (!("roles" in item) || !item.roles) return true;
+    return item.roles.includes(userRole);
+  });
 
   return (
     <aside className="w-64 bg-sidebar border-r border-border h-screen flex flex-col fixed left-0 top-0">
@@ -42,7 +51,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-3 space-y-1">
-        {navigation.map((item) => {
+        {filteredNavigation.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
             <Link

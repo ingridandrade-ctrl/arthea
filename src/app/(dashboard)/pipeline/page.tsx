@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import { useServiceFilter } from "@/lib/hooks/use-service-filter";
 import { formatCurrency } from "@/lib/utils";
-import { GripVertical, Tag } from "lucide-react";
+import { GripVertical, Tag, Pencil } from "lucide-react";
+import { Modal } from "@/components/ui/modal";
 
 export default function PipelinePage() {
   const { activeService } = useServiceFilter();
   const [pipeline, setPipeline] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [draggedDeal, setDraggedDeal] = useState<any>(null);
+  const [editingDeal, setEditingDeal] = useState<any>(null);
 
   async function fetchPipeline() {
     setLoading(true);
@@ -31,14 +33,25 @@ export default function PipelinePage() {
       return;
     }
 
+    // Optimistic update
+    setPipeline((prev: any) => {
+      if (!prev) return prev;
+      const newStages = prev.stages.map((s: any) => ({
+        ...s,
+        deals: s.id === stageId
+          ? [...s.deals, { ...draggedDeal, stageId }]
+          : s.deals.filter((d: any) => d.id !== draggedDeal.id),
+      }));
+      return { ...prev, stages: newStages };
+    });
+
+    setDraggedDeal(null);
+
     await fetch(`/api/deals/${draggedDeal.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stageId }),
     });
-
-    setDraggedDeal(null);
-    fetchPipeline();
   }
 
   if (loading) {
@@ -101,8 +114,14 @@ export default function PipelinePage() {
                   key={deal.id}
                   draggable
                   onDragStart={() => setDraggedDeal(deal)}
-                  className="bg-card rounded-lg border border-border p-3 cursor-grab active:cursor-grabbing hover:shadow-sm transition"
+                  className="group relative bg-card rounded-lg border border-border p-3 cursor-grab active:cursor-grabbing hover:shadow-sm transition"
                 >
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setEditingDeal(deal); }}
+                    className="absolute top-2 right-2 p-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
                   <div className="flex items-start gap-2">
                     <GripVertical className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -159,6 +178,50 @@ export default function PipelinePage() {
           </div>
         ))}
       </div>
+
+      {editingDeal && (
+        <Modal title="Editar Deal" onClose={() => setEditingDeal(null)}>
+          <EditDealForm
+            deal={editingDeal}
+            onSaved={() => { setEditingDeal(null); fetchPipeline(); }}
+          />
+        </Modal>
+      )}
     </div>
+  );
+}
+
+function EditDealForm({ deal, onSaved }: { deal: any; onSaved: () => void }) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    const fd = new FormData(e.currentTarget);
+    await fetch(`/api/deals/${deal.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: fd.get("title"),
+        value: fd.get("value") ? parseFloat(fd.get("value") as string) : null,
+      }),
+    });
+    onSaved();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium mb-1">Titulo</label>
+        <input name="title" defaultValue={deal.title} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Valor (R$)</label>
+        <input name="value" type="number" step="0.01" defaultValue={deal.value || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
+        {loading ? "Salvando..." : "Salvar"}
+      </button>
+    </form>
   );
 }
