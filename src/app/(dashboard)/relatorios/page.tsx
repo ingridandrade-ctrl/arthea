@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useServiceFilter } from "@/lib/hooks/use-service-filter";
+import { useCachedFetch } from "@/lib/hooks/use-cached-fetch";
 import { formatCurrency } from "@/lib/utils";
 import {
   TrendingUp,
@@ -14,19 +14,8 @@ import type { ReportData } from "@/types";
 
 export default function RelatoriosPage() {
   const { activeService } = useServiceFilter();
-  const [data, setData] = useState<ReportData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchReports() {
-      setLoading(true);
-      const res = await fetch(`/api/reports?service=${activeService}`);
-      const json = await res.json();
-      setData(json);
-      setLoading(false);
-    }
-    fetchReports();
-  }, [activeService]);
+  const url = `/api/reports?service=${activeService}`;
+  const { data, loading } = useCachedFetch<ReportData>(url, 120000);
 
   if (loading || !data) {
     return (

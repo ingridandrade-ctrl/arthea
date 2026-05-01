@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useServiceFilter } from "@/lib/hooks/use-service-filter";
+import { useCachedFetch } from "@/lib/hooks/use-cached-fetch";
 import { formatCurrency } from "@/lib/utils";
 import {
   Users,
@@ -15,21 +15,8 @@ import type { DashboardStats } from "@/types";
 
 export default function DashboardPage() {
   const { activeService } = useServiceFilter();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchStats() {
-      setLoading(true);
-      const res = await fetch(
-        `/api/dashboard/stats?service=${activeService}`
-      );
-      const data = await res.json();
-      setStats(data);
-      setLoading(false);
-    }
-    fetchStats();
-  }, [activeService]);
+  const url = `/api/dashboard/stats?service=${activeService}`;
+  const { data: stats, loading } = useCachedFetch<DashboardStats>(url, 60000);
 
   if (loading || !stats) {
     return (

@@ -52,5 +52,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json([]);
   }
 
-  return NextResponse.json(pipeline);
+  const response = NextResponse.json(pipeline);
+  response.headers.set('Cache-Control', 's-maxage=10, stale-while-revalidate=60');
+  return response;
 }

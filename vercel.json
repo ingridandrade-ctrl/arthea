@@ -1,6 +1,7 @@
 {
   "installCommand": "npm ci && npx prisma generate",
   "buildCommand": "npx prisma generate && next build",
+  "regions": ["gru1"],
   "functions": {
     "src/app/api/**/*.ts": {
       "memory": 1024,

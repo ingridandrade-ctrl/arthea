@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     }),
   ]);
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     totalLeads,
     totalDeals,
     totalRevenue,
@@ -105,4 +105,6 @@ export async function GET(request: NextRequest) {
     pendingFollowUpsToday,
     staleLeadsCount,
   });
+  response.headers.set('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+  return response;
 }

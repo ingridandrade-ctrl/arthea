@@ -64,21 +64,6 @@ export async function GET(request: NextRequest) {
     ],
   });
 
-  // Sort: overdue first (not completed, dueDate < now), then by dueDate asc
-  const now = new Date();
-  tasks.sort((a, b) => {
-    const aOverdue = !a.completed && a.dueDate && new Date(a.dueDate) < now;
-    const bOverdue = !b.completed && b.dueDate && new Date(b.dueDate) < now;
-    if (aOverdue && !bOverdue) return -1;
-    if (!aOverdue && bOverdue) return 1;
-    if (a.dueDate && b.dueDate) {
-      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-    }
-    if (a.dueDate && !b.dueDate) return -1;
-    if (!a.dueDate && b.dueDate) return 1;
-    return 0;
-  });
-
   return NextResponse.json(tasks);
 }
 

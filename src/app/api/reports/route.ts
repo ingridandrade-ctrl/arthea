@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     revenueByMonth: months.map((m) => ({ month: m.label, revenue: revenueByMonth[m.key] })),
     conversionByService,
     leadsBySource,
@@ -147,4 +147,6 @@ export async function GET(request: NextRequest) {
       leadName: d.lead.name,
     })),
   });
+  response.headers.set('Cache-Control', 's-maxage=120, stale-while-revalidate=600');
+  return response;
 }

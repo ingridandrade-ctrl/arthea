@@ -2,8 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   compress: true,
+  poweredByHeader: false,
   experimental: {
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ["lucide-react", "@anthropic-ai/sdk"],
     serverActions: {
       bodySizeLimit: "2mb",
     },
