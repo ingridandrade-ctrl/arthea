@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useDeferredValue } from "react";
 import { useServiceFilter } from "@/lib/hooks/use-service-filter";
 import { formatPhone } from "@/lib/utils";
 import { Plus, Search, X } from "lucide-react";
@@ -28,22 +28,23 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [showForm, setShowForm] = useState(false);
 
   async function fetchLeads() {
     setLoading(true);
     const params = new URLSearchParams();
     if (activeService !== "all") params.set("service", activeService);
-    if (search) params.set("search", search);
+    if (deferredSearch) params.set("search", deferredSearch);
     const res = await fetch(`/api/leads?${params}`);
     const data = await res.json();
-    setLeads(data);
+    setLeads(Array.isArray(data) ? data : []);
     setLoading(false);
   }
 
   useEffect(() => {
     fetchLeads();
-  }, [activeService, search]);
+  }, [activeService, deferredSearch]);
 
   return (
     <div className="space-y-6">
@@ -174,54 +175,10 @@ function LeadFormModal({
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch("/api/followup-templates")
-      .then(() => {}) // just to verify auth
-      .catch(() => {});
-
-    // Fetch services from a simple endpoint
-    fetch("/api/leads?search=__noresults__")
-      .then(() => {})
-      .catch(() => {});
-
-    // Load services list
-    fetch("/api/pipeline")
-      .then((r) => r.json())
-      .then((pipeline) => {
-        // Pipeline is now a single object, not array
-        // Get services from a dedicated call instead
-      })
-      .catch(() => {});
-
-    // Fetch actual services
-    fetch("/api/dashboard/stats")
+    fetch("/api/services")
       .then((r) => r.json())
       .then((data) => {
-        if (data.leadsByService) {
-          // We need the IDs, so let's just hardcode fetch
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  // Simple approach: fetch services from the leads API response
-  useEffect(() => {
-    fetch("/api/leads")
-      .then((r) => r.json())
-      .then((leads: any[]) => {
-        const serviceMap = new Map<string, any>();
-        for (const lead of leads) {
-          for (const ls of lead.services || []) {
-            if (!serviceMap.has(ls.service.id)) {
-              serviceMap.set(ls.service.id, ls.service);
-            }
-          }
-        }
-        // If no leads yet, we don't have services - use hardcoded list
-        if (serviceMap.size === 0) {
-          setServices([]);
-        } else {
-          setServices(Array.from(serviceMap.values()));
-        }
+        if (Array.isArray(data)) setServices(data);
       })
       .catch(() => {});
   }, []);

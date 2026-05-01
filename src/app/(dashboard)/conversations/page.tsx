@@ -10,23 +10,13 @@ export default function ConversationsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/leads?service=all")
+    fetch("/api/messages?listConversations=true")
       .then((r) => r.json())
-      .then((leads) => {
-        const convs: any[] = [];
-        leads.forEach((lead: any) => {
-          lead.conversations?.forEach((conv: any) => {
-            convs.push({ ...conv, lead });
-          });
-        });
-        convs.sort(
-          (a, b) =>
-            new Date(b.lastMessageAt || b.createdAt).getTime() -
-            new Date(a.lastMessageAt || a.createdAt).getTime()
-        );
-        setConversations(convs);
+      .then((data) => {
+        setConversations(Array.isArray(data) ? data : []);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   if (loading) {
@@ -56,11 +46,11 @@ export default function ConversationsPage() {
               className="flex items-center gap-4 p-4 hover:bg-muted/30 transition"
             >
               <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                {conv.lead.name.charAt(0).toUpperCase()}
+                {conv.lead?.name?.charAt(0).toUpperCase() || "?"}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <p className="font-medium text-sm">{conv.lead.name}</p>
+                  <p className="font-medium text-sm">{conv.lead?.name}</p>
                   <span className="text-xs text-muted-foreground">
                     {conv.lastMessageAt
                       ? formatDate(conv.lastMessageAt)
@@ -69,7 +59,7 @@ export default function ConversationsPage() {
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-xs text-muted-foreground">
-                    {formatPhone(conv.lead.phone)}
+                    {formatPhone(conv.lead?.phone || "")}
                   </span>
                   {conv.isAiActive ? (
                     <span className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">

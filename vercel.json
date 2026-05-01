@@ -1,4 +1,10 @@
 {
   "installCommand": "npm ci && npx prisma generate",
-  "buildCommand": "npx prisma generate && next build"
+  "buildCommand": "npx prisma generate && next build",
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  }
 }

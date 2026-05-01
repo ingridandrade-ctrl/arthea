@@ -10,6 +10,22 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const conversationId = searchParams.get("conversationId");
+  const listConversations = searchParams.get("listConversations");
+
+  if (listConversations === "true") {
+    const conversations = await prisma.conversation.findMany({
+      take: 50,
+      orderBy: { lastMessageAt: "desc" },
+      select: {
+        id: true,
+        isAiActive: true,
+        lastMessageAt: true,
+        createdAt: true,
+        lead: { select: { id: true, name: true, phone: true } },
+      },
+    });
+    return NextResponse.json(conversations);
+  }
 
   if (!conversationId) {
     return NextResponse.json({ error: "conversationId é obrigatório" }, { status: 400 });
@@ -17,7 +33,14 @@ export async function GET(request: NextRequest) {
 
   const messages = await prisma.message.findMany({
     where: { conversationId },
-    include: { sentByUser: true },
+    take: 100,
+    select: {
+      id: true,
+      content: true,
+      sender: true,
+      createdAt: true,
+      sentByUser: { select: { id: true, name: true } },
+    },
     orderBy: { createdAt: "asc" },
   });
 

@@ -24,12 +24,22 @@ export async function GET(request: NextRequest) {
         include: {
           deals: {
             where: dealWhere,
-            include: {
+            take: 20,
+            select: {
+              id: true,
+              title: true,
+              value: true,
+              stageId: true,
+              createdAt: true,
               lead: {
-                include: { services: { include: { service: true } } },
+                select: {
+                  id: true,
+                  name: true,
+                  services: { select: { service: { select: { id: true, name: true, color: true } } } },
+                },
               },
-              service: true,
-              assignedTo: true,
+              service: { select: { id: true, name: true, color: true } },
+              assignedTo: { select: { id: true, name: true } },
             },
             orderBy: { createdAt: "desc" },
           },
