@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { startOfTodayBR } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions) as any;
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
     prisma.invoice.aggregate({
       where: {
         status: { in: ["PENDING", "OVERDUE"] },
-        dueDate: { lt: now },
+        dueDate: { lt: startOfTodayBR() },
       },
       _sum: { amount: true },
       _count: true,

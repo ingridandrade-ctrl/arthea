@@ -30,6 +30,29 @@ export function formatDate(date: Date | string): string {
   }).format(new Date(date));
 }
 
+// For date-only fields (dueDate, startDate). Stored as UTC midnight; format in UTC to keep the calendar day stable.
+export function formatDateBR(date: Date | string): string {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(date));
+}
+
+// "Today" in the BR timezone, normalised to UTC midnight (so it can be compared to UTC-stored dueDates).
+export function startOfTodayBR(): Date {
+  const now = new Date();
+  const br = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+  return new Date(Date.UTC(br.getUTCFullYear(), br.getUTCMonth(), br.getUTCDate()));
+}
+
+export function isInvoiceOverdue(invoice: { status: string; dueDate: Date | string }): boolean {
+  if (invoice.status === "PAID" || invoice.status === "CANCELED" || invoice.status === "REFUNDED") return false;
+  if (invoice.status === "OVERDUE") return true;
+  return new Date(invoice.dueDate) < startOfTodayBR();
+}
+
 export function getLeadScoreLabel(score: number): { label: string; color: string } {
   if (score >= 75) return { label: "Muito Quente", color: "#ef4444" };
   if (score >= 50) return { label: "Quente", color: "#f97316" };
