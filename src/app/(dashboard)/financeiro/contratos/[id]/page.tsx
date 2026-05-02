@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, formatDateBR } from "@/lib/utils";
 import { ArrowLeft, Pencil, Check, Plus, Trash2, ExternalLink, FileCheck2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 
@@ -27,6 +27,15 @@ export default function ContratoDetailPage() {
   const [editing, setEditing] = useState(false);
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<any>(null);
+  const [formAmount, setFormAmount] = useState<number>(0);
+  const [formInstallments, setFormInstallments] = useState<number>(0);
+
+  function openInvoiceForm(inv: any | null) {
+    setEditingInvoice(inv);
+    setFormAmount(inv?.amount ?? contract?.monthlyValue ?? 0);
+    setFormInstallments(inv?.totalInstallments ?? contract?.durationMonths ?? 0);
+    setShowInvoiceForm(true);
+  }
 
   function fetchContract() {
     fetch(`/api/contracts/${params.id}`)
@@ -186,7 +195,7 @@ export default function ContratoDetailPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Faturas ({contract.invoices?.length || 0})</h2>
             <button
-              onClick={() => { setEditingInvoice(null); setShowInvoiceForm(true); }}
+              onClick={() => { openInvoiceForm(null); }}
               className="text-sm text-primary hover:underline flex items-center gap-1"
             >
               <Plus className="w-4 h-4" /> Adicionar fatura
@@ -218,7 +227,7 @@ export default function ContratoDetailPage() {
                         : "-"}
                     </td>
                     <td className="py-2">{formatCurrency(inv.amount)}</td>
-                    <td className="py-2 text-xs">{formatDate(inv.dueDate)}</td>
+                    <td className="py-2 text-xs">{formatDateBR(inv.dueDate)}</td>
                     <td className="py-2">
                       {inv.paymentLink && (
                         <a href={inv.paymentLink} target="_blank" rel="noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1">
@@ -247,7 +256,7 @@ export default function ContratoDetailPage() {
                             <Check className="w-3 h-3" /> Pagar
                           </button>
                         )}
-                        <button onClick={() => { setEditingInvoice(inv); setShowInvoiceForm(true); }} className="p-1 rounded hover:bg-muted">
+                        <button onClick={() => { openInvoiceForm(inv); }} className="p-1 rounded hover:bg-muted">
                           <Pencil className="w-3 h-3 text-muted-foreground" />
                         </button>
                         <button onClick={() => deleteInvoice(inv.id)} className="p-1 rounded hover:bg-red-50">
@@ -346,8 +355,21 @@ export default function ContratoDetailPage() {
           <form onSubmit={saveInvoice} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium mb-1">Valor (R$)</label>
-                <input name="amount" type="number" step="0.01" required defaultValue={editingInvoice?.amount ?? contract.monthlyValue} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
+                <label className="block text-xs font-medium mb-1">Valor por parcela (R$) *</label>
+                <input
+                  name="amount"
+                  type="number"
+                  step="0.01"
+                  required
+                  defaultValue={editingInvoice?.amount ?? contract.monthlyValue}
+                  onChange={(e) => setFormAmount(Number(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                />
+                {formInstallments > 1 && formAmount > 0 && (
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {formInstallments} parcelas de {formatCurrency(formAmount)} — Total: <strong>{formatCurrency(formAmount * formInstallments)}</strong>
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Vencimento</label>
@@ -392,7 +414,13 @@ export default function ContratoDetailPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Total parcelas</label>
-                <input name="totalInstallments" type="number" defaultValue={editingInvoice?.totalInstallments ?? contract.durationMonths} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
+                <input
+                  name="totalInstallments"
+                  type="number"
+                  defaultValue={editingInvoice?.totalInstallments ?? contract.durationMonths}
+                  onChange={(e) => setFormInstallments(Number(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Forma de pagamento</label>

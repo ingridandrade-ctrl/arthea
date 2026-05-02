@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDateBR, isInvoiceOverdue } from "@/lib/utils";
 import Link from "next/link";
 import {
   ArrowLeft, Check, ExternalLink, FileCheck2, Pencil, Plus, Search, Trash2,
@@ -50,6 +50,15 @@ export default function FaturasPage() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [formAmount, setFormAmount] = useState<number>(0);
+  const [formInstallments, setFormInstallments] = useState<number>(0);
+
+  function openForm(inv: any | null) {
+    setEditing(inv);
+    setFormAmount(inv?.amount ?? 0);
+    setFormInstallments(inv?.totalInstallments ?? 0);
+    setShowForm(true);
+  }
 
   function fetchInvoices() {
     setLoading(true);
@@ -139,11 +148,10 @@ export default function FaturasPage() {
 
   const totals = useMemo(() => {
     const t = { total: 0, paid: 0, pending: 0, overdue: 0 };
-    const now = new Date();
     for (const inv of invoices) {
       t.total += inv.amount;
       if (inv.status === "PAID") t.paid += inv.amount;
-      else if (inv.status === "OVERDUE" || (inv.status === "PENDING" && new Date(inv.dueDate) < now)) t.overdue += inv.amount;
+      else if (isInvoiceOverdue(inv)) t.overdue += inv.amount;
       else if (inv.status === "PENDING") t.pending += inv.amount;
     }
     return t;
@@ -164,7 +172,7 @@ export default function FaturasPage() {
           <p className="text-sm text-muted-foreground">Filtre por mês, tipo de cliente, status. Adicione faturas avulsas.</p>
         </div>
         <button
-          onClick={() => { setEditing(null); setShowForm(true); }}
+          onClick={() => { openForm(null); }}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition flex items-center gap-1"
         >
           <Plus className="w-4 h-4" /> Nova fatura
@@ -292,7 +300,7 @@ export default function FaturasPage() {
                   ) : <span className="text-muted-foreground text-xs">-</span>}
                 </td>
                 <td className="px-4 py-3 font-semibold">{formatCurrency(inv.amount)}</td>
-                <td className="px-4 py-3 text-xs">{formatDate(inv.dueDate)}</td>
+                <td className="px-4 py-3 text-xs">{formatDateBR(inv.dueDate)}</td>
                 <td className="px-4 py-3">
                   {inv.paymentLink ? (
                     <a href={inv.paymentLink} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
@@ -321,7 +329,7 @@ export default function FaturasPage() {
                         <Check className="w-3 h-3" /> Pagar
                       </button>
                     )}
-                    <button onClick={() => { setEditing(inv); setShowForm(true); }} className="p-1 rounded hover:bg-muted">
+                    <button onClick={() => { openForm(inv); }} className="p-1 rounded hover:bg-muted">
                       <Pencil className="w-3 h-3 text-muted-foreground" />
                     </button>
                     <button onClick={() => handleDelete(inv.id)} className="p-1 rounded hover:bg-red-50">
@@ -368,8 +376,21 @@ export default function FaturasPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium mb-1">Valor (R$)</label>
-                <input name="amount" type="number" step="0.01" required defaultValue={editing?.amount ?? ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
+                <label className="block text-xs font-medium mb-1">Valor por parcela (R$) *</label>
+                <input
+                  name="amount"
+                  type="number"
+                  step="0.01"
+                  required
+                  defaultValue={editing?.amount ?? ""}
+                  onChange={(e) => setFormAmount(Number(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                />
+                {formInstallments > 1 && formAmount > 0 && (
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Cada uma das {formInstallments} parcelas será {formatCurrency(formAmount)}. Total: <strong>{formatCurrency(formAmount * formInstallments)}</strong>
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Vencimento</label>
@@ -412,7 +433,13 @@ export default function FaturasPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Total parcelas</label>
-                <input name="totalInstallments" type="number" defaultValue={editing?.totalInstallments ?? ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
+                <input
+                  name="totalInstallments"
+                  type="number"
+                  defaultValue={editing?.totalInstallments ?? ""}
+                  onChange={(e) => setFormInstallments(Number(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Forma de pagamento</label>
