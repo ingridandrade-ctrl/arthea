@@ -382,10 +382,10 @@ export default function FinanceiroPage() {
             <p className="text-sm text-muted-foreground mt-1">Receita projetada</p>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
-            {[1, 2, 3].map((m) => (
-              <div key={m} className="bg-muted/50 rounded-lg p-3">
-                <p className="text-lg font-bold">{formatCurrency(t.mrr)}</p>
-                <p className="text-xs text-muted-foreground">Mês {m}</p>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="bg-muted/50 rounded-lg p-3">
+                <p className="text-lg font-bold">{formatCurrency((t.projectionMonths || [t.mrr, t.mrr, t.mrr])[i])}</p>
+                <p className="text-xs text-muted-foreground">Mês {i + 1}</p>
               </div>
             ))}
           </div>

@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
     expenses,
     activeContracts,
     mrrAgg,
+    activeMonthlyContracts,
     invoicesByService,
   ] = await Promise.all([
     prisma.invoice.aggregate({
@@ -74,6 +75,10 @@ export async function GET(request: NextRequest) {
     prisma.contract.aggregate({
       where: { status: "ACTIVE", recurrence: "MONTHLY" },
       _sum: { monthlyValue: true },
+    }),
+    prisma.contract.findMany({
+      where: { status: "ACTIVE", recurrence: "MONTHLY" },
+      select: { monthlyValue: true, startDate: true, durationMonths: true, endDate: true },
     }),
     prisma.invoice.groupBy({
       by: ["serviceId"],
@@ -122,6 +127,23 @@ export async function GET(request: NextRequest) {
   const mrr = mrrAgg._sum.monthlyValue || 0;
   const avgTicket = activeContracts > 0 ? mrr / activeContracts : 0;
 
+  // Projection: for each of the next 3 months, sum monthlyValue of contracts still active in that month
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const projectionMonths = [0, 0, 0];
+  for (const c of activeMonthlyContracts) {
+    const start = c.startDate;
+    const computedEnd = new Date(start.getFullYear(), start.getMonth() + c.durationMonths, 0, 23, 59, 59, 999);
+    const end = c.endDate ? new Date(c.endDate) : computedEnd;
+    for (let i = 0; i < 3; i++) {
+      const monthStart = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + i, 1);
+      const monthEnd = new Date(currentMonthStart.getFullYear(), currentMonthStart.getMonth() + i + 1, 0, 23, 59, 59, 999);
+      if (start <= monthEnd && end >= monthStart) {
+        projectionMonths[i] += c.monthlyValue;
+      }
+    }
+  }
+  const projection3Months = projectionMonths.reduce((a, b) => a + b, 0);
+
   return NextResponse.json({
     range: { from: from.toISOString(), to: to.toISOString() },
     totals: {
@@ -137,7 +159,8 @@ export async function GET(request: NextRequest) {
       pendingCount: incomePending._count,
       overdueCount: incomeOverdue._count,
       expenseCount: expensesAgg._count,
-      projection3Months: mrr * 3,
+      projection3Months,
+      projectionMonths,
     },
     expensesByCategory: expensesByCategory.map((e) => ({
       category: e.category,
