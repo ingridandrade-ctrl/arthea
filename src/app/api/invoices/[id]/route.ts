@@ -23,6 +23,7 @@ export async function PUT(
     description,
     paymentLink,
     serviceId,
+    serviceIds,
     installmentNumber,
     totalInstallments,
     invoiceIssued,
@@ -38,7 +39,6 @@ export async function PUT(
     ...(dueDate !== undefined && { dueDate: new Date(dueDate) }),
     ...(description !== undefined && { description }),
     ...(paymentLink !== undefined && { paymentLink }),
-    ...(serviceId !== undefined && { serviceId: serviceId || null }),
     ...(installmentNumber !== undefined && { installmentNumber }),
     ...(totalInstallments !== undefined && { totalInstallments }),
     ...(invoiceIssued !== undefined && { invoiceIssued: !!invoiceIssued }),
@@ -47,6 +47,15 @@ export async function PUT(
       invoiceIssuedAt: invoiceIssuedAt ? new Date(invoiceIssuedAt) : null,
     }),
   };
+
+  if (Array.isArray(serviceIds)) {
+    const cleaned = serviceIds.filter(Boolean);
+    data.serviceIds = cleaned;
+    data.serviceId = cleaned[0] || null;
+  } else if (serviceId !== undefined) {
+    data.serviceId = serviceId || null;
+    data.serviceIds = serviceId ? [serviceId] : [];
+  }
 
   if (invoiceIssued === true && invoiceIssuedAt === undefined) {
     data.invoiceIssuedAt = new Date();

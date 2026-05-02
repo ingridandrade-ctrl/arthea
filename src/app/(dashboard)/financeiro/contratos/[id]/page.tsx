@@ -89,6 +89,7 @@ export default function ContratoDetailPage() {
   async function saveInvoice(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const serviceIds = fd.getAll("serviceIds").map((s) => String(s)).filter(Boolean);
     const payload: any = {
       amount: Number(fd.get("amount")),
       dueDate: fd.get("dueDate"),
@@ -100,7 +101,7 @@ export default function ContratoDetailPage() {
       invoiceIssued: fd.get("invoiceIssued") === "on",
       invoiceNumber: fd.get("invoiceNumber") || null,
       status: fd.get("status"),
-      serviceId: (fd.get("serviceId") as string) || null,
+      serviceIds,
     };
     if (editingInvoice) {
       await fetch(`/api/invoices/${editingInvoice.id}`, {
@@ -111,6 +112,8 @@ export default function ContratoDetailPage() {
     } else {
       payload.contractId = contract.id;
       payload.leadId = contract.leadId;
+      payload.generateRemaining = fd.get("generateRemaining") === "on";
+      payload.paymentDay = contract.paymentDay;
       await fetch(`/api/invoices`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -281,12 +284,22 @@ export default function ContratoDetailPage() {
                   <option value="COMPLETED">Concluído</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">Serviço</label>
-                <select name="serviceId" defaultValue={contract.serviceId || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm">
-                  <option value="">Nenhum</option>
-                  {services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
+              <div className="col-span-2">
+                <label className="block text-xs font-medium mb-1">Serviços</label>
+                <div className="flex flex-wrap gap-2 p-2 border border-border rounded-lg">
+                  {services.map((s) => {
+                    const checked = ((contract.serviceIds && contract.serviceIds.length > 0)
+                      ? contract.serviceIds
+                      : contract.serviceId ? [contract.serviceId] : []).includes(s.id);
+                    return (
+                      <label key={s.id} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border border-border cursor-pointer text-xs hover:bg-muted has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary">
+                        <input type="checkbox" name="serviceIds" value={s.id} defaultChecked={checked} className="sr-only" />
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
+                        {s.name}
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Nicho</label>
@@ -352,12 +365,26 @@ export default function ContratoDetailPage() {
                   <option value="REFUNDED">Reembolsada</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">Serviço</label>
-                <select name="serviceId" defaultValue={editingInvoice?.serviceId || contract.serviceId || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm">
-                  <option value="">Nenhum</option>
-                  {services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
+              <div className="col-span-2">
+                <label className="block text-xs font-medium mb-1">Serviços</label>
+                <div className="flex flex-wrap gap-2 p-2 border border-border rounded-lg">
+                  {services.map((s) => {
+                    const initial = (editingInvoice?.serviceIds && editingInvoice.serviceIds.length > 0)
+                      ? editingInvoice.serviceIds
+                      : editingInvoice?.serviceId
+                      ? [editingInvoice.serviceId]
+                      : (contract.serviceIds && contract.serviceIds.length > 0)
+                      ? contract.serviceIds
+                      : contract.serviceId ? [contract.serviceId] : [];
+                    return (
+                      <label key={s.id} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border border-border cursor-pointer text-xs hover:bg-muted has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary">
+                        <input type="checkbox" name="serviceIds" value={s.id} defaultChecked={initial.includes(s.id)} className="sr-only" />
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
+                        {s.name}
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Parcela</label>
@@ -369,7 +396,10 @@ export default function ContratoDetailPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Forma de pagamento</label>
-                <input name="paymentMethod" defaultValue={editingInvoice?.paymentMethod || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
+                <select name="paymentMethod" defaultValue={editingInvoice?.paymentMethod || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm">
+                  <option value="">Selecione</option>
+                  {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Nº NF</label>
@@ -388,6 +418,12 @@ export default function ContratoDetailPage() {
               <input type="checkbox" name="invoiceIssued" defaultChecked={!!editingInvoice?.invoiceIssued} />
               Nota fiscal já emitida
             </label>
+            {!editingInvoice && (
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="generateRemaining" defaultChecked />
+                Gerar parcelas restantes automaticamente (uma por mês)
+              </label>
+            )}
             <button type="submit" className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
               {editingInvoice ? "Salvar alterações" : "Adicionar fatura"}
             </button>
@@ -397,6 +433,16 @@ export default function ContratoDetailPage() {
     </div>
   );
 }
+
+const PAYMENT_METHODS = [
+  "PIX",
+  "Cartão de crédito",
+  "Cartão de débito",
+  "Boleto",
+  "Transferência bancária",
+  "Dinheiro",
+  "Outro",
+];
 
 function Row({ label, value, highlight }: { label: string; value: any; highlight?: boolean }) {
   return (

@@ -99,6 +99,7 @@ export default function FaturasPage() {
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const serviceIds = fd.getAll("serviceIds").map((s) => String(s)).filter(Boolean);
     const payload: any = {
       contractId: (fd.get("contractId") as string) || null,
       amount: Number(fd.get("amount")),
@@ -111,7 +112,7 @@ export default function FaturasPage() {
       invoiceIssued: fd.get("invoiceIssued") === "on",
       invoiceNumber: fd.get("invoiceNumber") || null,
       status: fd.get("status"),
-      serviceId: (fd.get("serviceId") as string) || null,
+      serviceIds,
     };
 
     if (editing) {
@@ -121,6 +122,7 @@ export default function FaturasPage() {
         body: JSON.stringify(payload),
       });
     } else {
+      payload.generateRemaining = fd.get("generateRemaining") === "on";
       // For manual invoices, allow leadId via contract OR new client
       if (!payload.contractId) {
         payload.clientName = fd.get("clientName");
@@ -275,7 +277,15 @@ export default function FaturasPage() {
                     : "-"}
                 </td>
                 <td className="px-4 py-3">
-                  {inv.service ? (
+                  {inv.services && inv.services.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {inv.services.map((s: any) => (
+                        <span key={s.id} className="px-2 py-0.5 rounded-full text-[10px] font-medium text-white" style={{ backgroundColor: s.color }}>
+                          {s.name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : inv.service ? (
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-medium text-white" style={{ backgroundColor: inv.service.color }}>
                       {inv.service.name}
                     </span>
@@ -377,12 +387,24 @@ export default function FaturasPage() {
                   <option value="REFUNDED">Reembolsada</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">Serviço</label>
-                <select name="serviceId" defaultValue={editing?.serviceId || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm">
-                  <option value="">Nenhum</option>
-                  {services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
+              <div className="col-span-2">
+                <label className="block text-xs font-medium mb-1">Serviços (selecione um ou mais)</label>
+                <div className="flex flex-wrap gap-2 p-2 border border-border rounded-lg">
+                  {services.map((s) => {
+                    const initial = (editing?.serviceIds && editing.serviceIds.length > 0)
+                      ? editing.serviceIds
+                      : editing?.serviceId
+                      ? [editing.serviceId]
+                      : [];
+                    return (
+                      <label key={s.id} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border border-border cursor-pointer text-xs hover:bg-muted has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary">
+                        <input type="checkbox" name="serviceIds" value={s.id} defaultChecked={initial.includes(s.id)} className="sr-only" />
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
+                        {s.name}
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Parcela</label>
@@ -394,7 +416,10 @@ export default function FaturasPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Forma de pagamento</label>
-                <input name="paymentMethod" defaultValue={editing?.paymentMethod || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm" />
+                <select name="paymentMethod" defaultValue={editing?.paymentMethod || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm">
+                  <option value="">Selecione</option>
+                  {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Nº NF</label>
@@ -416,6 +441,13 @@ export default function FaturasPage() {
               Nota fiscal emitida
             </label>
 
+            {!editing && (
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="generateRemaining" defaultChecked />
+                Gerar parcelas restantes automaticamente (se total parcelas &gt; 1, cria as próximas no mês seguinte)
+              </label>
+            )}
+
             <button type="submit" className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition">
               {editing ? "Salvar alterações" : "Criar fatura"}
             </button>
@@ -425,6 +457,16 @@ export default function FaturasPage() {
     </div>
   );
 }
+
+const PAYMENT_METHODS = [
+  "PIX",
+  "Cartão de crédito",
+  "Cartão de débito",
+  "Boleto",
+  "Transferência bancária",
+  "Dinheiro",
+  "Outro",
+];
 
 function SummaryCard({ label, value, color = "" }: { label: string; value: string; color?: string }) {
   return (
