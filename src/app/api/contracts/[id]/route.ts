@@ -24,7 +24,27 @@ export async function GET(
   });
 
   if (!contract) return NextResponse.json({ error: "Contrato não encontrado" }, { status: 404 });
-  return NextResponse.json(contract);
+
+  const ids = Array.from(new Set([
+    ...(contract.serviceIds || []),
+    ...(contract.invoices.flatMap((i: any) => i.serviceIds || [])),
+  ].filter(Boolean)));
+  const services = ids.length
+    ? await prisma.service.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, name: true, color: true },
+      })
+    : [];
+  const svcMap = new Map(services.map((s) => [s.id, s]));
+
+  return NextResponse.json({
+    ...contract,
+    services: (contract.serviceIds || []).map((id) => svcMap.get(id)).filter(Boolean),
+    invoices: contract.invoices.map((i: any) => ({
+      ...i,
+      services: (i.serviceIds || []).map((id: string) => svcMap.get(id)).filter(Boolean),
+    })),
+  });
 }
 
 export async function PUT(
@@ -48,29 +68,40 @@ export async function PUT(
     startDate,
     setupValue,
     serviceId,
+    serviceIds,
     clientType,
     niche,
     tags,
     paymentLink,
   } = body;
 
+  const data: any = {
+    ...(monthlyValue !== undefined && { monthlyValue: Number(monthlyValue) }),
+    ...(durationMonths !== undefined && { durationMonths: Number(durationMonths) }),
+    ...(paymentDay !== undefined && { paymentDay: Number(paymentDay) }),
+    ...(status !== undefined && { status }),
+    ...(notes !== undefined && { notes }),
+    ...(endDate !== undefined && { endDate: endDate ? new Date(endDate) : null }),
+    ...(startDate !== undefined && { startDate: new Date(startDate) }),
+    ...(setupValue !== undefined && { setupValue: setupValue === null ? null : Number(setupValue) }),
+    ...(clientType !== undefined && { clientType }),
+    ...(niche !== undefined && { niche }),
+    ...(tags !== undefined && { tags: Array.isArray(tags) ? tags : [] }),
+    ...(paymentLink !== undefined && { paymentLink }),
+  };
+
+  if (Array.isArray(serviceIds)) {
+    const cleaned = serviceIds.filter(Boolean);
+    data.serviceIds = cleaned;
+    data.serviceId = cleaned[0] || null;
+  } else if (serviceId !== undefined) {
+    data.serviceId = serviceId || null;
+    data.serviceIds = serviceId ? [serviceId] : [];
+  }
+
   const contract = await prisma.contract.update({
     where: { id: params.id },
-    data: {
-      ...(monthlyValue !== undefined && { monthlyValue: Number(monthlyValue) }),
-      ...(durationMonths !== undefined && { durationMonths: Number(durationMonths) }),
-      ...(paymentDay !== undefined && { paymentDay: Number(paymentDay) }),
-      ...(status !== undefined && { status }),
-      ...(notes !== undefined && { notes }),
-      ...(endDate !== undefined && { endDate: endDate ? new Date(endDate) : null }),
-      ...(startDate !== undefined && { startDate: new Date(startDate) }),
-      ...(setupValue !== undefined && { setupValue: setupValue === null ? null : Number(setupValue) }),
-      ...(serviceId !== undefined && { serviceId: serviceId || null }),
-      ...(clientType !== undefined && { clientType }),
-      ...(niche !== undefined && { niche }),
-      ...(tags !== undefined && { tags: Array.isArray(tags) ? tags : [] }),
-      ...(paymentLink !== undefined && { paymentLink }),
-    },
+    data,
     include: { lead: true, deal: true, service: true, invoices: true },
   });
 

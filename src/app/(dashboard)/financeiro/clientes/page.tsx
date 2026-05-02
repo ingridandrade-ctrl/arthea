@@ -66,11 +66,12 @@ export default function ClientesPage() {
     const fd = new FormData(e.currentTarget);
     const tags = ((fd.get("tags") as string) || "")
       .split(",").map((s) => s.trim()).filter(Boolean);
+    const serviceIds = fd.getAll("serviceIds").map((s) => String(s)).filter(Boolean);
     const payload: any = {
       monthlyValue: Number(fd.get("monthlyValue")),
       durationMonths: Number(fd.get("durationMonths")),
       paymentDay: Number(fd.get("paymentDay")),
-      serviceId: (fd.get("serviceId") as string) || null,
+      serviceIds,
       clientType: fd.get("clientType"),
       status: fd.get("status"),
       niche: (fd.get("niche") as string) || null,
@@ -189,7 +190,15 @@ export default function ClientesPage() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    {c.service ? (
+                    {c.services && c.services.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {c.services.map((s: any) => (
+                          <span key={s.id} className="px-2 py-0.5 rounded-full text-[10px] font-medium text-white" style={{ backgroundColor: s.color }}>
+                            {s.name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : c.service ? (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-medium text-white" style={{ backgroundColor: c.service.color }}>
                         {c.service.name}
                       </span>
@@ -282,12 +291,23 @@ export default function ClientesPage() {
                   <option value="COMPLETED">Concluído</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">Serviço</label>
-                <select name="serviceId" defaultValue={editing?.serviceId || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm">
-                  <option value="">Nenhum</option>
-                  {services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
+              <div className="col-span-2">
+                <label className="block text-xs font-medium mb-1">Serviços (selecione um ou mais)</label>
+                <div className="flex flex-wrap gap-2 p-2 border border-border rounded-lg">
+                  {services.map((s) => {
+                    const checked = (editing?.serviceIds && editing.serviceIds.length > 0
+                      ? editing.serviceIds
+                      : editing?.serviceId ? [editing.serviceId] : []).includes(s.id);
+                    return (
+                      <label key={s.id} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border border-border cursor-pointer text-xs hover:bg-muted has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary">
+                        <input type="checkbox" name="serviceIds" value={s.id} defaultChecked={checked} className="sr-only" />
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
+                        {s.name}
+                      </label>
+                    );
+                  })}
+                  {services.length === 0 && <span className="text-xs text-muted-foreground">Nenhum serviço cadastrado.</span>}
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1">Nicho</label>

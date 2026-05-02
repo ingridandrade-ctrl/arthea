@@ -57,7 +57,21 @@ export async function GET(request: NextRequest) {
     orderBy: { dueDate: "asc" },
   });
 
-  return NextResponse.json(invoices);
+  // Hydrate serviceIds with full service objects for the frontend
+  const allIds = Array.from(new Set(invoices.flatMap((i) => i.serviceIds || []).filter(Boolean)));
+  const services = allIds.length
+    ? await prisma.service.findMany({
+        where: { id: { in: allIds } },
+        select: { id: true, name: true, color: true },
+      })
+    : [];
+  const svcMap = new Map(services.map((s) => [s.id, s]));
+  const enriched = invoices.map((i) => ({
+    ...i,
+    services: (i.serviceIds || []).map((id) => svcMap.get(id)).filter(Boolean),
+  }));
+
+  return NextResponse.json(enriched);
 }
 
 export async function POST(request: NextRequest) {
@@ -74,6 +88,7 @@ export async function POST(request: NextRequest) {
     clientName,
     clientPhone,
     serviceId,
+    serviceIds,
     amount,
     dueDate,
     description,
@@ -84,11 +99,20 @@ export async function POST(request: NextRequest) {
     invoiceIssued,
     invoiceNumber,
     status,
+    generateRemaining,
+    paymentDay,
   } = body;
 
   if (amount == null || !dueDate) {
     return NextResponse.json({ error: "Campos obrigatórios: amount e dueDate" }, { status: 400 });
   }
+
+  const resolvedServiceIds: string[] = Array.isArray(serviceIds)
+    ? serviceIds.filter(Boolean)
+    : serviceId
+    ? [serviceId]
+    : [];
+  const primaryServiceId = resolvedServiceIds[0] || null;
 
   let resolvedLeadId = leadId;
   if (!resolvedLeadId && contractId) {
@@ -119,19 +143,24 @@ export async function POST(request: NextRequest) {
   const year = new Date().getFullYear();
   const number = `INV-${year}-${String(count + 1).padStart(3, "0")}`;
 
+  const firstDue = new Date(dueDate);
+  const startInstallment = installmentNumber ?? 1;
+  const total = totalInstallments ?? null;
+
   const invoice = await prisma.invoice.create({
     data: {
       number,
       contractId: contractId || null,
       leadId: resolvedLeadId,
-      serviceId: serviceId || null,
+      serviceId: primaryServiceId,
+      serviceIds: resolvedServiceIds,
       amount: Number(amount),
-      dueDate: new Date(dueDate),
+      dueDate: firstDue,
       description: description || null,
       paymentLink: paymentLink || null,
       paymentMethod: paymentMethod || null,
-      installmentNumber: installmentNumber ?? null,
-      totalInstallments: totalInstallments ?? null,
+      installmentNumber: total ? startInstallment : (installmentNumber ?? null),
+      totalInstallments: total,
       invoiceIssued: !!invoiceIssued,
       invoiceNumber: invoiceNumber || null,
       status: status || "PENDING",
@@ -142,6 +171,36 @@ export async function POST(request: NextRequest) {
       service: { select: { id: true, name: true, color: true } },
     },
   });
+
+  // Auto-generate remaining installments for following months
+  if (generateRemaining === true && total && total > startInstallment) {
+    const remaining = total - startInstallment;
+    const baseCount = await prisma.invoice.count();
+    const targetDay = paymentDay ?? firstDue.getDate();
+    const extras = Array.from({ length: remaining }, (_, i) => {
+      const due = new Date(firstDue);
+      due.setMonth(due.getMonth() + (i + 1));
+      due.setDate(targetDay);
+      return {
+        number: `INV-${year}-${String(baseCount + i + 1).padStart(3, "0")}`,
+        contractId: contractId || null,
+        leadId: resolvedLeadId,
+        serviceId: primaryServiceId,
+        serviceIds: resolvedServiceIds,
+        amount: Number(amount),
+        dueDate: due,
+        description: description || null,
+        paymentLink: paymentLink || null,
+        paymentMethod: paymentMethod || null,
+        installmentNumber: startInstallment + i + 1,
+        totalInstallments: total,
+        invoiceIssued: false,
+        invoiceNumber: null,
+        status: "PENDING" as const,
+      };
+    });
+    if (extras.length) await prisma.invoice.createMany({ data: extras });
+  }
 
   return NextResponse.json(invoice, { status: 201 });
 }

@@ -40,7 +40,20 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(contracts);
+  const allIds = Array.from(new Set(contracts.flatMap((c) => c.serviceIds || []).filter(Boolean)));
+  const services = allIds.length
+    ? await prisma.service.findMany({
+        where: { id: { in: allIds } },
+        select: { id: true, name: true, color: true },
+      })
+    : [];
+  const svcMap = new Map(services.map((s) => [s.id, s]));
+  const enriched = contracts.map((c) => ({
+    ...c,
+    services: (c.serviceIds || []).map((id) => svcMap.get(id)).filter(Boolean),
+  }));
+
+  return NextResponse.json(enriched);
 }
 
 export async function POST(request: NextRequest) {
@@ -59,6 +72,7 @@ export async function POST(request: NextRequest) {
     clientEmail,
     clientCompany,
     serviceId,
+    serviceIds,
     monthlyValue,
     setupValue,
     durationMonths,
@@ -71,6 +85,13 @@ export async function POST(request: NextRequest) {
     paymentLink,
     generateInvoices,
   } = body;
+
+  const resolvedServiceIds: string[] = Array.isArray(serviceIds)
+    ? serviceIds.filter(Boolean)
+    : serviceId
+    ? [serviceId]
+    : [];
+  const primaryServiceId = resolvedServiceIds[0] || null;
 
   // Resolve / create lead if leadId not provided
   let resolvedLeadId = leadId;
@@ -107,7 +128,8 @@ export async function POST(request: NextRequest) {
       number,
       dealId: dealId || null,
       leadId: resolvedLeadId,
-      serviceId: serviceId || null,
+      serviceId: primaryServiceId,
+      serviceIds: resolvedServiceIds,
       monthlyValue: monthlyValue ?? 0,
       setupValue: setupValue ?? null,
       durationMonths: durationMonths || 12,
@@ -134,7 +156,8 @@ export async function POST(request: NextRequest) {
         number: `INV-${year}-${String(invCount + i + 1).padStart(3, "0")}`,
         contractId: contract.id,
         leadId: contract.leadId,
-        serviceId: contract.serviceId || null,
+        serviceId: primaryServiceId,
+        serviceIds: resolvedServiceIds,
         amount: contract.monthlyValue,
         dueDate: due,
         description: `Parcela ${i + 1}/${contract.durationMonths}`,
