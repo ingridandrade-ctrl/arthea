@@ -19,6 +19,7 @@ import {
   DollarSign,
   ChevronDown,
   UserCog,
+  PanelsTopLeft,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
@@ -39,6 +40,7 @@ const navigation: NavItem[] = [
   { name: "Tarefas", href: "/tarefas", icon: CheckSquare },
   { name: "Relatorios", href: "/relatorios", icon: BarChart3 },
   { name: "Financeiro", href: "/financeiro", icon: DollarSign, roles: ["ADMIN"] },
+  { name: "Portal de Clientes", href: "/portal-clientes", icon: PanelsTopLeft, roles: ["ADMIN", "MANAGER"] },
   {
     name: "Configuracoes",
     href: "/configuracoes",

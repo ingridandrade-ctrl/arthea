@@ -3,14 +3,8 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-
-const phaseNames = [
-  "",
-  "Imersão e Posicionamento",
-  "Construção e Conteúdo",
-  "Rastreamento e Ads",
-  "Entrega Final",
-];
+import { ArrowRight, Sparkles } from "lucide-react";
+import { PHASE_NAMES } from "../_components/deliverable-status";
 
 export default async function PortalDashboard() {
   const session = await getServerSession(authOptions);
@@ -28,7 +22,9 @@ export default async function PortalDashboard() {
   if (!project) {
     return (
       <div style={{ textAlign: "center", padding: "80px 0", color: "#6B7280" }}>
-        <p style={{ fontSize: 18 }}>Seu projeto ainda está sendo configurado.</p>
+        <p style={{ fontSize: 18, fontFamily: "Fraunces, Georgia, serif" }}>
+          Seu projeto ainda está sendo configurado.
+        </p>
         <p style={{ fontSize: 14, marginTop: 8 }}>
           Em breve você terá acesso a todos os entregáveis.
         </p>
@@ -39,190 +35,262 @@ export default async function PortalDashboard() {
   const total = project.deliverables.length;
   const approved = project.deliverables.filter((d) => d.status === "APPROVED").length;
   const waitingReview = project.deliverables.filter((d) => d.status === "WAITING_REVIEW");
+  const inProgress = project.deliverables.filter((d) => d.status === "IN_PROGRESS");
+  const progressPct = total > 0 ? Math.round((approved / total) * 100) : 0;
+
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Bom dia";
+    if (h < 18) return "Boa tarde";
+    return "Boa noite";
+  })();
+  const firstName = (session.user?.name || "").split(" ")[0];
 
   return (
-    <div>
-      <div style={{ marginBottom: 40 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
+      {/* Greeting + project title */}
+      <header>
         <p
           style={{
             fontSize: 12,
             fontWeight: 500,
-            letterSpacing: "0.16em",
+            letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "#6B7280",
-            marginBottom: 8,
+            color: "var(--accent)",
+            margin: 0,
           }}
         >
-          Projeto ativo
+          {greeting}, {firstName} ✨
         </p>
         <h1
           style={{
-            fontSize: 32,
+            fontFamily: "Fraunces, Georgia, serif",
+            fontSize: 40,
             fontWeight: 400,
             color: "#2A2A2A",
-            marginBottom: 8,
-            fontFamily: "Georgia, serif",
+            margin: "8px 0 12px",
+            letterSpacing: "-0.02em",
+            lineHeight: 1.1,
           }}
         >
           {project.name}
         </h1>
-        <p style={{ fontSize: 14, color: "#4A4A4A" }}>
-          Fase {project.currentPhase} de 4 — {phaseNames[project.currentPhase]}
+        <p style={{ fontSize: 15, color: "#6B7280", margin: 0 }}>
+          Fase {project.currentPhase} de 4 · {PHASE_NAMES[project.currentPhase]}
         </p>
-      </div>
+      </header>
 
-      <div
+      {/* Big progress card */}
+      <section
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 14,
-          marginBottom: 40,
+          background: "white",
+          borderRadius: 20,
+          padding: 32,
+          boxShadow: "0 1px 2px rgba(13,74,74,0.04), 0 8px 24px rgba(13,74,74,0.04)",
+          border: "0.5px solid rgba(29,112,112,0.08)",
         }}
       >
-        {[
-          { label: "Total de entregáveis", value: total },
-          { label: "Aprovados", value: approved },
-          { label: "Aguardando sua validação", value: waitingReview.length },
-        ].map((card) => (
-          <div
-            key={card.label}
-            style={{
-              background: "white",
-              border: "0.5px solid rgba(29,112,112,0.15)",
-              borderRadius: 12,
-              padding: 24,
-            }}
-          >
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 12 }}>
+          <div>
             <p
               style={{
                 fontSize: 11,
-                fontWeight: 500,
-                letterSpacing: "0.12em",
+                fontWeight: 600,
+                letterSpacing: "0.18em",
                 textTransform: "uppercase",
                 color: "#A0A0A0",
-                marginBottom: 8,
+                margin: 0,
               }}
             >
-              {card.label}
+              Progresso geral
             </p>
             <p
               style={{
-                fontSize: 32,
+                fontFamily: "Fraunces, Georgia, serif",
+                fontSize: 56,
                 fontWeight: 400,
                 color: "#2A2A2A",
-                fontFamily: "Georgia, serif",
+                margin: "4px 0 0",
+                letterSpacing: "-0.04em",
+                lineHeight: 1,
               }}
             >
-              {card.value}
+              {progressPct}<span style={{ fontSize: 28, color: "#A0A0A0" }}>%</span>
             </p>
           </div>
-        ))}
-      </div>
-
-      <div style={{ marginBottom: 40 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-          <span style={{ fontSize: 13, color: "#4A4A4A" }}>Progresso geral</span>
-          <span style={{ fontSize: 13, color: "#1D7070", fontWeight: 500 }}>
-            {total > 0 ? Math.round((approved / total) * 100) : 0}%
-          </span>
+          <div style={{ textAlign: "right" }}>
+            <p style={{ fontSize: 13, color: "#4A4A4A", margin: 0 }}>
+              <strong style={{ color: "var(--accent)", fontSize: 18, fontWeight: 600 }}>
+                {approved}
+              </strong>
+              <span style={{ marginLeft: 4 }}>de {total} aprovados</span>
+            </p>
+          </div>
         </div>
         <div
           style={{
-            height: 6,
-            background: "rgba(29,112,112,0.12)",
-            borderRadius: 3,
+            height: 8,
+            background: "var(--accent-soft)" as any,
+            borderRadius: 999,
             overflow: "hidden",
+            position: "relative",
           }}
         >
           <div
             style={{
               height: "100%",
-              width: `${total > 0 ? (approved / total) * 100 : 0}%`,
-              background: "#1D7070",
-              borderRadius: 3,
-              transition: "width 0.4s ease",
+              width: `${progressPct}%`,
+              background: "var(--accent)",
+              borderRadius: 999,
+              transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           />
         </div>
-      </div>
+      </section>
 
+      {/* Stats cards */}
+      <section style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+        <StatCard label="Total de entregáveis" value={total} />
+        <StatCard label="Aprovados" value={approved} highlight />
+        <StatCard label="Em produção" value={inProgress.length} />
+      </section>
+
+      {/* Awaiting validation */}
       {waitingReview.length > 0 && (
-        <div style={{ marginBottom: 40 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 500, color: "#2A2A2A", marginBottom: 16 }}>
-            Aguardando sua validação
-          </h2>
+        <section>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <Sparkles size={16} color={"var(--accent)"} strokeWidth={1.8} />
+            <h2 style={{ fontSize: 16, fontWeight: 500, color: "#2A2A2A", margin: 0 }}>
+              Aguardando sua validação
+            </h2>
+            <span
+              style={{
+                background: "var(--accent-soft)" as any,
+                color: "var(--accent)",
+                fontSize: 11,
+                fontWeight: 600,
+                padding: "2px 10px",
+                borderRadius: 999,
+              }}
+            >
+              {waitingReview.length}
+            </span>
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {waitingReview.map((d) => (
               <Link
                 key={d.id}
                 href={`/portal/entregaveis/${d.id}`}
+                className="portal-card-hover"
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
                   background: "white",
-                  border: "0.5px solid rgba(29,112,112,0.2)",
-                  borderLeft: "3px solid #1D7070",
-                  borderRadius: 8,
-                  padding: "16px 20px",
+                  border: "0.5px solid var(--accent-border)" as any,
+                  borderRadius: 14,
+                  padding: "18px 20px",
                   textDecoration: "none",
                   color: "inherit",
+                  transition: "all 0.18s ease",
+                  position: "relative",
+                  overflow: "hidden",
                 }}
               >
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 3,
+                    background: "var(--accent)",
+                  }}
+                />
                 <div>
                   <p style={{ fontSize: 14, fontWeight: 500, color: "#2A2A2A", margin: 0 }}>
                     {d.title}
                   </p>
-                  <p style={{ fontSize: 12, color: "#6B7280", margin: "2px 0 0" }}>
-                    Fase {d.phase} · Clique para revisar
+                  <p style={{ fontSize: 12, color: "#6B7280", margin: "4px 0 0" }}>
+                    Fase {d.phase} · {PHASE_NAMES[d.phase]}
                   </p>
                 </div>
-                <span
-                  style={{
-                    fontSize: 12,
-                    background: "#E8F5F2",
-                    color: "#0D4A4A",
-                    padding: "4px 10px",
-                    borderRadius: 6,
-                    fontWeight: 500,
-                  }}
-                >
-                  Revisar
-                </span>
+                <ArrowRight size={16} strokeWidth={1.6} color="var(--accent)" />
               </Link>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
+      {/* Sobre você */}
       {project.summary && (
-        <div
+        <section
           style={{
             background: "white",
-            border: "0.5px solid rgba(29,112,112,0.12)",
-            borderRadius: 12,
-            padding: 32,
-            marginTop: 40,
+            borderRadius: 20,
+            padding: 36,
+            boxShadow: "0 1px 2px rgba(13,74,74,0.04)",
+            border: "0.5px solid rgba(29,112,112,0.08)",
           }}
         >
           <p
             style={{
               fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: "0.16em",
+              fontWeight: 600,
+              letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "#1D7070",
-              marginBottom: 16,
+              color: "var(--accent)",
+              marginBottom: 18,
             }}
           >
             Sobre você
           </p>
           <div
-            style={{ fontSize: 14, lineHeight: 1.8, color: "#4A4A4A" }}
+            style={{ fontSize: 14.5, lineHeight: 1.8, color: "#4A4A4A" }}
             dangerouslySetInnerHTML={{ __html: project.summary.content }}
           />
-        </div>
+        </section>
       )}
+    </div>
+  );
+}
+
+function StatCard({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <div
+      style={{
+        background: "white",
+        border: "0.5px solid rgba(29,112,112,0.08)",
+        borderRadius: 14,
+        padding: 22,
+        boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
+      }}
+    >
+      <p
+        style={{
+          fontSize: 10.5,
+          fontWeight: 600,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+          color: "#A0A0A0",
+          margin: "0 0 10px",
+        }}
+      >
+        {label}
+      </p>
+      <p
+        style={{
+          fontFamily: "Fraunces, Georgia, serif",
+          fontSize: 36,
+          fontWeight: 400,
+          color: highlight ? ("var(--accent)") : "#2A2A2A",
+          margin: 0,
+          letterSpacing: "-0.03em",
+          lineHeight: 1,
+        }}
+      >
+        {value}
+      </p>
     </div>
   );
 }
