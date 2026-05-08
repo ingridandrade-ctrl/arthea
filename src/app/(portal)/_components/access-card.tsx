@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Eye, EyeOff, Copy, Check, ExternalLink } from "lucide-react";
 
 export function AccessCard({
   platform,
@@ -28,11 +29,13 @@ export function AccessCard({
 
   return (
     <div
+      className="portal-card-hover"
       style={{
         background: "white",
-        border: "0.5px solid rgba(29,112,112,0.15)",
-        borderRadius: 12,
-        padding: 20,
+        border: "0.5px solid rgba(29,112,112,0.08)",
+        borderRadius: 16,
+        padding: 22,
+        boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
       }}
     >
       <div
@@ -40,57 +43,83 @@ export function AccessCard({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: 12,
+          marginBottom: 16,
         }}
       >
-        <h3 style={{ fontSize: 16, fontWeight: 500, color: "#2A2A2A", margin: 0 }}>{platform}</h3>
+        <h3
+          style={{
+            fontSize: 16,
+            fontWeight: 500,
+            color: "#2A2A2A",
+            margin: 0,
+            fontFamily: "Fraunces, Georgia, serif",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {platform}
+        </h3>
         {url && (
           <a
             href={url}
             target="_blank"
             rel="noreferrer"
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
               fontSize: 12,
-              color: "#1D7070",
+              color: "var(--accent)",
               textDecoration: "none",
-              border: "1px solid rgba(29,112,112,0.2)",
-              padding: "4px 10px",
-              borderRadius: 6,
+              border: "1px solid var(--accent-border)",
+              padding: "5px 11px",
+              borderRadius: 999,
+              fontWeight: 500,
             }}
           >
-            Abrir ↗
+            <ExternalLink size={12} strokeWidth={1.8} />
+            Abrir
           </a>
         )}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {username && (
-          <Field label="Usuário" value={username} onCopy={() => copy(username, "user")} copied={copied === "user"} />
+          <Field
+            label="Usuário"
+            value={username}
+            display={username}
+            onCopy={() => copy(username, "user")}
+            copied={copied === "user"}
+          />
         )}
         {password && (
           <Field
             label="Senha"
-            value={show ? password : "••••••••"}
+            value={password}
+            display={show ? password : "••••••••••"}
             onCopy={() => copy(password, "pwd")}
             copied={copied === "pwd"}
             extra={
               <button
                 onClick={() => setShow(!show)}
-                style={{
-                  fontSize: 11,
-                  color: "#1D7070",
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                }}
+                title={show ? "Ocultar" : "Mostrar"}
+                style={iconBtn}
               >
-                {show ? "Ocultar" : "Mostrar"}
+                {show ? <EyeOff size={14} strokeWidth={1.7} /> : <Eye size={14} strokeWidth={1.7} />}
               </button>
             }
           />
         )}
         {notes && (
-          <p style={{ fontSize: 12, color: "#6B7280", margin: "8px 0 0", whiteSpace: "pre-wrap" }}>
+          <p
+            style={{
+              fontSize: 12.5,
+              color: "#6B7280",
+              margin: "8px 0 0",
+              whiteSpace: "pre-wrap",
+              lineHeight: 1.55,
+            }}
+          >
             {notes}
           </p>
         )}
@@ -99,29 +128,43 @@ export function AccessCard({
   );
 }
 
+const iconBtn: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "transparent",
+  border: "none",
+  color: "#6B7280",
+  cursor: "pointer",
+  padding: 6,
+  borderRadius: 6,
+  transition: "all 0.15s ease",
+};
+
 function Field({
   label,
-  value,
+  display,
   onCopy,
   copied,
   extra,
 }: {
   label: string;
   value: string;
+  display: string;
   onCopy: () => void;
   copied: boolean;
   extra?: React.ReactNode;
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <span
         style={{
-          fontSize: 11,
-          fontWeight: 500,
-          letterSpacing: "0.08em",
+          fontSize: 10.5,
+          fontWeight: 600,
+          letterSpacing: "0.1em",
           textTransform: "uppercase",
           color: "#A0A0A0",
-          width: 60,
+          width: 64,
         }}
       >
         {label}
@@ -131,25 +174,20 @@ function Field({
           fontSize: 13,
           color: "#2A2A2A",
           background: "#FAF9F6",
-          padding: "4px 10px",
-          borderRadius: 4,
+          padding: "7px 12px",
+          borderRadius: 8,
           flex: 1,
-          fontFamily: "monospace",
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
         }}
       >
-        {value}
+        {display}
       </code>
-      <button
-        onClick={onCopy}
-        style={{
-          fontSize: 11,
-          color: copied ? "#1D7070" : "#6B7280",
-          background: "transparent",
-          border: "none",
-          cursor: "pointer",
-        }}
-      >
-        {copied ? "Copiado" : "Copiar"}
+      <button onClick={onCopy} title={copied ? "Copiado" : "Copiar"} style={iconBtn}>
+        {copied ? (
+          <Check size={14} strokeWidth={2} color="var(--accent)" />
+        ) : (
+          <Copy size={14} strokeWidth={1.7} />
+        )}
       </button>
       {extra}
     </div>

@@ -12,6 +12,7 @@ const CRM_PREFIXES = [
   "/tarefas",
   "/configuracoes",
   "/automations",
+  "/portal-clientes",
 ];
 
 function isClientHost(host: string | null) {
@@ -21,6 +22,11 @@ function isClientHost(host: string | null) {
 
 function isPublicPath(pathname: string) {
   return pathname === "/login" || pathname.startsWith("/api/auth");
+}
+
+function isPortalPath(pathname: string) {
+  // /portal exato ou /portal/<algo> — NÃO inclui /portal-clientes
+  return pathname === "/portal" || pathname.startsWith("/portal/");
 }
 
 export default withAuth(
@@ -41,15 +47,15 @@ export default withAuth(
       if (pathname === "/") {
         return NextResponse.redirect(new URL(role === "CLIENT" ? "/portal" : "/login", req.url));
       }
-      // qualquer rota de portal exige CLIENT
-      if (pathname.startsWith("/portal") && role !== "CLIENT") {
+      // qualquer rota /portal/* (não /portal-clientes) exige CLIENT
+      if (isPortalPath(pathname) && role !== "CLIENT") {
         return NextResponse.redirect(new URL("/login", req.url));
       }
       return NextResponse.next();
     }
 
     // ── Domínio principal (CRM) ──
-    if (pathname.startsWith("/portal")) {
+    if (isPortalPath(pathname)) {
       if (role !== "CLIENT") {
         return NextResponse.redirect(new URL("/login", req.url));
       }
@@ -87,5 +93,6 @@ export const config = {
     "/tarefas/:path*",
     "/configuracoes/:path*",
     "/automations/:path*",
+    "/portal-clientes/:path*",
   ],
 };

@@ -29,3 +29,36 @@
     font-family: var(--font-sans);
   }
 }
+
+/* Portal v2 — micro-interactions */
+.portal-card-hover {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.portal-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 74, 74, 0.08);
+  border-color: rgba(29, 112, 112, 0.4);
+}
+
+@keyframes portal-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.portal-fade-in {
+  animation: portal-fade-in 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.portal-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0D4A4A;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 8px 32px rgba(13, 74, 74, 0.32);
+  z-index: 1000;
+  animation: portal-fade-in 0.24s ease;
+}

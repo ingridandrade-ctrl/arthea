@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Check, RotateCcw } from "lucide-react";
 
 type Question = {
   id: string;
@@ -29,6 +30,7 @@ export function ValidationForm({
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState<string | null>(null);
 
   async function submit(action: "approve" | "revision") {
     setError("");
@@ -55,7 +57,11 @@ export function ValidationForm({
         const data = await res.json().catch(() => ({}));
         setError(data.error || "Erro ao enviar.");
       } else {
-        router.refresh();
+        setToast(action === "approve" ? "Entregável aprovado!" : "Revisão solicitada.");
+        setTimeout(() => {
+          setToast(null);
+          router.refresh();
+        }, 1200);
       }
     } finally {
       setSubmitting(false);
@@ -63,42 +69,42 @@ export function ValidationForm({
   }
 
   return (
-    <div
+    <section
       style={{
         background: "white",
-        border: "0.5px solid rgba(29,112,112,0.15)",
-        borderRadius: 12,
-        padding: 24,
-        marginBottom: 24,
+        border: "0.5px solid rgba(29,112,112,0.08)",
+        borderRadius: 18,
+        padding: 28,
+        boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
       }}
     >
       <p
         style={{
           fontSize: 11,
-          fontWeight: 500,
-          letterSpacing: "0.16em",
+          fontWeight: 600,
+          letterSpacing: "0.18em",
           textTransform: "uppercase",
-          color: "#1D7070",
-          marginBottom: 16,
+          color: "var(--accent)",
+          marginBottom: 18,
         }}
       >
         {readOnly ? "Suas respostas" : "Validação"}
       </p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
         {questions.map((q) => (
           <div key={q.id}>
             <label
               style={{
                 display: "block",
-                fontSize: 13,
+                fontSize: 13.5,
                 fontWeight: 500,
                 color: "#2A2A2A",
                 marginBottom: 8,
               }}
             >
               {q.question}
-              {q.isRequired && <span style={{ color: "#1D7070", marginLeft: 4 }}>*</span>}
+              {q.isRequired && <span style={{ color: "var(--accent)", marginLeft: 4 }}>*</span>}
             </label>
             {q.type === "textarea" && (
               <textarea
@@ -106,32 +112,17 @@ export function ValidationForm({
                 onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
                 disabled={readOnly}
                 rows={3}
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  border: "1px solid rgba(29,112,112,0.2)",
-                  borderRadius: 6,
-                  fontSize: 14,
-                  fontFamily: "inherit",
-                  background: readOnly ? "#FAF9F6" : "white",
-                }}
+                style={inputStyle(readOnly)}
               />
             )}
-            {(q.type === "text" || !["textarea", "radio", "scale", "checkbox"].includes(q.type)) && (
+            {(q.type === "text" ||
+              !["textarea", "radio", "scale", "checkbox"].includes(q.type)) && (
               <input
                 type="text"
                 value={answers[q.id] || ""}
                 onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
                 disabled={readOnly}
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  border: "1px solid rgba(29,112,112,0.2)",
-                  borderRadius: 6,
-                  fontSize: 14,
-                  fontFamily: "inherit",
-                  background: readOnly ? "#FAF9F6" : "white",
-                }}
+                style={inputStyle(readOnly)}
               />
             )}
             {q.type === "radio" && (
@@ -168,17 +159,21 @@ export function ValidationForm({
                     <button
                       key={n}
                       type="button"
-                      onClick={() => !readOnly && setAnswers({ ...answers, [q.id]: String(n) })}
+                      onClick={() =>
+                        !readOnly && setAnswers({ ...answers, [q.id]: String(n) })
+                      }
                       disabled={readOnly}
                       style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 8,
+                        width: 44,
+                        height: 44,
+                        borderRadius: 10,
                         border: "1px solid rgba(29,112,112,0.2)",
-                        background: selected ? "#1D7070" : "white",
+                        background: selected ? "var(--accent)" : "white",
                         color: selected ? "white" : "#2A2A2A",
                         fontWeight: 500,
                         cursor: readOnly ? "default" : "pointer",
+                        fontFamily: "inherit",
+                        transition: "all 0.15s ease",
                       }}
                     >
                       {n}
@@ -192,47 +187,91 @@ export function ValidationForm({
       </div>
 
       {error && (
-        <p style={{ color: "#9A3412", fontSize: 13, marginTop: 12 }}>{error}</p>
+        <p style={{ color: "#9A3412", fontSize: 13, marginTop: 16 }}>{error}</p>
       )}
 
       {!readOnly && (
-        <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            marginTop: 28,
+            justifyContent: "flex-end",
+          }}
+        >
           <button
             type="button"
             onClick={() => submit("revision")}
             disabled={submitting}
-            style={{
-              background: "white",
-              color: "#9A3412",
-              border: "1px solid #FED7AA",
-              padding: "10px 16px",
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: submitting ? "wait" : "pointer",
-            }}
+            style={secondaryBtn(submitting)}
           >
+            <RotateCcw size={14} strokeWidth={1.8} />
             Solicitar revisão
           </button>
           <button
             type="button"
             onClick={() => submit("approve")}
             disabled={submitting}
-            style={{
-              background: "#1D7070",
-              color: "white",
-              border: "none",
-              padding: "10px 18px",
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: submitting ? "wait" : "pointer",
-            }}
+            style={primaryBtn(submitting)}
           >
+            <Check size={14} strokeWidth={2} />
             {submitting ? "Enviando..." : "Aprovar entregável"}
           </button>
         </div>
       )}
-    </div>
+
+      {toast && <div className="portal-toast">{toast}</div>}
+    </section>
   );
+}
+
+function inputStyle(readOnly: boolean): React.CSSProperties {
+  return {
+    width: "100%",
+    padding: "10px 14px",
+    border: "1px solid rgba(29,112,112,0.2)",
+    borderRadius: 10,
+    fontSize: 14,
+    fontFamily: "inherit",
+    background: readOnly ? "#FAF9F6" : "white",
+    color: "#2A2A2A",
+    outline: "none",
+  };
+}
+
+function primaryBtn(disabled: boolean): React.CSSProperties {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    background: "var(--accent)",
+    color: "white",
+    border: "none",
+    padding: "11px 20px",
+    borderRadius: 10,
+    fontSize: 13.5,
+    fontWeight: 500,
+    cursor: disabled ? "wait" : "pointer",
+    fontFamily: "inherit",
+    opacity: disabled ? 0.6 : 1,
+    transition: "all 0.15s ease",
+  };
+}
+
+function secondaryBtn(disabled: boolean): React.CSSProperties {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    background: "white",
+    color: "#9A3412",
+    border: "1px solid #FED7AA",
+    padding: "11px 18px",
+    borderRadius: 10,
+    fontSize: 13.5,
+    fontWeight: 500,
+    cursor: disabled ? "wait" : "pointer",
+    fontFamily: "inherit",
+    transition: "all 0.15s ease",
+  };
 }

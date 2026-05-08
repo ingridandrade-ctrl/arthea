@@ -3,7 +3,9 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import {
+  PHASE_NAMES,
   STATUS_BG,
   STATUS_FG,
   STATUS_LABEL,
@@ -30,7 +32,6 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
   if (!deliverable) notFound();
   if (deliverable.project.clientId !== userId) redirect("/portal");
 
-  // Resolve comment authors
   const authorIds = Array.from(new Set(deliverable.comments.map((c) => c.authorId)));
   const authors = await prisma.user.findMany({
     where: { id: { in: authorIds } },
@@ -42,57 +43,60 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
   const responsesByQuestion = new Map(deliverable.responses.map((r) => [r.questionId, r.answer]));
 
   return (
-    <div>
+    <div className="portal-fade-in" style={{ display: "flex", flexDirection: "column", gap: 28 }}>
       <Link
         href="/portal/entregaveis"
         style={{
-          fontSize: 12,
+          fontSize: 12.5,
           color: "#6B7280",
           textDecoration: "none",
           display: "inline-flex",
           alignItems: "center",
           gap: 6,
-          marginBottom: 16,
+          width: "fit-content",
         }}
       >
-        ← Voltar para entregáveis
+        <ArrowLeft size={14} strokeWidth={1.7} /> Voltar para entregáveis
       </Link>
 
-      <div
+      <header
         style={{
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "space-between",
           gap: 16,
-          marginBottom: 32,
         }}
       >
-        <div>
+        <div style={{ flex: 1 }}>
           <p
             style={{
               fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: "0.16em",
+              fontWeight: 600,
+              letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "#1D7070",
-              marginBottom: 8,
+              color: "var(--accent)",
+              margin: 0,
             }}
           >
-            Fase {deliverable.phase}
+            Fase {deliverable.phase} · {PHASE_NAMES[deliverable.phase]}
           </p>
           <h1
             style={{
-              fontSize: 28,
+              fontFamily: "Fraunces, Georgia, serif",
+              fontSize: 32,
               fontWeight: 400,
               color: "#2A2A2A",
-              margin: 0,
-              fontFamily: "Georgia, serif",
+              margin: "8px 0 0",
+              letterSpacing: "-0.02em",
+              lineHeight: 1.15,
             }}
           >
             {deliverable.title}
           </h1>
           {deliverable.description && (
-            <p style={{ fontSize: 14, color: "#4A4A4A", marginTop: 8 }}>{deliverable.description}</p>
+            <p style={{ fontSize: 14, color: "#4A4A4A", marginTop: 12 }}>
+              {deliverable.description}
+            </p>
           )}
         </div>
         <span
@@ -101,40 +105,40 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
             background: STATUS_BG[status],
             color: STATUS_FG[status],
             padding: "6px 12px",
-            borderRadius: 6,
+            borderRadius: 999,
             fontWeight: 500,
             whiteSpace: "nowrap",
           }}
         >
           {STATUS_LABEL[status]}
         </span>
-      </div>
+      </header>
 
       {/* Documento */}
-      <div
+      <section
         style={{
           background: "white",
-          border: "0.5px solid rgba(29,112,112,0.15)",
-          borderRadius: 12,
-          padding: 24,
-          marginBottom: 24,
+          border: "0.5px solid rgba(29,112,112,0.08)",
+          borderRadius: 18,
+          padding: 28,
+          boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
         }}
       >
         <p
           style={{
             fontSize: 11,
-            fontWeight: 500,
-            letterSpacing: "0.16em",
+            fontWeight: 600,
+            letterSpacing: "0.18em",
             textTransform: "uppercase",
             color: "#A0A0A0",
-            marginBottom: 12,
+            marginBottom: 14,
           }}
         >
           Documento
         </p>
         {deliverable.documentEmbed ? (
           <div
-            style={{ fontSize: 14, color: "#2A2A2A", lineHeight: 1.7 }}
+            style={{ fontSize: 14.5, color: "#2A2A2A", lineHeight: 1.7 }}
             dangerouslySetInnerHTML={{ __html: deliverable.documentEmbed }}
           />
         ) : deliverable.documentUrl ? (
@@ -144,11 +148,11 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
             rel="noreferrer"
             style={{
               display: "inline-block",
-              background: "#1D7070",
+              background: "var(--accent)",
               color: "white",
-              fontSize: 13,
-              padding: "10px 18px",
-              borderRadius: 8,
+              fontSize: 13.5,
+              padding: "11px 20px",
+              borderRadius: 10,
               textDecoration: "none",
               fontWeight: 500,
             }}
@@ -158,7 +162,7 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
         ) : (
           <p style={{ fontSize: 14, color: "#6B7280", margin: 0 }}>Documento em preparação.</p>
         )}
-      </div>
+      </section>
 
       {/* Validação */}
       {(status === "WAITING_REVIEW" || status === "REVISION" || status === "APPROVED") &&
