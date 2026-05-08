@@ -11,6 +11,7 @@ enum Role {
   ADMIN
   MANAGER
   AGENT
+  CLIENT
 }
 
 enum LeadSource {
@@ -99,6 +100,7 @@ model User {
   assignedTasks  Task[]         @relation("AssignedTasks")
   createdTasks   Task[]         @relation("CreatedTasks")
   notifications  Notification[]
+  clientProject  ClientProject?
 }
 
 model Service {
@@ -436,4 +438,142 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId, read])
+}
+
+// ─── Portal de clientes ────────────────────────────────────────
+
+enum DeliverableStatus {
+  PENDING
+  IN_PROGRESS
+  WAITING_REVIEW
+  APPROVED
+  REVISION
+}
+
+enum DeliverableCategory {
+  POSITIONING
+  CONTENT
+  TRACKING
+  DELIVERY
+}
+
+model ClientProject {
+  id           String   @id @default(cuid())
+  name         String
+  clientId     String   @unique
+  client       User     @relation(fields: [clientId], references: [id])
+  description  String?
+  startDate    DateTime?
+  endDate      DateTime?
+  currentPhase Int      @default(1)
+  accentColor  String   @default("#1D7070")
+  logoUrl      String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deliverables ClientDeliverable[]
+  accesses     ClientAccess[]
+  references   ClientReference[]
+  summary      ClientSummary?
+
+  @@index([clientId])
+}
+
+model ClientSummary {
+  id        String        @id @default(cuid())
+  projectId String        @unique
+  project   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  content   String
+  updatedAt DateTime      @updatedAt
+}
+
+model ClientDeliverable {
+  id            String              @id @default(cuid())
+  projectId     String
+  project       ClientProject       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  category      DeliverableCategory
+  phase         Int
+  order         Int
+  status        DeliverableStatus   @default(PENDING)
+  documentUrl   String?
+  documentEmbed String?
+  isVisible     Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  questions     DeliverableQuestion[]
+  comments      DeliverableComment[]
+  responses     DeliverableResponse[]
+
+  @@index([projectId, phase])
+  @@index([status])
+}
+
+model DeliverableQuestion {
+  id            String              @id @default(cuid())
+  deliverableId String
+  deliverable   ClientDeliverable   @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  question      String
+  type          String              @default("text")
+  options       String[]
+  order         Int
+  isRequired    Boolean             @default(false)
+  responses     DeliverableResponse[]
+
+  @@index([deliverableId])
+}
+
+model DeliverableResponse {
+  id            String              @id @default(cuid())
+  deliverableId String
+  deliverable   ClientDeliverable   @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  questionId    String
+  question      DeliverableQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer        String
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([deliverableId])
+  @@index([questionId])
+}
+
+model DeliverableComment {
+  id            String            @id @default(cuid())
+  deliverableId String
+  deliverable   ClientDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  authorId      String
+  content       String
+  isFromArthea  Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+
+  @@index([deliverableId])
+}
+
+model ClientAccess {
+  id        String        @id @default(cuid())
+  projectId String
+  project   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  platform  String
+  icon      String?
+  username  String?
+  password  String?
+  url       String?
+  notes     String?
+  order     Int           @default(0)
+
+  @@index([projectId])
+}
+
+model ClientReference {
+  id          String        @id @default(cuid())
+  projectId   String
+  project     ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  type        String
+  url         String
+  description String?
+  order       Int           @default(0)
+
+  @@index([projectId])
 }
