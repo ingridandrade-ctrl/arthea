@@ -2,7 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, ExternalLink, Save, Eye, EyeOff } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  ExternalLink,
+  Save,
+  Eye,
+  EyeOff,
+  Pencil,
+  ArrowUp,
+  ArrowDown,
+  Check,
+} from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 
 const STATUS_OPTIONS = [
@@ -12,6 +23,14 @@ const STATUS_OPTIONS = [
   { value: "APPROVED", label: "Aprovado" },
   { value: "REVISION", label: "Em revisão" },
 ];
+
+const STATUS_TONE: Record<string, string> = {
+  PENDING: "bg-slate-100 text-slate-700",
+  IN_PROGRESS: "bg-amber-100 text-amber-800",
+  WAITING_REVIEW: "bg-emerald-100 text-emerald-800",
+  APPROVED: "bg-green-100 text-green-800",
+  REVISION: "bg-orange-100 text-orange-800",
+};
 
 const CATEGORY_OPTIONS = [
   { value: "POSITIONING", label: "Imersão e Posicionamento" },
@@ -36,16 +55,37 @@ const TABS = [
   { key: "resumo", label: "Sobre você" },
 ];
 
+// ─────────────────────────── Toast helper (shared) ───────────────────────────
+function useToast() {
+  const [msg, setMsg] = useState<string | null>(null);
+  function show(text: string) {
+    setMsg(text);
+    setTimeout(() => setMsg(null), 1800);
+  }
+  const node = msg ? (
+    <div
+      className="fixed bottom-6 right-6 bg-slate-900 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-2xl z-[200] animate-in fade-in slide-in-from-bottom-2"
+      style={{ animation: "fadeIn 0.2s ease" }}
+    >
+      <span className="inline-flex items-center gap-2">
+        <Check className="w-4 h-4 text-emerald-400" />
+        {msg}
+      </span>
+    </div>
+  ) : null;
+  return { show, node };
+}
+
 export function ProjectEditor({ project }: { project: any }) {
   const [tab, setTab] = useState("geral");
   return (
     <div>
-      <div className="border-b border-border mb-6 flex gap-1">
+      <div className="border-b border-border mb-6 flex gap-1 overflow-x-auto">
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition whitespace-nowrap ${
               tab === t.key
                 ? "text-primary border-primary"
                 : "text-muted-foreground border-transparent hover:text-foreground"
@@ -69,12 +109,11 @@ export function ProjectEditor({ project }: { project: any }) {
 function GeralTab({ project }: { project: any }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState("");
+  const toast = useToast();
 
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
-    setMsg("");
     const fd = new FormData(e.currentTarget);
     const res = await fetch(`/api/admin/client-projects/${project.id}`, {
       method: "PUT",
@@ -92,10 +131,10 @@ function GeralTab({ project }: { project: any }) {
     });
     setSaving(false);
     if (res.ok) {
-      setMsg("Salvo.");
+      toast.show("Alterações salvas");
       router.refresh();
     } else {
-      setMsg("Erro ao salvar.");
+      toast.show("Erro ao salvar");
     }
   }
 
@@ -108,14 +147,24 @@ function GeralTab({ project }: { project: any }) {
   return (
     <form
       onSubmit={save}
-      className="space-y-4 bg-card border border-border rounded-xl p-5 max-w-2xl"
+      className="space-y-5 bg-card border border-border rounded-2xl p-6 max-w-3xl"
     >
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Identidade do projeto
+        </p>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          O cliente vê o nome e a fase logo ao entrar.
+        </p>
+      </div>
+
       <Field label="Nome do projeto">
         <input name="name" required defaultValue={project.name} className={input} />
       </Field>
       <Field label="Descrição">
         <input name="description" defaultValue={project.description || ""} className={input} />
       </Field>
+
       <div className="grid grid-cols-2 gap-3">
         <Field label="Fase atual">
           <select name="currentPhase" defaultValue={project.currentPhase} className={input}>
@@ -126,12 +175,19 @@ function GeralTab({ project }: { project: any }) {
           </select>
         </Field>
         <Field label="Cor de destaque">
-          <input
-            name="accentColor"
-            type="color"
-            defaultValue={project.accentColor}
-            className="w-full h-9 border border-border rounded-lg"
-          />
+          <div className="flex gap-2">
+            <input
+              name="accentColor"
+              type="color"
+              defaultValue={project.accentColor}
+              className="w-12 h-9 border border-border rounded-lg cursor-pointer"
+            />
+            <input
+              defaultValue={project.accentColor}
+              readOnly
+              className={`${input} flex-1 font-mono text-xs`}
+            />
+          </div>
         </Field>
         <Field label="Início">
           <input
@@ -163,26 +219,24 @@ function GeralTab({ project }: { project: any }) {
         Projeto ativo (visível no portal)
       </label>
 
-      <div className="flex items-center justify-between pt-3 border-t border-border">
+      <div className="flex items-center justify-between pt-4 border-t border-border">
         <button
           type="button"
           onClick={deleteProject}
-          className="text-sm text-red-600 hover:text-red-700 inline-flex items-center gap-1"
+          className="text-sm text-red-600 hover:text-red-700 inline-flex items-center gap-1.5"
         >
           <Trash2 className="w-4 h-4" /> Excluir projeto
         </button>
-        <div className="flex items-center gap-3">
-          {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60 inline-flex items-center gap-2"
-          >
-            <Save className="w-4 h-4" />
-            {saving ? "Salvando..." : "Salvar"}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={saving}
+          className="px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60 inline-flex items-center gap-2 hover:opacity-90 transition"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Salvando..." : "Salvar alterações"}
+        </button>
       </div>
+      {toast.node}
     </form>
   );
 }
@@ -192,10 +246,12 @@ function EntregaveisTab({ project }: { project: any }) {
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const toast = useToast();
 
   async function deleteOne(id: string) {
     if (!confirm("Excluir este entregável?")) return;
     await fetch(`/api/admin/deliverables/${id}`, { method: "DELETE" });
+    toast.show("Entregável excluído");
     router.refresh();
   }
 
@@ -205,21 +261,48 @@ function EntregaveisTab({ project }: { project: any }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
+    toast.show("Status atualizado");
+    router.refresh();
+  }
+
+  async function reorder(deliverable: any, dir: -1 | 1) {
+    const samePhase = project.deliverables.filter((d: any) => d.phase === deliverable.phase);
+    samePhase.sort((a: any, b: any) => a.order - b.order);
+    const idx = samePhase.findIndex((d: any) => d.id === deliverable.id);
+    const targetIdx = idx + dir;
+    if (targetIdx < 0 || targetIdx >= samePhase.length) return;
+    const target = samePhase[targetIdx];
+    // Swap orders
+    await Promise.all([
+      fetch(`/api/admin/deliverables/${deliverable.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: target.order }),
+      }),
+      fetch(`/api/admin/deliverables/${target.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: deliverable.order }),
+      }),
+    ]);
     router.refresh();
   }
 
   const byPhase: Record<number, any[]> = { 1: [], 2: [], 3: [], 4: [] };
   for (const d of project.deliverables) byPhase[d.phase].push(d);
+  for (const phase of Object.keys(byPhase)) {
+    byPhase[Number(phase)].sort((a, b) => a.order - b.order);
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {project.deliverables.length} entregáveis ao todo. Click no status para mudar rapidinho.
+          {project.deliverables.length} entregáveis. Mude o status pelo dropdown e a ordem com as setas.
         </p>
         <button
           onClick={() => setShowAdd(true)}
-          className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium inline-flex items-center gap-1"
+          className="px-3.5 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium inline-flex items-center gap-1.5 hover:opacity-90 transition"
         >
           <Plus className="w-4 h-4" /> Adicionar
         </button>
@@ -227,18 +310,38 @@ function EntregaveisTab({ project }: { project: any }) {
 
       {[1, 2, 3, 4].map((phase) => (
         <div key={phase}>
-          <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+          <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2.5">
             Fase {phase}
           </h3>
           {byPhase[phase].length === 0 ? (
-            <p className="text-sm text-muted-foreground italic mb-4">Sem entregáveis nesta fase.</p>
+            <p className="text-sm text-muted-foreground italic mb-4">
+              Sem entregáveis nesta fase.
+            </p>
           ) : (
             <div className="space-y-1.5 mb-4">
-              {byPhase[phase].map((d) => (
+              {byPhase[phase].map((d, i) => (
                 <div
                   key={d.id}
-                  className="bg-card border border-border rounded-lg px-4 py-3 flex items-center gap-3"
+                  className="bg-card border border-border rounded-lg px-4 py-3 flex items-center gap-3 hover:border-primary/30 transition"
                 >
+                  <div className="flex flex-col gap-0.5 -my-1">
+                    <button
+                      onClick={() => reorder(d, -1)}
+                      disabled={i === 0}
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                      title="Mover para cima"
+                    >
+                      <ArrowUp className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => reorder(d, 1)}
+                      disabled={i === byPhase[phase].length - 1}
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                      title="Mover para baixo"
+                    >
+                      <ArrowDown className="w-3 h-3" />
+                    </button>
+                  </div>
                   <div className="flex-1 min-w-0">
                     <button
                       onClick={() => setEditing(d)}
@@ -253,21 +356,26 @@ function EntregaveisTab({ project }: { project: any }) {
                   <select
                     value={d.status}
                     onChange={(e) => quickStatus(d.id, e.target.value)}
-                    className="text-xs border border-border rounded px-2 py-1 bg-white"
+                    className={`text-xs border-0 rounded-full px-3 py-1 font-medium cursor-pointer ${
+                      STATUS_TONE[d.status] || "bg-slate-100"
+                    }`}
                   >
                     {STATUS_OPTIONS.map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
                     ))}
                   </select>
                   <button
                     onClick={() => setEditing(d)}
-                    className="text-xs text-primary hover:underline"
+                    className="p-1.5 text-muted-foreground hover:text-primary hover:bg-muted rounded"
+                    title="Editar"
                   >
-                    Editar
+                    <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => deleteOne(d.id)}
-                    className="text-muted-foreground hover:text-red-600"
+                    className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded"
                     title="Excluir"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -284,6 +392,7 @@ function EntregaveisTab({ project }: { project: any }) {
           projectId={project.id}
           nextOrder={project.deliverables.length}
           onClose={() => setShowAdd(false)}
+          onSaved={() => toast.show("Entregável criado")}
         />
       )}
       {editing && (
@@ -292,8 +401,10 @@ function EntregaveisTab({ project }: { project: any }) {
           editing={editing}
           nextOrder={project.deliverables.length}
           onClose={() => setEditing(null)}
+          onSaved={() => toast.show("Entregável atualizado")}
         />
       )}
+      {toast.node}
     </div>
   );
 }
@@ -303,11 +414,13 @@ function DeliverableForm({
   editing,
   nextOrder,
   onClose,
+  onSaved,
 }: {
   projectId: string;
   editing?: any;
   nextOrder: number;
   onClose: () => void;
+  onSaved?: () => void;
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -340,6 +453,7 @@ function DeliverableForm({
         });
     setSaving(false);
     if (res.ok) {
+      onSaved?.();
       onClose();
       router.refresh();
     }
@@ -368,16 +482,24 @@ function DeliverableForm({
             </select>
           </Field>
           <Field label="Categoria">
-            <select name="category" defaultValue={editing?.category || "POSITIONING"} className={input}>
+            <select
+              name="category"
+              defaultValue={editing?.category || "POSITIONING"}
+              className={input}
+            >
               {CATEGORY_OPTIONS.map((c) => (
-                <option key={c.value} value={c.value}>{c.label}</option>
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
               ))}
             </select>
           </Field>
           <Field label="Status">
             <select name="status" defaultValue={editing?.status || "PENDING"} className={input}>
               {STATUS_OPTIONS.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
               ))}
             </select>
           </Field>
@@ -410,7 +532,7 @@ function DeliverableForm({
         <button
           type="submit"
           disabled={saving}
-          className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60"
+          className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60 hover:opacity-90 transition"
         >
           {saving ? "Salvando..." : editing ? "Salvar alterações" : "Adicionar entregável"}
         </button>
@@ -423,38 +545,53 @@ function DeliverableForm({
 function AcessosTab({ project }: { project: any }) {
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
   const [revealing, setRevealing] = useState<string | null>(null);
+  const toast = useToast();
 
   async function deleteOne(id: string) {
     if (!confirm("Excluir este acesso?")) return;
     await fetch(`/api/admin/accesses/${id}`, { method: "DELETE" });
+    toast.show("Acesso excluído");
     router.refresh();
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
+    <div className="space-y-3 max-w-3xl">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {project.accesses.length} {project.accesses.length === 1 ? "acesso cadastrado" : "acessos cadastrados"}.
+        </p>
         <button
           onClick={() => setShowAdd(true)}
-          className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium inline-flex items-center gap-1"
+          className="px-3.5 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium inline-flex items-center gap-1.5 hover:opacity-90 transition"
         >
           <Plus className="w-4 h-4" /> Adicionar acesso
         </button>
       </div>
 
       {project.accesses.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic">Nenhum acesso cadastrado.</p>
+        <div className="bg-card border border-dashed border-border rounded-xl p-10 text-center">
+          <p className="text-sm text-muted-foreground">
+            Nenhum acesso cadastrado. Use este espaço para registrar logins de redes sociais,
+            ferramentas e contas que você cria para o cliente.
+          </p>
+        </div>
       ) : (
         <div className="space-y-2">
           {project.accesses.map((a: any) => (
             <div
               key={a.id}
-              className="bg-card border border-border rounded-lg p-4 flex items-start gap-3"
+              className="bg-card border border-border rounded-lg p-4 flex items-start gap-3 hover:border-primary/30 transition"
             >
               <div className="flex-1">
                 <p className="text-sm font-medium">{a.platform}</p>
-                <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                  {a.username && <p>Usuário: <span className="font-mono">{a.username}</span></p>}
+                <div className="text-xs text-muted-foreground mt-1.5 space-y-1">
+                  {a.username && (
+                    <p>
+                      Usuário: <span className="font-mono">{a.username}</span>
+                    </p>
+                  )}
                   {a.password && (
                     <p className="flex items-center gap-2">
                       Senha:
@@ -464,8 +601,13 @@ function AcessosTab({ project }: { project: any }) {
                       <button
                         onClick={() => setRevealing(revealing === a.id ? null : a.id)}
                         className="text-primary"
+                        title={revealing === a.id ? "Ocultar" : "Mostrar"}
                       >
-                        {revealing === a.id ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                        {revealing === a.id ? (
+                          <EyeOff className="w-3.5 h-3.5" />
+                        ) : (
+                          <Eye className="w-3.5 h-3.5" />
+                        )}
                       </button>
                     </p>
                   )}
@@ -479,15 +621,25 @@ function AcessosTab({ project }: { project: any }) {
                       <ExternalLink className="w-3 h-3" /> {a.url}
                     </a>
                   )}
-                  {a.notes && <p className="italic">{a.notes}</p>}
+                  {a.notes && <p className="italic text-muted-foreground/80">{a.notes}</p>}
                 </div>
               </div>
-              <button
-                onClick={() => deleteOne(a.id)}
-                className="text-muted-foreground hover:text-red-600"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setEditing(a)}
+                  className="p-1.5 text-muted-foreground hover:text-primary hover:bg-muted rounded"
+                  title="Editar"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => deleteOne(a.id)}
+                  className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded"
+                  title="Excluir"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -497,60 +649,113 @@ function AcessosTab({ project }: { project: any }) {
         <AccessForm
           projectId={project.id}
           onClose={() => setShowAdd(false)}
+          onSaved={() => toast.show("Acesso adicionado")}
         />
       )}
+      {editing && (
+        <AccessForm
+          projectId={project.id}
+          editing={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => toast.show("Acesso atualizado")}
+        />
+      )}
+      {toast.node}
     </div>
   );
 }
 
-function AccessForm({ projectId, onClose }: { projectId: string; onClose: () => void }) {
+function AccessForm({
+  projectId,
+  editing,
+  onClose,
+  onSaved,
+}: {
+  projectId: string;
+  editing?: any;
+  onClose: () => void;
+  onSaved?: () => void;
+}) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
     const fd = new FormData(e.currentTarget);
-    const res = await fetch(`/api/admin/client-projects/${projectId}/accesses`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        platform: fd.get("platform"),
-        username: fd.get("username") || null,
-        password: fd.get("password") || null,
-        url: fd.get("url") || null,
-        notes: fd.get("notes") || null,
-      }),
-    });
+    const payload = {
+      platform: fd.get("platform"),
+      username: fd.get("username") || null,
+      password: fd.get("password") || null,
+      url: fd.get("url") || null,
+      notes: fd.get("notes") || null,
+    };
+    const res = editing
+      ? await fetch(`/api/admin/accesses/${editing.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+      : await fetch(`/api/admin/client-projects/${projectId}/accesses`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
     setSaving(false);
     if (res.ok) {
+      onSaved?.();
       onClose();
       router.refresh();
     }
   }
   return (
-    <Modal title="Novo acesso" onClose={onClose} maxWidth="max-w-md">
+    <Modal
+      title={editing ? `Editar acesso — ${editing.platform}` : "Novo acesso"}
+      onClose={onClose}
+      maxWidth="max-w-md"
+    >
       <form onSubmit={save} className="space-y-3">
-        <Field label="Plataforma">
-          <input name="platform" required placeholder="Ex: Instagram" className={input} />
+        <Field label="Plataforma *">
+          <input
+            name="platform"
+            required
+            defaultValue={editing?.platform || ""}
+            placeholder="Ex: Instagram, Meta Ads, Google Meu Negócio..."
+            className={input}
+          />
         </Field>
         <Field label="Usuário">
-          <input name="username" className={input} />
+          <input name="username" defaultValue={editing?.username || ""} className={input} />
         </Field>
         <Field label="Senha">
-          <input name="password" className={input} />
+          <input
+            name="password"
+            type="text"
+            defaultValue={editing?.password || ""}
+            className={input}
+          />
         </Field>
-        <Field label="URL">
-          <input name="url" placeholder="https://..." className={input} />
+        <Field label="URL (link de acesso)">
+          <input
+            name="url"
+            defaultValue={editing?.url || ""}
+            placeholder="https://..."
+            className={input}
+          />
         </Field>
         <Field label="Observações">
-          <textarea name="notes" rows={2} className={input} />
+          <textarea
+            name="notes"
+            rows={2}
+            defaultValue={editing?.notes || ""}
+            className={input}
+          />
         </Field>
         <button
           type="submit"
           disabled={saving}
-          className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60"
+          className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60 hover:opacity-90 transition"
         >
-          {saving ? "Salvando..." : "Adicionar"}
+          {saving ? "Salvando..." : editing ? "Salvar alterações" : "Adicionar acesso"}
         </button>
       </form>
     </Modal>
@@ -561,26 +766,45 @@ function AccessForm({ projectId, onClose }: { projectId: string; onClose: () => 
 function ReferenciasTab({ project }: { project: any }) {
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+  const toast = useToast();
+
+  async function deleteOne(id: string) {
+    if (!confirm("Excluir esta referência?")) return;
+    await fetch(`/api/admin/references/${id}`, { method: "DELETE" });
+    toast.show("Referência excluída");
+    router.refresh();
+  }
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
+    <div className="space-y-3 max-w-3xl">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {project.references.length}{" "}
+          {project.references.length === 1
+            ? "referência cadastrada"
+            : "referências cadastradas"}.
+        </p>
         <button
           onClick={() => setShowAdd(true)}
-          className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium inline-flex items-center gap-1"
+          className="px-3.5 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium inline-flex items-center gap-1.5 hover:opacity-90 transition"
         >
           <Plus className="w-4 h-4" /> Adicionar referência
         </button>
       </div>
 
       {project.references.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic">Nenhuma referência cadastrada.</p>
+        <div className="bg-card border border-dashed border-border rounded-xl p-10 text-center">
+          <p className="text-sm text-muted-foreground">
+            Nenhuma referência cadastrada. Adicione links de inspiração, documentos compartilhados e materiais.
+          </p>
+        </div>
       ) : (
         <div className="space-y-2">
           {project.references.map((r: any) => (
             <div
               key={r.id}
-              className="bg-card border border-border rounded-lg p-3 flex items-center justify-between hover:border-primary/40 transition"
+              className="bg-card border border-border rounded-lg p-3 flex items-center justify-between hover:border-primary/30 transition"
             >
               <a
                 href={r.url}
@@ -588,85 +812,145 @@ function ReferenciasTab({ project }: { project: any }) {
                 rel="noreferrer"
                 className="flex-1 flex items-center gap-3 text-foreground"
               >
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{r.title}</p>
-                  <p className="text-xs text-muted-foreground">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{r.title}</p>
+                  <p className="text-xs text-muted-foreground truncate">
                     {r.type} · {r.url}
                   </p>
+                  {r.description && (
+                    <p className="text-xs text-muted-foreground/70 mt-0.5">{r.description}</p>
+                  )}
                 </div>
-                <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                <ExternalLink className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               </a>
-              <button
-                onClick={async () => {
-                  if (!confirm("Excluir esta referência?")) return;
-                  await fetch(`/api/admin/references/${r.id}`, { method: "DELETE" });
-                  router.refresh();
-                }}
-                className="ml-3 text-muted-foreground hover:text-red-600"
-                title="Excluir"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="flex gap-1 ml-3">
+                <button
+                  onClick={() => setEditing(r)}
+                  className="p-1.5 text-muted-foreground hover:text-primary hover:bg-muted rounded"
+                  title="Editar"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => deleteOne(r.id)}
+                  className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded"
+                  title="Excluir"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
       {showAdd && (
-        <ReferenceForm projectId={project.id} onClose={() => setShowAdd(false)} />
+        <ReferenceForm
+          projectId={project.id}
+          onClose={() => setShowAdd(false)}
+          onSaved={() => toast.show("Referência adicionada")}
+        />
       )}
+      {editing && (
+        <ReferenceForm
+          projectId={project.id}
+          editing={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => toast.show("Referência atualizada")}
+        />
+      )}
+      {toast.node}
     </div>
   );
 }
 
-function ReferenceForm({ projectId, onClose }: { projectId: string; onClose: () => void }) {
+function ReferenceForm({
+  projectId,
+  editing,
+  onClose,
+  onSaved,
+}: {
+  projectId: string;
+  editing?: any;
+  onClose: () => void;
+  onSaved?: () => void;
+}) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
     const fd = new FormData(e.currentTarget);
-    const res = await fetch(`/api/admin/client-projects/${projectId}/references`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: fd.get("title"),
-        type: fd.get("type"),
-        url: fd.get("url"),
-        description: fd.get("description") || null,
-      }),
-    });
+    const payload = {
+      title: fd.get("title"),
+      type: fd.get("type"),
+      url: fd.get("url"),
+      description: fd.get("description") || null,
+    };
+    const res = editing
+      ? await fetch(`/api/admin/references/${editing.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+      : await fetch(`/api/admin/client-projects/${projectId}/references`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
     setSaving(false);
     if (res.ok) {
+      onSaved?.();
       onClose();
       router.refresh();
     }
   }
   return (
-    <Modal title="Nova referência" onClose={onClose} maxWidth="max-w-md">
+    <Modal
+      title={editing ? `Editar referência` : "Nova referência"}
+      onClose={onClose}
+      maxWidth="max-w-md"
+    >
       <form onSubmit={save} className="space-y-3">
-        <Field label="Título">
-          <input name="title" required className={input} />
+        <Field label="Título *">
+          <input
+            name="title"
+            required
+            defaultValue={editing?.title || ""}
+            className={input}
+          />
         </Field>
-        <Field label="URL">
-          <input name="url" required placeholder="https://..." className={input} />
+        <Field label="URL *">
+          <input
+            name="url"
+            required
+            defaultValue={editing?.url || ""}
+            placeholder="https://..."
+            className={input}
+          />
         </Field>
         <Field label="Tipo">
-          <select name="type" defaultValue="link" className={input}>
+          <select name="type" defaultValue={editing?.type || "link"} className={input}>
             {REF_TYPE_OPTIONS.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
             ))}
           </select>
         </Field>
         <Field label="Descrição (opcional)">
-          <input name="description" className={input} />
+          <input
+            name="description"
+            defaultValue={editing?.description || ""}
+            className={input}
+          />
         </Field>
         <button
           type="submit"
           disabled={saving}
-          className="w-full py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60"
+          className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60 hover:opacity-90 transition"
         >
-          {saving ? "Salvando..." : "Adicionar"}
+          {saving ? "Salvando..." : editing ? "Salvar alterações" : "Adicionar referência"}
         </button>
       </form>
     </Modal>
@@ -678,11 +962,10 @@ function ResumoTab({ project }: { project: any }) {
   const router = useRouter();
   const [content, setContent] = useState(project.summary?.content || "");
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState("");
+  const toast = useToast();
 
   async function save() {
     setSaving(true);
-    setMsg("");
     const res = await fetch(`/api/admin/client-projects/${project.id}/summary`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -690,48 +973,102 @@ function ResumoTab({ project }: { project: any }) {
     });
     setSaving(false);
     if (res.ok) {
-      setMsg("Salvo.");
+      toast.show("Resumo salvo");
       router.refresh();
     } else {
-      setMsg("Erro ao salvar.");
+      toast.show("Erro ao salvar");
     }
   }
 
+  function insertTag(tag: string) {
+    const ta = document.querySelector<HTMLTextAreaElement>("textarea[name='summaryContent']");
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const selected = content.slice(start, end) || "texto";
+    const before = content.slice(0, start);
+    const after = content.slice(end);
+    const wrapped = `<${tag}>${selected}</${tag}>`;
+    const next = before + wrapped + after;
+    setContent(next);
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(before.length + tag.length + 2, before.length + tag.length + 2 + selected.length);
+    }, 0);
+  }
+
   return (
-    <div className="space-y-3 max-w-2xl">
+    <div className="space-y-4 max-w-3xl">
       <p className="text-sm text-muted-foreground">
-        Este texto aparece como "Sobre você" no dashboard do portal. Aceita HTML simples
-        (parágrafos, negrito, listas).
+        Este texto aparece como "Sobre você" no dashboard do portal. Aceita HTML simples — use os
+        botões abaixo para formatar rapidinho.
       </p>
+
+      <div className="flex flex-wrap gap-2">
+        <FormatButton onClick={() => insertTag("p")}>Parágrafo</FormatButton>
+        <FormatButton onClick={() => insertTag("strong")}>Negrito</FormatButton>
+        <FormatButton onClick={() => insertTag("em")}>Itálico</FormatButton>
+        <FormatButton
+          onClick={() => {
+            const url = prompt("URL do link:");
+            if (!url) return;
+            const ta = document.querySelector<HTMLTextAreaElement>("textarea[name='summaryContent']");
+            if (!ta) return;
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            const selected = content.slice(start, end) || url;
+            const next = content.slice(0, start) + `<a href="${url}">${selected}</a>` + content.slice(end);
+            setContent(next);
+          }}
+        >
+          Link
+        </FormatButton>
+      </div>
+
       <textarea
+        name="summaryContent"
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={14}
         className={`${input} font-mono text-xs`}
         placeholder="<p>Texto sobre o cliente...</p>"
       />
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-end">
         <button
           onClick={save}
           disabled={saving}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60 inline-flex items-center gap-2"
+          className="px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60 inline-flex items-center gap-2 hover:opacity-90 transition"
         >
           <Save className="w-4 h-4" />
           {saving ? "Salvando..." : "Salvar"}
         </button>
-        {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
       </div>
 
-      <div className="border-t border-border pt-4 mt-6">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
-          Pré-visualização
+      <div className="border-t border-border pt-4 mt-4">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">
+          Como aparece para o cliente
         </p>
         <div
-          className="bg-card border border-border rounded-lg p-5 text-sm leading-relaxed text-foreground/80"
-          dangerouslySetInnerHTML={{ __html: content }}
+          className="bg-card border border-border rounded-2xl p-7 text-sm leading-relaxed text-foreground/80"
+          style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}
+          dangerouslySetInnerHTML={{ __html: content || "<p class='text-muted-foreground italic'>Sem conteúdo</p>" }}
         />
       </div>
+
+      {toast.node}
     </div>
+  );
+}
+
+function FormatButton({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="px-3 py-1.5 text-xs font-medium bg-muted hover:bg-muted/70 rounded-lg transition"
+    >
+      {children}
+    </button>
   );
 }
 
