@@ -1,6 +1,180 @@
 "use client";
 
-import { Download, ExternalLink, FileText } from "lucide-react";
+import { Download, ExternalLink, FileText, Maximize2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
+function buildSrcDoc(embed: string): string {
+  // If user pasted a full HTML document, use it as-is (don't double-wrap)
+  if (/<html[\s>]/i.test(embed) || /<!doctype/i.test(embed)) return embed;
+
+  // Otherwise wrap with default styling matching the portal
+  return `<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root { --accent: #1D7070; --accent-soft: #F0F8F6; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    color: #4A4A4A;
+    background: white;
+    overflow-x: hidden;
+  }
+  p { margin: 0 0 14px; }
+  strong { color: #1A1A1A; font-weight: 600; }
+  em { font-style: italic; }
+  a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+  a:hover { opacity: 0.8; }
+  h1, h2, h3, h4 { font-family: "Fraunces", Georgia, serif; color: #1A1A1A; font-weight: 400; letter-spacing: -0.02em; margin: 28px 0 12px; line-height: 1.2; }
+  h1 { font-size: 30px; }
+  h2 { font-size: 24px; }
+  h3 { font-size: 20px; }
+  h4 { font-size: 17px; }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  blockquote { border-left: 3px solid var(--accent); padding: 12px 18px; background: var(--accent-soft); border-radius: 8px; margin: 16px 0; font-style: italic; }
+  img, video { max-width: 100%; height: auto; border-radius: 12px; margin: 14px 0; }
+  iframe { max-width: 100%; border: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid rgba(13,74,74,0.1); text-align: left; }
+  th { font-weight: 600; color: #1A1A1A; background: #FAF9F6; }
+  hr { border: none; border-top: 0.5px solid rgba(13,74,74,0.15); margin: 28px 0; }
+  pre, code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  code { background: #FAF9F6; padding: 2px 6px; border-radius: 4px; }
+  pre { background: #FAF9F6; padding: 14px; border-radius: 10px; overflow-x: auto; }
+</style>
+</head>
+<body>
+${embed}
+<script>
+  // Reporta a altura do conteúdo pra página pai poder ajustar o iframe
+  (function () {
+    function report() {
+      try {
+        var h = Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight
+        );
+        parent.postMessage({ type: 'arthea:height', height: h }, '*');
+      } catch (e) {}
+    }
+    var ro;
+    if (window.ResizeObserver) {
+      ro = new ResizeObserver(report);
+      ro.observe(document.body);
+    }
+    window.addEventListener('load', report);
+    setTimeout(report, 100);
+    setTimeout(report, 600);
+    setTimeout(report, 1500);
+  })();
+</script>
+</body>
+</html>`;
+}
+
+function EmbedFrame({ embed }: { embed: string }) {
+  const ref = useRef<HTMLIFrameElement>(null);
+  const [height, setHeight] = useState(720);
+  const [fullUrl, setFullUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (e.data && e.data.type === "arthea:height" && typeof e.data.height === "number") {
+        // Cap at 4000px to avoid runaway iframes
+        setHeight(Math.min(Math.max(e.data.height + 24, 320), 4000));
+      }
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
+
+  useEffect(() => {
+    // Build a Blob URL for "tela cheia"
+    const html = buildSrcDoc(embed);
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    setFullUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [embed]);
+
+  return (
+    <section
+      style={{
+        background: "white",
+        border: "0.5px solid rgba(29,112,112,0.08)",
+        borderRadius: 18,
+        overflow: "hidden",
+        boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "14px 22px",
+          borderBottom: "0.5px solid rgba(29,112,112,0.08)",
+        }}
+      >
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: "var(--accent)",
+            margin: 0,
+          }}
+        >
+          Documento
+        </p>
+        {fullUrl && (
+          <a
+            href={fullUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 12,
+              color: "var(--accent)",
+              textDecoration: "none",
+              padding: "5px 11px",
+              border: "1px solid var(--accent-border)",
+              borderRadius: 999,
+              fontWeight: 500,
+            }}
+          >
+            <Maximize2 size={12} strokeWidth={1.8} />
+            Tela cheia
+          </a>
+        )}
+      </div>
+      <iframe
+        ref={ref}
+        srcDoc={buildSrcDoc(embed)}
+        title="Documento"
+        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals allow-same-origin"
+        style={{
+          width: "100%",
+          height,
+          border: "none",
+          background: "white",
+          display: "block",
+          transition: "height 0.25s ease",
+        }}
+      />
+    </section>
+  );
+}
 
 export function DocumentViewer({
   url,
@@ -49,30 +223,25 @@ export function DocumentViewer({
   // Prefer rendered embed when both exist
   if (embed) {
     return (
-      <section
-        style={{
-          background: "white",
-          border: "0.5px solid rgba(29,112,112,0.08)",
-          borderRadius: 18,
-          padding: 32,
-          boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
-        }}
-      >
-        <p
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "var(--accent)",
-            marginBottom: 18,
-          }}
-        >
-          Documento
-        </p>
-        <div className="portal-prose" dangerouslySetInnerHTML={{ __html: embed }} />
+      <>
+        <EmbedFrame embed={embed} />
         {url && (
-          <div style={{ marginTop: 20, paddingTop: 20, borderTop: "0.5px solid rgba(13,74,74,0.08)" }}>
+          <section
+            style={{
+              background: "white",
+              border: "0.5px solid rgba(29,112,112,0.08)",
+              borderRadius: 14,
+              padding: "14px 22px",
+              boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 12,
+            }}
+          >
+            <span style={{ fontSize: 13, color: "#4A4A4A" }}>
+              Anexo do entregável
+            </span>
             <a
               href={url}
               target="_blank"
@@ -88,11 +257,11 @@ export function DocumentViewer({
               }}
             >
               <Download size={14} strokeWidth={1.8} />
-              Baixar arquivo anexo
+              Baixar arquivo
             </a>
-          </div>
+          </section>
         )}
-      </section>
+      </>
     );
   }
 
