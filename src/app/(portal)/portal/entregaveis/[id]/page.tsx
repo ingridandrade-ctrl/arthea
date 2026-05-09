@@ -14,6 +14,7 @@ import {
 import { ValidationForm } from "../../../_components/validation-form";
 import { SimpleApprove } from "../../../_components/simple-approve";
 import { CommentsSection } from "../../../_components/comments-section";
+import { DocumentViewer } from "../../../_components/document-viewer";
 
 export default async function DeliverableDetail({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -116,54 +117,7 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
       </header>
 
       {/* Documento */}
-      <section
-        style={{
-          background: "white",
-          border: "0.5px solid rgba(29,112,112,0.08)",
-          borderRadius: 18,
-          padding: 28,
-          boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
-        }}
-      >
-        <p
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "#A0A0A0",
-            marginBottom: 14,
-          }}
-        >
-          Documento
-        </p>
-        {deliverable.documentEmbed ? (
-          <div
-            style={{ fontSize: 14.5, color: "#2A2A2A", lineHeight: 1.7 }}
-            dangerouslySetInnerHTML={{ __html: deliverable.documentEmbed }}
-          />
-        ) : deliverable.documentUrl ? (
-          <a
-            href={deliverable.documentUrl}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              display: "inline-block",
-              background: "var(--accent)",
-              color: "white",
-              fontSize: 13.5,
-              padding: "11px 20px",
-              borderRadius: 10,
-              textDecoration: "none",
-              fontWeight: 500,
-            }}
-          >
-            Abrir documento ↗
-          </a>
-        ) : (
-          <p style={{ fontSize: 14, color: "#6B7280", margin: 0 }}>Documento em preparação.</p>
-        )}
-      </section>
+      <DocumentViewer url={deliverable.documentUrl} embed={deliverable.documentEmbed} />
 
       {/* Validação */}
       {(status === "WAITING_REVIEW" || status === "REVISION" || status === "APPROVED") && (

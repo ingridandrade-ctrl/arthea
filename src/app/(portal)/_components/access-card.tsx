@@ -3,6 +3,27 @@
 import { useState } from "react";
 import { Eye, EyeOff, Copy, Check, ExternalLink } from "lucide-react";
 
+const PLATFORM_BRAND: Record<string, { color: string; letter: string }> = {
+  instagram: { color: "#E1306C", letter: "I" },
+  facebook: { color: "#1877F2", letter: "F" },
+  meta: { color: "#0668E1", letter: "M" },
+  google: { color: "#4285F4", letter: "G" },
+  tiktok: { color: "#000000", letter: "T" },
+  youtube: { color: "#FF0000", letter: "Y" },
+  linkedin: { color: "#0A66C2", letter: "L" },
+  twitter: { color: "#1DA1F2", letter: "X" },
+  x: { color: "#000000", letter: "X" },
+  whatsapp: { color: "#25D366", letter: "W" },
+};
+
+function detectBrand(platform: string) {
+  const p = platform.toLowerCase();
+  for (const key of Object.keys(PLATFORM_BRAND)) {
+    if (p.includes(key)) return PLATFORM_BRAND[key];
+  }
+  return { color: "var(--accent)", letter: platform.charAt(0).toUpperCase() };
+}
+
 export function AccessCard({
   platform,
   icon,
@@ -20,6 +41,7 @@ export function AccessCard({
 }) {
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const brand = detectBrand(platform);
 
   function copy(text: string, label: string) {
     navigator.clipboard.writeText(text);
@@ -33,9 +55,12 @@ export function AccessCard({
       style={{
         background: "white",
         border: "0.5px solid rgba(29,112,112,0.08)",
-        borderRadius: 16,
-        padding: 22,
+        borderRadius: 18,
+        padding: 24,
         boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
       }}
     >
       <div
@@ -43,21 +68,42 @@ export function AccessCard({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: 16,
+          gap: 12,
         }}
       >
-        <h3
-          style={{
-            fontSize: 16,
-            fontWeight: 500,
-            color: "#2A2A2A",
-            margin: 0,
-            fontFamily: "Fraunces, Georgia, serif",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {platform}
-        </h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 12,
+              background: brand.color,
+              color: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontFamily: "Fraunces, Georgia, serif",
+              fontSize: 18,
+              fontWeight: 500,
+              flexShrink: 0,
+            }}
+          >
+            {brand.letter}
+          </div>
+          <h3
+            style={{
+              fontSize: 16,
+              fontWeight: 500,
+              color: "#2A2A2A",
+              margin: 0,
+              fontFamily: "Fraunces, Georgia, serif",
+              letterSpacing: "-0.01em",
+              minWidth: 0,
+            }}
+          >
+            {platform}
+          </h3>
+        </div>
         {url && (
           <a
             href={url}
@@ -74,6 +120,7 @@ export function AccessCard({
               padding: "5px 11px",
               borderRadius: 999,
               fontWeight: 500,
+              flexShrink: 0,
             }}
           >
             <ExternalLink size={12} strokeWidth={1.8} />
@@ -86,7 +133,6 @@ export function AccessCard({
         {username && (
           <Field
             label="Usuário"
-            value={username}
             display={username}
             onCopy={() => copy(username, "user")}
             copied={copied === "user"}
@@ -95,7 +141,6 @@ export function AccessCard({
         {password && (
           <Field
             label="Senha"
-            value={password}
             display={show ? password : "••••••••••"}
             onCopy={() => copy(password, "pwd")}
             copied={copied === "pwd"}
@@ -118,6 +163,9 @@ export function AccessCard({
               margin: "8px 0 0",
               whiteSpace: "pre-wrap",
               lineHeight: 1.55,
+              padding: "10px 12px",
+              background: "#FAF9F6",
+              borderRadius: 8,
             }}
           >
             {notes}
@@ -149,7 +197,6 @@ function Field({
   extra,
 }: {
   label: string;
-  value: string;
   display: string;
   onCopy: () => void;
   copied: boolean;
@@ -165,6 +212,7 @@ function Field({
           textTransform: "uppercase",
           color: "#A0A0A0",
           width: 64,
+          flexShrink: 0,
         }}
       >
         {label}
@@ -174,10 +222,13 @@ function Field({
           fontSize: 13,
           color: "#2A2A2A",
           background: "#FAF9F6",
-          padding: "7px 12px",
+          padding: "8px 12px",
           borderRadius: 8,
           flex: 1,
           fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+          minWidth: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
         }}
       >
         {display}

@@ -77,21 +77,41 @@ export default async function AcessosPage() {
       </div>
 
       {project.accesses.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "60px 0", color: "#A0A0A0", fontSize: 14 }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "80px 20px",
+            color: "#A0A0A0",
+            fontSize: 14,
+            border: "1px dashed rgba(13,74,74,0.15)",
+            borderRadius: 18,
+          }}
+        >
           Nenhum acesso cadastrado ainda.
         </div>
       ) : (
-        <div style={{ display: "grid", gap: 12 }}>
-          {project.accesses.map((a) => (
-            <AccessCard
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+            gap: 14,
+          }}
+        >
+          {project.accesses.map((a, idx) => (
+            <div
               key={a.id}
-              platform={a.platform}
-              icon={a.icon}
-              username={a.username}
-              password={a.password}
-              url={a.url}
-              notes={a.notes}
-            />
+              className="portal-stagger"
+              style={{ animationDelay: `${idx * 50}ms` }}
+            >
+              <AccessCard
+                platform={a.platform}
+                icon={a.icon}
+                username={a.username}
+                password={a.password}
+                url={a.url}
+                notes={a.notes}
+              />
+            </div>
           ))}
         </div>
       )}

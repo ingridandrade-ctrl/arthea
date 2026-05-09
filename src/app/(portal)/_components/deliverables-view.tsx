@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check, Sparkles, Clock, RotateCcw, FileText } from "lucide-react";
 import {
   PHASE_NAMES,
   STATUS_BG,
@@ -28,8 +28,15 @@ const STATUS_FILTERS: { key: "ALL" | DeliverableStatus; label: string }[] = [
   { key: "PENDING", label: "Em preparação" },
 ];
 
+const STATUS_ICON: Record<string, any> = {
+  PENDING: Clock,
+  IN_PROGRESS: Clock,
+  WAITING_REVIEW: Sparkles,
+  APPROVED: Check,
+  REVISION: RotateCcw,
+};
+
 export function DeliverablesView({ items }: { items: Item[] }) {
-  const [activePhase, setActivePhase] = useState<number>(1);
   const [activeStatus, setActiveStatus] = useState<"ALL" | DeliverableStatus>("ALL");
 
   const counts = useMemo(() => {
@@ -38,100 +45,54 @@ export function DeliverablesView({ items }: { items: Item[] }) {
     return c;
   }, [items]);
 
-  const filtered = useMemo(() => {
-    return items.filter(
-      (i) =>
-        i.phase === activePhase && (activeStatus === "ALL" || i.status === activeStatus)
+  const grouped = useMemo(() => {
+    const filtered = items.filter(
+      (i) => activeStatus === "ALL" || i.status === activeStatus
     );
-  }, [items, activePhase, activeStatus]);
+    const g: Record<number, Item[]> = { 1: [], 2: [], 3: [], 4: [] };
+    for (const it of filtered) g[it.phase].push(it);
+    return g;
+  }, [items, activeStatus]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 28 }} className="portal-fade-in">
+    <div
+      className="portal-fade-in"
+      style={{ display: "flex", flexDirection: "column", gap: 32 }}
+    >
       <header>
         <p
           style={{
             fontSize: 12,
-            fontWeight: 500,
+            fontWeight: 600,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
             color: "var(--accent)",
             margin: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
           }}
         >
+          <span style={{ display: "inline-block", width: 24, height: 1, background: "var(--accent)" }} />
           Entregáveis
         </p>
         <h1
           style={{
             fontFamily: "Fraunces, Georgia, serif",
-            fontSize: 36,
+            fontSize: "clamp(32px, 4.5vw, 44px)",
             fontWeight: 400,
-            color: "#2A2A2A",
-            margin: "8px 0 8px",
-            letterSpacing: "-0.02em",
+            color: "#1A1A1A",
+            margin: "12px 0 10px",
+            letterSpacing: "-0.025em",
             lineHeight: 1.1,
           }}
         >
-          Acompanhe cada etapa
+          Acompanhe cada etapa do seu projeto
         </h1>
-        <p style={{ fontSize: 14, color: "#6B7280", margin: 0 }}>
+        <p style={{ fontSize: 15, color: "#6B7280", margin: 0, maxWidth: 580 }}>
           Cada fase agrupa os entregáveis correspondentes. Clique em um item para revisar e validar.
         </p>
       </header>
-
-      {/* Phase tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          borderBottom: "0.5px solid rgba(13,74,74,0.1)",
-          paddingBottom: 0,
-        }}
-      >
-        {[1, 2, 3, 4].map((phase) => {
-          const active = activePhase === phase;
-          return (
-            <button
-              key={phase}
-              onClick={() => setActivePhase(phase)}
-              style={{
-                background: "transparent",
-                border: "none",
-                padding: "10px 4px",
-                fontSize: 13,
-                fontFamily: "inherit",
-                color: active ? "var(--accent)" : "#6B7280",
-                fontWeight: active ? 600 : 400,
-                cursor: "pointer",
-                borderBottom: active
-                  ? "2px solid var(--accent)"
-                  : "2px solid transparent",
-                marginBottom: -1,
-                transition: "all 0.15s ease",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              <span>Fase {phase}</span>
-              <span style={{ fontSize: 11, color: active ? "var(--accent)" : "#A0A0A0" }}>
-                · {PHASE_NAMES[phase]}
-              </span>
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  background: active ? "var(--accent-soft)" : "rgba(0,0,0,0.06)",
-                  color: active ? "var(--accent)" : "#6B7280",
-                  padding: "1px 7px",
-                  borderRadius: 999,
-                }}
-              >
-                {counts[phase] || 0}
-              </span>
-            </button>
-          );
-        })}
-      </div>
 
       {/* Status chips */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -147,9 +108,9 @@ export function DeliverablesView({ items }: { items: Item[] }) {
                 border: active
                   ? "1px solid var(--accent)"
                   : "1px solid rgba(13,74,74,0.12)",
-                padding: "6px 12px",
+                padding: "7px 14px",
                 borderRadius: 999,
-                fontSize: 12,
+                fontSize: 12.5,
                 fontFamily: "inherit",
                 cursor: "pointer",
                 transition: "all 0.15s ease",
@@ -162,64 +123,223 @@ export function DeliverablesView({ items }: { items: Item[] }) {
         })}
       </div>
 
-      {/* Items */}
-      {filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "60px 0", color: "#A0A0A0", fontSize: 14 }}>
-          Nenhum entregável nesta combinação.
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {filtered.map((d) => {
-            const status = d.status as DeliverableStatus;
-            return (
-              <Link
-                key={d.id}
-                href={`/portal/entregaveis/${d.id}`}
-                className="portal-card-hover"
+      {/* Timeline by phase */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
+        {[1, 2, 3, 4].map((phase) => {
+          const list = grouped[phase];
+          const allCount = counts[phase] || 0;
+          if (allCount === 0) return null; // hide phases with nothing
+
+          return (
+            <section key={phase} style={{ position: "relative" }}>
+              <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  background: "white",
-                  border: "0.5px solid rgba(29,112,112,0.08)",
-                  borderRadius: 14,
-                  padding: "18px 22px",
-                  textDecoration: "none",
-                  color: "inherit",
-                  boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
+                  gap: 12,
+                  marginBottom: 16,
                 }}
               >
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 14.5, fontWeight: 500, color: "#2A2A2A", margin: 0 }}>
-                    {d.title}
-                  </p>
-                  {d.description && (
-                    <p style={{ fontSize: 12.5, color: "#6B7280", margin: "4px 0 0" }}>
-                      {d.description}
-                    </p>
-                  )}
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <span
+                <span
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 999,
+                    background: "var(--accent-soft)",
+                    color: "var(--accent)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: "Fraunces, Georgia, serif",
+                    fontSize: 15,
+                    fontWeight: 500,
+                  }}
+                >
+                  {phase}
+                </span>
+                <h2
+                  style={{
+                    fontSize: 17,
+                    fontWeight: 500,
+                    color: "#2A2A2A",
+                    margin: 0,
+                    fontFamily: "Fraunces, Georgia, serif",
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {PHASE_NAMES[phase]}
+                </h2>
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "#A0A0A0",
+                    fontWeight: 500,
+                  }}
+                >
+                  {allCount} {allCount === 1 ? "entregável" : "entregáveis"}
+                </span>
+              </div>
+
+              {list.length === 0 ? (
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "#A0A0A0",
+                    fontStyle: "italic",
+                    paddingLeft: 44,
+                    margin: 0,
+                  }}
+                >
+                  Sem entregáveis com esse filtro nesta fase.
+                </p>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    position: "relative",
+                    paddingLeft: 44,
+                  }}
+                >
+                  {/* vertical track */}
+                  <div
                     style={{
-                      fontSize: 11,
-                      fontWeight: 500,
-                      background: STATUS_BG[status],
-                      color: STATUS_FG[status],
-                      padding: "4px 10px",
-                      borderRadius: 999,
-                      whiteSpace: "nowrap",
+                      position: "absolute",
+                      left: 15,
+                      top: 0,
+                      bottom: 0,
+                      width: 2,
+                      background:
+                        "linear-gradient(to bottom, var(--accent-soft), transparent)",
                     }}
-                  >
-                    {STATUS_LABEL[status]}
-                  </span>
-                  <ArrowRight size={14} strokeWidth={1.6} color="#A0A0A0" />
+                  />
+
+                  {list.map((d, idx) => {
+                    const status = d.status as DeliverableStatus;
+                    const Icon = STATUS_ICON[status] || FileText;
+                    const isApproved = status === "APPROVED";
+                    const isWaiting = status === "WAITING_REVIEW";
+
+                    return (
+                      <Link
+                        key={d.id}
+                        href={`/portal/entregaveis/${d.id}`}
+                        className="portal-card-hover portal-stagger"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 16,
+                          background: isWaiting ? "var(--accent-soft)" : "white",
+                          border: isWaiting
+                            ? "0.5px solid var(--accent-border)"
+                            : "0.5px solid rgba(29,112,112,0.08)",
+                          borderRadius: 16,
+                          padding: "16px 20px",
+                          textDecoration: "none",
+                          color: "inherit",
+                          boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
+                          position: "relative",
+                          animationDelay: `${idx * 60}ms`,
+                        }}
+                      >
+                        {/* node bullet */}
+                        <span
+                          style={{
+                            position: "absolute",
+                            left: -36,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            width: 16,
+                            height: 16,
+                            borderRadius: 999,
+                            background: isApproved
+                              ? "var(--accent)"
+                              : isWaiting
+                              ? "white"
+                              : "white",
+                            border: isApproved
+                              ? "2px solid var(--accent)"
+                              : isWaiting
+                              ? "2px solid var(--accent)"
+                              : "2px solid rgba(13,74,74,0.18)",
+                            boxShadow: isWaiting ? "0 0 0 4px var(--accent-soft)" : "none",
+                          }}
+                        >
+                          {isApproved && (
+                            <Check
+                              size={9}
+                              strokeWidth={3.5}
+                              color="white"
+                              style={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                              }}
+                            />
+                          )}
+                        </span>
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p
+                            style={{
+                              fontSize: 14.5,
+                              fontWeight: 500,
+                              color: "#2A2A2A",
+                              margin: 0,
+                            }}
+                          >
+                            {d.title}
+                          </p>
+                          {d.description && (
+                            <p
+                              style={{
+                                fontSize: 12.5,
+                                color: "#6B7280",
+                                margin: "4px 0 0",
+                              }}
+                            >
+                              {d.description}
+                            </p>
+                          )}
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 500,
+                              background: STATUS_BG[status],
+                              color: STATUS_FG[status],
+                              padding: "4px 10px",
+                              borderRadius: 999,
+                              whiteSpace: "nowrap",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 5,
+                            }}
+                          >
+                            <Icon size={11} strokeWidth={2} />
+                            {STATUS_LABEL[status]}
+                          </span>
+                          <ArrowRight size={14} strokeWidth={1.6} color="#A0A0A0" />
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+              )}
+            </section>
+          );
+        })}
+
+        {Object.values(grouped).every((arr) => arr.length === 0) && (
+          <div style={{ textAlign: "center", padding: "60px 0", color: "#A0A0A0", fontSize: 14 }}>
+            Nenhum entregável com esse filtro.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
