@@ -36,13 +36,18 @@ export default async function PortalLayout({
       style={{
         minHeight: "100vh",
         background: "#FAF9F6",
-        fontFamily: "Manrope, ui-sans-serif, system-ui, sans-serif",
+        backgroundImage:
+          "linear-gradient(rgba(13,74,74,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(13,74,74,0.035) 1px, transparent 1px)",
+        backgroundSize: "44px 44px",
+        backgroundPosition: "-1px -1px",
+        fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
         color: "#2A2A2A",
-        // CSS variables for accent so all sub-pages can reuse
         ["--accent" as any]: accent,
         ["--accent-hover" as any]: accent + "EE",
-        ["--accent-soft" as any]: accent + "1A",
+        ["--accent-soft" as any]: accent + "12",
         ["--accent-border" as any]: accent + "33",
+        ["--accent-mint" as any]: "#9bf0e0",
+        ["--accent-deep" as any]: "#0D4A4A",
       }}
     >
       <PortalSidebar

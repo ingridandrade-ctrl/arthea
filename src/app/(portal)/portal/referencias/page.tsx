@@ -65,16 +65,26 @@ export default async function ReferenciasPage() {
         </p>
         <h1
           style={{
-            fontFamily: "Fraunces, Georgia, serif",
+            fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
             fontSize: "clamp(32px, 4.5vw, 44px)",
-            fontWeight: 400,
+            fontWeight: 700,
             color: "#1A1A1A",
             margin: "12px 0 10px",
             letterSpacing: "-0.025em",
             lineHeight: 1.1,
           }}
         >
-          Materiais e inspirações
+          Materiais e{" "}
+          <em
+            style={{
+              fontFamily: "Fraunces, Georgia, serif",
+              fontWeight: 400,
+              fontStyle: "italic",
+              color: "var(--accent)",
+            }}
+          >
+            inspirações
+          </em>
         </h1>
         <p style={{ fontSize: 15, color: "#6B7280", margin: 0, maxWidth: 580 }}>
           Documentos, painéis e links úteis para o projeto.

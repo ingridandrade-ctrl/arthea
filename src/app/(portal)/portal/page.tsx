@@ -131,16 +131,34 @@ export default async function PortalDashboard() {
         </p>
         <h1
           style={{
-            fontFamily: "Fraunces, Georgia, serif",
+            fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
             fontSize: "clamp(36px, 5.5vw, 56px)",
-            fontWeight: 400,
+            fontWeight: 700,
             color: "#1A1A1A",
             margin: "16px 0 12px",
             letterSpacing: "-0.025em",
             lineHeight: 1.05,
           }}
         >
-          {project.name}
+          {project.name.split(" ").map((word, i, arr) => {
+            // Italicize the LAST word of the title (e.g. "Estratégica")
+            const isLast = i === arr.length - 1 && arr.length > 1;
+            return isLast ? (
+              <em
+                key={i}
+                style={{
+                  fontFamily: "Fraunces, Georgia, serif",
+                  fontWeight: 400,
+                  fontStyle: "italic",
+                  color: "var(--accent)",
+                }}
+              >
+                {word}
+              </em>
+            ) : (
+              <span key={i}>{word}{i < arr.length - 1 ? " " : ""}</span>
+            );
+          })}
         </h1>
         <p
           style={{
