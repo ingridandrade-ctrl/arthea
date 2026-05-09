@@ -62,3 +62,33 @@
   z-index: 1000;
   animation: portal-fade-in 0.24s ease;
 }
+
+@keyframes portal-slide-in {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+@media (max-width: 768px) {
+  .portal-hamburger {
+    display: flex !important;
+  }
+  .portal-sidebar-desktop {
+    display: none !important;
+  }
+  .portal-main {
+    margin-left: 0 !important;
+    padding: 80px 20px 40px !important;
+  }
+}
+
+/* Skeleton loading shimmer */
+@keyframes portal-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.portal-skeleton {
+  background: linear-gradient(90deg, rgba(29,112,112,0.06) 0%, rgba(29,112,112,0.12) 40%, rgba(29,112,112,0.06) 80%);
+  background-size: 800px 100%;
+  animation: portal-shimmer 1.6s infinite linear;
+  border-radius: 8px;
+}

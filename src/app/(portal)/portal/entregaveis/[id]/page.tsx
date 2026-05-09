@@ -12,6 +12,7 @@ import {
   type DeliverableStatus,
 } from "../../../_components/deliverable-status";
 import { ValidationForm } from "../../../_components/validation-form";
+import { SimpleApprove } from "../../../_components/simple-approve";
 import { CommentsSection } from "../../../_components/comments-section";
 
 export default async function DeliverableDetail({ params }: { params: { id: string } }) {
@@ -165,8 +166,8 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
       </section>
 
       {/* Validação */}
-      {(status === "WAITING_REVIEW" || status === "REVISION" || status === "APPROVED") &&
-        deliverable.questions.length > 0 && (
+      {(status === "WAITING_REVIEW" || status === "REVISION" || status === "APPROVED") && (
+        deliverable.questions.length > 0 ? (
           <ValidationForm
             deliverableId={deliverable.id}
             questions={deliverable.questions.map((q) => ({
@@ -180,7 +181,13 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
             readOnly={status === "APPROVED"}
             initialStatus={status}
           />
-        )}
+        ) : (
+          <SimpleApprove
+            deliverableId={deliverable.id}
+            currentStatus={status}
+          />
+        )
+      )}
 
       {/* Comentários */}
       <CommentsSection

@@ -52,6 +52,7 @@ export default async function PortalLayout({
         projectName={project?.name || null}
       />
       <main
+        className="portal-main"
         style={{
           marginLeft: 260,
           padding: "48px 56px",
