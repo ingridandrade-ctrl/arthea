@@ -79,24 +79,36 @@ ${embed}
 </html>`;
 }
 
+function isFullHtmlDoc(embed: string): boolean {
+  return /<html[\s>]/i.test(embed) || /<!doctype/i.test(embed);
+}
+
+function hasStickyOrFixed(embed: string): boolean {
+  return /position\s*:\s*(sticky|fixed)/i.test(embed);
+}
+
 function EmbedFrame({ embed }: { embed: string }) {
   const ref = useRef<HTMLIFrameElement>(null);
-  const [height, setHeight] = useState(720);
+  // Rich docs (full HTML or with sticky/fixed CSS) need a fixed viewport
+  // so internal scroll works and sticky/fixed has somewhere to "stick".
+  // Plain HTML fragments use auto-resize for the smoother UX.
+  const richDoc = isFullHtmlDoc(embed) || hasStickyOrFixed(embed);
+  const [autoHeight, setAutoHeight] = useState(720);
   const [fullUrl, setFullUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    if (richDoc) return; // no auto-resize for rich docs
     function onMessage(e: MessageEvent) {
       if (e.data && e.data.type === "arthea:height" && typeof e.data.height === "number") {
-        // Cap at 4000px to avoid runaway iframes
-        setHeight(Math.min(Math.max(e.data.height + 24, 320), 4000));
+        setAutoHeight(Math.min(Math.max(e.data.height + 24, 320), 4000));
       }
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, []);
+  }, [richDoc]);
 
   useEffect(() => {
-    // Build a Blob URL for "tela cheia"
+    // Build a Blob URL for "tela cheia". buildSrcDoc returns embed as-is when it's a full doc.
     const html = buildSrcDoc(embed);
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -123,18 +135,31 @@ function EmbedFrame({ embed }: { embed: string }) {
           borderBottom: "0.5px solid rgba(29,112,112,0.08)",
         }}
       >
-        <p
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "var(--accent)",
-            margin: 0,
-          }}
-        >
-          Documento
-        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "var(--accent)",
+              margin: 0,
+            }}
+          >
+            Documento
+          </p>
+          {richDoc && (
+            <span
+              style={{
+                fontSize: 10,
+                color: "#A0A0A0",
+                fontStyle: "italic",
+              }}
+            >
+              · Rola por dentro do documento
+            </span>
+          )}
+        </div>
         {fullUrl && (
           <a
             href={fullUrl}
@@ -165,11 +190,13 @@ function EmbedFrame({ embed }: { embed: string }) {
         sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals allow-same-origin"
         style={{
           width: "100%",
-          height,
+          height: richDoc ? "calc(100vh - 180px)" : autoHeight,
+          minHeight: richDoc ? 600 : undefined,
+          maxHeight: richDoc ? 900 : undefined,
           border: "none",
           background: "white",
           display: "block",
-          transition: "height 0.25s ease",
+          transition: richDoc ? "none" : "height 0.25s ease",
         }}
       />
     </section>
