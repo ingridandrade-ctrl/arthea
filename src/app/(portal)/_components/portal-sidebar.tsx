@@ -14,6 +14,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { ArtheaStar } from "./arthea-star";
 
 const items = [
   { href: "/portal", label: "Visão geral", icon: LayoutDashboard },
@@ -57,25 +58,20 @@ export function PortalSidebar({
           <img
             src={logoUrl}
             alt="Logo"
-            style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover" }}
+            style={{ width: 40, height: 40, borderRadius: 8, objectFit: "contain" }}
           />
         ) : (
           <div
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              background: accent,
-              color: "white",
+              width: 40,
+              height: 40,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontFamily: "Fraunces, Georgia, serif",
-              fontSize: 18,
-              fontWeight: 500,
+              flexShrink: 0,
             }}
           >
-            A
+            <ArtheaStar size={36} variant="gradient" />
           </div>
         )}
         <div style={{ overflow: "hidden" }}>

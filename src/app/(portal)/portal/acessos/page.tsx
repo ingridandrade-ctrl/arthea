@@ -40,16 +40,26 @@ export default async function AcessosPage() {
         </p>
         <h1
           style={{
-            fontFamily: "Fraunces, Georgia, serif",
-            fontSize: 36,
-            fontWeight: 400,
-            color: "#2A2A2A",
-            margin: "8px 0 8px",
-            letterSpacing: "-0.02em",
+            fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
+            fontSize: "clamp(32px, 4.5vw, 44px)",
+            fontWeight: 700,
+            color: "#1A1A1A",
+            margin: "12px 0 10px",
+            letterSpacing: "-0.025em",
             lineHeight: 1.1,
           }}
         >
-          Suas contas e credenciais
+          Suas contas e{" "}
+          <em
+            style={{
+              fontFamily: "Fraunces, Georgia, serif",
+              fontWeight: 400,
+              fontStyle: "italic",
+              color: "var(--accent)",
+            }}
+          >
+            credenciais
+          </em>
         </h1>
         <p style={{ fontSize: 14, color: "#6B7280", margin: 0 }}>
           Plataformas configuradas pela Arthea durante o projeto.

@@ -4,6 +4,48 @@ import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+function PortalStar() {
+  const R = 1.0;
+  const r = 0.55;
+  const w = 0.085;
+  const verts: [number, number][] = [];
+  for (let i = 0; i < 16; i++) {
+    const angle = ((i * 22.5 - 90) * Math.PI) / 180;
+    const radius =
+      i % 2 === 0 ? ((i / 2) % 2 === 0 ? R : r) : w;
+    verts.push([Math.cos(angle) * radius, Math.sin(angle) * radius]);
+  }
+  const points = verts.map(([x, y]) => `${x.toFixed(4)},${y.toFixed(4)}`).join(" ");
+  const facet = verts
+    .filter((_, i) => i % 2 === 0)
+    .map(([x, y]) => `M ${x.toFixed(4)} ${y.toFixed(4)} L 0 0`)
+    .join(" ");
+  return (
+    <svg
+      width={64}
+      height={64}
+      viewBox="-1.05 -1.05 2.1 2.1"
+      style={{ display: "inline-block" }}
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="login-star-grad" x1="80%" y1="10%" x2="20%" y2="90%">
+          <stop offset="0%" stopColor="#5FBABA" />
+          <stop offset="40%" stopColor="#1D7070" />
+          <stop offset="100%" stopColor="#0D4A4A" />
+        </linearGradient>
+        <linearGradient id="login-star-shine" x1="100%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="white" stopOpacity={0.45} />
+          <stop offset="60%" stopColor="white" stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <polygon points={points} fill="url(#login-star-grad)" strokeLinejoin="round" />
+      <path d={facet} stroke="rgba(0,0,0,0.18)" strokeWidth={0.012} fill="none" />
+      <polygon points={points} fill="url(#login-star-shine)" />
+    </svg>
+  );
+}
+
 function isClientHost(hostname: string) {
   return hostname.startsWith("clientes.") || hostname.startsWith("portal.");
 }
@@ -142,23 +184,24 @@ function PortalLoginUI({
       <div
         style={{
           width: "100%",
-          maxWidth: 420,
+          maxWidth: 440,
           background: "white",
-          borderRadius: 16,
-          padding: 40,
-          boxShadow: "0 1px 2px rgba(13,74,74,0.04), 0 8px 24px rgba(13,74,74,0.06)",
-          border: "0.5px solid rgba(29,112,112,0.15)",
+          borderRadius: 20,
+          padding: 44,
+          boxShadow: "0 1px 2px rgba(13,74,74,0.04), 0 16px 48px rgba(13,74,74,0.08)",
+          border: "0.5px solid rgba(29,112,112,0.12)",
         }}
       >
         <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <PortalStar />
           <p
             style={{
               fontSize: 11,
-              fontWeight: 500,
+              fontWeight: 600,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "#1D7070",
-              margin: 0,
+              color: "#0D4A4A",
+              margin: "16px 0 0",
             }}
           >
             Arthea
@@ -166,14 +209,26 @@ function PortalLoginUI({
           <h1
             style={{
               fontSize: 28,
-              fontWeight: 400,
-              color: "#2A2A2A",
-              fontFamily: "Georgia, serif",
-              marginTop: 12,
-              marginBottom: 8,
+              fontWeight: 700,
+              color: "#1A1A1A",
+              fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
+              marginTop: 10,
+              marginBottom: 10,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.15,
             }}
           >
-            Bem-vindo ao seu projeto
+            Bem-vindo ao seu{" "}
+            <em
+              style={{
+                fontFamily: "Fraunces, Georgia, serif",
+                fontWeight: 500,
+                fontStyle: "italic",
+                color: "#1D7070",
+              }}
+            >
+              projeto
+            </em>
           </h1>
           <p style={{ fontSize: 14, color: "#6B7280", margin: 0 }}>
             Acesse sua área para acompanhar entregáveis, validações e materiais.
