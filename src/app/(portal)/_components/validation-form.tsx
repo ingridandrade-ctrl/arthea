@@ -3,6 +3,31 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, RotateCcw } from "lucide-react";
+import confetti from "canvas-confetti";
+
+function fireConfetti() {
+  const accent =
+    typeof window !== "undefined"
+      ? getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#1D7070"
+      : "#1D7070";
+  confetti({
+    particleCount: 90,
+    spread: 80,
+    origin: { y: 0.7 },
+    colors: [accent, "#9bf0e0", "#FAF9F6"],
+    scalar: 0.9,
+    ticks: 200,
+  });
+  setTimeout(() => {
+    confetti({
+      particleCount: 60,
+      spread: 100,
+      origin: { y: 0.6, x: 0.7 },
+      colors: [accent, "#9bf0e0"],
+      scalar: 0.8,
+    });
+  }, 180);
+}
 
 type Question = {
   id: string;
@@ -58,10 +83,11 @@ export function ValidationForm({
         setError(data.error || "Erro ao enviar.");
       } else {
         setToast(action === "approve" ? "Entregável aprovado!" : "Revisão solicitada.");
+        if (action === "approve") fireConfetti();
         setTimeout(() => {
           setToast(null);
           router.refresh();
-        }, 1200);
+        }, 1500);
       }
     } finally {
       setSubmitting(false);

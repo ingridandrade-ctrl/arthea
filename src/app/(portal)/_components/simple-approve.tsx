@@ -3,6 +3,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, RotateCcw, CheckCircle2 } from "lucide-react";
+import confetti from "canvas-confetti";
+
+function fireConfetti() {
+  const accent =
+    typeof window !== "undefined"
+      ? getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#1D7070"
+      : "#1D7070";
+  confetti({
+    particleCount: 90,
+    spread: 80,
+    origin: { y: 0.7 },
+    colors: [accent, "#9bf0e0", "#FAF9F6"],
+    scalar: 0.9,
+  });
+}
 
 export function SimpleApprove({
   deliverableId,
@@ -65,10 +80,11 @@ export function SimpleApprove({
       });
       if (res.ok) {
         setToast(action === "approve" ? "Entregável aprovado!" : "Revisão solicitada.");
+        if (action === "approve") fireConfetti();
         setTimeout(() => {
           setToast(null);
           router.refresh();
-        }, 1200);
+        }, 1500);
       }
     } finally {
       setSubmitting(false);

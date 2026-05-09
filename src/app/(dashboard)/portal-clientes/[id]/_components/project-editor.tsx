@@ -15,6 +15,7 @@ import {
   Check,
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
+import { FileUploadField } from "./file-upload-field";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Em preparação" },
@@ -206,14 +207,13 @@ function GeralTab({ project }: { project: any }) {
           />
         </Field>
       </div>
-      <Field label="URL do logo do cliente (opcional)">
-        <input
-          name="logoUrl"
-          defaultValue={project.logoUrl || ""}
-          placeholder="https://..."
-          className={input}
-        />
-      </Field>
+      <FileUploadField
+        label="Logo do cliente (PNG, JPG ou SVG)"
+        name="logoUrl"
+        accept="image/*"
+        hint="Recomendado: imagem quadrada, mín. 64×64 px"
+        initialUrl={project.logoUrl}
+      />
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="isActive" defaultChecked={project.isActive} />
         Projeto ativo (visível no portal)
@@ -504,14 +504,13 @@ function DeliverableForm({
             </select>
           </Field>
         </div>
-        <Field label="Link do documento (Google Drive, PDF, etc.)">
-          <input
-            name="documentUrl"
-            placeholder="https://..."
-            defaultValue={editing?.documentUrl || ""}
-            className={input}
-          />
-        </Field>
+        <FileUploadField
+          label="Documento do entregável (PDF, imagem)"
+          name="documentUrl"
+          accept=".pdf,image/*"
+          hint="Até 10 MB. Aparece no portal do cliente como botão 'Abrir documento' ou preview."
+          initialUrl={editing?.documentUrl}
+        />
         <Field label="Conteúdo HTML embed (opcional, aparece dentro do portal)">
           <textarea
             name="documentEmbed"
