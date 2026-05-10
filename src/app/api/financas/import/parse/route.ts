@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 import { parseInvoiceText } from "@/lib/financas/parse-invoice";
+import { getMerchantHints } from "@/lib/financas/merchant-hints";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -45,13 +46,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Cartão não encontrado" }, { status: 404 });
     }
 
-    const categories = await prisma.finCategory.findMany({
-      where: { householdId: household.id, kind: "EXPENSE", archived: false },
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    });
+    const [categories, hints] = await Promise.all([
+      prisma.finCategory.findMany({
+        where: { householdId: household.id, kind: "EXPENSE", archived: false },
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      }),
+      getMerchantHints(household.id),
+    ]);
 
-    const result = await parseInvoiceText(text, account.name, categories);
+    const result = await parseInvoiceText(text, {
+      cardName: account.name,
+      partnerAName: household.partnerAName,
+      partnerBName: household.partnerBName,
+      categories,
+      hints,
+    });
 
     if (!result.parsed) {
       return NextResponse.json(
@@ -64,6 +74,7 @@ export async function POST(req: Request) {
       transactions: result.parsed,
       categories,
       account: { id: account.id, name: account.name, color: account.color },
+      hintsUsed: hints.length,
     });
   } catch (e: any) {
     if (e instanceof HouseholdAuthError) {
