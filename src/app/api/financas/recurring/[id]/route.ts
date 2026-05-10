@@ -23,8 +23,54 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (typeof body.active === "boolean") data.active = body.active;
     if (body.endDate !== undefined) data.endDate = body.endDate ? new Date(body.endDate) : null;
 
-    const updated = await prisma.finRecurringRule.update({ where: { id: params.id }, data });
-    return NextResponse.json(updated);
+    if (body.categoryId === null || typeof body.categoryId === "string") {
+      if (body.categoryId) {
+        const cat = await prisma.finCategory.findFirst({
+          where: { id: body.categoryId, householdId: household.id },
+        });
+        if (!cat) return NextResponse.json({ error: "Categoria inválida" }, { status: 400 });
+      }
+      data.categoryId = body.categoryId || null;
+    }
+    if (typeof body.accountId === "string") {
+      const acc = await prisma.finAccount.findFirst({
+        where: { id: body.accountId, householdId: household.id },
+      });
+      if (!acc) return NextResponse.json({ error: "Conta inválida" }, { status: 400 });
+      data.accountId = body.accountId;
+    }
+
+    const applyToExisting = body.applyToExisting === true;
+
+    const result = await prisma.$transaction(async (tx) => {
+      const updated = await tx.finRecurringRule.update({
+        where: { id: params.id },
+        data,
+      });
+
+      let updatedTxs = 0;
+      if (applyToExisting) {
+        const txData: any = {};
+        if (data.amount !== undefined) txData.amount = data.amount;
+        if (data.description !== undefined) txData.description = data.description;
+        if (data.owner !== undefined) txData.owner = data.owner;
+        if (data.categoryId !== undefined) txData.categoryId = data.categoryId;
+        if (data.accountId !== undefined) txData.accountId = data.accountId;
+        if (data.notes !== undefined) txData.notes = data.notes;
+
+        if (Object.keys(txData).length > 0) {
+          const res = await tx.finTransaction.updateMany({
+            where: { householdId: household.id, recurringId: params.id },
+            data: txData,
+          });
+          updatedTxs = res.count;
+        }
+      }
+
+      return { rule: updated, updatedTransactions: updatedTxs };
+    });
+
+    return NextResponse.json(result);
   } catch (e) {
     if (e instanceof HouseholdAuthError) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     throw e;
