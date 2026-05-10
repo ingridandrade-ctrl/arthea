@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, CheckCircle2, Clock, AlertTriangle, Lock } from "lucide-react";
+import { CreditCard, CheckCircle2, Clock, AlertTriangle, Lock, Sparkles, Trash2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
 import { formatCurrency } from "@/lib/utils";
 
 type Account = { id: string; name: string; color: string; type: string; archived: boolean };
+
+type Settings = { partnerAName: string; partnerBName: string };
+
+type Category = { id: string; name: string };
+
+type Owner = "PARTNER_A" | "PARTNER_B" | "COUPLE";
 
 type Invoice = {
   id: string;
@@ -52,20 +58,24 @@ export function CartoesClient() {
   const [cards, setCards] = useState<Account[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [allAccounts, setAllAccounts] = useState<Account[]>([]);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [selected, setSelected] = useState<string>("");
   const [paying, setPaying] = useState<Invoice | null>(null);
+  const [importing, setImporting] = useState(false);
   const [loading, setLoading] = useState(true);
 
   async function load() {
     setLoading(true);
-    const [accs, invs] = await Promise.all([
+    const [accs, invs, st] = await Promise.all([
       fetch("/api/financas/accounts").then((r) => r.json()),
       fetch("/api/financas/invoices").then((r) => r.json()),
+      fetch("/api/financas/settings").then((r) => r.json()),
     ]);
     const ccs = accs.filter((a: Account) => a.type === "CREDIT_CARD" && !a.archived);
     setCards(ccs);
     setAllAccounts(accs);
     setInvoices(invs);
+    setSettings(st);
     setSelected((s) => s || ccs[0]?.id || "");
     setLoading(false);
   }
@@ -78,10 +88,21 @@ export function CartoesClient() {
 
   return (
     <div>
-      <PageHeader
-        title="Cartões de crédito"
-        description="Acompanhe faturas, marque como paga e veja as compras de cada mês."
-      />
+      <div className="flex items-start justify-between flex-wrap gap-3">
+        <PageHeader
+          title="Cartões de crédito"
+          description="Acompanhe faturas, marque como paga e veja as compras de cada mês."
+        />
+        {cards.length > 0 && (
+          <button
+            onClick={() => setImporting(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm font-medium"
+          >
+            <Sparkles className="w-4 h-4" />
+            Importar fatura com IA
+          </button>
+        )}
+      </div>
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
@@ -205,6 +226,19 @@ export function CartoesClient() {
           }}
         />
       )}
+
+      {importing && cards.length > 0 && (
+        <ImportInvoiceModal
+          cards={cards}
+          defaultCardId={selected || cards[0].id}
+          settings={settings}
+          onClose={() => setImporting(false)}
+          onImported={() => {
+            setImporting(false);
+            load();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -289,6 +323,302 @@ function PayInvoiceModal({
           </button>
         </div>
       </form>
+    </Modal>
+  );
+}
+
+type ParsedRow = {
+  date: string;
+  description: string;
+  amount: number;
+  categoryId: string | null;
+  owner: Owner;
+  paidByOwner?: "PARTNER_A" | "PARTNER_B" | null;
+  excluded?: boolean;
+};
+
+function ImportInvoiceModal({
+  cards,
+  defaultCardId,
+  settings,
+  onClose,
+  onImported,
+}: {
+  cards: Account[];
+  defaultCardId: string;
+  settings: Settings | null;
+  onClose: () => void;
+  onImported: () => void;
+}) {
+  const [step, setStep] = useState<"paste" | "review">("paste");
+  const [accountId, setAccountId] = useState(defaultCardId);
+  const [text, setText] = useState("");
+  const [rows, setRows] = useState<ParsedRow[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const partnerA = settings?.partnerAName || "Pessoa A";
+  const partnerB = settings?.partnerBName || "Pessoa B";
+
+  async function analyze() {
+    setBusy(true);
+    setError(null);
+    const res = await fetch("/api/financas/import/parse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accountId, text }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) {
+      setError(data?.error || "Erro ao analisar");
+      return;
+    }
+    if (!data.transactions || data.transactions.length === 0) {
+      setError("Nenhuma compra identificada no texto. Tente colar um trecho mais completo.");
+      return;
+    }
+    setCategories(data.categories || []);
+    setRows(
+      data.transactions.map((t: any) => ({
+        date: t.date,
+        description: t.description,
+        amount: t.amount,
+        categoryId: t.categoryId ?? null,
+        owner: (t.owner as Owner) || "COUPLE",
+        paidByOwner: null,
+        excluded: false,
+      }))
+    );
+    setStep("review");
+  }
+
+  async function commit() {
+    setBusy(true);
+    setError(null);
+    const toSend = rows
+      .filter((r) => !r.excluded)
+      .map((r) => ({
+        date: r.date,
+        description: r.description,
+        amount: r.amount,
+        categoryId: r.categoryId,
+        owner: r.owner,
+        paidByOwner: r.paidByOwner ?? null,
+      }));
+    if (toSend.length === 0) {
+      setError("Nenhuma linha selecionada para importar");
+      setBusy(false);
+      return;
+    }
+    const res = await fetch("/api/financas/import/commit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accountId, rows: toSend }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) {
+      setError(data?.error || "Erro ao salvar");
+      return;
+    }
+    onImported();
+  }
+
+  function updateRow(i: number, patch: Partial<ParsedRow>) {
+    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  }
+
+  const total = rows.filter((r) => !r.excluded).reduce((s, r) => s + r.amount, 0);
+  const includedCount = rows.filter((r) => !r.excluded).length;
+
+  return (
+    <Modal title="Importar fatura com IA" onClose={onClose} maxWidth="max-w-5xl">
+      {step === "paste" ? (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Cartão</label>
+            <select
+              value={accountId}
+              onChange={(e) => setAccountId(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+            >
+              {cards.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Cole aqui o texto da fatura
+            </label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Abra o app do banco, copie a lista de compras da fatura (Ctrl+A, Ctrl+C dentro
+              do PDF/extrato funciona) e cole abaixo. A IA vai identificar cada compra e
+              sugerir uma categoria.
+            </p>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Ex:&#10;15/04  CARREFOUR        152,30&#10;16/04  IFOOD            48,90&#10;..."
+              rows={12}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background font-mono text-xs"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {text.length} caracteres
+            </p>
+          </div>
+          {error && (
+            <div className="text-sm text-destructive bg-destructive/10 p-2 rounded-lg">{error}</div>
+          )}
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg border border-border hover:bg-muted"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={analyze}
+              disabled={busy || text.trim().length < 20}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            >
+              <Sparkles className="w-4 h-4" />
+              {busy ? "Analisando..." : "Analisar com IA"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <p className="text-sm">
+              <strong>{includedCount}</strong> de <strong>{rows.length}</strong> compras
+              selecionadas — total{" "}
+              <strong className="tabular-nums">{formatCurrency(total)}</strong>
+            </p>
+            <button
+              type="button"
+              onClick={() => setStep("paste")}
+              className="text-xs text-muted-foreground hover:underline"
+            >
+              ← Voltar e colar de novo
+            </button>
+          </div>
+          <div className="border border-border rounded-lg overflow-x-auto max-h-[55vh] overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/30 text-muted-foreground text-left sticky top-0 z-10">
+                <tr>
+                  <th className="px-2 py-2 font-medium w-10"></th>
+                  <th className="px-2 py-2 font-medium">Data</th>
+                  <th className="px-2 py-2 font-medium">Descrição</th>
+                  <th className="px-2 py-2 font-medium text-right">Valor</th>
+                  <th className="px-2 py-2 font-medium">Categoria</th>
+                  <th className="px-2 py-2 font-medium">Quem usou</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr
+                    key={i}
+                    className={`border-t border-border ${
+                      r.excluded ? "opacity-40 line-through" : ""
+                    }`}
+                  >
+                    <td className="px-2 py-1.5">
+                      <button
+                        onClick={() => updateRow(i, { excluded: !r.excluded })}
+                        className="text-muted-foreground hover:text-destructive"
+                        title={r.excluded ? "Restaurar" : "Excluir esta linha"}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <input
+                        type="date"
+                        value={r.date}
+                        onChange={(e) => updateRow(i, { date: e.target.value })}
+                        className="px-1 py-0.5 rounded border border-border bg-background text-xs"
+                      />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <input
+                        type="text"
+                        value={r.description}
+                        onChange={(e) => updateRow(i, { description: e.target.value })}
+                        className="w-full px-1 py-0.5 rounded border border-border bg-background"
+                      />
+                    </td>
+                    <td className="px-2 py-1.5 text-right">
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={r.amount}
+                        onChange={(e) =>
+                          updateRow(i, { amount: parseFloat(e.target.value) || 0 })
+                        }
+                        className="w-24 px-1 py-0.5 rounded border border-border bg-background text-right tabular-nums"
+                      />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <select
+                        value={r.categoryId ?? ""}
+                        onChange={(e) =>
+                          updateRow(i, { categoryId: e.target.value || null })
+                        }
+                        className="w-full px-1 py-0.5 rounded border border-border bg-background"
+                      >
+                        <option value="">— sem categoria —</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <select
+                        value={r.owner}
+                        onChange={(e) => updateRow(i, { owner: e.target.value as Owner })}
+                        className="px-1 py-0.5 rounded border border-border bg-background"
+                      >
+                        <option value="COUPLE">Casal</option>
+                        <option value="PARTNER_A">{partnerA}</option>
+                        <option value="PARTNER_B">{partnerB}</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {error && (
+            <div className="text-sm text-destructive bg-destructive/10 p-2 rounded-lg">{error}</div>
+          )}
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg border border-border hover:bg-muted"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={commit}
+              disabled={busy || includedCount === 0}
+              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            >
+              {busy ? "Salvando..." : `Confirmar e criar ${includedCount} lançamentos`}
+            </button>
+          </div>
+        </div>
+      )}
     </Modal>
   );
 }
