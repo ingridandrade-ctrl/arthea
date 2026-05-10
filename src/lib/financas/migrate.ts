@@ -202,6 +202,8 @@ const STATEMENTS: string[] = [
   `DO $$ BEGIN ALTER TABLE "FinSettlement" ADD CONSTRAINT "FinSettlement_householdId_fkey" FOREIGN KEY ("householdId") REFERENCES "Household"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;`,
 
   `ALTER TABLE "Household" ADD COLUMN IF NOT EXISTS "hideBalances" BOOLEAN NOT NULL DEFAULT false;`,
+  `ALTER TABLE "FinTransaction" ADD COLUMN IF NOT EXISTS "paid" BOOLEAN NOT NULL DEFAULT true;`,
+  `ALTER TABLE "FinTransaction" ADD COLUMN IF NOT EXISTS "paidAt" TIMESTAMP(3);`,
 ];
 
 let migrationPromise: Promise<void> | null = null;

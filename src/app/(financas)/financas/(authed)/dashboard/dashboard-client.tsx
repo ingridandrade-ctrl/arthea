@@ -7,6 +7,8 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowLeftRight,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { PageHeader } from "@/components/financas/page-header";
 import {
@@ -132,6 +134,35 @@ export function DashboardClient() {
               { value: "purchase_date", label: "Da compra" },
             ]}
           />
+        </FilterGroup>
+
+        <FilterGroup label="Modo">
+          <button
+            onClick={async () => {
+              await fetch("/api/financas/settings", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ hideBalances: !data.household.hideBalances }),
+              });
+              load();
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/50 border border-border hover:bg-muted text-xs font-medium"
+            title={
+              data.household.hideBalances
+                ? "Mostrar saldos e receitas"
+                : "Esconder saldos e receitas (só despesas)"
+            }
+          >
+            {data.household.hideBalances ? (
+              <>
+                <EyeOff className="w-3.5 h-3.5" /> Só despesas
+              </>
+            ) : (
+              <>
+                <Eye className="w-3.5 h-3.5" /> Mostrar tudo
+              </>
+            )}
+          </button>
         </FilterGroup>
       </FilterBar>
 

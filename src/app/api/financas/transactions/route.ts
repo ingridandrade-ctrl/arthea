@@ -34,6 +34,8 @@ export async function GET(req: Request) {
 
     const limit = Math.min(parseInt(searchParams.get("limit") || "200", 10), 500);
 
+    const status = searchParams.get("status");
+
     const transactions = await prisma.finTransaction.findMany({
       where,
       orderBy: [{ date: "desc" }, { createdAt: "desc" }],
@@ -44,7 +46,18 @@ export async function GET(req: Request) {
         category: { select: { id: true, name: true, color: true, kind: true, icon: true } },
       },
     });
-    return NextResponse.json(transactions);
+
+    if (!status) return NextResponse.json(transactions);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const filtered = transactions.filter((t) => {
+      if (status === "paid") return t.paid;
+      if (status === "pending") return !t.paid && new Date(t.date) >= today;
+      if (status === "overdue") return !t.paid && new Date(t.date) < today;
+      return true;
+    });
+    return NextResponse.json(filtered);
   } catch (e) {
     if (e instanceof HouseholdAuthError) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
@@ -137,6 +150,8 @@ export async function POST(req: Request) {
         ? Math.min(Math.max(splitRatio, 0), 1)
         : null;
 
+    const isPaid = typeof body.paid === "boolean" ? body.paid : true;
+
     const tx = await prisma.finTransaction.create({
       data: {
         householdId: household.id,
@@ -152,6 +167,8 @@ export async function POST(req: Request) {
         toAccountId: type === "TRANSFER" ? toAccountId : null,
         categoryId: type === "TRANSFER" ? null : (categoryId || null),
         invoiceId,
+        paid: isPaid,
+        paidAt: isPaid ? new Date() : null,
       },
       include: {
         account: { select: { id: true, name: true, color: true, type: true } },

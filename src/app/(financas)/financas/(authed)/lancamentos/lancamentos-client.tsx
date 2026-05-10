@@ -66,10 +66,21 @@ type Transaction = {
   owner: "PARTNER_A" | "PARTNER_B" | "COUPLE";
   paidByOwner: "PARTNER_A" | "PARTNER_B" | null;
   splitRatio: number | null;
+  paid: boolean;
+  paidAt: string | null;
   account: { id: string; name: string; color: string };
   toAccount: { id: string; name: string; color: string } | null;
   category: { id: string; name: string; color: string } | null;
 };
+
+type TxStatus = "paid" | "pending" | "overdue";
+
+function statusOf(t: Transaction): TxStatus {
+  if (t.paid) return "paid";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(t.date) < today ? "overdue" : "pending";
+}
 type Settings = { partnerAName: string; partnerBName: string; currency: string };
 
 function todayISO() {
@@ -98,6 +109,7 @@ export function LancamentosClient() {
   const [categoryId, setCategoryId] = useState("");
   const [owner, setOwner] = useState("");
   const [type, setType] = useState("");
+  const [status, setStatus] = useState<"" | TxStatus>("");
   const [q, setQ] = useState("");
 
   function applyPreset(p: PeriodPreset) {
@@ -115,6 +127,7 @@ export function LancamentosClient() {
     setCategoryId("");
     setOwner("");
     setType("");
+    setStatus("");
     setQ("");
   }
 
@@ -123,7 +136,17 @@ export function LancamentosClient() {
     (categoryId ? 1 : 0) +
     (owner ? 1 : 0) +
     (type ? 1 : 0) +
+    (status ? 1 : 0) +
     (q ? 1 : 0);
+
+  async function togglePaid(t: Transaction) {
+    await fetch(`/api/financas/transactions/${t.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paid: !t.paid }),
+    });
+    loadTx();
+  }
 
   async function loadStatic() {
     const [accRes, catRes, setRes] = await Promise.all([
@@ -145,6 +168,7 @@ export function LancamentosClient() {
     if (categoryId) params.set("categoryId", categoryId);
     if (owner) params.set("owner", owner);
     if (type) params.set("type", type);
+    if (status) params.set("status", status);
     if (q) params.set("q", q);
     const res = await fetch(`/api/financas/transactions?${params.toString()}`);
     const data = await res.json();
@@ -158,7 +182,7 @@ export function LancamentosClient() {
 
   useEffect(() => {
     loadTx();
-  }, [from, to, accountId, categoryId, owner, type, q]);
+  }, [from, to, accountId, categoryId, owner, type, status, q]);
 
   async function remove(id: string) {
     if (!confirm("Excluir este lançamento?")) return;
@@ -255,6 +279,19 @@ export function LancamentosClient() {
           />
         </FilterGroup>
 
+        <FilterGroup label="Status">
+          <SegControl
+            value={status as any}
+            onChange={(v) => setStatus(v as "" | TxStatus)}
+            options={[
+              { value: "", label: "Todos" },
+              { value: "paid", label: "Pago" },
+              { value: "pending", label: "Pendente" },
+              { value: "overdue", label: "Atrasado" },
+            ]}
+          />
+        </FilterGroup>
+
         <FilterGroup label="Conta">
           <SelectFilter
             value={accountId}
@@ -334,6 +371,7 @@ export function LancamentosClient() {
               <tr className="text-left text-muted-foreground">
                 <th className="px-4 py-3 font-medium">Data</th>
                 <th className="px-4 py-3 font-medium">Descrição</th>
+                <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Categoria</th>
                 <th className="px-4 py-3 font-medium">Conta</th>
                 <th className="px-4 py-3 font-medium">Dono</th>
@@ -352,6 +390,9 @@ export function LancamentosClient() {
                       <TypeIcon type={t.type} />
                       <span>{t.description}</span>
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge t={t} onToggle={() => togglePaid(t)} />
                   </td>
                   <td className="px-4 py-3">
                     {t.type === "TRANSFER" ? (
@@ -431,6 +472,36 @@ export function LancamentosClient() {
         />
       )}
     </div>
+  );
+}
+
+function StatusBadge({ t, onToggle }: { t: Transaction; onToggle: () => void }) {
+  if (t.type !== "EXPENSE") {
+    return <span className="text-xs text-muted-foreground">—</span>;
+  }
+  const s = statusOf(t);
+  const cls =
+    s === "paid"
+      ? "bg-success/10 text-success border-success/30"
+      : s === "overdue"
+      ? "bg-destructive/10 text-destructive border-destructive/30"
+      : "bg-warning/10 text-warning border-warning/30";
+  const label = s === "paid" ? "Pago" : s === "overdue" ? "Atrasado" : "Pendente";
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border ${cls} hover:opacity-80`}
+      title={
+        s === "paid"
+          ? "Clique para marcar como não-pago"
+          : "Clique para marcar como pago"
+      }
+    >
+      {label}
+    </button>
   );
 }
 
@@ -516,6 +587,7 @@ function TransactionModal({
     transaction?.toAccount?.id || ""
   );
   const [categoryId, setCategoryId] = useState(transaction?.category?.id || "");
+  const [paid, setPaid] = useState(transaction ? transaction.paid : true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -554,6 +626,7 @@ function TransactionModal({
         accountId,
         toAccountId: type === "TRANSFER" ? toAccountId : null,
         categoryId: type === "TRANSFER" ? null : categoryId || null,
+        paid: type === "EXPENSE" ? paid : true,
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -762,6 +835,24 @@ function TransactionModal({
               </div>
             )}
           </div>
+        )}
+
+        {type === "EXPENSE" && (
+          <label className="flex items-start gap-2 p-3 rounded-lg border border-border bg-muted/30 cursor-pointer hover:bg-muted/50">
+            <input
+              type="checkbox"
+              checked={paid}
+              onChange={(e) => setPaid(e.target.checked)}
+              className="mt-0.5"
+            />
+            <div className="text-sm">
+              <strong>Já paguei essa despesa</strong>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Marcado: já saiu do bolso. Desmarcado: vira "pendente" e o sistema marca como
+                "atrasado" automaticamente quando passar da data.
+              </p>
+            </div>
+          </label>
         )}
 
         <div>
