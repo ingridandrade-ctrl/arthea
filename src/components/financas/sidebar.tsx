@@ -14,6 +14,8 @@ import {
   Repeat,
   CreditCard,
   BarChart3,
+  Users,
+  Target,
 } from "lucide-react";
 
 const NAV = [
@@ -24,6 +26,8 @@ const NAV = [
   { name: "Categorias", href: "/financas/categorias", icon: Tags },
   { name: "Orçamento", href: "/financas/orcamento", icon: BarChart3 },
   { name: "Recorrências", href: "/financas/recorrencias", icon: Repeat },
+  { name: "Casal", href: "/financas/casal", icon: Users },
+  { name: "Metas", href: "/financas/metas", icon: Target },
   { name: "Configurações", href: "/financas/configuracoes", icon: Settings },
 ];
 

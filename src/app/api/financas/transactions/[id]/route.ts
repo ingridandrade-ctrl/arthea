@@ -21,6 +21,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (typeof body.description === "string" && body.description.trim()) data.description = body.description.trim();
     if (typeof body.notes === "string" || body.notes === null) data.notes = body.notes;
     if (VALID_OWNERS.includes(body.owner)) data.owner = body.owner;
+    if (body.paidByOwner === "PARTNER_A" || body.paidByOwner === "PARTNER_B" || body.paidByOwner === null) {
+      data.paidByOwner = body.paidByOwner;
+    }
+    if (typeof body.splitRatio === "number" || body.splitRatio === null) {
+      data.splitRatio = body.splitRatio === null ? null : Math.min(Math.max(body.splitRatio, 0), 1);
+    }
     if (typeof body.accountId === "string") {
       const account = await prisma.finAccount.findFirst({
         where: { id: body.accountId, householdId: household.id },

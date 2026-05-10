@@ -64,6 +64,8 @@ export async function POST(req: Request) {
       description,
       notes,
       owner,
+      paidByOwner,
+      splitRatio,
       accountId,
       toAccountId,
       categoryId,
@@ -128,6 +130,13 @@ export async function POST(req: Request) {
       invoiceId = inv?.id ?? null;
     }
 
+    const validPaidBy: any =
+      paidByOwner === "PARTNER_A" || paidByOwner === "PARTNER_B" ? paidByOwner : null;
+    const validSplit =
+      type === "EXPENSE" && owner === "COUPLE" && typeof splitRatio === "number"
+        ? Math.min(Math.max(splitRatio, 0), 1)
+        : null;
+
     const tx = await prisma.finTransaction.create({
       data: {
         householdId: household.id,
@@ -137,6 +146,8 @@ export async function POST(req: Request) {
         description: description.trim(),
         notes: typeof notes === "string" ? notes : null,
         owner: VALID_OWNERS.includes(owner) ? owner : "COUPLE",
+        paidByOwner: type === "EXPENSE" ? validPaidBy : null,
+        splitRatio: validSplit,
         accountId,
         toAccountId: type === "TRANSFER" ? toAccountId : null,
         categoryId: type === "TRANSFER" ? null : (categoryId || null),

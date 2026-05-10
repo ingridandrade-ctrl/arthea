@@ -22,6 +22,8 @@ type Transaction = {
   description: string;
   notes: string | null;
   owner: "PARTNER_A" | "PARTNER_B" | "COUPLE";
+  paidByOwner: "PARTNER_A" | "PARTNER_B" | null;
+  splitRatio: number | null;
   account: { id: string; name: string; color: string };
   toAccount: { id: string; name: string; color: string } | null;
   category: { id: string; name: string; color: string } | null;
@@ -396,6 +398,12 @@ function TransactionModal({
   const [owner, setOwner] = useState<"PARTNER_A" | "PARTNER_B" | "COUPLE">(
     transaction?.owner || "COUPLE"
   );
+  const [paidByOwner, setPaidByOwner] = useState<"PARTNER_A" | "PARTNER_B" | "">(
+    transaction?.paidByOwner || ""
+  );
+  const [splitPercentA, setSplitPercentA] = useState(
+    typeof transaction?.splitRatio === "number" ? Math.round(transaction.splitRatio * 100) : 50
+  );
   const [accountId, setAccountId] = useState(
     transaction?.account.id || accounts.find((a) => !a.archived)?.id || ""
   );
@@ -433,6 +441,11 @@ function TransactionModal({
         description,
         notes: notes || null,
         owner,
+        paidByOwner: type === "EXPENSE" ? (paidByOwner || null) : null,
+        splitRatio:
+          type === "EXPENSE" && owner === "COUPLE"
+            ? Math.min(Math.max(splitPercentA, 0), 100) / 100
+            : null,
         accountId,
         toAccountId: type === "TRANSFER" ? toAccountId : null,
         categoryId: type === "TRANSFER" ? null : categoryId || null,
@@ -588,6 +601,63 @@ function TransactionModal({
             ))}
           </div>
         </div>
+
+        {type === "EXPENSE" && (
+          <div className="bg-muted/30 rounded-lg p-3 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Acerto do casal (opcional). Se quem pagou for diferente de quem é a despesa, isso entra
+              no cálculo de quem deve a quem.
+            </p>
+            <div>
+              <label className="block text-xs font-medium mb-1">Quem pagou</label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaidByOwner("")}
+                  className={`px-3 py-1.5 rounded-lg border text-xs ${
+                    paidByOwner === "" ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"
+                  }`}
+                >
+                  Não acertar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaidByOwner("PARTNER_A")}
+                  className={`px-3 py-1.5 rounded-lg border text-xs ${
+                    paidByOwner === "PARTNER_A" ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"
+                  }`}
+                >
+                  {settings?.partnerAName ?? "Pessoa A"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaidByOwner("PARTNER_B")}
+                  className={`px-3 py-1.5 rounded-lg border text-xs ${
+                    paidByOwner === "PARTNER_B" ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-muted"
+                  }`}
+                >
+                  {settings?.partnerBName ?? "Pessoa B"}
+                </button>
+              </div>
+            </div>
+            {owner === "COUPLE" && paidByOwner && (
+              <div>
+                <label className="block text-xs font-medium mb-1">
+                  Divisão: {settings?.partnerAName ?? "A"} {splitPercentA}% / {settings?.partnerBName ?? "B"} {100 - splitPercentA}%
+                </label>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={splitPercentA}
+                  onChange={(e) => setSplitPercentA(parseInt(e.target.value, 10))}
+                  className="w-full"
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium mb-1">
