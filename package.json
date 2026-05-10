@@ -39,7 +39,6 @@
     "lucide-react": "^1.0.1",
     "next": "^14.2.35",
     "next-auth": "^4.24.13",
-    "pdfjs-dist": "^4.5.136",
     "postcss": "^8.5.8",
     "prisma": "^5.22.0",
     "react": "^18.3.1",
@@ -47,6 +46,7 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2",
+    "unpdf": "^1.6.2",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
