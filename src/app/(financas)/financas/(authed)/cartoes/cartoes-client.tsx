@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, CheckCircle2, Clock, AlertTriangle, Lock, Sparkles, Trash2 } from "lucide-react";
+import { CreditCard, CheckCircle2, Clock, AlertTriangle, Lock, Sparkles, Trash2, Pencil } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
 import { formatCurrency } from "@/lib/utils";
@@ -13,6 +13,15 @@ type Settings = { partnerAName: string; partnerBName: string };
 type Category = { id: string; name: string };
 
 type Owner = "PARTNER_A" | "PARTNER_B" | "COUPLE";
+
+type InvoiceTx = {
+  id: string;
+  amount: number;
+  description: string;
+  date: string;
+  owner: "PARTNER_A" | "PARTNER_B" | "COUPLE";
+  category: { id: string; name: string; color: string } | null;
+};
 
 type Invoice = {
   id: string;
@@ -26,7 +35,7 @@ type Invoice = {
   total: number;
   account: { id: string; name: string; color: string; closingDay: number | null; dueDay: number | null };
   paymentAccount: { id: string; name: string } | null;
-  transactions: { id: string; amount: number; description: string; date: string }[];
+  transactions: InvoiceTx[];
 };
 
 const STATUS_LABEL: Record<Invoice["status"], string> = {
@@ -54,28 +63,38 @@ function monthName(month: number) {
   return new Date(2000, month - 1, 1).toLocaleDateString("pt-BR", { month: "long" });
 }
 
+function ownerLabel(owner: "PARTNER_A" | "PARTNER_B" | "COUPLE", settings: Settings | null) {
+  if (owner === "PARTNER_A") return settings?.partnerAName ?? "Pessoa A";
+  if (owner === "PARTNER_B") return settings?.partnerBName ?? "Pessoa B";
+  return "Casal";
+}
+
 export function CartoesClient() {
   const [cards, setCards] = useState<Account[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [allAccounts, setAllAccounts] = useState<Account[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [selected, setSelected] = useState<string>("");
   const [paying, setPaying] = useState<Invoice | null>(null);
   const [importing, setImporting] = useState(false);
+  const [editingTx, setEditingTx] = useState<InvoiceTx | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function load() {
     setLoading(true);
-    const [accs, invs, st] = await Promise.all([
+    const [accs, invs, st, cats] = await Promise.all([
       fetch("/api/financas/accounts").then((r) => r.json()),
       fetch("/api/financas/invoices").then((r) => r.json()),
       fetch("/api/financas/settings").then((r) => r.json()),
+      fetch("/api/financas/categories").then((r) => r.json()),
     ]);
     const ccs = accs.filter((a: Account) => a.type === "CREDIT_CARD" && !a.archived);
     setCards(ccs);
     setAllAccounts(accs);
     setInvoices(invs);
     setSettings(st);
+    setAllCategories(cats.filter((c: any) => !c.archived && c.kind === "EXPENSE"));
     setSelected((s) => s || ccs[0]?.id || "");
     setLoading(false);
   }
@@ -190,17 +209,43 @@ export function CartoesClient() {
                             <tr>
                               <th className="px-4 py-2 font-medium">Data</th>
                               <th className="px-4 py-2 font-medium">Descrição</th>
+                              <th className="px-4 py-2 font-medium">Categoria</th>
+                              <th className="px-4 py-2 font-medium">Dono</th>
                               <th className="px-4 py-2 font-medium text-right">Valor</th>
+                              <th className="px-4 py-2 font-medium w-10"></th>
                             </tr>
                           </thead>
                           <tbody>
                             {inv.transactions.map((t) => (
-                              <tr key={t.id} className="border-t border-border">
+                              <tr
+                                key={t.id}
+                                className="border-t border-border hover:bg-muted/30 cursor-pointer"
+                                onClick={() => setEditingTx(t)}
+                              >
                                 <td className="px-4 py-2 text-muted-foreground">
                                   {new Date(t.date).toLocaleDateString("pt-BR")}
                                 </td>
                                 <td className="px-4 py-2">{t.description}</td>
+                                <td className="px-4 py-2">
+                                  {t.category ? (
+                                    <span className="inline-flex items-center gap-1.5">
+                                      <span
+                                        className="w-2 h-2 rounded-full"
+                                        style={{ backgroundColor: t.category.color }}
+                                      />
+                                      {t.category.name}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground italic">sem categoria</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-2 text-muted-foreground">
+                                  {ownerLabel(t.owner, settings)}
+                                </td>
                                 <td className="px-4 py-2 text-right tabular-nums">{formatCurrency(t.amount)}</td>
+                                <td className="px-4 py-2 text-muted-foreground">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -239,7 +284,198 @@ export function CartoesClient() {
           }}
         />
       )}
+
+      {editingTx && (
+        <EditTransactionModal
+          tx={editingTx}
+          categories={allCategories}
+          settings={settings}
+          onClose={() => setEditingTx(null)}
+          onSaved={() => {
+            setEditingTx(null);
+            load();
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function EditTransactionModal({
+  tx,
+  categories,
+  settings,
+  onClose,
+  onSaved,
+}: {
+  tx: InvoiceTx;
+  categories: Category[];
+  settings: Settings | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [date, setDate] = useState(tx.date.slice(0, 10));
+  const [description, setDescription] = useState(tx.description);
+  const [amount, setAmount] = useState(String(tx.amount));
+  const [categoryId, setCategoryId] = useState(tx.category?.id ?? "");
+  const [owner, setOwner] = useState<"PARTNER_A" | "PARTNER_B" | "COUPLE">(tx.owner);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const partnerA = settings?.partnerAName || "Pessoa A";
+  const partnerB = settings?.partnerBName || "Pessoa B";
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    const numericAmount = parseFloat(amount.replace(",", "."));
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      setError("Valor inválido");
+      setSaving(false);
+      return;
+    }
+    const res = await fetch(`/api/financas/transactions/${tx.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date,
+        description,
+        amount: numericAmount,
+        categoryId: categoryId || null,
+        owner,
+      }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setError(d?.error || "Erro ao salvar");
+      setSaving(false);
+      return;
+    }
+    onSaved();
+  }
+
+  async function remove() {
+    if (!confirm("Excluir este lançamento?")) return;
+    setDeleting(true);
+    const res = await fetch(`/api/financas/transactions/${tx.id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setError(d?.error || "Erro ao excluir");
+      setDeleting(false);
+      return;
+    }
+    onSaved();
+  }
+
+  return (
+    <Modal title="Editar lançamento" onClose={onClose}>
+      <form onSubmit={save} className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Data</label>
+            <input
+              type="date"
+              required
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Valor</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              required
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Descrição</label>
+          <input
+            required
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Categoria</label>
+          <select
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+          >
+            <option value="">Sem categoria</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Quem usou</label>
+          <div className="grid grid-cols-3 gap-2">
+            {(["PARTNER_A", "PARTNER_B", "COUPLE"] as const).map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => setOwner(o)}
+                className={`px-3 py-2 rounded-lg border text-sm ${
+                  owner === o
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border hover:bg-muted"
+                }`}
+              >
+                {o === "PARTNER_A" ? partnerA : o === "PARTNER_B" ? partnerB : "Casal"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {error && (
+          <div className="text-sm text-destructive bg-destructive/10 p-2 rounded-lg">{error}</div>
+        )}
+
+        <div className="flex justify-between items-center pt-2">
+          <button
+            type="button"
+            onClick={remove}
+            disabled={deleting || saving}
+            className="flex items-center gap-1 px-3 py-2 rounded-lg text-destructive hover:bg-destructive/10 disabled:opacity-50 text-sm"
+          >
+            <Trash2 className="w-4 h-4" />
+            {deleting ? "Excluindo..." : "Excluir"}
+          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg border border-border hover:bg-muted"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={saving || deleting}
+              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            >
+              {saving ? "Salvando..." : "Salvar"}
+            </button>
+          </div>
+        </div>
+      </form>
+    </Modal>
   );
 }
 

@@ -18,7 +18,14 @@ export async function GET(req: Request) {
         account: { select: { id: true, name: true, color: true, closingDay: true, dueDay: true } },
         paymentAccount: { select: { id: true, name: true } },
         transactions: {
-          select: { id: true, amount: true, description: true, date: true },
+          select: {
+            id: true,
+            amount: true,
+            description: true,
+            date: true,
+            owner: true,
+            category: { select: { id: true, name: true, color: true } },
+          },
           orderBy: { date: "desc" },
         },
       },
