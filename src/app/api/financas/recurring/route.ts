@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { runRecurringForHousehold } from "@/lib/financas/recurring";
 
 const VALID_TYPES = ["INCOME", "EXPENSE", "TRANSFER"];
 const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
@@ -84,7 +85,10 @@ export async function POST(req: Request) {
         endDate: endDate ? new Date(endDate) : null,
       },
     });
-    return NextResponse.json(rule, { status: 201 });
+
+    const generated = await runRecurringForHousehold(household.id);
+
+    return NextResponse.json({ ...rule, generated: generated.created }, { status: 201 });
   } catch (e) {
     if (e instanceof HouseholdAuthError) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
     throw e;

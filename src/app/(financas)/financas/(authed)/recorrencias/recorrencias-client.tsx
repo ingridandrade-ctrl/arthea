@@ -299,6 +299,9 @@ function RuleModal({
       setSaving(false);
       return;
     }
+    if (!editing && typeof data.generated === "number" && data.generated > 0) {
+      alert(`Recorrência criada. ${data.generated} lançamento(s) já foram gerados em "Lançamentos".`);
+    }
     onSaved();
   }
 
