@@ -19,13 +19,20 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       const paidAt = body?.paidAt ? new Date(body.paidAt) : new Date();
 
       if (skipTransfer) {
-        const updated = await prisma.finCreditCardInvoice.update({
-          where: { id: inv.id },
-          data: {
-            paidAt,
-            paymentAccountId: null,
-            status: "PAID",
-          },
+        const updated = await prisma.$transaction(async (tx) => {
+          const inv2 = await tx.finCreditCardInvoice.update({
+            where: { id: inv.id },
+            data: {
+              paidAt,
+              paymentAccountId: null,
+              status: "PAID",
+            },
+          });
+          await tx.finTransaction.updateMany({
+            where: { householdId: household.id, invoiceId: inv.id },
+            data: { paid: true, paidAt },
+          });
+          return inv2;
         });
         return NextResponse.json({ invoice: updated });
       }
@@ -62,6 +69,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             paymentAccountId,
             status: "PAID",
           },
+        });
+        await tx.finTransaction.updateMany({
+          where: { householdId: household.id, invoiceId: inv.id },
+          data: { paid: true, paidAt },
         });
         return { transferTx, invoice: updated };
       });
