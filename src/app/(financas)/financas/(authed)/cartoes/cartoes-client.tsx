@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, CheckCircle2, Clock, AlertTriangle, Lock, Sparkles, Trash2, Pencil } from "lucide-react";
+import { CreditCard, CheckCircle2, Clock, AlertTriangle, Lock, Sparkles, Trash2, Pencil, CalendarClock } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
 import { formatCurrency } from "@/lib/utils";
@@ -79,6 +79,7 @@ export function CartoesClient() {
   const [paying, setPaying] = useState<Invoice | null>(null);
   const [importing, setImporting] = useState(false);
   const [editingTx, setEditingTx] = useState<InvoiceTx | null>(null);
+  const [bulkDateInvoice, setBulkDateInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function load() {
@@ -192,14 +193,26 @@ export function CartoesClient() {
                       <div className="text-right">
                         <p className="text-xs text-muted-foreground">Total</p>
                         <p className="text-2xl font-bold tabular-nums">{formatCurrency(inv.total)}</p>
-                        {inv.status !== "PAID" && inv.total > 0 && (
-                          <button
-                            onClick={() => setPaying(inv)}
-                            className="mt-2 text-sm px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90"
-                          >
-                            Marcar como paga
-                          </button>
-                        )}
+                        <div className="flex flex-col items-end gap-1 mt-2">
+                          {inv.status !== "PAID" && inv.total > 0 && (
+                            <button
+                              onClick={() => setPaying(inv)}
+                              className="text-sm px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90"
+                            >
+                              Marcar como paga
+                            </button>
+                          )}
+                          {inv.transactions.length > 0 && (
+                            <button
+                              onClick={() => setBulkDateInvoice(inv)}
+                              className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-muted text-muted-foreground"
+                              title="Aplicar uma única data a todos os lançamentos desta fatura"
+                            >
+                              <CalendarClock className="w-3.5 h-3.5" />
+                              Definir data única
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                     {inv.transactions.length > 0 && (
@@ -297,7 +310,97 @@ export function CartoesClient() {
           }}
         />
       )}
+
+      {bulkDateInvoice && (
+        <BulkDateModal
+          invoice={bulkDateInvoice}
+          onClose={() => setBulkDateInvoice(null)}
+          onSaved={() => {
+            setBulkDateInvoice(null);
+            load();
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+function BulkDateModal({
+  invoice,
+  onClose,
+  onSaved,
+}: {
+  invoice: Invoice;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const defaultDate = invoice.dueDate
+    ? new Date(invoice.dueDate).toISOString().slice(0, 10)
+    : new Date().toISOString().slice(0, 10);
+  const [date, setDate] = useState(defaultDate);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    const res = await fetch(`/api/financas/invoices/${invoice.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "setAllDates", date }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setError(d?.error || "Erro");
+      setSaving(false);
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    alert(`${data.updated || 0} lançamento(s) atualizado(s) para ${new Date(date).toLocaleDateString("pt-BR")}.`);
+    onSaved();
+  }
+
+  return (
+    <Modal title="Definir data única" onClose={onClose}>
+      <form onSubmit={submit} className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Vai mudar a <strong>data</strong> de TODOS os{" "}
+          <strong>{invoice.transactions.length} lançamento(s)</strong> desta fatura para a
+          data que você escolher. Útil quando a fatura veio com datas de compra mas você
+          quer que todos contem na mesma data (ex: vencimento real).
+        </p>
+        <div>
+          <label className="block text-sm font-medium mb-1">Nova data</label>
+          <input
+            type="date"
+            required
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+          />
+        </div>
+        {error && (
+          <div className="text-sm text-destructive bg-destructive/10 p-2 rounded-lg">{error}</div>
+        )}
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg border border-border hover:bg-muted"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+          >
+            {saving ? "Aplicando..." : "Aplicar a todos"}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
