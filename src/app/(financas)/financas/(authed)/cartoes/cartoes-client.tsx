@@ -387,13 +387,23 @@ function ImportInvoiceModal({
         body: JSON.stringify({ accountId, text }),
       });
     }
-    const data = await res.json().catch(() => ({}));
+    const rawText = await res.text();
+    let data: any = {};
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      // resposta não-JSON (timeout, HTML de erro do Vercel, etc.)
+    }
     setBusy(false);
     if (!res.ok) {
       if (data?.code === "needs_password") {
         setNeedsPassword(true);
       }
-      setError(data?.error || "Erro ao analisar");
+      const fallback =
+        res.status === 504 || res.status === 408
+          ? "A análise demorou demais e foi interrompida. Tente um PDF menor ou o modo 'Colar texto'."
+          : `Erro ao analisar (HTTP ${res.status}). ${rawText.slice(0, 200)}`;
+      setError(data?.error || fallback);
       return;
     }
     if (!data.transactions || data.transactions.length === 0) {
