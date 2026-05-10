@@ -132,6 +132,7 @@ export function RecorrenciasClient() {
                 <th className="px-4 py-3 font-medium">Tipo</th>
                 <th className="px-4 py-3 font-medium">Frequência</th>
                 <th className="px-4 py-3 font-medium">Conta</th>
+                <th className="px-4 py-3 font-medium">Categoria</th>
                 <th className="px-4 py-3 font-medium">Dono</th>
                 <th className="px-4 py-3 font-medium text-right">Valor</th>
                 <th className="px-4 py-3 font-medium text-center">Ativa</th>
@@ -155,6 +156,19 @@ export function RecorrenciasClient() {
                   </td>
                   <td className="px-4 py-3">{describeFrequency(r)}</td>
                   <td className="px-4 py-3">{r.account.name}</td>
+                  <td className="px-4 py-3">
+                    {r.category ? (
+                      <span className="inline-flex items-center gap-1.5 text-sm">
+                        <span
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: r.category.color }}
+                        />
+                        {r.category.name}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">sem categoria</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">{ownerLabel(r.owner)}</td>
                   <td className="px-4 py-3 text-right tabular-nums font-medium">
                     {formatCurrency(r.amount)}
@@ -252,6 +266,7 @@ function RuleModal({
   const [monthOfYear, setMonthOfYear] = useState(rule?.monthOfYear?.toString() || "1");
   const [startDate, setStartDate] = useState(rule ? rule.startDate.slice(0, 10) : todayISO());
   const [endDate, setEndDate] = useState(rule?.endDate ? rule.endDate.slice(0, 10) : "");
+  const [applyToExisting, setApplyToExisting] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -280,7 +295,11 @@ function RuleModal({
       monthOfYear: frequency === "YEARLY" ? parseInt(monthOfYear, 10) : null,
       endDate: endDate || null,
     };
-    if (!editing) {
+    if (editing) {
+      payload.accountId = accountId;
+      payload.categoryId = rule!.type === "TRANSFER" ? null : (categoryId || null);
+      payload.applyToExisting = applyToExisting;
+    } else {
       payload.type = type;
       payload.accountId = accountId;
       payload.toAccountId = type === "TRANSFER" ? toAccountId : null;
@@ -301,6 +320,9 @@ function RuleModal({
     }
     if (!editing && typeof data.generated === "number" && data.generated > 0) {
       alert(`Recorrência criada. ${data.generated} lançamento(s) já foram gerados em "Lançamentos".`);
+    }
+    if (editing && typeof data.updatedTransactions === "number" && data.updatedTransactions > 0) {
+      alert(`Regra atualizada. ${data.updatedTransactions} lançamento(s) existente(s) também foram corrigidos.`);
     }
     onSaved();
   }
@@ -430,53 +452,51 @@ function RuleModal({
           />
         </div>
 
-        {!editing && (
-          <>
+        <div>
+          <label className="block text-sm font-medium mb-1">Conta</label>
+          <select
+            required
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+          >
+            {accounts.filter((a) => !a.archived).map((a) => (
+              <option key={a.id} value={a.id}>{a.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {(editing ? rule!.type : type) === "TRANSFER" ? (
+          !editing && (
             <div>
-              <label className="block text-sm font-medium mb-1">Conta</label>
+              <label className="block text-sm font-medium mb-1">Conta destino</label>
               <select
                 required
-                value={accountId}
-                onChange={(e) => setAccountId(e.target.value)}
+                value={toAccountId}
+                onChange={(e) => setToAccountId(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-border bg-background"
               >
-                {accounts.filter((a) => !a.archived).map((a) => (
+                <option value="">Selecione...</option>
+                {accounts.filter((a) => !a.archived && a.id !== accountId).map((a) => (
                   <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
               </select>
             </div>
-
-            {type === "TRANSFER" ? (
-              <div>
-                <label className="block text-sm font-medium mb-1">Conta destino</label>
-                <select
-                  required
-                  value={toAccountId}
-                  onChange={(e) => setToAccountId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background"
-                >
-                  <option value="">Selecione...</option>
-                  {accounts.filter((a) => !a.archived && a.id !== accountId).map((a) => (
-                    <option key={a.id} value={a.id}>{a.name}</option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <div>
-                <label className="block text-sm font-medium mb-1">Categoria</label>
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background"
-                >
-                  <option value="">Sem categoria</option>
-                  {filteredCats.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </>
+          )
+        ) : (
+          <div>
+            <label className="block text-sm font-medium mb-1">Categoria</label>
+            <select
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+            >
+              <option value="">Sem categoria</option>
+              {filteredCats.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
         )}
 
         <div>
@@ -526,6 +546,24 @@ function RuleModal({
             />
           </div>
         </div>
+
+        {editing && (
+          <label className="flex items-start gap-2 p-3 rounded-lg border border-border bg-muted/30 cursor-pointer hover:bg-muted/50">
+            <input
+              type="checkbox"
+              checked={applyToExisting}
+              onChange={(e) => setApplyToExisting(e.target.checked)}
+              className="mt-0.5"
+            />
+            <div className="text-sm">
+              <strong>Aplicar também aos lançamentos já gerados</strong>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Atualiza valor, descrição, categoria, dono e conta de todos os lançamentos que
+                já saíram desta regra. Desmarque se quer mudar só daqui pra frente.
+              </p>
+            </div>
+          </label>
+        )}
 
         {error && (
           <div className="text-sm text-destructive bg-destructive/10 p-2 rounded-lg">{error}</div>
