@@ -618,6 +618,12 @@ function ImportInvoiceModal({
         </div>
       ) : (
         <div className="space-y-3">
+          <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 text-sm">
+            <strong>⚠️ Quase lá!</strong> A IA já analisou — agora <strong>revise as linhas
+            abaixo</strong> (mude categorias, marque quem usou, exclua linhas erradas) e clique
+            em <strong>"Confirmar e criar X lançamentos"</strong> no fim da página para
+            <strong> salvar</strong>. Se fechar agora, nada é salvo.
+          </div>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <p className="text-sm">
               <strong>{includedCount}</strong> de <strong>{rows.length}</strong> compras
