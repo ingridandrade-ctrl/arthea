@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { parseInvoiceText } from "@/lib/financas/parse-invoice";
 
-const MAX_TEXT_LENGTH = 30000;
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-type ParsedRow = {
-  date: string;
-  description: string;
-  amount: number;
-  categoryId: string | null;
-  owner: "PARTNER_A" | "PARTNER_B" | "COUPLE";
-};
+const MAX_TEXT_LENGTH = 80000;
 
 export async function POST(req: Request) {
   try {
@@ -58,77 +51,17 @@ export async function POST(req: Request) {
       orderBy: { name: "asc" },
     });
 
-    const categoryList = categories
-      .map((c) => `- ${c.id} | ${c.name}`)
-      .join("\n");
+    const result = await parseInvoiceText(text, account.name, categories);
 
-    const today = new Date().toISOString().slice(0, 10);
-
-    const systemPrompt = `Você é um assistente financeiro que extrai compras de faturas de cartão de crédito brasileiras.
-
-Analise o texto colado pelo usuário e identifique CADA compra individual.
-
-Para cada compra, retorne:
-- date: data no formato YYYY-MM-DD (se o ano não estiver explícito, infira pelo contexto; hoje é ${today})
-- description: nome do estabelecimento, limpo, sem códigos. Para parcelas, mantenha "Nome (3/12)" se aparecer.
-- amount: valor positivo em reais como número (use ponto, não vírgula). Ex: 152.30
-- categoryId: o ID exato (string da esquerda do "|") da categoria mais provável da lista abaixo, ou null se nenhuma se encaixar
-- owner: sempre "COUPLE" salvo se houver indicação clara de quem usou
-
-CATEGORIAS DISPONÍVEIS (id | nome):
-${categoryList}
-
-REGRAS IMPORTANTES:
-- IGNORE pagamentos recebidos / créditos / estornos (não são despesas)
-- IGNORE linhas de subtotais, IOF separado, juros, anuidade — a menos que sejam linhas normais de gastos
-- Se for parcela ("3/12", "PARC 02/06"), inclua a parcela na descrição
-- Se ver compras internacionais já convertidas em BRL, use o valor em BRL
-- Retorne APENAS um array JSON válido, sem texto antes ou depois, sem markdown
-- Se não conseguir identificar nenhuma compra, retorne []`;
-
-    const userMessage = `Texto da fatura (cartão "${account.name}"):
-
-${text}`;
-
-    const response = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 8000,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userMessage }],
-    });
-
-    const textBlock = response.content.find((b) => b.type === "text");
-    if (!textBlock || textBlock.type !== "text") {
-      return NextResponse.json({ error: "IA não retornou resposta" }, { status: 500 });
-    }
-
-    const parsed = parseJsonArray(textBlock.text);
-    if (!parsed) {
+    if (!result.parsed) {
       return NextResponse.json(
-        { error: "Não consegui interpretar a resposta. Tente colar novamente ou em partes." },
+        { error: "Não consegui interpretar a resposta da IA. Tente novamente." },
         { status: 500 }
       );
     }
 
-    const validIds = new Set(categories.map((c) => c.id));
-    const cleaned: ParsedRow[] = [];
-    for (const item of parsed) {
-      if (!item || typeof item !== "object") continue;
-      const date = typeof item.date === "string" ? item.date.slice(0, 10) : null;
-      const description = typeof item.description === "string" ? item.description.trim() : null;
-      const amount = typeof item.amount === "number" ? item.amount : Number(item.amount);
-      if (!date || !description || !Number.isFinite(amount) || amount <= 0) continue;
-      const categoryId =
-        typeof item.categoryId === "string" && validIds.has(item.categoryId)
-          ? item.categoryId
-          : null;
-      const owner =
-        item.owner === "PARTNER_A" || item.owner === "PARTNER_B" ? item.owner : "COUPLE";
-      cleaned.push({ date, description, amount, categoryId, owner });
-    }
-
     return NextResponse.json({
-      transactions: cleaned,
+      transactions: result.parsed,
       categories,
       account: { id: account.id, name: account.name, color: account.color },
     });
@@ -141,19 +74,5 @@ ${text}`;
       { error: "Erro ao analisar fatura: " + (e?.message || "desconhecido") },
       { status: 500 }
     );
-  }
-}
-
-function parseJsonArray(raw: string): any[] | null {
-  let s = raw.trim();
-  s = s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
-  const start = s.indexOf("[");
-  const end = s.lastIndexOf("]");
-  if (start === -1 || end === -1 || end <= start) return null;
-  try {
-    const arr = JSON.parse(s.slice(start, end + 1));
-    return Array.isArray(arr) ? arr : null;
-  } catch {
-    return null;
   }
 }
