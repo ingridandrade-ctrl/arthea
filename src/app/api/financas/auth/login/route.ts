@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { setSessionCookie } from "@/lib/financas/session";
+import { ensureFinanceSchema } from "@/lib/financas/migrate";
 
 export async function POST(req: Request) {
+  await ensureFinanceSchema();
   const body = await req.json().catch(() => ({}));
   const { email, password } = body ?? {};
 

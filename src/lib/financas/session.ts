@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { ensureFinanceSchema } from "@/lib/financas/migrate";
 
 const COOKIE_NAME = "financas_session";
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
@@ -120,6 +121,7 @@ export class HouseholdAuthError extends Error {
 }
 
 export async function householdExists(): Promise<boolean> {
+  await ensureFinanceSchema();
   const count = await prisma.household.count();
   return count > 0;
 }
