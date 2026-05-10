@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   try {
     const household = await requireHousehold();
     const body = await req.json();
-    const { name, type, initialBalance, color, icon } = body ?? {};
+    const { name, type, initialBalance, color, icon, creditLimit, closingDay, dueDay } = body ?? {};
 
     if (typeof name !== "string" || !name.trim()) {
       return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 });
@@ -46,6 +46,9 @@ export async function POST(req: Request) {
         initialBalance: typeof initialBalance === "number" ? initialBalance : 0,
         color: typeof color === "string" ? color : "#6366f1",
         icon: typeof icon === "string" ? icon : null,
+        creditLimit: typeof creditLimit === "number" ? creditLimit : null,
+        closingDay: typeof closingDay === "number" ? closingDay : null,
+        dueDay: typeof dueDay === "number" ? dueDay : null,
       },
     });
     return NextResponse.json(account, { status: 201 });

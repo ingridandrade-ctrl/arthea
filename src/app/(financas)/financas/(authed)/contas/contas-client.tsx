@@ -15,6 +15,9 @@ type Account = {
   balance: number;
   color: string;
   archived: boolean;
+  creditLimit: number | null;
+  closingDay: number | null;
+  dueDay: number | null;
 };
 
 const ACCOUNT_TYPES = Object.keys(ACCOUNT_TYPE_LABEL) as (keyof typeof ACCOUNT_TYPE_LABEL)[];
@@ -222,6 +225,9 @@ function AccountModal({
     account?.initialBalance ?? 0
   );
   const [color, setColor] = useState(account?.color || COLORS[0]);
+  const [creditLimit, setCreditLimit] = useState(account?.creditLimit?.toString() ?? "");
+  const [closingDay, setClosingDay] = useState(account?.closingDay?.toString() ?? "");
+  const [dueDay, setDueDay] = useState(account?.dueDay?.toString() ?? "");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -232,10 +238,20 @@ function AccountModal({
     const url = account
       ? `/api/financas/accounts/${account.id}`
       : "/api/financas/accounts";
+    const payload: any = { name, type, initialBalance, color };
+    if (type === "CREDIT_CARD") {
+      payload.creditLimit = creditLimit ? parseFloat(creditLimit) : null;
+      payload.closingDay = closingDay ? parseInt(closingDay, 10) : null;
+      payload.dueDay = dueDay ? parseInt(dueDay, 10) : null;
+    } else if (account) {
+      payload.creditLimit = null;
+      payload.closingDay = null;
+      payload.dueDay = null;
+    }
     const res = await fetch(url, {
       method: account ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, type, initialBalance, color }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -274,7 +290,9 @@ function AccountModal({
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Saldo inicial</label>
+          <label className="block text-sm font-medium mb-1">
+            {type === "CREDIT_CARD" ? "Saldo da fatura em aberto" : "Saldo inicial"}
+          </label>
           <input
             type="number"
             step="0.01"
@@ -286,6 +304,45 @@ function AccountModal({
             Quanto havia nesta conta antes de começar a usar o app.
           </p>
         </div>
+
+        {type === "CREDIT_CARD" && (
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Limite</label>
+              <input
+                type="number"
+                step="0.01"
+                value={creditLimit}
+                onChange={(e) => setCreditLimit(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Fechamento</label>
+              <input
+                type="number"
+                min={1}
+                max={31}
+                value={closingDay}
+                onChange={(e) => setClosingDay(e.target.value)}
+                placeholder="Dia"
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Vencimento</label>
+              <input
+                type="number"
+                min={1}
+                max={31}
+                value={dueDay}
+                onChange={(e) => setDueDay(e.target.value)}
+                placeholder="Dia"
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+              />
+            </div>
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium mb-1">Cor</label>
           <div className="flex flex-wrap gap-2">

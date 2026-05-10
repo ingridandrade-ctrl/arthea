@@ -11,13 +11,19 @@ import {
   Settings,
   LogOut,
   PiggyBank,
+  Repeat,
+  CreditCard,
+  BarChart3,
 } from "lucide-react";
 
 const NAV = [
   { name: "Dashboard", href: "/financas", icon: LayoutDashboard, exact: true },
   { name: "Lançamentos", href: "/financas/lancamentos", icon: ArrowLeftRight },
   { name: "Contas", href: "/financas/contas", icon: Wallet },
+  { name: "Cartões", href: "/financas/cartoes", icon: CreditCard },
   { name: "Categorias", href: "/financas/categorias", icon: Tags },
+  { name: "Orçamento", href: "/financas/orcamento", icon: BarChart3 },
+  { name: "Recorrências", href: "/financas/recorrencias", icon: Repeat },
   { name: "Configurações", href: "/financas/configuracoes", icon: Settings },
 ];
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { ensureInvoice } from "@/lib/financas/credit-cards";
 
 const VALID_TYPES = ["INCOME", "EXPENSE", "TRANSFER"];
 const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
@@ -121,6 +122,12 @@ export async function POST(req: Request) {
       }
     }
 
+    let invoiceId: string | null = null;
+    if (type === "EXPENSE" && account.type === "CREDIT_CARD") {
+      const inv = await ensureInvoice(household.id, account, new Date(date));
+      invoiceId = inv?.id ?? null;
+    }
+
     const tx = await prisma.finTransaction.create({
       data: {
         householdId: household.id,
@@ -133,6 +140,7 @@ export async function POST(req: Request) {
         accountId,
         toAccountId: type === "TRANSFER" ? toAccountId : null,
         categoryId: type === "TRANSFER" ? null : (categoryId || null),
+        invoiceId,
       },
       include: {
         account: { select: { id: true, name: true, color: true, type: true } },

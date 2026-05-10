@@ -22,6 +22,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (typeof body.color === "string") data.color = body.color;
     if (typeof body.icon === "string" || body.icon === null) data.icon = body.icon;
     if (typeof body.archived === "boolean") data.archived = body.archived;
+    if (typeof body.creditLimit === "number" || body.creditLimit === null) data.creditLimit = body.creditLimit;
+    if (typeof body.closingDay === "number" || body.closingDay === null) data.closingDay = body.closingDay;
+    if (typeof body.dueDay === "number" || body.dueDay === null) data.dueDay = body.dueDay;
 
     const updated = await prisma.finAccount.update({ where: { id: params.id }, data });
     return NextResponse.json(updated);
