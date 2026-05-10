@@ -82,11 +82,18 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         return NextResponse.json({ error: "Data inválida" }, { status: 400 });
       }
       const newDate = new Date(newDateStr);
-      const res = await prisma.finTransaction.updateMany({
-        where: { householdId: household.id, invoiceId: inv.id },
-        data: { date: newDate },
+      const result = await prisma.$transaction(async (tx) => {
+        const txUpdate = await tx.finTransaction.updateMany({
+          where: { householdId: household.id, invoiceId: inv.id },
+          data: { date: newDate },
+        });
+        await tx.finCreditCardInvoice.update({
+          where: { id: inv.id },
+          data: { dueDate: newDate },
+        });
+        return { updated: txUpdate.count };
       });
-      return NextResponse.json({ updated: res.count });
+      return NextResponse.json(result);
     }
 
     const data: any = {};

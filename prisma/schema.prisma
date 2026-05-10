@@ -560,6 +560,8 @@ model FinTransaction {
   owner        FinOwner              @default(COUPLE)
   paidByOwner  FinOwner?
   splitRatio   Float?
+  paid         Boolean               @default(true)
+  paidAt       DateTime?
   accountId    String
   account      FinAccount            @relation("AccountTransactions", fields: [accountId], references: [id])
   toAccountId  String?

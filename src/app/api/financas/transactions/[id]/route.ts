@@ -40,6 +40,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (existing.type !== "TRANSFER" && (typeof body.categoryId === "string" || body.categoryId === null)) {
       data.categoryId = body.categoryId;
     }
+    if (typeof body.paid === "boolean") {
+      data.paid = body.paid;
+      data.paidAt = body.paid ? (body.paidAt ? new Date(body.paidAt) : new Date()) : null;
+    }
 
     const updated = await prisma.finTransaction.update({
       where: { id: params.id },
