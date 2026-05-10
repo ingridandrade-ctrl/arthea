@@ -76,6 +76,19 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json(updated);
     }
 
+    if (action === "setAllDates") {
+      const newDateStr = body?.date;
+      if (typeof newDateStr !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(newDateStr)) {
+        return NextResponse.json({ error: "Data inválida" }, { status: 400 });
+      }
+      const newDate = new Date(newDateStr);
+      const res = await prisma.finTransaction.updateMany({
+        where: { householdId: household.id, invoiceId: inv.id },
+        data: { date: newDate },
+      });
+      return NextResponse.json({ updated: res.count });
+    }
+
     const data: any = {};
     if (typeof body.notes === "string" || body.notes === null) data.notes = body.notes;
     const updated = await prisma.finCreditCardInvoice.update({
