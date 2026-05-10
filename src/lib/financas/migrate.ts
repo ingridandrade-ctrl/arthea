@@ -200,6 +200,8 @@ const STATEMENTS: string[] = [
   `DO $$ BEGIN ALTER TABLE "FinGoal" ADD CONSTRAINT "FinGoal_householdId_fkey" FOREIGN KEY ("householdId") REFERENCES "Household"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;`,
   `DO $$ BEGIN ALTER TABLE "FinGoalContribution" ADD CONSTRAINT "FinGoalContribution_goalId_fkey" FOREIGN KEY ("goalId") REFERENCES "FinGoal"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;`,
   `DO $$ BEGIN ALTER TABLE "FinSettlement" ADD CONSTRAINT "FinSettlement_householdId_fkey" FOREIGN KEY ("householdId") REFERENCES "Household"("id") ON DELETE CASCADE ON UPDATE CASCADE; EXCEPTION WHEN duplicate_object THEN NULL; END $$;`,
+
+  `ALTER TABLE "Household" ADD COLUMN IF NOT EXISTS "hideBalances" BOOLEAN NOT NULL DEFAULT false;`,
 ];
 
 let migrationPromise: Promise<void> | null = null;

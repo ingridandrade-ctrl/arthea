@@ -10,6 +10,7 @@ export async function GET() {
       partnerAName: household.partnerAName,
       partnerBName: household.partnerBName,
       currency: household.currency,
+      hideBalances: household.hideBalances,
     });
   } catch (e) {
     if (e instanceof HouseholdAuthError) {
@@ -33,6 +34,9 @@ export async function PATCH(req: Request) {
     if (typeof body.currency === "string" && body.currency.trim()) {
       data.currency = body.currency.trim();
     }
+    if (typeof body.hideBalances === "boolean") {
+      data.hideBalances = body.hideBalances;
+    }
     const updated = await prisma.household.update({
       where: { id: household.id },
       data,
@@ -41,6 +45,7 @@ export async function PATCH(req: Request) {
       partnerAName: updated.partnerAName,
       partnerBName: updated.partnerBName,
       currency: updated.currency,
+      hideBalances: updated.hideBalances,
     });
   } catch (e) {
     if (e instanceof HouseholdAuthError) {

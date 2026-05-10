@@ -159,6 +159,7 @@ export async function GET(req: Request) {
         partnerAName: household.partnerAName,
         partnerBName: household.partnerBName,
         currency: household.currency,
+        hideBalances: household.hideBalances,
       },
       period: {
         year,
