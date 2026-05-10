@@ -355,6 +355,8 @@ function ImportInvoiceModal({
   const [accountId, setAccountId] = useState(defaultCardId);
   const [text, setText] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfPassword, setPdfPassword] = useState("");
+  const [needsPassword, setNeedsPassword] = useState(false);
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [busy, setBusy] = useState(false);
@@ -376,6 +378,7 @@ function ImportInvoiceModal({
       const fd = new FormData();
       fd.append("accountId", accountId);
       fd.append("file", pdfFile);
+      if (pdfPassword) fd.append("password", pdfPassword);
       res = await fetch("/api/financas/import/parse-pdf", { method: "POST", body: fd });
     } else {
       res = await fetch("/api/financas/import/parse", {
@@ -387,6 +390,9 @@ function ImportInvoiceModal({
     const data = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
+      if (data?.code === "needs_password") {
+        setNeedsPassword(true);
+      }
       setError(data?.error || "Erro ao analisar");
       return;
     }
@@ -528,6 +534,32 @@ function ImportInvoiceModal({
                   </>
                 )}
               </label>
+
+              <div className="mt-3">
+                <label className="block text-sm font-medium mb-1">
+                  Senha do PDF{" "}
+                  <span className="text-muted-foreground font-normal">
+                    (deixe em branco se não tiver)
+                  </span>
+                </label>
+                <input
+                  type="password"
+                  value={pdfPassword}
+                  onChange={(e) => {
+                    setPdfPassword(e.target.value);
+                    setNeedsPassword(false);
+                  }}
+                  placeholder="Senha do arquivo"
+                  autoComplete="off"
+                  className={`w-full px-3 py-2 rounded-lg border bg-background ${
+                    needsPassword ? "border-destructive" : "border-border"
+                  }`}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  💡 Geralmente é seu CPF (sem pontos) ou os 4 últimos dígitos do cartão.
+                  Confira no e-mail/app do banco.
+                </p>
+              </div>
             </div>
           ) : (
             <div>
