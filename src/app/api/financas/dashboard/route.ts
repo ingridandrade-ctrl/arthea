@@ -3,12 +3,25 @@ import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 import { computeAccountBalances } from "@/lib/financas/balances";
 
+type Owner = "PARTNER_A" | "PARTNER_B" | "COUPLE";
+
+const ALL_OWNERS: Owner[] = ["PARTNER_A", "PARTNER_B", "COUPLE"];
+
 export async function GET(req: Request) {
   try {
     const household = await requireHousehold();
     const { searchParams } = new URL(req.url);
 
-    const monthParam = searchParams.get("month"); // formato YYYY-MM
+    const monthParam = searchParams.get("month");
+    const cardGrouping = searchParams.get("cardGrouping") === "purchase_date"
+      ? "purchase_date"
+      : "fatura_month";
+    const ownerFilter = searchParams.get("owner");
+    const ownerWhere: Owner[] =
+      ownerFilter && ALL_OWNERS.includes(ownerFilter as Owner)
+        ? [ownerFilter as Owner]
+        : ALL_OWNERS;
+
     const now = new Date();
     let year: number;
     let month: number;
@@ -23,84 +36,106 @@ export async function GET(req: Request) {
 
     const start = new Date(year, month, 1, 0, 0, 0, 0);
     const end = new Date(year, month + 1, 1, 0, 0, 0, 0);
+    const sixMonthsAgo = new Date(year, month - 5, 1);
 
-    const [accounts, balances, monthAgg, byCategory, byOwner, last6] = await Promise.all([
+    const [accounts, balances, allTx, last6Tx] = await Promise.all([
       prisma.finAccount.findMany({
         where: { householdId: household.id, archived: false },
         orderBy: { createdAt: "asc" },
       }),
       computeAccountBalances(household.id),
-      prisma.finTransaction.groupBy({
-        by: ["type"],
-        where: { householdId: household.id, date: { gte: start, lt: end } },
-        _sum: { amount: true },
-      }),
-      prisma.finTransaction.groupBy({
-        by: ["categoryId", "type"],
-        where: {
-          householdId: household.id,
-          date: { gte: start, lt: end },
-          type: "EXPENSE",
+      prisma.finTransaction.findMany({
+        where: { householdId: household.id, owner: { in: ownerWhere } },
+        include: {
+          account: { select: { type: true } },
+          category: { select: { id: true, name: true, color: true, icon: true } },
+          invoice: { select: { dueDate: true } },
         },
-        _sum: { amount: true },
-      }),
-      prisma.finTransaction.groupBy({
-        by: ["owner", "type"],
-        where: { householdId: household.id, date: { gte: start, lt: end } },
-        _sum: { amount: true },
       }),
       prisma.finTransaction.findMany({
         where: {
           householdId: household.id,
-          date: {
-            gte: new Date(year, month - 5, 1),
-            lt: new Date(year, month + 1, 1),
-          },
+          owner: { in: ownerWhere },
           type: { in: ["INCOME", "EXPENSE"] },
         },
-        select: { type: true, amount: true, date: true },
+        include: {
+          account: { select: { type: true } },
+          invoice: { select: { dueDate: true } },
+        },
       }),
     ]);
 
-    const balanceMap = new Map(balances.map((b) => [b.accountId, b.balance]));
+    function effectiveDate(tx: {
+      date: Date;
+      account: { type: string };
+      invoice: { dueDate: Date } | null;
+    }): Date {
+      if (
+        cardGrouping === "fatura_month" &&
+        tx.account.type === "CREDIT_CARD" &&
+        tx.invoice
+      ) {
+        return new Date(tx.invoice.dueDate);
+      }
+      return new Date(tx.date);
+    }
 
+    const inPeriod = allTx.filter((t) => {
+      const d = effectiveDate(t);
+      return d >= start && d < end;
+    });
+
+    const balanceMap = new Map(balances.map((b) => [b.accountId, b.balance]));
     const totalBalance = accounts.reduce(
       (acc, a) => acc + (balanceMap.get(a.id) ?? a.initialBalance),
       0
     );
-    const totalIncome = monthAgg.find((m) => m.type === "INCOME")?._sum.amount ?? 0;
-    const totalExpense = monthAgg.find((m) => m.type === "EXPENSE")?._sum.amount ?? 0;
 
-    const categoryIds = byCategory.map((c) => c.categoryId).filter((id): id is string => !!id);
-    const cats = categoryIds.length
-      ? await prisma.finCategory.findMany({
-          where: { id: { in: categoryIds }, householdId: household.id },
-        })
-      : [];
-    const catMap = new Map(cats.map((c) => [c.id, c]));
-    const expensesByCategory = byCategory
-      .map((row) => {
-        const cat = row.categoryId ? catMap.get(row.categoryId) : null;
-        return {
-          categoryId: row.categoryId,
-          name: cat?.name || "Sem categoria",
-          color: cat?.color || "#a3a3a3",
-          icon: cat?.icon || null,
-          amount: row._sum.amount ?? 0,
-        };
-      })
-      .sort((a, b) => b.amount - a.amount);
-
+    let totalIncome = 0;
+    let totalExpense = 0;
     const ownerSummary: Record<string, { income: number; expense: number }> = {
       PARTNER_A: { income: 0, expense: 0 },
       PARTNER_B: { income: 0, expense: 0 },
       COUPLE: { income: 0, expense: 0 },
     };
-    for (const row of byOwner) {
-      const o = row.owner;
-      if (row.type === "INCOME") ownerSummary[o].income += row._sum.amount ?? 0;
-      else if (row.type === "EXPENSE") ownerSummary[o].expense += row._sum.amount ?? 0;
+    const catBuckets = new Map<
+      string,
+      { id: string | null; name: string; color: string; icon: string | null; amount: number }
+    >();
+
+    for (const t of inPeriod) {
+      if (t.type === "INCOME") {
+        totalIncome += t.amount;
+        ownerSummary[t.owner].income += t.amount;
+      } else if (t.type === "EXPENSE") {
+        totalExpense += t.amount;
+        ownerSummary[t.owner].expense += t.amount;
+
+        const catId = t.categoryId ?? "__none__";
+        const existing = catBuckets.get(catId);
+        if (existing) {
+          existing.amount += t.amount;
+        } else {
+          catBuckets.set(catId, {
+            id: t.categoryId,
+            name: t.category?.name ?? "Sem categoria",
+            color: t.category?.color ?? "#a3a3a3",
+            icon: t.category?.icon ?? null,
+            amount: t.amount,
+          });
+        }
+      }
     }
+
+    const expensesByCategory = Array.from(catBuckets.values())
+      .map((b) => ({
+        categoryId: b.id,
+        name: b.name,
+        color: b.color,
+        icon: b.icon,
+        amount: b.amount,
+      }))
+      .sort((a, b) => b.amount - a.amount);
 
     const monthly: Record<string, { income: number; expense: number }> = {};
     for (let i = 5; i >= 0; i--) {
@@ -108,8 +143,9 @@ export async function GET(req: Request) {
       const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       monthly[k] = { income: 0, expense: 0 };
     }
-    for (const t of last6) {
-      const d = new Date(t.date);
+    for (const t of last6Tx) {
+      const d = effectiveDate(t);
+      if (d < sixMonthsAgo || d >= end) continue;
       const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       if (!monthly[k]) continue;
       if (t.type === "INCOME") monthly[k].income += t.amount;
@@ -142,6 +178,7 @@ export async function GET(req: Request) {
       expensesByCategory,
       byOwner: ownerSummary,
       monthlySeries,
+      filters: { cardGrouping, owner: ownerFilter || "all" },
     });
   } catch (e) {
     if (e instanceof HouseholdAuthError) {

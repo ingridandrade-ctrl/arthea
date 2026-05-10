@@ -54,6 +54,9 @@ const PERIOD_LABEL: Record<Period, string> = {
 
 export function PorPessoaClient() {
   const [period, setPeriod] = useState<Period>("this_month");
+  const [cardGrouping, setCardGrouping] = useState<"fatura_month" | "purchase_date">(
+    "fatura_month"
+  );
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -61,7 +64,7 @@ export function PorPessoaClient() {
     let cancelled = false;
     setLoading(true);
     const { from, to } = rangeFor(period);
-    const params = new URLSearchParams();
+    const params = new URLSearchParams({ cardGrouping });
     if (from) params.set("from", from);
     if (to) params.set("to", to);
     fetch(`/api/financas/per-person?${params.toString()}`)
@@ -75,7 +78,7 @@ export function PorPessoaClient() {
     return () => {
       cancelled = true;
     };
-  }, [period]);
+  }, [period, cardGrouping]);
 
   return (
     <div>
@@ -98,6 +101,31 @@ export function PorPessoaClient() {
             {PERIOD_LABEL[p]}
           </button>
         ))}
+
+        <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-1 ml-auto">
+          <button
+            onClick={() => setCardGrouping("fatura_month")}
+            title="Despesas de cartão entram no mês em que a fatura vence"
+            className={`px-3 py-1.5 rounded text-xs font-medium ${
+              cardGrouping === "fatura_month"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            Cartão: por fatura
+          </button>
+          <button
+            onClick={() => setCardGrouping("purchase_date")}
+            title="Despesas de cartão entram no mês em que a compra foi feita"
+            className={`px-3 py-1.5 rounded text-xs font-medium ${
+              cardGrouping === "purchase_date"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            Cartão: por data
+          </button>
+        </div>
       </div>
 
       {loading || !data ? (
