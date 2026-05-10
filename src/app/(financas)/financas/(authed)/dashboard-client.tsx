@@ -49,11 +49,19 @@ function shiftMonth(month: string, delta: number): string {
 export function DashboardClient() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [month, setMonth] = useState(thisMonth());
+  const [cardGrouping, setCardGrouping] = useState<"fatura_month" | "purchase_date">(
+    "fatura_month"
+  );
+  const [ownerFilter, setOwnerFilter] = useState<"all" | "PARTNER_A" | "PARTNER_B" | "COUPLE">(
+    "all"
+  );
   const [loading, setLoading] = useState(true);
 
   async function load() {
     setLoading(true);
-    const res = await fetch(`/api/financas/dashboard?month=${month}`);
+    const params = new URLSearchParams({ month, cardGrouping });
+    if (ownerFilter !== "all") params.set("owner", ownerFilter);
+    const res = await fetch(`/api/financas/dashboard?${params.toString()}`);
     const d = await res.json();
     setData(d);
     setLoading(false);
@@ -61,7 +69,7 @@ export function DashboardClient() {
 
   useEffect(() => {
     load();
-  }, [month]);
+  }, [month, cardGrouping, ownerFilter]);
 
   if (loading || !data) {
     return (
@@ -106,6 +114,56 @@ export function DashboardClient() {
           </div>
         }
       />
+
+      <div className="flex flex-wrap items-center gap-3 mb-5">
+        <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-1">
+          {(
+            [
+              { v: "all", l: "Todos" },
+              { v: "COUPLE", l: "Casal" },
+              { v: "PARTNER_A", l: data.household.partnerAName },
+              { v: "PARTNER_B", l: data.household.partnerBName },
+            ] as const
+          ).map((opt) => (
+            <button
+              key={opt.v}
+              onClick={() => setOwnerFilter(opt.v as typeof ownerFilter)}
+              className={`px-3 py-1.5 rounded text-xs font-medium ${
+                ownerFilter === opt.v
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {opt.l}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-1">
+          <button
+            onClick={() => setCardGrouping("fatura_month")}
+            title="Despesas de cartão entram no mês em que a fatura vence (como Mobills/Organizze)"
+            className={`px-3 py-1.5 rounded text-xs font-medium ${
+              cardGrouping === "fatura_month"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            Cartão: por fatura
+          </button>
+          <button
+            onClick={() => setCardGrouping("purchase_date")}
+            title="Despesas de cartão entram no mês em que a compra foi feita"
+            className={`px-3 py-1.5 rounded text-xs font-medium ${
+              cardGrouping === "purchase_date"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            Cartão: por data
+          </button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard

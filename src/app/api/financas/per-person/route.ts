@@ -49,22 +49,43 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const fromStr = searchParams.get("from");
     const toStr = searchParams.get("to");
+    const cardGrouping = searchParams.get("cardGrouping") === "purchase_date"
+      ? "purchase_date"
+      : "fatura_month";
 
-    const where: any = { householdId: household.id, type: "EXPENSE" };
-    if (fromStr || toStr) {
-      where.date = {};
-      if (fromStr) where.date.gte = new Date(fromStr);
-      if (toStr) where.date.lte = new Date(toStr);
-    }
+    const from = fromStr ? new Date(fromStr) : null;
+    const to = toStr ? new Date(toStr) : null;
 
     const transactions = await prisma.finTransaction.findMany({
-      where,
+      where: { householdId: household.id, type: "EXPENSE" },
       select: {
         amount: true,
         owner: true,
         splitRatio: true,
+        date: true,
         category: { select: { id: true, name: true, color: true } },
+        account: { select: { type: true } },
+        invoice: { select: { dueDate: true } },
       },
+    });
+
+    function effectiveDate(tx: typeof transactions[number]): Date {
+      if (
+        cardGrouping === "fatura_month" &&
+        tx.account.type === "CREDIT_CARD" &&
+        tx.invoice
+      ) {
+        return new Date(tx.invoice.dueDate);
+      }
+      return new Date(tx.date);
+    }
+
+    const inRange = transactions.filter((t) => {
+      if (!from && !to) return true;
+      const d = effectiveDate(t);
+      if (from && d < from) return false;
+      if (to && d > to) return false;
+      return true;
     });
 
     const aOwn = emptyBucket();
@@ -72,7 +93,7 @@ export async function GET(req: Request) {
     const aCouple = emptyBucket();
     const bCouple = emptyBucket();
 
-    for (const tx of transactions) {
+    for (const tx of inRange) {
       if (tx.owner === "PARTNER_A") {
         addToBucket(aOwn, tx.amount, tx.category);
       } else if (tx.owner === "PARTNER_B") {
@@ -97,6 +118,7 @@ export async function GET(req: Request) {
         couple: bucketToJson(bCouple),
         total: bOwn.total + bCouple.total,
       },
+      filters: { cardGrouping },
     });
   } catch (e) {
     if (e instanceof HouseholdAuthError) {

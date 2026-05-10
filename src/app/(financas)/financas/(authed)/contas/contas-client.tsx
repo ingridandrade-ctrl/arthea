@@ -66,8 +66,8 @@ export function ContasClient() {
   return (
     <div>
       <PageHeader
-        title="Contas e carteiras"
-        description="Gerencie onde você guarda dinheiro: corrente, poupança, dinheiro em espécie, cartões..."
+        title="Contas e cartões"
+        description="Cada conta corrente, poupança, cartão de crédito ou carteira de dinheiro vira uma 'conta' aqui — é onde seus lançamentos saem ou caem. Cartão de crédito vira faturas automaticamente."
         actions={
           <button
             onClick={() => setCreating(true)}
@@ -78,6 +78,32 @@ export function ContasClient() {
           </button>
         }
       />
+
+      <div className="bg-muted/30 border border-border rounded-lg p-4 mb-5 text-sm text-muted-foreground">
+        <p className="mb-2">
+          <strong className="text-foreground">Pra que serve esta tela?</strong> Aqui você
+          cadastra cada lugar de onde seu dinheiro entra ou sai:
+        </p>
+        <ul className="list-disc pl-5 space-y-1 text-xs">
+          <li>
+            <strong>Conta corrente / poupança</strong> — pra você dizer "essa despesa saiu do
+            meu Nubank corrente"
+          </li>
+          <li>
+            <strong>Cartão de crédito</strong> — gera faturas mensais automaticamente. Os
+            gastos não saem da conta corrente até você marcar a fatura como paga
+          </li>
+          <li>
+            <strong>Dinheiro / vale-alimentação / investimentos</strong> — qualquer carteira
+            de onde sai dinheiro vira uma conta
+          </li>
+        </ul>
+        <p className="mt-2 text-xs">
+          💡 <strong>Saldo inicial</strong>: coloque quanto havia nessa conta no dia que você
+          começou a usar o sistema. Sem isso, o saldo vai ficar negativo porque as despesas
+          são contadas mas o dinheiro anterior é zero.
+        </p>
+      </div>
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
