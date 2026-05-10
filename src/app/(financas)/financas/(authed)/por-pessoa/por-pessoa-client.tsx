@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { User, Users, Wallet } from "lucide-react";
+import { useEffect, useState } from "react";
+import { User, Users, Wallet, CreditCard, Tag } from "lucide-react";
 import { PageHeader } from "@/components/financas/page-header";
+import { FilterBar, FilterGroup, SegControl } from "@/components/financas/filters";
 import { formatCurrency } from "@/lib/utils";
 
 type CategoryAgg = {
@@ -12,7 +13,19 @@ type CategoryAgg = {
   amount: number;
 };
 
-type Bucket = { total: number; byCategory: CategoryAgg[] };
+type AccountAgg = {
+  id: string;
+  name: string;
+  color: string;
+  type: string;
+  amount: number;
+};
+
+type Bucket = {
+  total: number;
+  byCategory: CategoryAgg[];
+  byAccount: AccountAgg[];
+};
 
 type Person = { own: Bucket; couple: Bucket; total: number };
 
@@ -22,6 +35,8 @@ type Data = {
   partnerA: Person;
   partnerB: Person;
 };
+
+type GroupBy = "category" | "account";
 
 type Period = "this_month" | "last_month" | "year" | "all";
 
@@ -57,6 +72,7 @@ export function PorPessoaClient() {
   const [cardGrouping, setCardGrouping] = useState<"fatura_month" | "purchase_date">(
     "fatura_month"
   );
+  const [groupBy, setGroupBy] = useState<GroupBy>("category");
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -87,60 +103,62 @@ export function PorPessoaClient() {
         description="Quanto cada um gastou: próprios + sua parte das despesas do casal."
       />
 
-      <div className="flex flex-wrap gap-2 mb-5">
-        {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
-          <button
-            key={p}
-            onClick={() => setPeriod(p)}
-            className={`px-3 py-1.5 rounded-lg border text-sm ${
-              period === p
-                ? "bg-primary text-primary-foreground border-primary"
-                : "border-border hover:bg-muted"
-            }`}
-          >
-            {PERIOD_LABEL[p]}
-          </button>
-        ))}
+      <FilterBar>
+        <FilterGroup label="Período">
+          <SegControl
+            value={period}
+            onChange={(v) => setPeriod(v as Period)}
+            options={(Object.keys(PERIOD_LABEL) as Period[]).map((p) => ({
+              value: p,
+              label: PERIOD_LABEL[p],
+            }))}
+          />
+        </FilterGroup>
 
-        <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-1 ml-auto">
-          <button
-            onClick={() => setCardGrouping("fatura_month")}
-            title="Despesas de cartão entram no mês em que a fatura vence"
-            className={`px-3 py-1.5 rounded text-xs font-medium ${
-              cardGrouping === "fatura_month"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted"
-            }`}
-          >
-            Cartão: por fatura
-          </button>
-          <button
-            onClick={() => setCardGrouping("purchase_date")}
-            title="Despesas de cartão entram no mês em que a compra foi feita"
-            className={`px-3 py-1.5 rounded text-xs font-medium ${
-              cardGrouping === "purchase_date"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted"
-            }`}
-          >
-            Cartão: por data
-          </button>
-        </div>
-      </div>
+        <FilterGroup label="Agrupar por">
+          <SegControl
+            value={groupBy}
+            onChange={(v) => setGroupBy(v)}
+            options={[
+              { value: "category", label: "Categoria", icon: <Tag className="w-3.5 h-3.5" /> },
+              { value: "account", label: "Origem", icon: <CreditCard className="w-3.5 h-3.5" /> },
+            ]}
+          />
+        </FilterGroup>
+
+        <FilterGroup label="Cartão entra no mês">
+          <SegControl
+            value={cardGrouping}
+            onChange={(v) => setCardGrouping(v)}
+            options={[
+              { value: "fatura_month", label: "Da fatura" },
+              { value: "purchase_date", label: "Da compra" },
+            ]}
+          />
+        </FilterGroup>
+      </FilterBar>
 
       {loading || !data ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
-          <PersonCard name={data.partnerAName} person={data.partnerA} />
-          <PersonCard name={data.partnerBName} person={data.partnerB} />
+          <PersonCard name={data.partnerAName} person={data.partnerA} groupBy={groupBy} />
+          <PersonCard name={data.partnerBName} person={data.partnerB} groupBy={groupBy} />
         </div>
       )}
     </div>
   );
 }
 
-function PersonCard({ name, person }: { name: string; person: Person }) {
+function PersonCard({
+  name,
+  person,
+  groupBy,
+}: {
+  name: string;
+  person: Person;
+  groupBy: GroupBy;
+}) {
   const grand = person.total;
   const ownPct = grand > 0 ? (person.own.total / grand) * 100 : 0;
   const couplePct = grand > 0 ? (person.couple.total / grand) * 100 : 0;
@@ -178,12 +196,14 @@ function PersonCard({ name, person }: { name: string; person: Person }) {
         label="Próprios"
         sublabel="Despesas marcadas como suas"
         bucket={person.own}
+        groupBy={groupBy}
       />
       <Section
         icon={<Users className="w-4 h-4" />}
         label="Compartilhados (sua parte)"
         sublabel="Sua fatia das despesas marcadas como Casal"
         bucket={person.couple}
+        groupBy={groupBy}
       />
     </div>
   );
@@ -194,13 +214,31 @@ function Section({
   label,
   sublabel,
   bucket,
+  groupBy,
 }: {
   icon: React.ReactNode;
   label: string;
   sublabel: string;
   bucket: Bucket;
+  groupBy: GroupBy;
 }) {
-  const max = bucket.byCategory.reduce((m, c) => Math.max(m, c.amount), 0);
+  const items =
+    groupBy === "category"
+      ? bucket.byCategory.map((c) => ({
+          key: c.id ?? "__none__",
+          name: c.name,
+          color: c.color,
+          amount: c.amount,
+        }))
+      : bucket.byAccount.map((a) => ({
+          key: a.id,
+          name: a.name,
+          color: a.color,
+          amount: a.amount,
+        }));
+
+  const max = items.reduce((m, it) => Math.max(m, it.amount), 0);
+
   return (
     <div className="border-b border-border last:border-b-0">
       <div className="px-5 py-3 flex items-center justify-between bg-muted/30">
@@ -213,28 +251,28 @@ function Section({
         </div>
         <p className="text-lg font-semibold tabular-nums">{formatCurrency(bucket.total)}</p>
       </div>
-      {bucket.byCategory.length === 0 ? (
+      {items.length === 0 ? (
         <p className="px-5 py-3 text-xs text-muted-foreground italic">Nada nesse período.</p>
       ) : (
         <div className="px-5 py-3 space-y-2">
-          {bucket.byCategory.map((c) => {
-            const pct = max > 0 ? (c.amount / max) * 100 : 0;
+          {items.map((it) => {
+            const pct = max > 0 ? (it.amount / max) * 100 : 0;
             return (
-              <div key={c.id ?? "__none__"}>
+              <div key={it.key}>
                 <div className="flex items-center justify-between text-sm mb-1">
                   <span className="flex items-center gap-2">
                     <span
                       className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: c.color }}
+                      style={{ backgroundColor: it.color }}
                     />
-                    {c.name}
+                    {it.name}
                   </span>
-                  <span className="tabular-nums font-medium">{formatCurrency(c.amount)}</span>
+                  <span className="tabular-nums font-medium">{formatCurrency(it.amount)}</span>
                 </div>
                 <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                   <div
                     className="h-full rounded-full"
-                    style={{ width: `${pct}%`, backgroundColor: c.color }}
+                    style={{ width: `${pct}%`, backgroundColor: it.color }}
                   />
                 </div>
               </div>

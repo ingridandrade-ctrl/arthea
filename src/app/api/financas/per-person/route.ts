@@ -9,28 +9,50 @@ type CategoryAgg = {
   amount: number;
 };
 
+type AccountAgg = {
+  id: string;
+  name: string;
+  color: string;
+  type: string;
+  amount: number;
+};
+
 function emptyBucket() {
   return {
     total: 0,
     byCategory: new Map<string, CategoryAgg>(),
+    byAccount: new Map<string, AccountAgg>(),
   };
 }
 
 function addToBucket(
   bucket: ReturnType<typeof emptyBucket>,
   amount: number,
-  category: { id: string; name: string; color: string } | null
+  category: { id: string; name: string; color: string } | null,
+  account: { id: string; name: string; color: string; type: string }
 ) {
   bucket.total += amount;
-  const key = category?.id ?? "__none__";
-  const existing = bucket.byCategory.get(key);
-  if (existing) {
-    existing.amount += amount;
+  const catKey = category?.id ?? "__none__";
+  const existingCat = bucket.byCategory.get(catKey);
+  if (existingCat) {
+    existingCat.amount += amount;
   } else {
-    bucket.byCategory.set(key, {
+    bucket.byCategory.set(catKey, {
       id: category?.id ?? null,
       name: category?.name ?? "Sem categoria",
       color: category?.color ?? "#94a3b8",
+      amount,
+    });
+  }
+  const existingAcc = bucket.byAccount.get(account.id);
+  if (existingAcc) {
+    existingAcc.amount += amount;
+  } else {
+    bucket.byAccount.set(account.id, {
+      id: account.id,
+      name: account.name,
+      color: account.color,
+      type: account.type,
       amount,
     });
   }
@@ -40,6 +62,7 @@ function bucketToJson(bucket: ReturnType<typeof emptyBucket>) {
   return {
     total: bucket.total,
     byCategory: Array.from(bucket.byCategory.values()).sort((a, b) => b.amount - a.amount),
+    byAccount: Array.from(bucket.byAccount.values()).sort((a, b) => b.amount - a.amount),
   };
 }
 
@@ -64,7 +87,7 @@ export async function GET(req: Request) {
         splitRatio: true,
         date: true,
         category: { select: { id: true, name: true, color: true } },
-        account: { select: { type: true } },
+        account: { select: { id: true, name: true, color: true, type: true } },
         invoice: { select: { dueDate: true } },
       },
     });
@@ -95,13 +118,13 @@ export async function GET(req: Request) {
 
     for (const tx of inRange) {
       if (tx.owner === "PARTNER_A") {
-        addToBucket(aOwn, tx.amount, tx.category);
+        addToBucket(aOwn, tx.amount, tx.category, tx.account);
       } else if (tx.owner === "PARTNER_B") {
-        addToBucket(bOwn, tx.amount, tx.category);
+        addToBucket(bOwn, tx.amount, tx.category, tx.account);
       } else {
         const r = typeof tx.splitRatio === "number" ? tx.splitRatio : 0.5;
-        addToBucket(aCouple, r * tx.amount, tx.category);
-        addToBucket(bCouple, (1 - r) * tx.amount, tx.category);
+        addToBucket(aCouple, r * tx.amount, tx.category, tx.account);
+        addToBucket(bCouple, (1 - r) * tx.amount, tx.category, tx.account);
       }
     }
 
