@@ -110,36 +110,14 @@ async function extractTextFromPdf(
   data: Uint8Array,
   password: string
 ): Promise<{ text?: string; pages?: number; needsPassword?: boolean }> {
-  const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const { getDocumentProxy, extractText } = await import("unpdf");
   try {
-    const loadingTask = pdfjs.getDocument({
-      data,
-      password,
-      isEvalSupported: false,
-      useSystemFonts: true,
-    });
-    const pdf = await loadingTask.promise;
-    let fullText = "";
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-
-      let lastY: number | null = null;
-      const lineParts: string[] = [];
-      for (const item of content.items as any[]) {
-        if (typeof item.str !== "string") continue;
-        const y = item.transform?.[5];
-        if (lastY !== null && Math.abs((y ?? 0) - lastY) > 2) {
-          lineParts.push("\n");
-        } else if (lineParts.length > 0) {
-          lineParts.push(" ");
-        }
-        lineParts.push(item.str);
-        lastY = y ?? lastY;
-      }
-      fullText += `\n--- Página ${i} ---\n${lineParts.join("")}\n`;
-    }
-    return { text: fullText, pages: pdf.numPages };
+    const pdf = await getDocumentProxy(data, { password });
+    const { totalPages, text } = await extractText(pdf, { mergePages: false });
+    const combined = (Array.isArray(text) ? text : [text])
+      .map((pageText, i) => `\n--- Página ${i + 1} ---\n${pageText}\n`)
+      .join("");
+    return { text: combined, pages: totalPages };
   } catch (err: any) {
     if (err?.name === "PasswordException") {
       return { needsPassword: true };
