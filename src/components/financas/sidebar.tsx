@@ -16,6 +16,7 @@ import {
   BarChart3,
   Users,
   Target,
+  User,
 } from "lucide-react";
 
 const NAV = [
@@ -27,6 +28,7 @@ const NAV = [
   { name: "Orçamento", href: "/financas/orcamento", icon: BarChart3 },
   { name: "Recorrências", href: "/financas/recorrencias", icon: Repeat },
   { name: "Casal", href: "/financas/casal", icon: Users },
+  { name: "Por pessoa", href: "/financas/por-pessoa", icon: User },
   { name: "Metas", href: "/financas/metas", icon: Target },
   { name: "Relatórios", href: "/financas/relatorios", icon: BarChart3 },
   { name: "Configurações", href: "/financas/configuracoes", icon: Settings },
