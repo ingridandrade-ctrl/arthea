@@ -389,3 +389,108 @@ model Notification {
 
   @@index([userId, read])
 }
+
+// =====================================================================
+// Personal Finance Module (independent from CRM)
+// Single shared login per couple ("Household").
+// =====================================================================
+
+enum FinOwner {
+  PARTNER_A
+  PARTNER_B
+  COUPLE
+}
+
+enum FinAccountType {
+  CHECKING
+  SAVINGS
+  CASH
+  CREDIT_CARD
+  INVESTMENT
+  OTHER
+}
+
+enum FinCategoryKind {
+  INCOME
+  EXPENSE
+}
+
+enum FinTransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+model Household {
+  id           String           @id @default(cuid())
+  email        String           @unique
+  password     String
+  partnerAName String           @default("Pessoa A")
+  partnerBName String           @default("Pessoa B")
+  currency     String           @default("BRL")
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  accounts     FinAccount[]
+  categories   FinCategory[]
+  transactions FinTransaction[]
+}
+
+model FinAccount {
+  id             String             @id @default(cuid())
+  householdId    String
+  household      Household          @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  name           String
+  type           FinAccountType     @default(CHECKING)
+  initialBalance Float              @default(0)
+  color          String             @default("#6366f1")
+  icon           String?
+  archived       Boolean            @default(false)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  transactions   FinTransaction[]   @relation("AccountTransactions")
+  transfersIn    FinTransaction[]   @relation("AccountTransfersIn")
+
+  @@index([householdId])
+}
+
+model FinCategory {
+  id           String             @id @default(cuid())
+  householdId  String
+  household    Household          @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  name         String
+  kind         FinCategoryKind
+  color        String             @default("#6366f1")
+  icon         String?
+  parentId     String?
+  parent       FinCategory?       @relation("FinCategoryTree", fields: [parentId], references: [id])
+  children     FinCategory[]      @relation("FinCategoryTree")
+  archived     Boolean            @default(false)
+  createdAt    DateTime           @default(now())
+  transactions FinTransaction[]
+
+  @@index([householdId, kind])
+}
+
+model FinTransaction {
+  id          String             @id @default(cuid())
+  householdId String
+  household   Household          @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  type        FinTransactionType
+  amount      Float
+  date        DateTime
+  description String
+  notes       String?
+  owner       FinOwner           @default(COUPLE)
+  accountId   String
+  account     FinAccount         @relation("AccountTransactions", fields: [accountId], references: [id])
+  toAccountId String?
+  toAccount   FinAccount?        @relation("AccountTransfersIn", fields: [toAccountId], references: [id])
+  categoryId  String?
+  category    FinCategory?       @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([householdId, date])
+  @@index([accountId])
+  @@index([categoryId])
+}

@@ -1,0 +1,69 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+
+const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
+
+async function loadOwned(id: string, householdId: string) {
+  return prisma.finTransaction.findFirst({ where: { id, householdId } });
+}
+
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const household = await requireHousehold();
+    const existing = await loadOwned(params.id, household.id);
+    if (!existing) return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
+
+    const body = await req.json();
+    const data: any = {};
+    if (typeof body.amount === "number" && body.amount > 0) data.amount = body.amount;
+    if (body.date) data.date = new Date(body.date);
+    if (typeof body.description === "string" && body.description.trim()) data.description = body.description.trim();
+    if (typeof body.notes === "string" || body.notes === null) data.notes = body.notes;
+    if (VALID_OWNERS.includes(body.owner)) data.owner = body.owner;
+    if (typeof body.accountId === "string") {
+      const account = await prisma.finAccount.findFirst({
+        where: { id: body.accountId, householdId: household.id },
+      });
+      if (!account) return NextResponse.json({ error: "Conta inválida" }, { status: 400 });
+      data.accountId = body.accountId;
+    }
+    if (existing.type === "TRANSFER" && typeof body.toAccountId === "string") {
+      data.toAccountId = body.toAccountId;
+    }
+    if (existing.type !== "TRANSFER" && (typeof body.categoryId === "string" || body.categoryId === null)) {
+      data.categoryId = body.categoryId;
+    }
+
+    const updated = await prisma.finTransaction.update({
+      where: { id: params.id },
+      data,
+      include: {
+        account: { select: { id: true, name: true, color: true, type: true } },
+        toAccount: { select: { id: true, name: true, color: true, type: true } },
+        category: { select: { id: true, name: true, color: true, kind: true, icon: true } },
+      },
+    });
+    return NextResponse.json(updated);
+  } catch (e) {
+    if (e instanceof HouseholdAuthError) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+    throw e;
+  }
+}
+
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  try {
+    const household = await requireHousehold();
+    const existing = await loadOwned(params.id, household.id);
+    if (!existing) return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
+    await prisma.finTransaction.delete({ where: { id: params.id } });
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    if (e instanceof HouseholdAuthError) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+    throw e;
+  }
+}
