@@ -11,6 +11,7 @@ enum Role {
   ADMIN
   MANAGER
   AGENT
+  CLIENT
 }
 
 enum LeadSource {
@@ -62,12 +63,27 @@ enum ContractStatus {
   COMPLETED
 }
 
+enum ClientType {
+  ACTIVE
+  INACTIVE
+  TEMPORARY
+}
+
 enum InvoiceStatus {
   PENDING
   PAID
   OVERDUE
   CANCELED
   REFUNDED
+}
+
+enum ExpenseCategory {
+  TOOL
+  SALARY
+  TAX
+  MARKETING
+  INFRASTRUCTURE
+  OTHER
 }
 
 model User {
@@ -84,6 +100,7 @@ model User {
   assignedTasks  Task[]         @relation("AssignedTasks")
   createdTasks   Task[]         @relation("CreatedTasks")
   notifications  Notification[]
+  clientProject  ClientProject?
 }
 
 model Service {
@@ -100,6 +117,7 @@ model Service {
   leads       LeadService[]
   deals       Deal[]
   contracts Contract[]
+  invoices  Invoice[]
 }
 
 model Lead {
@@ -333,17 +351,22 @@ model Task {
 model Contract {
   id             String         @id @default(cuid())
   number         String         @unique
-  dealId         String         @unique
-  deal           Deal           @relation(fields: [dealId], references: [id])
+  dealId         String?        @unique
+  deal           Deal?          @relation(fields: [dealId], references: [id])
   leadId         String
   lead           Lead           @relation(fields: [leadId], references: [id])
   serviceId      String?
   service        Service?       @relation(fields: [serviceId], references: [id])
+  serviceIds     String[]       @default([])
   monthlyValue   Float
   setupValue     Float?
   durationMonths Int            @default(12)
   recurrence     Recurrence     @default(MONTHLY)
   status         ContractStatus @default(ACTIVE)
+  clientType     ClientType     @default(ACTIVE)
+  niche          String?
+  tags           String[]
+  paymentLink    String?
   startDate      DateTime
   endDate        DateTime?
   paymentDay     Int            @default(10)
@@ -353,27 +376,54 @@ model Contract {
   updatedAt      DateTime       @updatedAt
 
   @@index([status])
+  @@index([clientType])
   @@index([leadId])
 }
 
 model Invoice {
-  id            String        @id @default(cuid())
-  number        String        @unique
-  contractId    String?
-  contract      Contract?     @relation(fields: [contractId], references: [id])
-  leadId        String
-  lead          Lead          @relation(fields: [leadId], references: [id])
-  amount        Float
-  status        InvoiceStatus @default(PENDING)
-  dueDate       DateTime
-  paidAt        DateTime?
-  paymentMethod String?
-  description   String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                 String        @id @default(cuid())
+  number             String        @unique
+  contractId         String?
+  contract           Contract?     @relation(fields: [contractId], references: [id])
+  leadId             String
+  lead               Lead          @relation(fields: [leadId], references: [id])
+  serviceId          String?
+  service            Service?      @relation(fields: [serviceId], references: [id])
+  serviceIds         String[]      @default([])
+  amount             Float
+  status             InvoiceStatus @default(PENDING)
+  dueDate            DateTime
+  paidAt             DateTime?
+  paymentMethod      String?
+  paymentLink        String?
+  description        String?
+  installmentNumber  Int?
+  totalInstallments  Int?
+  invoiceIssued      Boolean       @default(false)
+  invoiceNumber      String?
+  invoiceIssuedAt    DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   @@index([status, dueDate])
   @@index([leadId])
+  @@index([serviceId])
+}
+
+model Expense {
+  id          String           @id @default(cuid())
+  description String
+  amount      Float
+  category    ExpenseCategory  @default(OTHER)
+  date        DateTime
+  recurring   Boolean          @default(false)
+  notes       String?
+  tags        String[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([date])
+  @@index([category])
 }
 
 model Notification {
@@ -641,4 +691,142 @@ model FinSettlement {
   createdAt   DateTime  @default(now())
 
   @@index([householdId, date])
+}
+
+// ─── Portal de clientes ────────────────────────────────────────
+
+enum DeliverableStatus {
+  PENDING
+  IN_PROGRESS
+  WAITING_REVIEW
+  APPROVED
+  REVISION
+}
+
+enum DeliverableCategory {
+  POSITIONING
+  CONTENT
+  TRACKING
+  DELIVERY
+}
+
+model ClientProject {
+  id           String   @id @default(cuid())
+  name         String
+  clientId     String   @unique
+  client       User     @relation(fields: [clientId], references: [id])
+  description  String?
+  startDate    DateTime?
+  endDate      DateTime?
+  currentPhase Int      @default(1)
+  accentColor  String   @default("#1D7070")
+  logoUrl      String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deliverables ClientDeliverable[]
+  accesses     ClientAccess[]
+  references   ClientReference[]
+  summary      ClientSummary?
+
+  @@index([clientId])
+}
+
+model ClientSummary {
+  id        String        @id @default(cuid())
+  projectId String        @unique
+  project   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  content   String
+  updatedAt DateTime      @updatedAt
+}
+
+model ClientDeliverable {
+  id            String              @id @default(cuid())
+  projectId     String
+  project       ClientProject       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  category      DeliverableCategory
+  phase         Int
+  order         Int
+  status        DeliverableStatus   @default(PENDING)
+  documentUrl   String?
+  documentEmbed String?
+  isVisible     Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  questions     DeliverableQuestion[]
+  comments      DeliverableComment[]
+  responses     DeliverableResponse[]
+
+  @@index([projectId, phase])
+  @@index([status])
+}
+
+model DeliverableQuestion {
+  id            String              @id @default(cuid())
+  deliverableId String
+  deliverable   ClientDeliverable   @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  question      String
+  type          String              @default("text")
+  options       String[]
+  order         Int
+  isRequired    Boolean             @default(false)
+  responses     DeliverableResponse[]
+
+  @@index([deliverableId])
+}
+
+model DeliverableResponse {
+  id            String              @id @default(cuid())
+  deliverableId String
+  deliverable   ClientDeliverable   @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  questionId    String
+  question      DeliverableQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer        String
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([deliverableId])
+  @@index([questionId])
+}
+
+model DeliverableComment {
+  id            String            @id @default(cuid())
+  deliverableId String
+  deliverable   ClientDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  authorId      String
+  content       String
+  isFromArthea  Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+
+  @@index([deliverableId])
+}
+
+model ClientAccess {
+  id        String        @id @default(cuid())
+  projectId String
+  project   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  platform  String
+  icon      String?
+  username  String?
+  password  String?
+  url       String?
+  notes     String?
+  order     Int           @default(0)
+
+  @@index([projectId])
+}
+
+model ClientReference {
+  id          String        @id @default(cuid())
+  projectId   String
+  project     ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  type        String
+  url         String
+  description String?
+  order       Int           @default(0)
+
+  @@index([projectId])
 }
