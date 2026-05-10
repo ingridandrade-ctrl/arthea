@@ -15,6 +15,21 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const action = body?.action;
 
     if (action === "pay") {
+      const skipTransfer = body?.skipTransfer === true;
+      const paidAt = body?.paidAt ? new Date(body.paidAt) : new Date();
+
+      if (skipTransfer) {
+        const updated = await prisma.finCreditCardInvoice.update({
+          where: { id: inv.id },
+          data: {
+            paidAt,
+            paymentAccountId: null,
+            status: "PAID",
+          },
+        });
+        return NextResponse.json({ invoice: updated });
+      }
+
       const paymentAccountId = body?.paymentAccountId;
       if (typeof paymentAccountId !== "string") {
         return NextResponse.json({ error: "Conta de pagamento obrigatória" }, { status: 400 });
@@ -26,7 +41,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         return NextResponse.json({ error: "Conta de pagamento inválida" }, { status: 400 });
       }
       const total = inv.transactions.reduce((s, t) => s + t.amount, 0);
-      const paidAt = body?.paidAt ? new Date(body.paidAt) : new Date();
 
       const result = await prisma.$transaction(async (tx) => {
         const transferTx = await tx.finTransaction.create({

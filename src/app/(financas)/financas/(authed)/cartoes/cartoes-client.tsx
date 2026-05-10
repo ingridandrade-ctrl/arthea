@@ -256,6 +256,7 @@ function PayInvoiceModal({
 }) {
   const [paymentAccountId, setPaymentAccountId] = useState(accounts[0]?.id || "");
   const [paidAt, setPaidAt] = useState(new Date().toISOString().slice(0, 10));
+  const [skipTransfer, setSkipTransfer] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -263,10 +264,16 @@ function PayInvoiceModal({
     e.preventDefault();
     setSaving(true);
     setError(null);
+    const payload: any = { action: "pay", paidAt };
+    if (skipTransfer) {
+      payload.skipTransfer = true;
+    } else {
+      payload.paymentAccountId = paymentAccountId;
+    }
     const res = await fetch(`/api/financas/invoices/${invoice.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "pay", paymentAccountId, paidAt }),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
@@ -281,24 +288,52 @@ function PayInvoiceModal({
     <Modal title="Pagar fatura" onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Será criada uma transferência de {formatCurrency(invoice.total)} da conta escolhida para o
-          cartão, e a fatura será marcada como paga.
+          {skipTransfer ? (
+            <>
+              A fatura será marcada como paga, <strong>sem</strong> registrar a saída do
+              dinheiro. Use isso para faturas antigas que você já pagou na vida real.
+            </>
+          ) : (
+            <>
+              Será criada uma transferência de {formatCurrency(invoice.total)} da conta
+              escolhida para o cartão, e a fatura será marcada como paga.
+            </>
+          )}
         </p>
-        <div>
-          <label className="block text-sm font-medium mb-1">Pagar com</label>
-          <select
-            required
-            value={paymentAccountId}
-            onChange={(e) => setPaymentAccountId(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background"
-          >
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </div>
+
+        <label className="flex items-start gap-2 p-3 rounded-lg border border-border bg-muted/30 cursor-pointer hover:bg-muted/50">
+          <input
+            type="checkbox"
+            checked={skipTransfer}
+            onChange={(e) => setSkipTransfer(e.target.checked)}
+            className="mt-0.5"
+          />
+          <div className="text-sm">
+            <strong>Só marcar como paga, sem registrar saída</strong>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Útil pra faturas passadas (importadas com a IA, por exemplo) que você já pagou
+              no mundo real e não quer criar uma transferência fake agora.
+            </p>
+          </div>
+        </label>
+
+        {!skipTransfer && (
+          <div>
+            <label className="block text-sm font-medium mb-1">Pagar com</label>
+            <select
+              required
+              value={paymentAccountId}
+              onChange={(e) => setPaymentAccountId(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+            >
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium mb-1">Data do pagamento</label>
           <input
@@ -319,7 +354,7 @@ function PayInvoiceModal({
             disabled={saving}
             className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
           >
-            {saving ? "Salvando..." : "Confirmar pagamento"}
+            {saving ? "Salvando..." : skipTransfer ? "Marcar como paga" : "Confirmar pagamento"}
           </button>
         </div>
       </form>
