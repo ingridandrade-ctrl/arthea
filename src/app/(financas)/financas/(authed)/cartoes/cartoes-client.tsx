@@ -351,8 +351,10 @@ function ImportInvoiceModal({
   onImported: () => void;
 }) {
   const [step, setStep] = useState<"paste" | "review">("paste");
+  const [mode, setMode] = useState<"pdf" | "text">("pdf");
   const [accountId, setAccountId] = useState(defaultCardId);
   const [text, setText] = useState("");
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [busy, setBusy] = useState(false);
@@ -364,11 +366,24 @@ function ImportInvoiceModal({
   async function analyze() {
     setBusy(true);
     setError(null);
-    const res = await fetch("/api/financas/import/parse", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accountId, text }),
-    });
+    let res: Response;
+    if (mode === "pdf") {
+      if (!pdfFile) {
+        setBusy(false);
+        setError("Selecione um arquivo PDF");
+        return;
+      }
+      const fd = new FormData();
+      fd.append("accountId", accountId);
+      fd.append("file", pdfFile);
+      res = await fetch("/api/financas/import/parse-pdf", { method: "POST", body: fd });
+    } else {
+      res = await fetch("/api/financas/import/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accountId, text }),
+      });
+    }
     const data = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
@@ -376,7 +391,7 @@ function ImportInvoiceModal({
       return;
     }
     if (!data.transactions || data.transactions.length === 0) {
-      setError("Nenhuma compra identificada no texto. Tente colar um trecho mais completo.");
+      setError("Nenhuma compra identificada. Verifique se o PDF é a fatura completa.");
       return;
     }
     setCategories(data.categories || []);
@@ -451,26 +466,89 @@ function ImportInvoiceModal({
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Cole aqui o texto da fatura
-            </label>
-            <p className="text-xs text-muted-foreground mb-2">
-              Abra o app do banco, copie a lista de compras da fatura (Ctrl+A, Ctrl+C dentro
-              do PDF/extrato funciona) e cole abaixo. A IA vai identificar cada compra e
-              sugerir uma categoria.
-            </p>
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Ex:&#10;15/04  CARREFOUR        152,30&#10;16/04  IFOOD            48,90&#10;..."
-              rows={12}
-              className="w-full px-3 py-2 rounded-lg border border-border bg-background font-mono text-xs"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              {text.length} caracteres
-            </p>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setMode("pdf")}
+              className={`px-3 py-2 rounded-lg border text-sm font-medium ${
+                mode === "pdf"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "border-border hover:bg-muted"
+              }`}
+            >
+              📄 Enviar PDF
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("text")}
+              className={`px-3 py-2 rounded-lg border text-sm font-medium ${
+                mode === "text"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "border-border hover:bg-muted"
+              }`}
+            >
+              ✍️ Colar texto
+            </button>
           </div>
+
+          {mode === "pdf" ? (
+            <div>
+              <label className="block text-sm font-medium mb-1">PDF da fatura</label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Baixe a fatura em PDF pelo app/internet banking e envie aqui. A IA vai ler
+                o documento e identificar cada compra. Limite: 4MB.
+              </p>
+              <label
+                className={`flex flex-col items-center justify-center gap-2 px-4 py-8 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
+                  pdfFile ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
+                }`}
+              >
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  className="hidden"
+                  onChange={(e) => setPdfFile(e.target.files?.[0] ?? null)}
+                />
+                {pdfFile ? (
+                  <>
+                    <span className="text-2xl">📄</span>
+                    <span className="text-sm font-medium">{pdfFile.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {(pdfFile.size / 1024 / 1024).toFixed(2)} MB · clique para trocar
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-2xl">📄</span>
+                    <span className="text-sm font-medium">Clique para escolher o PDF</span>
+                    <span className="text-xs text-muted-foreground">
+                      ou arraste o arquivo aqui
+                    </span>
+                  </>
+                )}
+              </label>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Cole aqui o texto da fatura
+              </label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Abra o app do banco, copie a lista de compras (Ctrl+A, Ctrl+C dentro do
+                PDF/extrato funciona) e cole abaixo.
+              </p>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Ex:&#10;15/04  CARREFOUR        152,30&#10;16/04  IFOOD            48,90&#10;..."
+                rows={12}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background font-mono text-xs"
+              />
+              <p className="text-xs text-muted-foreground mt-1">{text.length} caracteres</p>
+            </div>
+          )}
+
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-2 rounded-lg">{error}</div>
           )}
@@ -485,7 +563,10 @@ function ImportInvoiceModal({
             <button
               type="button"
               onClick={analyze}
-              disabled={busy || text.trim().length < 20}
+              disabled={
+                busy ||
+                (mode === "pdf" ? !pdfFile : text.trim().length < 20)
+              }
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
             >
               <Sparkles className="w-4 h-4" />
