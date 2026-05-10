@@ -3,6 +3,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const MAX_PDF_BYTES = 4 * 1024 * 1024;
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -29,6 +32,9 @@ export async function POST(req: Request) {
     const form = await req.formData();
     const accountId = form.get("accountId");
     const file = form.get("file");
+    const passwordRaw = form.get("password");
+    const password =
+      typeof passwordRaw === "string" && passwordRaw.length > 0 ? passwordRaw : null;
 
     if (typeof accountId !== "string" || !accountId) {
       return NextResponse.json({ error: "Cartão é obrigatório" }, { status: 400 });
@@ -59,9 +65,6 @@ export async function POST(req: Request) {
       orderBy: { name: "asc" },
     });
 
-    const arrayBuffer = await file.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
-
     const categoryList = categories
       .map((c) => `- ${c.id} | ${c.name}`)
       .join("\n");
@@ -70,7 +73,7 @@ export async function POST(req: Request) {
 
     const systemPrompt = `Você é um assistente financeiro que extrai compras de faturas de cartão de crédito brasileiras.
 
-Analise o PDF da fatura e identifique CADA compra individual.
+Analise o conteúdo da fatura e identifique CADA compra individual.
 
 Para cada compra, retorne:
 - date: data no formato YYYY-MM-DD (se o ano não estiver explícito, infira pelo contexto; hoje é ${today})
@@ -90,30 +93,69 @@ REGRAS IMPORTANTES:
 - Retorne APENAS um array JSON válido, sem texto antes ou depois, sem markdown
 - Se não conseguir identificar nenhuma compra, retorne []`;
 
-    const response = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 8000,
-      system: systemPrompt,
-      messages: [
+    const arrayBuffer = await file.arrayBuffer();
+
+    let userContent: any[];
+    if (password) {
+      const text = await extractTextFromPdf(new Uint8Array(arrayBuffer), password);
+      if (text === "__needs_password__") {
+        return NextResponse.json(
+          { error: "Senha incorreta para este PDF.", code: "needs_password" },
+          { status: 422 }
+        );
+      }
+      if (!text || text.trim().length < 30) {
+        return NextResponse.json(
+          { error: "Não consegui extrair texto do PDF. Tente o modo 'Colar texto'." },
+          { status: 422 }
+        );
+      }
+      userContent = [
         {
-          role: "user",
-          content: [
-            {
-              type: "document",
-              source: {
-                type: "base64",
-                media_type: "application/pdf",
-                data: base64,
-              },
-            },
-            {
-              type: "text",
-              text: `Extraia as compras desta fatura do cartão "${account.name}" e devolva o JSON conforme as regras.`,
-            },
-          ],
+          type: "text",
+          text: `Texto extraído da fatura do cartão "${account.name}":\n\n${text}`,
         },
-      ],
-    });
+      ];
+    } else {
+      const base64 = Buffer.from(arrayBuffer).toString("base64");
+      userContent = [
+        {
+          type: "document",
+          source: {
+            type: "base64",
+            media_type: "application/pdf",
+            data: base64,
+          },
+        },
+        {
+          type: "text",
+          text: `Extraia as compras desta fatura do cartão "${account.name}" e devolva o JSON conforme as regras.`,
+        },
+      ];
+    }
+
+    let response;
+    try {
+      response = await anthropic.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 8000,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userContent }],
+      });
+    } catch (apiErr: any) {
+      const msg = String(apiErr?.message || apiErr || "");
+      if (msg.toLowerCase().includes("password protected")) {
+        return NextResponse.json(
+          {
+            error:
+              "Este PDF é protegido por senha. Informe a senha acima e tente novamente.",
+            code: "needs_password",
+          },
+          { status: 422 }
+        );
+      }
+      throw apiErr;
+    }
 
     const textBlock = response.content.find((b) => b.type === "text");
     if (!textBlock || textBlock.type !== "text") {
@@ -159,6 +201,37 @@ REGRAS IMPORTANTES:
       { error: "Erro ao analisar PDF: " + (e?.message || "desconhecido") },
       { status: 500 }
     );
+  }
+}
+
+async function extractTextFromPdf(
+  data: Uint8Array,
+  password: string
+): Promise<string | "__needs_password__"> {
+  const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  try {
+    const loadingTask = pdfjs.getDocument({
+      data,
+      password,
+      isEvalSupported: false,
+      useSystemFonts: true,
+    });
+    const pdf = await loadingTask.promise;
+    let fullText = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items
+        .map((item: any) => (typeof item.str === "string" ? item.str : ""))
+        .join(" ");
+      fullText += pageText + "\n\n";
+    }
+    return fullText;
+  } catch (err: any) {
+    if (err?.name === "PasswordException") {
+      return "__needs_password__";
+    }
+    throw err;
   }
 }
 
