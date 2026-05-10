@@ -1,10 +1,52 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Download } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Download, X } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
+import {
+  FilterBar,
+  FilterGroup,
+  SegControl,
+  DateRange,
+  SelectFilter,
+  SearchInput,
+} from "@/components/financas/filters";
 import { formatCurrency } from "@/lib/utils";
+
+type PeriodPreset = "this_month" | "last_month" | "last_3" | "year" | "all" | "custom";
+
+function presetRange(p: PeriodPreset): { from: string; to: string } {
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const monthFirst = (yr: number, mo: number) =>
+    `${yr}-${String(mo + 1).padStart(2, "0")}-01`;
+  const monthLast = (yr: number, mo: number) => {
+    const d = new Date(yr, mo + 1, 0);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  if (p === "this_month") {
+    return { from: monthFirst(now.getFullYear(), now.getMonth()), to: today };
+  }
+  if (p === "last_month") {
+    const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return {
+      from: monthFirst(d.getFullYear(), d.getMonth()),
+      to: monthLast(d.getFullYear(), d.getMonth()),
+    };
+  }
+  if (p === "last_3") {
+    const d = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    return { from: monthFirst(d.getFullYear(), d.getMonth()), to: today };
+  }
+  if (p === "year") {
+    return { from: `${now.getFullYear()}-01-01`, to: today };
+  }
+  if (p === "all") {
+    return { from: "", to: "" };
+  }
+  return { from: "", to: "" };
+}
 
 type Account = { id: string; name: string; color: string; type: string; archived?: boolean };
 type Category = {
@@ -49,6 +91,7 @@ export function LancamentosClient() {
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [creating, setCreating] = useState(false);
 
+  const [period, setPeriod] = useState<PeriodPreset>("this_month");
   const [from, setFrom] = useState(firstDayOfMonth());
   const [to, setTo] = useState(todayISO());
   const [accountId, setAccountId] = useState("");
@@ -56,6 +99,31 @@ export function LancamentosClient() {
   const [owner, setOwner] = useState("");
   const [type, setType] = useState("");
   const [q, setQ] = useState("");
+
+  function applyPreset(p: PeriodPreset) {
+    setPeriod(p);
+    if (p !== "custom") {
+      const r = presetRange(p);
+      setFrom(r.from);
+      setTo(r.to);
+    }
+  }
+
+  function clearAll() {
+    applyPreset("this_month");
+    setAccountId("");
+    setCategoryId("");
+    setOwner("");
+    setType("");
+    setQ("");
+  }
+
+  const activeFilterCount =
+    (accountId ? 1 : 0) +
+    (categoryId ? 1 : 0) +
+    (owner ? 1 : 0) +
+    (type ? 1 : 0) +
+    (q ? 1 : 0);
 
   async function loadStatic() {
     const [accRes, catRes, setRes] = await Promise.all([
@@ -145,84 +213,107 @@ export function LancamentosClient() {
         }
       />
 
-      <div className="bg-card border border-border rounded-xl p-4 mb-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        <FilterField label="De">
-          <input
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="w-full px-2 py-1.5 rounded-md border border-border bg-background text-sm"
+      <FilterBar>
+        <FilterGroup label="Período">
+          <SegControl
+            value={period}
+            onChange={(v) => applyPreset(v)}
+            options={[
+              { value: "this_month", label: "Este mês" },
+              { value: "last_month", label: "Mês passado" },
+              { value: "last_3", label: "3 meses" },
+              { value: "year", label: "Ano" },
+              { value: "all", label: "Tudo" },
+              { value: "custom", label: "Custom" },
+            ]}
           />
-        </FilterField>
-        <FilterField label="Até">
-          <input
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="w-full px-2 py-1.5 rounded-md border border-border bg-background text-sm"
+        </FilterGroup>
+
+        {period === "custom" && (
+          <FilterGroup label="Datas">
+            <DateRange
+              from={from}
+              to={to}
+              onChange={(f, t) => {
+                setFrom(f);
+                setTo(t);
+              }}
+            />
+          </FilterGroup>
+        )}
+
+        <FilterGroup label="Tipo">
+          <SegControl
+            value={type as any}
+            onChange={(v) => setType(v)}
+            options={[
+              { value: "", label: "Todos" },
+              { value: "EXPENSE", label: "Despesa" },
+              { value: "INCOME", label: "Receita" },
+              { value: "TRANSFER", label: "Transferência" },
+            ]}
           />
-        </FilterField>
-        <FilterField label="Conta">
-          <select
+        </FilterGroup>
+
+        <FilterGroup label="Conta">
+          <SelectFilter
             value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
-            className="w-full px-2 py-1.5 rounded-md border border-border bg-background text-sm"
-          >
-            <option value="">Todas</option>
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-        </FilterField>
-        <FilterField label="Categoria">
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="w-full px-2 py-1.5 rounded-md border border-border bg-background text-sm"
-          >
-            <option value="">Todas</option>
-            {categories.filter((c) => !c.archived).map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </FilterField>
-        <FilterField label="Dono">
-          <select
-            value={owner}
-            onChange={(e) => setOwner(e.target.value)}
-            className="w-full px-2 py-1.5 rounded-md border border-border bg-background text-sm"
-          >
-            <option value="">Todos</option>
-            <option value="PARTNER_A">{settings?.partnerAName ?? "Pessoa A"}</option>
-            <option value="PARTNER_B">{settings?.partnerBName ?? "Pessoa B"}</option>
-            <option value="COUPLE">Casal</option>
-          </select>
-        </FilterField>
-        <FilterField label="Tipo">
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            className="w-full px-2 py-1.5 rounded-md border border-border bg-background text-sm"
-          >
-            <option value="">Todos</option>
-            <option value="INCOME">Receita</option>
-            <option value="EXPENSE">Despesa</option>
-            <option value="TRANSFER">Transferência</option>
-          </select>
-        </FilterField>
-        <FilterField label="Buscar">
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Descrição..."
-            className="w-full px-2 py-1.5 rounded-md border border-border bg-background text-sm"
+            onChange={(v) => setAccountId(v)}
+            placeholder="Todas as contas"
+            clearable
+            options={accounts.filter((a) => !a.archived).map((a) => ({
+              value: a.id,
+              label: a.name,
+            }))}
           />
-        </FilterField>
-      </div>
+        </FilterGroup>
+
+        <FilterGroup label="Categoria">
+          <SelectFilter
+            value={categoryId}
+            onChange={(v) => setCategoryId(v)}
+            placeholder="Todas as categorias"
+            clearable
+            options={categories
+              .filter((c) => !c.archived)
+              .map((c) => ({ value: c.id, label: c.name }))}
+          />
+        </FilterGroup>
+
+        <FilterGroup label="Dono">
+          <SelectFilter
+            value={owner}
+            onChange={(v) => setOwner(v)}
+            placeholder="Todos"
+            clearable
+            options={[
+              { value: "PARTNER_A", label: settings?.partnerAName ?? "Pessoa A" },
+              { value: "PARTNER_B", label: settings?.partnerBName ?? "Pessoa B" },
+              { value: "COUPLE", label: "Casal" },
+            ]}
+          />
+        </FilterGroup>
+
+        <FilterGroup label="Buscar" className="min-w-[180px] flex-1">
+          <SearchInput
+            value={q}
+            onChange={(v) => setQ(v)}
+            placeholder="Descrição..."
+          />
+        </FilterGroup>
+
+        {activeFilterCount > 0 && (
+          <FilterGroup label=" ">
+            <button
+              onClick={clearAll}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted"
+            >
+              <X className="w-3 h-3" />
+              Limpar ({activeFilterCount})
+            </button>
+          </FilterGroup>
+        )}
+      </FilterBar>
 
       <div className="grid grid-cols-3 gap-3 mb-4">
         <SummaryCard label="Receitas" value={totals.income} positive />

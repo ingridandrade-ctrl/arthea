@@ -6,11 +6,15 @@ import {
   Wallet,
   TrendingUp,
   TrendingDown,
-  ChevronLeft,
-  ChevronRight,
   ArrowLeftRight,
 } from "lucide-react";
 import { PageHeader } from "@/components/financas/page-header";
+import {
+  FilterBar,
+  FilterGroup,
+  SegControl,
+  MonthStepper,
+} from "@/components/financas/filters";
 import { formatCurrency } from "@/lib/utils";
 import { ACCOUNT_TYPE_LABEL } from "@/lib/financas/defaults";
 
@@ -94,76 +98,42 @@ export function DashboardClient() {
       <PageHeader
         title={`Olá, ${data.household.partnerAName} & ${data.household.partnerBName}`}
         description="Visão geral das finanças do casal."
-        actions={
-          <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-1 py-1">
-            <button
-              onClick={() => setMonth(shiftMonth(month, -1))}
-              className="p-1.5 rounded hover:bg-muted"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="text-sm font-medium px-2 capitalize">
-              {data.period.label}
-            </span>
-            <button
-              onClick={() => setMonth(shiftMonth(month, 1))}
-              className="p-1.5 rounded hover:bg-muted"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        }
       />
 
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-1">
-          {(
-            [
-              { v: "all", l: "Todos" },
-              { v: "COUPLE", l: "Casal" },
-              { v: "PARTNER_A", l: data.household.partnerAName },
-              { v: "PARTNER_B", l: data.household.partnerBName },
-            ] as const
-          ).map((opt) => (
-            <button
-              key={opt.v}
-              onClick={() => setOwnerFilter(opt.v as typeof ownerFilter)}
-              className={`px-3 py-1.5 rounded text-xs font-medium ${
-                ownerFilter === opt.v
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              {opt.l}
-            </button>
-          ))}
-        </div>
+      <FilterBar>
+        <FilterGroup label="Mês">
+          <MonthStepper
+            monthLabel={data.period.label}
+            onPrev={() => setMonth(shiftMonth(month, -1))}
+            onNext={() => setMonth(shiftMonth(month, 1))}
+            onToday={() => setMonth(thisMonth())}
+          />
+        </FilterGroup>
 
-        <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-1">
-          <button
-            onClick={() => setCardGrouping("fatura_month")}
-            title="Despesas de cartão entram no mês em que a fatura vence (como Mobills/Organizze)"
-            className={`px-3 py-1.5 rounded text-xs font-medium ${
-              cardGrouping === "fatura_month"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted"
-            }`}
-          >
-            Cartão: por fatura
-          </button>
-          <button
-            onClick={() => setCardGrouping("purchase_date")}
-            title="Despesas de cartão entram no mês em que a compra foi feita"
-            className={`px-3 py-1.5 rounded text-xs font-medium ${
-              cardGrouping === "purchase_date"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted"
-            }`}
-          >
-            Cartão: por data
-          </button>
-        </div>
-      </div>
+        <FilterGroup label="Pessoa">
+          <SegControl
+            value={ownerFilter}
+            onChange={(v) => setOwnerFilter(v)}
+            options={[
+              { value: "all", label: "Todos" },
+              { value: "COUPLE", label: "Casal" },
+              { value: "PARTNER_A", label: data.household.partnerAName },
+              { value: "PARTNER_B", label: data.household.partnerBName },
+            ]}
+          />
+        </FilterGroup>
+
+        <FilterGroup label="Cartão entra no mês">
+          <SegControl
+            value={cardGrouping}
+            onChange={(v) => setCardGrouping(v)}
+            options={[
+              { value: "fatura_month", label: "Da fatura" },
+              { value: "purchase_date", label: "Da compra" },
+            ]}
+          />
+        </FilterGroup>
+      </FilterBar>
 
       <div
         className={`grid grid-cols-1 md:grid-cols-2 ${
