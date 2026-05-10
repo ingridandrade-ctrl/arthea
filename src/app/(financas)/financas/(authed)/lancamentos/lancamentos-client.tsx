@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Download, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Plus, Pencil, Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Download, X, CreditCard } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
 import {
@@ -73,14 +74,25 @@ type Transaction = {
   category: { id: string; name: string; color: string } | null;
 };
 
-type TxStatus = "paid" | "pending" | "overdue";
+type Movement = {
+  id: string;
+  kind: "transaction" | "invoice";
+  type: "INCOME" | "EXPENSE" | "TRANSFER" | "INVOICE";
+  date: string;
+  description: string;
+  amount: number;
+  account: { id: string; name: string; color: string; type: string };
+  toAccount?: { id: string; name: string; color: string; type: string } | null;
+  category: { id: string; name: string; color: string; icon: string | null } | null;
+  owner: "PARTNER_A" | "PARTNER_B" | "COUPLE";
+  paid: boolean;
+  paidAt: string | null;
+  status: "paid" | "pending" | "overdue";
+  invoiceId?: string | null;
+  itemCount?: number;
+};
 
-function statusOf(t: Transaction): TxStatus {
-  if (t.paid) return "paid";
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return new Date(t.date) < today ? "overdue" : "pending";
-}
+type TxStatus = "paid" | "pending" | "overdue";
 type Settings = { partnerAName: string; partnerBName: string; currency: string };
 
 function todayISO() {
@@ -94,13 +106,15 @@ function firstDayOfMonth() {
 }
 
 export function LancamentosClient() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [movements, setMovements] = useState<Movement[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [hideBalances, setHideBalances] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [creating, setCreating] = useState(false);
+  const router = useRouter();
 
   const [period, setPeriod] = useState<PeriodPreset>("this_month");
   const [from, setFrom] = useState(firstDayOfMonth());
@@ -139,12 +153,24 @@ export function LancamentosClient() {
     (status ? 1 : 0) +
     (q ? 1 : 0);
 
-  async function togglePaid(t: Transaction) {
-    await fetch(`/api/financas/transactions/${t.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paid: !t.paid }),
-    });
+  async function togglePaid(m: Movement) {
+    if (m.kind === "invoice" && m.invoiceId) {
+      if (!m.paid) {
+        router.push("/financas/cartoes");
+        return;
+      }
+      await fetch(`/api/financas/invoices/${m.invoiceId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reopen" }),
+      });
+    } else {
+      await fetch(`/api/financas/transactions/${m.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paid: !m.paid }),
+      });
+    }
     loadTx();
   }
 
@@ -156,7 +182,9 @@ export function LancamentosClient() {
     ]);
     setAccounts(await accRes.json());
     setCategories(await catRes.json());
-    setSettings(await setRes.json());
+    const settingsData = await setRes.json();
+    setSettings(settingsData);
+    setHideBalances(!!settingsData.hideBalances);
   }
 
   async function loadTx() {
@@ -170,9 +198,9 @@ export function LancamentosClient() {
     if (type) params.set("type", type);
     if (status) params.set("status", status);
     if (q) params.set("q", q);
-    const res = await fetch(`/api/financas/transactions?${params.toString()}`);
+    const res = await fetch(`/api/financas/movements?${params.toString()}`);
     const data = await res.json();
-    setTransactions(Array.isArray(data) ? data : []);
+    setMovements(Array.isArray(data) ? data : []);
     setLoading(false);
   }
 
@@ -190,15 +218,20 @@ export function LancamentosClient() {
     loadTx();
   }
 
+  const visibleMovements = useMemo(() => {
+    if (!hideBalances) return movements;
+    return movements.filter((m) => m.type !== "INCOME" && m.type !== "TRANSFER");
+  }, [movements, hideBalances]);
+
   const totals = useMemo(() => {
     let income = 0;
     let expense = 0;
-    for (const t of transactions) {
-      if (t.type === "INCOME") income += t.amount;
-      else if (t.type === "EXPENSE") expense += t.amount;
+    for (const m of visibleMovements) {
+      if (m.type === "INCOME") income += m.amount;
+      else if (m.type === "EXPENSE" || m.type === "INVOICE") expense += m.amount;
     }
     return { income, expense, net: income - expense };
-  }, [transactions]);
+  }, [visibleMovements]);
 
   const ownerLabel = (o: string) => {
     if (!settings) return o;
@@ -210,8 +243,12 @@ export function LancamentosClient() {
   return (
     <div>
       <PageHeader
-        title="Lançamentos"
-        description="Receitas, despesas e transferências entre contas."
+        title="Movimentações"
+        description={
+          hideBalances
+            ? "Suas despesas e faturas de cartão."
+            : "Receitas, despesas, faturas e transferências."
+        }
         actions={
           <div className="flex items-center gap-2">
             <button
@@ -231,7 +268,7 @@ export function LancamentosClient() {
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition"
             >
               <Plus className="w-4 h-4" />
-              Novo lançamento
+              Nova movimentação
             </button>
           </div>
         }
@@ -270,12 +307,21 @@ export function LancamentosClient() {
           <SegControl
             value={type as any}
             onChange={(v) => setType(v)}
-            options={[
-              { value: "", label: "Todos" },
-              { value: "EXPENSE", label: "Despesa" },
-              { value: "INCOME", label: "Receita" },
-              { value: "TRANSFER", label: "Transferência" },
-            ]}
+            options={
+              hideBalances
+                ? [
+                    { value: "", label: "Tudo" },
+                    { value: "EXPENSE", label: "Despesa" },
+                    { value: "INVOICE", label: "Fatura" },
+                  ]
+                : [
+                    { value: "", label: "Tudo" },
+                    { value: "EXPENSE", label: "Despesa" },
+                    { value: "INVOICE", label: "Fatura" },
+                    { value: "INCOME", label: "Receita" },
+                    { value: "TRANSFER", label: "Transferência" },
+                  ]
+            }
           />
         </FilterGroup>
 
@@ -352,18 +398,22 @@ export function LancamentosClient() {
         )}
       </FilterBar>
 
-      <div className="grid grid-cols-3 gap-3 mb-4">
-        <SummaryCard label="Receitas" value={totals.income} positive />
+      <div className={`grid ${hideBalances ? "grid-cols-1" : "grid-cols-3"} gap-3 mb-4`}>
+        {!hideBalances && (
+          <SummaryCard label="Receitas" value={totals.income} positive />
+        )}
         <SummaryCard label="Despesas" value={totals.expense} negative />
-        <SummaryCard label="Saldo do período" value={totals.net} positive={totals.net >= 0} negative={totals.net < 0} />
+        {!hideBalances && (
+          <SummaryCard label="Saldo do período" value={totals.net} positive={totals.net >= 0} negative={totals.net < 0} />
+        )}
       </div>
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         {loading ? (
           <p className="p-6 text-sm text-muted-foreground">Carregando...</p>
-        ) : transactions.length === 0 ? (
+        ) : visibleMovements.length === 0 ? (
           <p className="p-12 text-sm text-muted-foreground text-center">
-            Nenhum lançamento no período. Clique em "Novo lançamento" para começar.
+            Nenhuma movimentação no período. Clique em "Nova movimentação" para começar.
           </p>
         ) : (
           <table className="w-full text-sm">
@@ -380,64 +430,96 @@ export function LancamentosClient() {
               </tr>
             </thead>
             <tbody>
-              {transactions.map((t) => (
-                <tr key={t.id} className="border-t border-border hover:bg-muted/30">
+              {visibleMovements.map((m) => (
+                <tr
+                  key={m.id}
+                  className={`border-t border-border hover:bg-muted/30 ${
+                    m.kind === "invoice" ? "cursor-pointer" : ""
+                  }`}
+                  onClick={
+                    m.kind === "invoice" ? () => router.push("/financas/cartoes") : undefined
+                  }
+                >
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {new Date(t.date).toLocaleDateString("pt-BR")}
+                    {new Date(m.date).toLocaleDateString("pt-BR")}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <TypeIcon type={t.type} />
-                      <span>{t.description}</span>
+                      <MovementTypeIcon type={m.type} />
+                      <span className={m.kind === "invoice" ? "font-medium" : ""}>
+                        {m.description}
+                      </span>
+                      {m.kind === "invoice" && m.itemCount != null && (
+                        <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                          {m.itemCount} ite{m.itemCount === 1 ? "m" : "ns"}
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge t={t} onToggle={() => togglePaid(t)} />
+                    <MovementStatusBadge m={m} onToggle={() => togglePaid(m)} />
                   </td>
                   <td className="px-4 py-3">
-                    {t.type === "TRANSFER" ? (
+                    {m.kind === "invoice" ? (
+                      <span className="text-muted-foreground italic text-xs">ver fatura</span>
+                    ) : m.type === "TRANSFER" ? (
                       <span className="text-muted-foreground">Transferência</span>
-                    ) : t.category ? (
+                    ) : m.category ? (
                       <span className="inline-flex items-center gap-1.5">
                         <span
                           className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: t.category.color }}
+                          style={{ backgroundColor: m.category.color }}
                         />
-                        {t.category.name}
+                        {m.category.name}
                       </span>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    {t.type === "TRANSFER" && t.toAccount ? (
+                    {m.type === "TRANSFER" && m.toAccount ? (
                       <span>
-                        {t.account.name} → {t.toAccount.name}
+                        {m.account.name} → {m.toAccount.name}
                       </span>
                     ) : (
-                      t.account.name
+                      m.account.name
                     )}
                   </td>
-                  <td className="px-4 py-3">{ownerLabel(t.owner)}</td>
+                  <td className="px-4 py-3">{ownerLabel(m.owner)}</td>
                   <td className={`px-4 py-3 text-right font-medium tabular-nums ${
-                    t.type === "INCOME" ? "text-success" : t.type === "EXPENSE" ? "text-destructive" : ""
+                    m.type === "INCOME"
+                      ? "text-success"
+                      : m.type === "EXPENSE" || m.type === "INVOICE"
+                      ? "text-destructive"
+                      : ""
                   }`}>
-                    {t.type === "EXPENSE" ? "−" : t.type === "INCOME" ? "+" : ""}
-                    {formatCurrency(t.amount)}
+                    {m.type === "EXPENSE" || m.type === "INVOICE" ? "−" : m.type === "INCOME" ? "+" : ""}
+                    {formatCurrency(m.amount)}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => setEditing(t)}
-                      className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => remove(t.id)}
-                      className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                    {m.kind === "transaction" ? (
+                      <>
+                        <button
+                          onClick={async () => {
+                            const res = await fetch(`/api/financas/transactions/${m.id}`);
+                            if (!res.ok) return;
+                            const t = await res.json();
+                            setEditing(t as Transaction);
+                          }}
+                          className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => remove(m.id)}
+                          className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">Cartões →</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -475,11 +557,18 @@ export function LancamentosClient() {
   );
 }
 
-function StatusBadge({ t, onToggle }: { t: Transaction; onToggle: () => void }) {
-  if (t.type !== "EXPENSE") {
+function MovementTypeIcon({ type }: { type: Movement["type"] }) {
+  if (type === "INCOME") return <ArrowUpCircle className="w-4 h-4 text-success" />;
+  if (type === "EXPENSE") return <ArrowDownCircle className="w-4 h-4 text-destructive" />;
+  if (type === "TRANSFER") return <ArrowLeftRight className="w-4 h-4 text-muted-foreground" />;
+  return <CreditCard className="w-4 h-4 text-primary" />;
+}
+
+function MovementStatusBadge({ m, onToggle }: { m: Movement; onToggle: () => void }) {
+  if (m.type === "INCOME" || m.type === "TRANSFER") {
     return <span className="text-xs text-muted-foreground">—</span>;
   }
-  const s = statusOf(t);
+  const s = m.status;
   const cls =
     s === "paid"
       ? "bg-success/10 text-success border-success/30"
@@ -495,9 +584,13 @@ function StatusBadge({ t, onToggle }: { t: Transaction; onToggle: () => void }) 
       }}
       className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border ${cls} hover:opacity-80`}
       title={
-        s === "paid"
-          ? "Clique para marcar como não-pago"
-          : "Clique para marcar como pago"
+        m.kind === "invoice"
+          ? s === "paid"
+            ? "Reabrir fatura"
+            : "Ir pra Cartões e pagar"
+          : s === "paid"
+          ? "Marcar como não-pago"
+          : "Marcar como pago"
       }
     >
       {label}
@@ -640,7 +733,7 @@ function TransactionModal({
 
   return (
     <Modal
-      title={transaction ? "Editar lançamento" : "Novo lançamento"}
+      title={transaction ? "Editar movimentação" : "Nova movimentação"}
       onClose={onClose}
       maxWidth="max-w-lg"
     >

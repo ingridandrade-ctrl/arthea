@@ -8,6 +8,27 @@ async function loadOwned(id: string, householdId: string) {
   return prisma.finTransaction.findFirst({ where: { id, householdId } });
 }
 
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
+  try {
+    const household = await requireHousehold();
+    const tx = await prisma.finTransaction.findFirst({
+      where: { id: params.id, householdId: household.id },
+      include: {
+        account: { select: { id: true, name: true, color: true, type: true } },
+        toAccount: { select: { id: true, name: true, color: true, type: true } },
+        category: { select: { id: true, name: true, color: true, kind: true, icon: true } },
+      },
+    });
+    if (!tx) return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
+    return NextResponse.json(tx);
+  } catch (e) {
+    if (e instanceof HouseholdAuthError) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+    throw e;
+  }
+}
+
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
     const household = await requireHousehold();
