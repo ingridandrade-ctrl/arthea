@@ -26,7 +26,7 @@ export function LoginForm() {
       setLoading(false);
       return;
     }
-    router.push("/financas");
+    router.push("/financas/dashboard");
     router.refresh();
   }
 
@@ -38,8 +38,8 @@ export function LoginForm() {
             <PiggyBank className="w-6 h-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">Finanças do casal</h1>
-            <p className="text-xs text-muted-foreground">Entre para continuar</p>
+            <h1 className="text-xl font-bold leading-tight">Arthea</h1>
+            <p className="text-xs text-muted-foreground leading-tight">Finanças Pessoais</p>
           </div>
         </div>
 

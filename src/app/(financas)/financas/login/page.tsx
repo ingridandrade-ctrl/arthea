@@ -7,7 +7,7 @@ import { LoginForm } from "./login-form";
 
 export default async function FinancasLoginPage() {
   const session = getSessionFromCookies();
-  if (session) redirect("/financas");
+  if (session) redirect("/financas/dashboard");
   const exists = await householdExists();
   if (!exists) redirect("/financas/setup");
   return <LoginForm />;
