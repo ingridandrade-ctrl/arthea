@@ -34,7 +34,7 @@ export function SetupForm() {
       setLoading(false);
       return;
     }
-    router.push("/financas");
+    router.push("/financas/dashboard");
     router.refresh();
   }
 
@@ -46,9 +46,9 @@ export function SetupForm() {
             <PiggyBank className="w-6 h-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">Bem-vindos!</h1>
-            <p className="text-xs text-muted-foreground">
-              Vamos configurar suas finanças do casal
+            <h1 className="text-xl font-bold leading-tight">Bem-vindos ao Arthea!</h1>
+            <p className="text-xs text-muted-foreground leading-tight">
+              Configure suas finanças pessoais
             </p>
           </div>
         </div>

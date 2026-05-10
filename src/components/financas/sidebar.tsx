@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 const NAV = [
-  { name: "Dashboard", href: "/financas", icon: LayoutDashboard, exact: true },
+  { name: "Dashboard", href: "/financas/dashboard", icon: LayoutDashboard, exact: true },
   { name: "Lançamentos", href: "/financas/lancamentos", icon: ArrowLeftRight },
   { name: "Contas", href: "/financas/contas", icon: Wallet },
   { name: "Cartões", href: "/financas/cartoes", icon: CreditCard },
@@ -52,8 +52,8 @@ export function FinancasSidebar() {
             <PiggyBank className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-lg font-bold">Finanças</h1>
-            <p className="text-xs text-muted-foreground">Pessoais & do casal</p>
+            <h1 className="text-lg font-bold leading-tight">Arthea</h1>
+            <p className="text-xs text-muted-foreground leading-tight">Finanças Pessoais</p>
           </div>
         </div>
       </div>

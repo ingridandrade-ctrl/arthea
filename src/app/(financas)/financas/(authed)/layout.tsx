@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSessionFromCookies, householdExists } from "@/lib/financas/session";
+import { getSessionFromCookies } from "@/lib/financas/session";
 import { FinancasSidebar } from "@/components/financas/sidebar";
 
 export default async function FinancasLayout({
@@ -10,8 +10,7 @@ export default async function FinancasLayout({
   const session = getSessionFromCookies();
 
   if (!session) {
-    const exists = await householdExists();
-    redirect(exists ? "/financas/login" : "/financas/setup");
+    redirect("/financas");
   }
 
   return (

@@ -7,7 +7,7 @@ import { SetupForm } from "./setup-form";
 
 export default async function FinancasSetupPage() {
   const session = getSessionFromCookies();
-  if (session) redirect("/financas");
+  if (session) redirect("/financas/dashboard");
   const exists = await householdExists();
   if (exists) redirect("/financas/login");
   return <SetupForm />;
