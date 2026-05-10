@@ -15,7 +15,7 @@ import { formatCurrency } from "@/lib/utils";
 import { ACCOUNT_TYPE_LABEL } from "@/lib/financas/defaults";
 
 type DashboardData = {
-  household: { partnerAName: string; partnerBName: string; currency: string };
+  household: { partnerAName: string; partnerBName: string; currency: string; hideBalances: boolean };
   period: { year: number; month: number; label: string };
   totals: { balance: number; income: number; expense: number; net: number };
   accounts: {
@@ -165,31 +165,41 @@ export function DashboardClient() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KpiCard
-          icon={<Wallet className="w-5 h-5" />}
-          label="Saldo total"
-          value={data.totals.balance}
-          tone={data.totals.balance >= 0 ? "neutral" : "negative"}
-        />
-        <KpiCard
-          icon={<TrendingUp className="w-5 h-5" />}
-          label="Receitas do mês"
-          value={data.totals.income}
-          tone="positive"
-        />
+      <div
+        className={`grid grid-cols-1 md:grid-cols-2 ${
+          data.household.hideBalances ? "lg:grid-cols-1" : "lg:grid-cols-4"
+        } gap-4 mb-6`}
+      >
+        {!data.household.hideBalances && (
+          <KpiCard
+            icon={<Wallet className="w-5 h-5" />}
+            label="Saldo total"
+            value={data.totals.balance}
+            tone={data.totals.balance >= 0 ? "neutral" : "negative"}
+          />
+        )}
+        {!data.household.hideBalances && (
+          <KpiCard
+            icon={<TrendingUp className="w-5 h-5" />}
+            label="Receitas do mês"
+            value={data.totals.income}
+            tone="positive"
+          />
+        )}
         <KpiCard
           icon={<TrendingDown className="w-5 h-5" />}
           label="Despesas do mês"
           value={data.totals.expense}
           tone="negative"
         />
-        <KpiCard
-          icon={<ArrowLeftRight className="w-5 h-5" />}
-          label="Resultado do mês"
-          value={data.totals.net}
-          tone={data.totals.net >= 0 ? "positive" : "negative"}
-        />
+        {!data.household.hideBalances && (
+          <KpiCard
+            icon={<ArrowLeftRight className="w-5 h-5" />}
+            label="Resultado do mês"
+            value={data.totals.net}
+            tone={data.totals.net >= 0 ? "positive" : "negative"}
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -232,12 +242,19 @@ export function DashboardClient() {
           <OwnerRow
             label={data.household.partnerAName}
             data={data.byOwner.PARTNER_A}
+            hideIncome={data.household.hideBalances}
           />
           <OwnerRow
             label={data.household.partnerBName}
             data={data.byOwner.PARTNER_B}
+            hideIncome={data.household.hideBalances}
           />
-          <OwnerRow label="Casal" data={data.byOwner.COUPLE} last />
+          <OwnerRow
+            label="Casal"
+            data={data.byOwner.COUPLE}
+            last
+            hideIncome={data.household.hideBalances}
+          />
         </div>
       </div>
 
@@ -319,13 +336,15 @@ export function DashboardClient() {
                       </p>
                     </div>
                   </div>
-                  <p
-                    className={`text-sm font-semibold tabular-nums ${
-                      a.balance < 0 ? "text-destructive" : ""
-                    }`}
-                  >
-                    {formatCurrency(a.balance)}
-                  </p>
+                  {!data.household.hideBalances && (
+                    <p
+                      className={`text-sm font-semibold tabular-nums ${
+                        a.balance < 0 ? "text-destructive" : ""
+                      }`}
+                    >
+                      {formatCurrency(a.balance)}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -370,19 +389,25 @@ function OwnerRow({
   label,
   data,
   last,
+  hideIncome,
 }: {
   label: string;
   data: { income: number; expense: number };
   last?: boolean;
+  hideIncome?: boolean;
 }) {
   return (
     <div className={`py-3 ${!last ? "border-b border-border" : ""}`}>
       <p className="text-sm font-medium mb-1">{label}</p>
       <div className="flex justify-between text-xs">
-        <span className="text-success tabular-nums">
-          + {formatCurrency(data.income)}
-        </span>
-        <span className="text-destructive tabular-nums">
+        {!hideIncome && (
+          <span className="text-success tabular-nums">
+            + {formatCurrency(data.income)}
+          </span>
+        )}
+        <span
+          className={`text-destructive tabular-nums ${hideIncome ? "ml-auto" : ""}`}
+        >
           − {formatCurrency(data.expense)}
         </span>
       </div>

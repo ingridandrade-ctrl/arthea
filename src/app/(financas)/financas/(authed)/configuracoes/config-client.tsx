@@ -7,6 +7,7 @@ export function ConfigClient() {
   const [partnerAName, setPartnerAName] = useState("");
   const [partnerBName, setPartnerBName] = useState("");
   const [currency, setCurrency] = useState("BRL");
+  const [hideBalances, setHideBalances] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
@@ -19,6 +20,7 @@ export function ConfigClient() {
         setPartnerAName(d.partnerAName || "");
         setPartnerBName(d.partnerBName || "");
         setCurrency(d.currency || "BRL");
+        setHideBalances(!!d.hideBalances);
         setLoading(false);
       });
   }, []);
@@ -30,7 +32,7 @@ export function ConfigClient() {
     const res = await fetch("/api/financas/settings", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ partnerAName, partnerBName, currency }),
+      body: JSON.stringify({ partnerAName, partnerBName, currency, hideBalances }),
     });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
@@ -95,6 +97,26 @@ export function ConfigClient() {
               A formatação atual usa pt-BR / BRL. Outras moedas serão ajustadas em fases futuras.
             </p>
           </div>
+          <label className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/30 cursor-pointer hover:bg-muted/50">
+            <input
+              type="checkbox"
+              checked={hideBalances}
+              onChange={(e) => setHideBalances(e.target.checked)}
+              className="mt-1"
+            />
+            <div className="text-sm">
+              <strong>Modo só despesas</strong>{" "}
+              <span className="text-xs text-muted-foreground">(esconde saldos)</span>
+              <p className="text-xs text-muted-foreground mt-1">
+                Esconde no Dashboard os widgets de <strong>Saldo total</strong>,{" "}
+                <strong>Receitas do mês</strong>, <strong>Resultado do mês</strong> e o
+                saldo individual de cada conta. Útil enquanto você só rastreia despesas e
+                ainda não cadastra receitas. As receitas continuam funcionando se você
+                quiser usar no futuro — é só desligar isso aqui.
+              </p>
+            </div>
+          </label>
+
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-2 rounded-lg">
               {error}

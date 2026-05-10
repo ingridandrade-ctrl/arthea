@@ -491,6 +491,7 @@ model Household {
   partnerAName  String                  @default("Pessoa A")
   partnerBName  String                  @default("Pessoa B")
   currency      String                  @default("BRL")
+  hideBalances  Boolean                 @default(false)
   createdAt     DateTime                @default(now())
   updatedAt     DateTime                @updatedAt
   accounts      FinAccount[]
