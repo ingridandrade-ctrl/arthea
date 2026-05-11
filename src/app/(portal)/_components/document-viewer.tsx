@@ -1,13 +1,48 @@
 "use client";
 
 import { Download, ExternalLink, FileText, Maximize2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+const RESIZE_SCRIPT = `
+<script>
+(function () {
+  var last = 0;
+  var pending = false;
+  function report() {
+    pending = false;
+    try {
+      var h = Math.max(
+        document.body ? document.body.scrollHeight : 0,
+        document.documentElement ? document.documentElement.scrollHeight : 0
+      );
+      // Only notify when height changes by more than 8px — prevents feedback loops
+      if (Math.abs(h - last) < 8) return;
+      last = h;
+      parent.postMessage({ type: 'arthea:height', height: h }, '*');
+    } catch (e) {}
+  }
+  function schedule() {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(report);
+  }
+  if (window.ResizeObserver && document.body) {
+    new ResizeObserver(schedule).observe(document.body);
+  }
+  window.addEventListener('load', schedule);
+  // Two fallbacks for late-loading fonts/images, no more spamming
+  setTimeout(schedule, 400);
+  setTimeout(schedule, 1600);
+})();
+</script>
+`;
 
 function buildSrcDoc(embed: string): string {
-  // If user pasted a full HTML document, use it as-is (don't double-wrap)
+  // If user pasted a full HTML document, use it as-is (don't double-wrap).
+  // No resize script injected — full docs render in fixed viewport (richDoc mode).
   if (/<html[\s>]/i.test(embed) || /<!doctype/i.test(embed)) return embed;
 
-  // Otherwise wrap with default styling matching the portal
+  // Otherwise wrap with default styling matching the portal + resize script
   return `<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -52,29 +87,7 @@ function buildSrcDoc(embed: string): string {
 </head>
 <body>
 ${embed}
-<script>
-  // Reporta a altura do conteúdo pra página pai poder ajustar o iframe
-  (function () {
-    function report() {
-      try {
-        var h = Math.max(
-          document.body.scrollHeight,
-          document.documentElement.scrollHeight
-        );
-        parent.postMessage({ type: 'arthea:height', height: h }, '*');
-      } catch (e) {}
-    }
-    var ro;
-    if (window.ResizeObserver) {
-      ro = new ResizeObserver(report);
-      ro.observe(document.body);
-    }
-    window.addEventListener('load', report);
-    setTimeout(report, 100);
-    setTimeout(report, 600);
-    setTimeout(report, 1500);
-  })();
-</script>
+${RESIZE_SCRIPT}
 </body>
 </html>`;
 }
@@ -88,33 +101,43 @@ function hasStickyOrFixed(embed: string): boolean {
 }
 
 function EmbedFrame({ embed }: { embed: string }) {
-  const ref = useRef<HTMLIFrameElement>(null);
-  // Rich docs (full HTML or with sticky/fixed CSS) need a fixed viewport
-  // so internal scroll works and sticky/fixed has somewhere to "stick".
+  // Detect "rich" docs (full HTML or sticky/fixed CSS) and render them in a
+  // fixed viewport so internal scrolling works (sticky/fixed has somewhere to stick).
   // Plain HTML fragments use auto-resize for the smoother UX.
-  const richDoc = isFullHtmlDoc(embed) || hasStickyOrFixed(embed);
-  const [autoHeight, setAutoHeight] = useState(720);
-  const [fullUrl, setFullUrl] = useState<string | null>(null);
+  const richDoc = useMemo(
+    () => isFullHtmlDoc(embed) || hasStickyOrFixed(embed),
+    [embed]
+  );
 
+  // Memoize the actual srcDoc string. Without this, the iframe reloads on
+  // every parent re-render, killing scroll position and freezing big docs.
+  const srcDoc = useMemo(() => buildSrcDoc(embed), [embed]);
+
+  // Blob URL for "tela cheia". Memoized so it's stable across re-renders.
+  const [fullUrl, setFullUrl] = useState<string | null>(null);
   useEffect(() => {
-    if (richDoc) return; // no auto-resize for rich docs
+    const blob = new Blob([srcDoc], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    setFullUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [srcDoc]);
+
+  // Auto-height (fragments only). Rich docs use fixed viewport, no listener.
+  const [autoHeight, setAutoHeight] = useState(640);
+  useEffect(() => {
+    if (richDoc) return;
     function onMessage(e: MessageEvent) {
       if (e.data && e.data.type === "arthea:height" && typeof e.data.height === "number") {
-        setAutoHeight(Math.min(Math.max(e.data.height + 24, 320), 4000));
+        setAutoHeight((prev) => {
+          const next = Math.min(Math.max(e.data.height + 24, 320), 4000);
+          // Guard: ignore tiny changes to avoid layout thrash
+          return Math.abs(next - prev) < 8 ? prev : next;
+        });
       }
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, [richDoc]);
-
-  useEffect(() => {
-    // Build a Blob URL for "tela cheia". buildSrcDoc returns embed as-is when it's a full doc.
-    const html = buildSrcDoc(embed);
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    setFullUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [embed]);
 
   return (
     <section
@@ -149,13 +172,7 @@ function EmbedFrame({ embed }: { embed: string }) {
             Documento
           </p>
           {richDoc && (
-            <span
-              style={{
-                fontSize: 10,
-                color: "#A0A0A0",
-                fontStyle: "italic",
-              }}
-            >
+            <span style={{ fontSize: 10, color: "#A0A0A0", fontStyle: "italic" }}>
               · Rola por dentro do documento
             </span>
           )}
@@ -184,9 +201,13 @@ function EmbedFrame({ embed }: { embed: string }) {
         )}
       </div>
       <iframe
-        ref={ref}
-        srcDoc={buildSrcDoc(embed)}
+        // key=embed ensures the iframe only fully remounts when the embed
+        // CONTENT changes — not on every parent re-render.
+        key={embed.length + ":" + embed.slice(0, 64)}
+        srcDoc={srcDoc}
         title="Documento"
+        loading="lazy"
+        referrerPolicy="no-referrer"
         sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals allow-same-origin"
         style={{
           width: "100%",
@@ -196,7 +217,7 @@ function EmbedFrame({ embed }: { embed: string }) {
           border: "none",
           background: "white",
           display: "block",
-          transition: richDoc ? "none" : "height 0.25s ease",
+          transition: richDoc ? "none" : "height 0.18s ease",
         }}
       />
     </section>
