@@ -878,12 +878,14 @@ model MetaAdAccount {
   timezoneName     String?
   status           Int?
   businessName     String?
+  hidden           Boolean        @default(false)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   leadForms        MetaLeadAdsForm[]
 
   @@unique([connectionId, accountId])
   @@index([clientProjectId])
+  @@index([hidden])
 }
 
 model MetaLeadAdsForm {

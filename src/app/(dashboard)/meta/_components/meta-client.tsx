@@ -11,6 +11,8 @@ import {
   Plug,
   ChevronDown,
   BarChart3,
+  EyeOff,
+  Eye,
 } from "lucide-react";
 
 function FacebookIcon({ className }: { className?: string }) {
@@ -27,6 +29,7 @@ interface AdAccount {
   name: string;
   currency: string | null;
   businessName: string | null;
+  hidden: boolean;
   clientProjectId: string | null;
   clientProject: { id: string; name: string } | null;
 }
@@ -69,6 +72,28 @@ export function MetaClient({
   const [openAccount, setOpenAccount] = useState<string | null>(null);
   const [overviews, setOverviews] = useState<Record<string, any>>({});
   const [loadingOverview, setLoadingOverview] = useState<string | null>(null);
+  const [showHidden, setShowHidden] = useState<Record<string, boolean>>({});
+
+  async function setAccountHidden(adAccountId: string, hidden: boolean) {
+    const res = await fetch(`/api/meta/ad-accounts/${adAccountId}/hidden`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ hidden }),
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      alert(e.error || "Falha ao atualizar visibilidade");
+      return;
+    }
+    setConnections((prev) =>
+      prev.map((c) => ({
+        ...c,
+        adAccounts: c.adAccounts.map((a) =>
+          a.id === adAccountId ? { ...a, hidden } : a,
+        ),
+      })),
+    );
+  }
 
   const banner = statusParam ? STATUS_BANNER[statusParam] : null;
 
@@ -239,7 +264,13 @@ export function MetaClient({
                           "Sem expiracao registrada"
                         )}
                         {" · "}
-                        {c.adAccounts.length} contas
+                        {c.adAccounts.filter((a) => !a.hidden).length} contas
+                        {c.adAccounts.some((a) => a.hidden) && (
+                          <>
+                            {" · "}
+                            <span>{c.adAccounts.filter((a) => a.hidden).length} ocultas</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -261,57 +292,104 @@ export function MetaClient({
                   </div>
                 </div>
 
-                {c.adAccounts.length === 0 ? (
-                  <div className="px-6 py-8 text-center text-sm text-muted-foreground">
-                    Nenhuma conta de anuncio sincronizada. Clique em "Sincronizar" pra buscar.
-                  </div>
-                ) : (
-                  <ul className="divide-y divide-border">
-                    {c.adAccounts.map((acc) => (
-                      <li key={acc.id} className="px-6 py-4">
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium text-sm">{acc.name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                act_{acc.accountId} · {acc.currency || "?"}
-                              </span>
-                            </div>
-                            {acc.businessName && (
-                              <div className="text-xs text-muted-foreground mt-0.5">
-                                {acc.businessName}
+                {(() => {
+                  const visible = c.adAccounts.filter(
+                    (a) => !a.hidden || showHidden[c.id],
+                  );
+                  const hiddenCount = c.adAccounts.filter((a) => a.hidden).length;
+                  if (c.adAccounts.length === 0) {
+                    return (
+                      <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+                        Nenhuma conta de anuncio sincronizada. Clique em "Sincronizar" pra
+                        buscar.
+                      </div>
+                    );
+                  }
+                  return (
+                    <>
+                      <ul className="divide-y divide-border">
+                        {visible.map((acc) => (
+                          <li
+                            key={acc.id}
+                            className={"px-6 py-4 " + (acc.hidden ? "opacity-50" : "")}
+                          >
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-medium text-sm">{acc.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    act_{acc.accountId} · {acc.currency || "?"}
+                                  </span>
+                                  {acc.hidden && (
+                                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-200 text-slate-600">
+                                      Oculta
+                                    </span>
+                                  )}
+                                </div>
+                                {acc.businessName && (
+                                  <div className="text-xs text-muted-foreground mt-0.5">
+                                    {acc.businessName}
+                                  </div>
+                                )}
                               </div>
+
+                              <div className="flex items-center gap-2">
+                                {!acc.hidden && (
+                                  <>
+                                    <LinkSelect
+                                      value={acc.clientProjectId}
+                                      currentLabel={acc.clientProject?.name ?? null}
+                                      projects={projects}
+                                      onChange={(pid) => linkAccount(acc.id, pid)}
+                                    />
+                                    <button
+                                      onClick={() => toggleOverview(acc.id)}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-sm hover:bg-muted"
+                                    >
+                                      <BarChart3 className="w-3.5 h-3.5" />
+                                      {openAccount === acc.id ? "Fechar" : "Ver"}
+                                    </button>
+                                  </>
+                                )}
+                                <button
+                                  onClick={() => setAccountHidden(acc.id, !acc.hidden)}
+                                  title={acc.hidden ? "Mostrar conta" : "Ocultar conta"}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-sm hover:bg-muted text-muted-foreground"
+                                >
+                                  {acc.hidden ? (
+                                    <Eye className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <EyeOff className="w-3.5 h-3.5" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+
+                            {openAccount === acc.id && !acc.hidden && (
+                              <OverviewPanel
+                                data={overviews[acc.id]}
+                                loading={loadingOverview === acc.id}
+                                currency={acc.currency}
+                              />
                             )}
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <LinkSelect
-                              value={acc.clientProjectId}
-                              currentLabel={acc.clientProject?.name ?? null}
-                              projects={projects}
-                              onChange={(pid) => linkAccount(acc.id, pid)}
-                            />
-                            <button
-                              onClick={() => toggleOverview(acc.id)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-sm hover:bg-muted"
-                            >
-                              <BarChart3 className="w-3.5 h-3.5" />
-                              {openAccount === acc.id ? "Fechar" : "Ver"}
-                            </button>
-                          </div>
-                        </div>
-
-                        {openAccount === acc.id && (
-                          <OverviewPanel
-                            data={overviews[acc.id]}
-                            loading={loadingOverview === acc.id}
-                            currency={acc.currency}
-                          />
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                          </li>
+                        ))}
+                      </ul>
+                      {hiddenCount > 0 && (
+                        <button
+                          onClick={() =>
+                            setShowHidden((s) => ({ ...s, [c.id]: !s[c.id] }))
+                          }
+                          className="w-full px-6 py-2.5 text-xs text-muted-foreground hover:bg-muted/40 border-t border-border"
+                        >
+                          {showHidden[c.id]
+                            ? "Esconder contas ocultas"
+                            : `Mostrar ${hiddenCount} conta${hiddenCount > 1 ? "s" : ""} oculta${hiddenCount > 1 ? "s" : ""}`}
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             );
           })}
