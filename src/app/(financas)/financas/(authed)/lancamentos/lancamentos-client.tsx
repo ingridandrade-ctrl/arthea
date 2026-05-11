@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Pencil, Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Download, X, CreditCard, Check, Clock, AlertCircle } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
@@ -743,6 +744,27 @@ function MovementTypeIcon({ type }: { type: Movement["type"] }) {
   return <CreditCard className="w-4 h-4 text-primary" />;
 }
 
+const STATUS_PILL: Record<
+  "paid" | "pending" | "overdue",
+  { label: string; pill: string; dot: string }
+> = {
+  paid: {
+    label: "Pago",
+    pill: "bg-success/15 text-success border border-success/30",
+    dot: "bg-success",
+  },
+  pending: {
+    label: "Pendente",
+    pill: "bg-warning/15 text-warning border border-warning/30",
+    dot: "bg-warning",
+  },
+  overdue: {
+    label: "Atrasado",
+    pill: "bg-destructive/15 text-destructive border border-destructive/30",
+    dot: "bg-destructive",
+  },
+};
+
 function MovementStatusBadge({
   m,
   onSetPaid,
@@ -751,70 +773,89 @@ function MovementStatusBadge({
   onSetPaid: (paid: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    if (!open) return;
+    function close(e: MouseEvent) {
+      if (
+        menuRef.current && !menuRef.current.contains(e.target as Node) &&
+        btnRef.current && !btnRef.current.contains(e.target as Node)
+      ) setOpen(false);
     }
-    if (open) document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    function onScroll() { setOpen(false); }
+    document.addEventListener("mousedown", close);
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll);
+    };
   }, [open]);
 
   if (m.type === "INCOME" || m.type === "TRANSFER") return null;
-  const s = m.status;
-  const Icon = s === "paid" ? Check : s === "overdue" ? AlertCircle : Clock;
-  const color =
-    s === "paid" ? "text-success" : s === "overdue" ? "text-destructive" : "text-warning";
-  const label = s === "paid" ? "Pago" : s === "overdue" ? "Atrasado" : "Pendente";
 
-  const options: { value: "paid" | "pending" | "overdue"; label: string; icon: any; color: string }[] = [
-    { value: "paid", label: "Pago", icon: Check, color: "text-success" },
-    { value: "pending", label: "Pendente", icon: Clock, color: "text-warning" },
-    { value: "overdue", label: "Atrasado", icon: AlertCircle, color: "text-destructive" },
-  ];
+  const cur = STATUS_PILL[m.status];
+
+  function openMenu() {
+    if (!btnRef.current) return;
+    const r = btnRef.current.getBoundingClientRect();
+    setPos({ top: r.bottom + 4, left: r.left });
+    setOpen(true);
+  }
 
   return (
-    <div ref={ref} className="relative inline-block">
+    <>
       <button
+        ref={btnRef}
         onClick={(e) => {
           e.stopPropagation();
-          setOpen((v) => !v);
+          if (open) setOpen(false);
+          else openMenu();
         }}
-        className={`inline-flex items-center justify-center p-1 rounded hover:bg-muted ${color}`}
-        title={`${label} · Clique para mudar`}
-        aria-label={label}
+        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${cur.pill} hover:opacity-90`}
       >
-        <Icon className="w-4 h-4" />
+        <span className={`w-1.5 h-1.5 rounded-full ${cur.dot}`} />
+        {cur.label}
       </button>
-      {open && (
-        <div
-          className="absolute z-50 left-0 mt-1 w-36 bg-popover border border-border rounded-lg shadow-md py-1 text-sm"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {options.map((opt) => {
-            const OptIcon = opt.icon;
-            const active = opt.value === s;
-            return (
-              <button
-                key={opt.value}
-                onClick={() => {
-                  setOpen(false);
-                  onSetPaid(opt.value === "paid");
-                }}
-                className={`w-full flex items-center gap-2 px-3 py-1.5 hover:bg-muted ${
-                  active ? "font-medium" : ""
-                }`}
-              >
-                <OptIcon className={`w-3.5 h-3.5 ${opt.color}`} />
-                <span>{opt.label}</span>
-                {active && <span className="ml-auto text-[10px] text-muted-foreground">atual</span>}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
+      {mounted && open && pos &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className="fixed z-50 w-40 bg-popover border border-border rounded-lg shadow-lg py-1"
+            style={{ top: pos.top, left: pos.left }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {(["paid", "pending", "overdue"] as const).map((v) => {
+              const o = STATUS_PILL[v];
+              const active = v === m.status;
+              return (
+                <button
+                  key={v}
+                  onClick={() => {
+                    setOpen(false);
+                    onSetPaid(v === "paid");
+                  }}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-muted text-left"
+                >
+                  <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${o.pill}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${o.dot}`} />
+                    {o.label}
+                  </span>
+                  {active && <Check className="w-3.5 h-3.5 text-muted-foreground ml-auto" />}
+                </button>
+              );
+            })}
+          </div>,
+          document.body
+        )}
+    </>
   );
 }
 
