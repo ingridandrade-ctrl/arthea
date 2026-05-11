@@ -172,7 +172,10 @@ export function CartoesClient() {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-lg font-semibold capitalize">
-                            {monthName(inv.month)} / {inv.year}
+                            {new Date(inv.dueDate).toLocaleDateString("pt-BR", {
+                              month: "long",
+                              year: "numeric",
+                            })}
                           </h3>
                           <span className={`flex items-center gap-1 text-xs ${STATUS_COLOR[inv.status]}`}>
                             <Icon className="w-3.5 h-3.5" />
