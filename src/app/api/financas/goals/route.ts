@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { parseLocalDate } from "@/lib/financas/dates";
 
 export async function GET() {
   try {
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
         name: name.trim(),
         targetAmount,
         currentAmount: typeof currentAmount === "number" ? currentAmount : 0,
-        targetDate: targetDate ? new Date(targetDate) : null,
+        targetDate: targetDate ? parseLocalDate(targetDate) : null,
         color: typeof color === "string" ? color : "#6366f1",
         notes: typeof notes === "string" ? notes : null,
       },

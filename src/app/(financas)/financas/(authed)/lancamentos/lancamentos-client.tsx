@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, Pencil, Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Download, X, CreditCard } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Download, X, CreditCard, Check, Clock, AlertCircle } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
 import {
@@ -599,16 +599,11 @@ function MovementTypeIcon({ type }: { type: Movement["type"] }) {
 }
 
 function MovementStatusBadge({ m, onToggle }: { m: Movement; onToggle: () => void }) {
-  if (m.type === "INCOME" || m.type === "TRANSFER") {
-    return <span className="text-xs text-muted-foreground">—</span>;
-  }
+  if (m.type === "INCOME" || m.type === "TRANSFER") return null;
   const s = m.status;
-  const cls =
-    s === "paid"
-      ? "bg-success/10 text-success border-success/30"
-      : s === "overdue"
-      ? "bg-destructive/10 text-destructive border-destructive/30"
-      : "bg-warning/10 text-warning border-warning/30";
+  const Icon = s === "paid" ? Check : s === "overdue" ? AlertCircle : Clock;
+  const color =
+    s === "paid" ? "text-success" : s === "overdue" ? "text-destructive" : "text-warning";
   const label = s === "paid" ? "Pago" : s === "overdue" ? "Atrasado" : "Pendente";
   return (
     <button
@@ -616,18 +611,19 @@ function MovementStatusBadge({ m, onToggle }: { m: Movement; onToggle: () => voi
         e.stopPropagation();
         onToggle();
       }}
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border ${cls} hover:opacity-80`}
+      className={`inline-flex items-center justify-center p-1 rounded hover:bg-muted ${color}`}
       title={
         m.kind === "invoice"
           ? s === "paid"
-            ? "Reabrir fatura"
-            : "Ir pra Cartões e pagar"
+            ? `${label} · Clique para reabrir`
+            : `${label} · Clique para pagar em Cartões`
           : s === "paid"
-          ? "Marcar como não-pago"
-          : "Marcar como pago"
+          ? `${label} · Clique para marcar como não-pago`
+          : `${label} · Clique para marcar como pago`
       }
+      aria-label={label}
     >
-      {label}
+      <Icon className="w-4 h-4" />
     </button>
   );
 }

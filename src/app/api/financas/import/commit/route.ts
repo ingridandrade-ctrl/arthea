@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 import { ensureInvoice } from "@/lib/financas/credit-cards";
+import { parseLocalDate } from "@/lib/financas/dates";
 
 const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
 
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
     const created = await prisma.$transaction(async (tx) => {
       const results = [];
       for (const r of validRows) {
-        const date = new Date(r.date);
+        const date = parseLocalDate(r.date);
         const inv = await ensureInvoice(household.id, account, date);
         const owner = VALID_OWNERS.includes(r.owner as string)
           ? (r.owner as "PARTNER_A" | "PARTNER_B" | "COUPLE")

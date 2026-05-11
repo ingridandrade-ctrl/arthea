@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { parseLocalDate } from "@/lib/financas/dates";
 
 const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
 
@@ -38,7 +39,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const body = await req.json();
     const data: any = {};
     if (typeof body.amount === "number" && body.amount > 0) data.amount = body.amount;
-    if (body.date) data.date = new Date(body.date);
+    if (body.date) data.date = parseLocalDate(body.date);
     if (typeof body.description === "string" && body.description.trim()) data.description = body.description.trim();
     if (typeof body.notes === "string" || body.notes === null) data.notes = body.notes;
     if (VALID_OWNERS.includes(body.owner)) data.owner = body.owner;
@@ -63,7 +64,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
     if (typeof body.paid === "boolean") {
       data.paid = body.paid;
-      data.paidAt = body.paid ? (body.paidAt ? new Date(body.paidAt) : new Date()) : null;
+      data.paidAt = body.paid ? (body.paidAt ? parseLocalDate(body.paidAt) : new Date()) : null;
     }
 
     const updated = await prisma.finTransaction.update({

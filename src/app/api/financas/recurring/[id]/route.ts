@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { parseLocalDate } from "@/lib/financas/dates";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -21,7 +22,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (typeof body.dayOfWeek === "number" || body.dayOfWeek === null) data.dayOfWeek = body.dayOfWeek;
     if (typeof body.monthOfYear === "number" || body.monthOfYear === null) data.monthOfYear = body.monthOfYear;
     if (typeof body.active === "boolean") data.active = body.active;
-    if (body.endDate !== undefined) data.endDate = body.endDate ? new Date(body.endDate) : null;
+    if (body.endDate !== undefined) data.endDate = body.endDate ? parseLocalDate(body.endDate) : null;
 
     if (body.categoryId === null || typeof body.categoryId === "string") {
       if (body.categoryId) {

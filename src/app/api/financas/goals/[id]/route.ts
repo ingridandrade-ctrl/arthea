@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { parseLocalDate } from "@/lib/financas/dates";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -14,7 +15,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (body.action === "contribute") {
       const amount = typeof body.amount === "number" ? body.amount : 0;
       if (amount === 0) return NextResponse.json({ error: "Valor inválido" }, { status: 400 });
-      const date = body.date ? new Date(body.date) : new Date();
+      const date = body.date ? parseLocalDate(body.date) : new Date();
       const result = await prisma.$transaction(async (tx) => {
         const contrib = await tx.finGoalContribution.create({
           data: { goalId: existing.id, amount, date, notes: body.notes ?? null },
@@ -32,7 +33,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (typeof body.name === "string" && body.name.trim()) data.name = body.name.trim();
     if (typeof body.targetAmount === "number" && body.targetAmount > 0) data.targetAmount = body.targetAmount;
     if (typeof body.currentAmount === "number") data.currentAmount = body.currentAmount;
-    if (body.targetDate !== undefined) data.targetDate = body.targetDate ? new Date(body.targetDate) : null;
+    if (body.targetDate !== undefined) data.targetDate = body.targetDate ? parseLocalDate(body.targetDate) : null;
     if (typeof body.color === "string") data.color = body.color;
     if (typeof body.notes === "string" || body.notes === null) data.notes = body.notes;
     if (typeof body.archived === "boolean") data.archived = body.archived;
