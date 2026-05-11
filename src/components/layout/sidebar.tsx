@@ -20,6 +20,7 @@ import {
   ChevronDown,
   UserCog,
   PanelsTopLeft,
+  Megaphone,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
@@ -41,6 +42,7 @@ const navigation: NavItem[] = [
   { name: "Relatorios", href: "/relatorios", icon: BarChart3 },
   { name: "Financeiro", href: "/financeiro", icon: DollarSign, roles: ["ADMIN"] },
   { name: "Portal de Clientes", href: "/portal-clientes", icon: PanelsTopLeft, roles: ["ADMIN", "MANAGER"] },
+  { name: "Meta Ads", href: "/meta", icon: Megaphone, roles: ["ADMIN", "MANAGER"] },
   {
     name: "Configuracoes",
     href: "/configuracoes",
