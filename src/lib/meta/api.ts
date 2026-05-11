@@ -219,6 +219,36 @@ export async function getAccountInsights(
   return (data.data && data.data[0]) || null;
 }
 
+export interface MetaCampaignInsight {
+  campaign_id: string;
+  campaign_name: string;
+  spend?: string;
+  impressions?: string;
+  clicks?: string;
+  cpm?: string;
+  ctr?: string;
+  date_start?: string;
+  date_stop?: string;
+}
+
+export async function getCampaignInsightsForAccount(
+  accessToken: string,
+  adAccountId: string,
+  datePreset: string = "last_30d",
+): Promise<MetaCampaignInsight[]> {
+  const client = createMetaClient(accessToken);
+  const accountPath = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
+  const { data } = await client.get(`/${accountPath}/insights`, {
+    params: {
+      level: "campaign",
+      fields: "campaign_id,campaign_name,spend,impressions,clicks,cpm,ctr",
+      date_preset: datePreset,
+      limit: "200",
+    },
+  });
+  return data.data || [];
+}
+
 export interface MetaLeadForm {
   id: string;
   name?: string;

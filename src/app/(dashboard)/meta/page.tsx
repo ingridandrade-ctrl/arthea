@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MetaClient } from "./_components/meta-client";
+import { MetaDashboard } from "./_components/meta-dashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -35,15 +36,20 @@ export default async function MetaPage({
     }),
   ]);
 
+  const hasAccounts = connections.some((c) => c.adAccounts.length > 0);
+
   return (
-    <MetaClient
-      initialConnections={JSON.parse(JSON.stringify(connections))}
-      projects={projects.map((p) => ({
-        id: p.id,
-        name: p.name,
-        clientName: p.client.name,
-      }))}
-      statusParam={searchParams.status ?? null}
-    />
+    <div className="space-y-6">
+      <MetaDashboard hasConnections={hasAccounts} />
+      <MetaClient
+        initialConnections={JSON.parse(JSON.stringify(connections))}
+        projects={projects.map((p) => ({
+          id: p.id,
+          name: p.name,
+          clientName: p.client.name,
+        }))}
+        statusParam={searchParams.status ?? null}
+      />
+    </div>
   );
 }
