@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Pencil, Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Download, X, CreditCard } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
@@ -115,6 +115,7 @@ export function LancamentosClient() {
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [creating, setCreating] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [period, setPeriod] = useState<PeriodPreset>("this_month");
   const [from, setFrom] = useState(firstDayOfMonth());
@@ -122,9 +123,24 @@ export function LancamentosClient() {
   const [accountId, setAccountId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [owner, setOwner] = useState("");
-  const [type, setType] = useState("");
+  const [type, setType] = useState(searchParams?.get("type") ?? "");
   const [status, setStatus] = useState<"" | TxStatus>("");
   const [q, setQ] = useState("");
+
+  useEffect(() => {
+    const urlType = searchParams?.get("type") ?? "";
+    setType(urlType);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const current = searchParams?.get("type") ?? "";
+    if (current === type) return;
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    if (type) params.set("type", type);
+    else params.delete("type");
+    const qs = params.toString();
+    router.replace(qs ? `/financas/lancamentos?${qs}` : "/financas/lancamentos");
+  }, [type]);
 
   function applyPreset(p: PeriodPreset) {
     setPeriod(p);
@@ -243,9 +259,27 @@ export function LancamentosClient() {
   return (
     <div>
       <PageHeader
-        title="Movimentações"
+        title={
+          type === "EXPENSE"
+            ? "Despesas"
+            : type === "INCOME"
+            ? "Receitas"
+            : type === "INVOICE"
+            ? "Faturas"
+            : type === "TRANSFER"
+            ? "Transferências"
+            : "Movimentações"
+        }
         description={
-          hideBalances
+          type === "EXPENSE"
+            ? "Suas saídas de dinheiro."
+            : type === "INCOME"
+            ? "Suas entradas de dinheiro."
+            : type === "INVOICE"
+            ? "Faturas de cartão de crédito."
+            : type === "TRANSFER"
+            ? "Movimentações entre contas."
+            : hideBalances
             ? "Suas despesas e faturas de cartão."
             : "Receitas, despesas, faturas e transferências."
         }
