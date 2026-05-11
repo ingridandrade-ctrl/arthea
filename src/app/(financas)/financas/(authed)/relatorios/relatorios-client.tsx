@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, BarChart3, TrendingUp, TrendingDown } from "lucide-react";
 import { PageHeader } from "@/components/financas/page-header";
 import { formatCurrency } from "@/lib/utils";
+import { IncomeExpenseLine, CategoryDonut } from "@/components/financas/charts";
 
 type Report = {
   year: number;
@@ -50,11 +51,6 @@ export function RelatoriosClient() {
       </div>
     );
   }
-
-  const maxBar = Math.max(
-    ...data.monthly.flatMap((m) => [m.income, m.expense]),
-    1
-  );
 
   const maxAccount = Math.max(
     ...data.accountSeries.flatMap((s) => s.values),
@@ -121,32 +117,15 @@ export function RelatoriosClient() {
 
       <div className="bg-card border border-border rounded-xl p-5 mb-6">
         <h2 className="text-sm font-semibold mb-4">Evolução mensal</h2>
-        <div className="space-y-2">
-          {data.monthly.map((m) => (
-            <div key={m.month}>
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-muted-foreground w-10">{MONTH_SHORT[m.month - 1]}</span>
-                <span className="tabular-nums text-xs">
-                  <span className="text-success">{formatCurrency(m.income)}</span>
-                  {" / "}
-                  <span className="text-destructive">{formatCurrency(m.expense)}</span>
-                  {" • "}
-                  <span className={m.net >= 0 ? "text-success" : "text-destructive"}>
-                    {m.net >= 0 ? "+" : ""}{formatCurrency(m.net)}
-                  </span>
-                </span>
-              </div>
-              <div className="flex gap-1 h-2.5">
-                <div className="bg-success/30 rounded-sm h-full" style={{ width: `${(m.income / maxBar) * 50}%` }}>
-                  <div className="bg-success h-full rounded-sm" style={{ width: "100%" }} />
-                </div>
-                <div className="bg-destructive/30 rounded-sm h-full" style={{ width: `${(m.expense / maxBar) * 50}%` }}>
-                  <div className="bg-destructive h-full rounded-sm" style={{ width: "100%" }} />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <IncomeExpenseLine
+          data={data.monthly.map((m) => ({
+            month: `${year}-${String(m.month).padStart(2, "0")}`,
+            label: MONTH_SHORT[m.month - 1],
+            income: m.income,
+            expense: m.expense,
+          }))}
+          height={320}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
@@ -155,30 +134,33 @@ export function RelatoriosClient() {
           {data.expensesByCategory.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sem despesas no período.</p>
           ) : (
-            <div className="space-y-2.5">
-              {data.expensesByCategory.slice(0, 12).map((c) => {
-                const pct = totalCategoryExpense > 0 ? (c.amount / totalCategoryExpense) * 100 : 0;
-                return (
-                  <div key={c.categoryId || "none"}>
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
-                        {c.name}
+            <>
+              <CategoryDonut
+                data={data.expensesByCategory.map((c) => ({
+                  name: c.name,
+                  amount: c.amount,
+                  color: c.color,
+                }))}
+                size={220}
+              />
+              <ul className="mt-4 space-y-1 text-xs max-h-48 overflow-y-auto">
+                {data.expensesByCategory.slice(0, 12).map((c) => {
+                  const pct = totalCategoryExpense > 0 ? (c.amount / totalCategoryExpense) * 100 : 0;
+                  return (
+                    <li key={c.categoryId || "none"} className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-2 min-w-0">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: c.color }} />
+                        <span className="truncate">{c.name}</span>
                       </span>
-                      <span className="tabular-nums text-muted-foreground">
-                        {formatCurrency(c.amount)} <span className="text-xs">({pct.toFixed(0)}%)</span>
+                      <span className="tabular-nums shrink-0">
+                        {formatCurrency(c.amount)}{" "}
+                        <span className="text-muted-foreground">({pct.toFixed(0)}%)</span>
                       </span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${pct}%`, backgroundColor: c.color }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
         </div>
 

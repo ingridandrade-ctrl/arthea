@@ -36,7 +36,11 @@ export async function GET(req: Request) {
 
     const start = new Date(year, month, 1, 0, 0, 0, 0);
     const end = new Date(year, month + 1, 1, 0, 0, 0, 0);
+    const prevStart = new Date(year, month - 1, 1, 0, 0, 0, 0);
     const sixMonthsAgo = new Date(year, month - 5, 1);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
 
     const [accounts, balances, allTx, last6Tx] = await Promise.all([
       prisma.finAccount.findMany({
@@ -84,6 +88,32 @@ export async function GET(req: Request) {
       const d = effectiveDate(t);
       return d >= start && d < end;
     });
+
+    let prevIncome = 0;
+    let prevExpense = 0;
+    for (const t of allTx) {
+      const d = effectiveDate(t);
+      if (d >= prevStart && d < start) {
+        if (t.type === "INCOME") prevIncome += t.amount;
+        else if (t.type === "EXPENSE") prevExpense += t.amount;
+      }
+    }
+
+    const dailyMap: Record<string, number> = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(sevenDaysAgo);
+      d.setDate(d.getDate() + (6 - i));
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      dailyMap[k] = 0;
+    }
+    for (const t of allTx) {
+      if (t.type !== "EXPENSE") continue;
+      const d = effectiveDate(t);
+      if (d < sevenDaysAgo) continue;
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      if (k in dailyMap) dailyMap[k] += t.amount;
+    }
+    const dailyExpense = Object.entries(dailyMap).map(([day, amount]) => ({ day, amount }));
 
     const balanceMap = new Map(balances.map((b) => [b.accountId, b.balance]));
     const totalBalance = accounts.reduce(
@@ -172,6 +202,12 @@ export async function GET(req: Request) {
         expense: totalExpense,
         net: totalIncome - totalExpense,
       },
+      previous: {
+        income: prevIncome,
+        expense: prevExpense,
+        net: prevIncome - prevExpense,
+      },
+      dailyExpense,
       accounts: accounts.map((a) => ({
         ...a,
         balance: balanceMap.get(a.id) ?? a.initialBalance,
