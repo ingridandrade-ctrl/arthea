@@ -53,7 +53,7 @@ const STATUS_ICON: Record<Invoice["status"], any> = {
 };
 
 const STATUS_COLOR: Record<Invoice["status"], string> = {
-  OPEN: "text-muted-foreground",
+  OPEN: "text-foreground",
   CLOSED: "text-warning",
   PAID: "text-success",
   OVERDUE: "text-destructive",
@@ -172,11 +172,17 @@ export function CartoesClient() {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-lg font-semibold capitalize">
-                            {monthName(inv.month)} / {inv.year}
+                            {new Date(inv.dueDate).toLocaleDateString("pt-BR", {
+                              month: "long",
+                              year: "numeric",
+                            })}
                           </h3>
-                          <span className={`flex items-center gap-1 text-xs ${STATUS_COLOR[inv.status]}`}>
-                            <Icon className="w-3.5 h-3.5" />
-                            {STATUS_LABEL[inv.status]}
+                          <span
+                            className={`inline-flex items-center ${STATUS_COLOR[inv.status]}`}
+                            title={STATUS_LABEL[inv.status]}
+                            aria-label={STATUS_LABEL[inv.status]}
+                          >
+                            <Icon className="w-4 h-4" />
                           </span>
                         </div>
                         <div className="text-xs text-muted-foreground space-x-3">

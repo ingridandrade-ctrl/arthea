@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Download, X, CreditCard } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Plus, Pencil, Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Download, X, CreditCard, Check, Clock, AlertCircle } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
 import {
@@ -115,6 +115,7 @@ export function LancamentosClient() {
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [creating, setCreating] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [period, setPeriod] = useState<PeriodPreset>("this_month");
   const [from, setFrom] = useState(firstDayOfMonth());
@@ -122,9 +123,24 @@ export function LancamentosClient() {
   const [accountId, setAccountId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [owner, setOwner] = useState("");
-  const [type, setType] = useState("");
+  const [type, setType] = useState(searchParams?.get("type") ?? "");
   const [status, setStatus] = useState<"" | TxStatus>("");
   const [q, setQ] = useState("");
+
+  useEffect(() => {
+    const urlType = searchParams?.get("type") ?? "";
+    setType(urlType);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const current = searchParams?.get("type") ?? "";
+    if (current === type) return;
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    if (type) params.set("type", type);
+    else params.delete("type");
+    const qs = params.toString();
+    router.replace(qs ? `/financas/lancamentos?${qs}` : "/financas/lancamentos");
+  }, [type]);
 
   function applyPreset(p: PeriodPreset) {
     setPeriod(p);
@@ -243,9 +259,27 @@ export function LancamentosClient() {
   return (
     <div>
       <PageHeader
-        title="Movimentações"
+        title={
+          type === "EXPENSE"
+            ? "Despesas"
+            : type === "INCOME"
+            ? "Receitas"
+            : type === "INVOICE"
+            ? "Faturas"
+            : type === "TRANSFER"
+            ? "Transferências"
+            : "Movimentações"
+        }
         description={
-          hideBalances
+          type === "EXPENSE"
+            ? "Suas saídas de dinheiro."
+            : type === "INCOME"
+            ? "Suas entradas de dinheiro."
+            : type === "INVOICE"
+            ? "Faturas de cartão de crédito."
+            : type === "TRANSFER"
+            ? "Movimentações entre contas."
+            : hideBalances
             ? "Suas despesas e faturas de cartão."
             : "Receitas, despesas, faturas e transferências."
         }
@@ -565,16 +599,11 @@ function MovementTypeIcon({ type }: { type: Movement["type"] }) {
 }
 
 function MovementStatusBadge({ m, onToggle }: { m: Movement; onToggle: () => void }) {
-  if (m.type === "INCOME" || m.type === "TRANSFER") {
-    return <span className="text-xs text-muted-foreground">—</span>;
-  }
+  if (m.type === "INCOME" || m.type === "TRANSFER") return null;
   const s = m.status;
-  const cls =
-    s === "paid"
-      ? "bg-success/10 text-success border-success/30"
-      : s === "overdue"
-      ? "bg-destructive/10 text-destructive border-destructive/30"
-      : "bg-warning/10 text-warning border-warning/30";
+  const Icon = s === "paid" ? Check : s === "overdue" ? AlertCircle : Clock;
+  const color =
+    s === "paid" ? "text-success" : s === "overdue" ? "text-destructive" : "text-warning";
   const label = s === "paid" ? "Pago" : s === "overdue" ? "Atrasado" : "Pendente";
   return (
     <button
@@ -582,18 +611,19 @@ function MovementStatusBadge({ m, onToggle }: { m: Movement; onToggle: () => voi
         e.stopPropagation();
         onToggle();
       }}
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide border ${cls} hover:opacity-80`}
+      className={`inline-flex items-center justify-center p-1 rounded hover:bg-muted ${color}`}
       title={
         m.kind === "invoice"
           ? s === "paid"
-            ? "Reabrir fatura"
-            : "Ir pra Cartões e pagar"
+            ? `${label} · Clique para reabrir`
+            : `${label} · Clique para pagar em Cartões`
           : s === "paid"
-          ? "Marcar como não-pago"
-          : "Marcar como pago"
+          ? `${label} · Clique para marcar como não-pago`
+          : `${label} · Clique para marcar como pago`
       }
+      aria-label={label}
     >
-      {label}
+      <Icon className="w-4 h-4" />
     </button>
   );
 }

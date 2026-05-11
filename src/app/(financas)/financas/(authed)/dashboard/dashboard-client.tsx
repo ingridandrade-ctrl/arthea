@@ -55,9 +55,7 @@ function shiftMonth(month: string, delta: number): string {
 export function DashboardClient() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [month, setMonth] = useState(thisMonth());
-  const [cardGrouping, setCardGrouping] = useState<"fatura_month" | "purchase_date">(
-    "fatura_month"
-  );
+  const cardGrouping = "fatura_month" as const;
   const [ownerFilter, setOwnerFilter] = useState<"all" | "PARTNER_A" | "PARTNER_B" | "COUPLE">(
     "all"
   );
@@ -121,17 +119,6 @@ export function DashboardClient() {
               { value: "COUPLE", label: "Casal" },
               { value: "PARTNER_A", label: data.household.partnerAName },
               { value: "PARTNER_B", label: data.household.partnerBName },
-            ]}
-          />
-        </FilterGroup>
-
-        <FilterGroup label="Cartão entra no mês">
-          <SegControl
-            value={cardGrouping}
-            onChange={(v) => setCardGrouping(v)}
-            options={[
-              { value: "fatura_month", label: "Da fatura" },
-              { value: "purchase_date", label: "Da compra" },
             ]}
           />
         </FilterGroup>

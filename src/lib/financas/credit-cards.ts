@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
 
 function clampDay(year: number, month: number, day: number): Date {
-  const lastDay = new Date(year, month + 1, 0).getDate();
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
   const d = Math.min(Math.max(day, 1), lastDay);
-  return new Date(year, month, d, 0, 0, 0, 0);
+  return new Date(Date.UTC(year, month, d, 12, 0, 0, 0));
 }
 
 export function invoicePeriodForDate(
@@ -11,11 +11,15 @@ export function invoicePeriodForDate(
   closingDay: number
 ): { year: number; month: number } {
   const d = new Date(date);
-  if (d.getDate() < closingDay) {
-    return { year: d.getFullYear(), month: d.getMonth() };
+  const day = d.getUTCDate();
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth();
+  if (day < closingDay) {
+    return { year, month };
   }
-  const next = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-  return { year: next.getFullYear(), month: next.getMonth() };
+  const nextMonth = month + 1;
+  const nextYear = nextMonth > 11 ? year + 1 : year;
+  return { year: nextYear, month: nextMonth % 12 };
 }
 
 export function computeInvoiceDates(
@@ -24,12 +28,14 @@ export function computeInvoiceDates(
   closingDay: number,
   dueDay: number
 ): { closingDate: Date; dueDate: Date } {
-  const prev = new Date(year, month - 1, 1);
-  const closingDate = clampDay(prev.getFullYear(), prev.getMonth(), closingDay);
+  const prevMonth = month - 1;
+  const prevYear = prevMonth < 0 ? year - 1 : year;
+  const closingDate = clampDay(prevYear, (prevMonth + 12) % 12, closingDay);
   let dueDate = clampDay(year, month, dueDay);
   if (dueDate <= closingDate) {
-    const nx = new Date(year, month + 1, 1);
-    dueDate = clampDay(nx.getFullYear(), nx.getMonth(), dueDay);
+    const nxMonth = month + 1;
+    const nxYear = nxMonth > 11 ? year + 1 : year;
+    dueDate = clampDay(nxYear, nxMonth % 12, dueDay);
   }
   return { closingDate, dueDate };
 }

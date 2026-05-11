@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { parseLocalDate } from "@/lib/financas/dates";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -16,7 +17,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     if (action === "pay") {
       const skipTransfer = body?.skipTransfer === true;
-      const paidAt = body?.paidAt ? new Date(body.paidAt) : new Date();
+      const paidAt = body?.paidAt ? parseLocalDate(body.paidAt) : new Date();
 
       if (skipTransfer) {
         const updated = await prisma.$transaction(async (tx) => {
@@ -92,7 +93,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       if (typeof newDateStr !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(newDateStr)) {
         return NextResponse.json({ error: "Data inválida" }, { status: 400 });
       }
-      const newDate = new Date(newDateStr);
+      const newDate = parseLocalDate(newDateStr);
       const result = await prisma.$transaction(async (tx) => {
         const txUpdate = await tx.finTransaction.updateMany({
           where: { householdId: household.id, invoiceId: inv.id },

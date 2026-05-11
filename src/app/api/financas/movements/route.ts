@@ -74,19 +74,22 @@ export async function GET(req: Request) {
     if (typeFilter && ["INCOME", "EXPENSE", "TRANSFER"].includes(typeFilter)) {
       txWhere.type = typeFilter;
     }
+    const skipTransactions = typeFilter === "INVOICE";
     if (q && q.trim()) {
       txWhere.description = { contains: q.trim(), mode: "insensitive" };
     }
 
-    const transactions = await prisma.finTransaction.findMany({
-      where: txWhere,
-      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
-      include: {
-        account: { select: { id: true, name: true, color: true, type: true } },
-        toAccount: { select: { id: true, name: true, color: true, type: true } },
-        category: { select: { id: true, name: true, color: true, icon: true } },
-      },
-    });
+    const transactions = skipTransactions
+      ? []
+      : await prisma.finTransaction.findMany({
+          where: txWhere,
+          orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+          include: {
+            account: { select: { id: true, name: true, color: true, type: true } },
+            toAccount: { select: { id: true, name: true, color: true, type: true } },
+            category: { select: { id: true, name: true, color: true, icon: true } },
+          },
+        });
 
     const invWhere: any = { householdId: household.id };
     if (fromDate || toDate) {

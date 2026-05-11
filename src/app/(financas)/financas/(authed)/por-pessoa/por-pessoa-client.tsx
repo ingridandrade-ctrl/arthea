@@ -69,9 +69,7 @@ const PERIOD_LABEL: Record<Period, string> = {
 
 export function PorPessoaClient() {
   const [period, setPeriod] = useState<Period>("this_month");
-  const [cardGrouping, setCardGrouping] = useState<"fatura_month" | "purchase_date">(
-    "fatura_month"
-  );
+  const cardGrouping = "fatura_month" as const;
   const [groupBy, setGroupBy] = useState<GroupBy>("category");
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
@@ -126,16 +124,6 @@ export function PorPessoaClient() {
           />
         </FilterGroup>
 
-        <FilterGroup label="Cartão entra no mês">
-          <SegControl
-            value={cardGrouping}
-            onChange={(v) => setCardGrouping(v)}
-            options={[
-              { value: "fatura_month", label: "Da fatura" },
-              { value: "purchase_date", label: "Da compra" },
-            ]}
-          />
-        </FilterGroup>
       </FilterBar>
 
       {loading || !data ? (

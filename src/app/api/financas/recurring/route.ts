@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 import { runRecurringForHousehold } from "@/lib/financas/recurring";
+import { parseLocalDate } from "@/lib/financas/dates";
 
 const VALID_TYPES = ["INCOME", "EXPENSE", "TRANSFER"];
 const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
@@ -81,8 +82,8 @@ export async function POST(req: Request) {
         dayOfMonth: typeof dayOfMonth === "number" ? dayOfMonth : null,
         dayOfWeek: typeof dayOfWeek === "number" ? dayOfWeek : null,
         monthOfYear: typeof monthOfYear === "number" ? monthOfYear : null,
-        startDate: new Date(startDate),
-        endDate: endDate ? new Date(endDate) : null,
+        startDate: parseLocalDate(startDate),
+        endDate: endDate ? parseLocalDate(endDate) : null,
       },
     });
 

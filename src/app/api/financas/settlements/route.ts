@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 import { computeCoupleBalance } from "@/lib/financas/couple";
+import { parseLocalDate } from "@/lib/financas/dates";
 
 export async function GET(req: Request) {
   try {
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
         amount,
         fromOwner,
         toOwner,
-        date: new Date(date),
+        date: parseLocalDate(date),
         notes: typeof notes === "string" ? notes : null,
         periodStart: periodStart ? new Date(periodStart) : null,
         periodEnd: periodEnd ? new Date(periodEnd) : null,
