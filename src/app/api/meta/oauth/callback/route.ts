@@ -9,7 +9,7 @@ import {
   META_OAUTH_SCOPES,
 } from "@/lib/meta/api";
 
-const CONFIG_URL = "/configuracoes/meta";
+const CONFIG_URL = "/meta";
 
 function redirectWith(reason: string, request: NextRequest) {
   const url = new URL(CONFIG_URL, request.url);
