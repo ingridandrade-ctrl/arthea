@@ -22,13 +22,21 @@ type RecurringRule = {
   active: boolean;
 };
 
-function dayOnly(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+function clampDay(year: number, month: number, day: number): Date {
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(year, month, Math.min(Math.max(day, 1), lastDay), 12, 0, 0, 0));
 }
 
-function clampDay(year: number, month: number, day: number): Date {
-  const lastDay = new Date(year, month + 1, 0).getDate();
-  return new Date(year, month, Math.min(Math.max(day, 1), lastDay), 0, 0, 0, 0);
+function startOfMonthUTC(d: Date): Date {
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1, 12, 0, 0, 0));
+}
+
+function addMonthsUTC(d: Date, months: number): Date {
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + months, 1, 12, 0, 0, 0));
+}
+
+function addDaysUTC(d: Date, days: number): Date {
+  return new Date(d.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
 export function nextOccurrencesUntil(rule: RecurringRule, until: Date): Date[] {
@@ -41,31 +49,30 @@ export function nextOccurrencesUntil(rule: RecurringRule, until: Date): Date[] {
   const occurrences: Date[] = [];
 
   if (rule.frequency === "MONTHLY") {
-    const day = rule.dayOfMonth ?? rule.startDate.getDate();
-    let cursor = new Date(start.getFullYear(), start.getMonth(), 1);
-    if (cursor < new Date(rule.startDate.getFullYear(), rule.startDate.getMonth(), 1)) {
-      cursor = new Date(rule.startDate.getFullYear(), rule.startDate.getMonth(), 1);
-    }
+    const day = rule.dayOfMonth ?? rule.startDate.getUTCDate();
+    let cursor = startOfMonthUTC(start);
+    const ruleMonthStart = startOfMonthUTC(rule.startDate);
+    if (cursor < ruleMonthStart) cursor = ruleMonthStart;
     while (cursor <= limit) {
-      const candidate = clampDay(cursor.getFullYear(), cursor.getMonth(), day);
+      const candidate = clampDay(cursor.getUTCFullYear(), cursor.getUTCMonth(), day);
       if (candidate >= rule.startDate && candidate >= start && candidate <= limit) {
         occurrences.push(candidate);
       }
-      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+      cursor = addMonthsUTC(cursor, 1);
     }
   } else if (rule.frequency === "WEEKLY") {
-    const dow = rule.dayOfWeek ?? rule.startDate.getDay();
-    let cursor = dayOnly(start);
+    const dow = rule.dayOfWeek ?? rule.startDate.getUTCDay();
+    let cursor = clampDay(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate());
     while (cursor <= limit) {
-      if (cursor.getDay() === dow && cursor >= rule.startDate) {
-        occurrences.push(new Date(cursor));
+      if (cursor.getUTCDay() === dow && cursor >= rule.startDate && cursor >= start) {
+        occurrences.push(cursor);
       }
-      cursor.setDate(cursor.getDate() + 1);
+      cursor = addDaysUTC(cursor, 1);
     }
   } else if (rule.frequency === "YEARLY") {
-    const month = (rule.monthOfYear ?? rule.startDate.getMonth() + 1) - 1;
-    const day = rule.dayOfMonth ?? rule.startDate.getDate();
-    let year = start.getFullYear();
+    const month = (rule.monthOfYear ?? rule.startDate.getUTCMonth() + 1) - 1;
+    const day = rule.dayOfMonth ?? rule.startDate.getUTCDate();
+    let year = start.getUTCFullYear();
     while (true) {
       const candidate = clampDay(year, month, day);
       if (candidate > limit) break;
@@ -79,7 +86,12 @@ export function nextOccurrencesUntil(rule: RecurringRule, until: Date): Date[] {
   return occurrences;
 }
 
-export async function runRecurringForHousehold(householdId: string, until: Date = new Date()) {
+function endOfTodayUTC(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
+}
+
+export async function runRecurringForHousehold(householdId: string, until: Date = endOfTodayUTC()) {
   const rules = await prisma.finRecurringRule.findMany({
     where: { householdId, active: true },
     include: {

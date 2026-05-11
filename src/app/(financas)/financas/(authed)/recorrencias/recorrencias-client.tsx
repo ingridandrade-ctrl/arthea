@@ -288,7 +288,7 @@ function RuleModal({
     const payload: any = {
       name,
       amount: numericAmount,
-      description,
+      description: description || name,
       owner,
       dayOfMonth: frequency !== "WEEKLY" ? parseInt(dayOfMonth, 10) : null,
       dayOfWeek: frequency === "WEEKLY" ? parseInt(dayOfWeek, 10) : null,
@@ -441,16 +441,6 @@ function RuleModal({
             </div>
           </div>
         )}
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Descrição (que vai no lançamento)</label>
-          <input
-            required
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background"
-          />
-        </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">Conta</label>

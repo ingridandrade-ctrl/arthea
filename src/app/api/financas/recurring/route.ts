@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     if (typeof name !== "string" || !name.trim()) return NextResponse.json({ error: "Nome obrigatório" }, { status: 400 });
     if (!VALID_TYPES.includes(type)) return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
     if (typeof amount !== "number" || amount <= 0) return NextResponse.json({ error: "Valor inválido" }, { status: 400 });
-    if (typeof description !== "string" || !description.trim()) return NextResponse.json({ error: "Descrição obrigatória" }, { status: 400 });
+    const finalDescription = typeof description === "string" && description.trim() ? description.trim() : name.trim();
     if (!startDate) return NextResponse.json({ error: "Data inicial obrigatória" }, { status: 400 });
     if (!VALID_FREQ.includes(frequency)) return NextResponse.json({ error: "Frequência inválida" }, { status: 400 });
 
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
         name: name.trim(),
         type,
         amount,
-        description: description.trim(),
+        description: finalDescription,
         notes: typeof notes === "string" ? notes : null,
         owner: VALID_OWNERS.includes(owner) ? owner : "COUPLE",
         accountId,

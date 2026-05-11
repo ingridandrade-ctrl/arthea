@@ -66,8 +66,8 @@ export function ContasClient() {
   return (
     <div>
       <PageHeader
-        title="Contas e cartões"
-        description="Cada conta corrente, poupança, cartão de crédito ou carteira de dinheiro vira uma 'conta' aqui — é onde seus lançamentos saem ou caem. Cartão de crédito vira faturas automaticamente."
+        title="Contas"
+        description="Conta corrente, poupança, dinheiro em espécie ou investimentos — onde seu dinheiro fica. Cartões de crédito ficam separados em Cartões de Crédito."
         actions={
           <button
             onClick={() => setCreating(true)}
@@ -90,8 +90,8 @@ export function ContasClient() {
             meu Nubank corrente"
           </li>
           <li>
-            <strong>Cartão de crédito</strong> — gera faturas mensais automaticamente. Os
-            gastos não saem da conta corrente até você marcar a fatura como paga
+            <strong>Cartões de crédito</strong> — ficam em outra aba (Cartões de Crédito), porque
+            funcionam diferente (geram faturas)
           </li>
           <li>
             <strong>Dinheiro / vale-alimentação / investimentos</strong> — qualquer carteira
@@ -308,7 +308,7 @@ function AccountModal({
             onChange={(e) => setType(e.target.value as any)}
             className="w-full px-3 py-2 rounded-lg border border-border bg-background"
           >
-            {ACCOUNT_TYPES.map((t) => (
+            {ACCOUNT_TYPES.filter((t) => account || t !== "CREDIT_CARD").map((t) => (
               <option key={t} value={t}>
                 {ACCOUNT_TYPE_LABEL[t]}
               </option>

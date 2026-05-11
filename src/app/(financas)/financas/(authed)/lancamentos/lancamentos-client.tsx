@@ -261,11 +261,11 @@ export function LancamentosClient() {
       <PageHeader
         title={
           type === "EXPENSE"
-            ? "Despesas"
+            ? "Despesas Gerais"
             : type === "INCOME"
             ? "Receitas"
             : type === "INVOICE"
-            ? "Faturas"
+            ? "Faturas de Cartões"
             : type === "TRANSFER"
             ? "Transferências"
             : "Movimentações"
