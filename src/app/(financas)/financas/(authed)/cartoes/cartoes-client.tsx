@@ -294,6 +294,7 @@ export function CartoesClient() {
 
       {creating && (
         <NewCardModal
+          settings={settings}
           onClose={() => setCreating(false)}
           onCreated={() => {
             setCreating(false);
@@ -1157,9 +1158,11 @@ function ImportInvoiceModal({
 
 
 function NewCardModal({
+  settings,
   onClose,
   onCreated,
 }: {
+  settings: Settings | null;
   onClose: () => void;
   onCreated: () => void;
 }) {
@@ -1169,6 +1172,7 @@ function NewCardModal({
   const [closingDay, setClosingDay] = useState("");
   const [dueDay, setDueDay] = useState("");
   const [initialBalance, setInitialBalance] = useState("0");
+  const [owner, setOwner] = useState<"PARTNER_A" | "PARTNER_B" | "COUPLE">("COUPLE");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -1197,6 +1201,7 @@ function NewCardModal({
         creditLimit: creditLimit ? parseFloat(creditLimit.replace(",", ".")) : null,
         closingDay: parseInt(closingDay, 10),
         dueDay: parseInt(dueDay, 10),
+        owner,
       }),
     });
     setSaving(false);
@@ -1220,6 +1225,30 @@ function NewCardModal({
             placeholder="Ex: Itaú Platinum"
             className="w-full px-3 py-2 rounded-lg border border-border bg-background"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Dono do cartão</label>
+          <div className="grid grid-cols-3 gap-2">
+            {(["PARTNER_A", "PARTNER_B", "COUPLE"] as const).map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => setOwner(o)}
+                className={`px-3 py-2 rounded-lg border text-sm ${
+                  owner === o
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border hover:bg-muted"
+                }`}
+              >
+                {o === "PARTNER_A"
+                  ? settings?.partnerAName ?? "Você"
+                  : o === "PARTNER_B"
+                  ? settings?.partnerBName ?? "Parceiro"
+                  : "Casal"}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div>

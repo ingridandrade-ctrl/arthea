@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 
 const VALID_TYPES = ["CHECKING", "SAVINGS", "CASH", "CREDIT_CARD", "INVESTMENT", "OTHER"];
+const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
 
 async function loadOwned(id: string, householdId: string) {
   return prisma.finAccount.findFirst({ where: { id, householdId } });
@@ -25,6 +26,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (typeof body.creditLimit === "number" || body.creditLimit === null) data.creditLimit = body.creditLimit;
     if (typeof body.closingDay === "number" || body.closingDay === null) data.closingDay = body.closingDay;
     if (typeof body.dueDay === "number" || body.dueDay === null) data.dueDay = body.dueDay;
+    if (typeof body.owner === "string" && VALID_OWNERS.includes(body.owner)) data.owner = body.owner;
 
     const updated = await prisma.finAccount.update({ where: { id: params.id }, data });
     return NextResponse.json(updated);

@@ -102,48 +102,11 @@ export function PorPessoaClient() {
         description="Quanto cada um gastou: próprios + sua parte das despesas do casal."
       />
 
-      <FilterBar>
-        <FilterGroup label="Período">
-          <SegControl
-            value={period}
-            onChange={(v) => setPeriod(v as Period)}
-            options={(Object.keys(PERIOD_LABEL) as Period[]).map((p) => ({
-              value: p,
-              label: PERIOD_LABEL[p],
-            }))}
-          />
-        </FilterGroup>
-
-        <FilterGroup label="Agrupar por">
-          <SegControl
-            value={groupBy}
-            onChange={(v) => setGroupBy(v)}
-            options={[
-              { value: "category", label: "Categoria", icon: <Tag className="w-3.5 h-3.5" /> },
-              { value: "account", label: "Origem", icon: <CreditCard className="w-3.5 h-3.5" /> },
-            ]}
-          />
-        </FilterGroup>
-
-      </FilterBar>
-
       {loading || !data ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
       ) : (
         <>
-          <div className="bg-card border border-border rounded-xl p-5 mb-4">
-            <div className="flex items-baseline justify-between mb-3">
-              <h2 className="text-sm font-semibold">
-                {data.partnerAName} vs {data.partnerBName}
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Comparativo por {groupBy === "category" ? "categoria" : "origem"}
-              </p>
-            </div>
-            <ComparisonChart data={data} groupBy={groupBy} />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
             <PersonCard
               name={data.partnerAName}
               person={data.partnerA}
@@ -156,6 +119,42 @@ export function PorPessoaClient() {
               groupBy={groupBy}
               accentColor="#0ea5e9"
             />
+          </div>
+
+          <FilterBar>
+            <FilterGroup label="Período">
+              <SegControl
+                value={period}
+                onChange={(v) => setPeriod(v as Period)}
+                options={(Object.keys(PERIOD_LABEL) as Period[]).map((p) => ({
+                  value: p,
+                  label: PERIOD_LABEL[p],
+                }))}
+              />
+            </FilterGroup>
+
+            <FilterGroup label="Agrupar por">
+              <SegControl
+                value={groupBy}
+                onChange={(v) => setGroupBy(v)}
+                options={[
+                  { value: "category", label: "Categoria", icon: <Tag className="w-3.5 h-3.5" /> },
+                  { value: "account", label: "Origem", icon: <CreditCard className="w-3.5 h-3.5" /> },
+                ]}
+              />
+            </FilterGroup>
+          </FilterBar>
+
+          <div className="bg-card border border-border rounded-xl p-5">
+            <div className="flex items-baseline justify-between mb-3">
+              <h2 className="text-sm font-semibold">
+                {data.partnerAName} vs {data.partnerBName}
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Comparativo por {groupBy === "category" ? "categoria" : "origem"}
+              </p>
+            </div>
+            <ComparisonChart data={data} groupBy={groupBy} />
           </div>
         </>
       )}

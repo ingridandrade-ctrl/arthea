@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/financas/page-header";
 import { formatCurrency } from "@/lib/utils";
 import { ACCOUNT_TYPE_LABEL } from "@/lib/financas/defaults";
 
+type Owner = "PARTNER_A" | "PARTNER_B" | "COUPLE";
+
 type Account = {
   id: string;
   name: string;
@@ -18,6 +20,7 @@ type Account = {
   creditLimit: number | null;
   closingDay: number | null;
   dueDay: number | null;
+  owner: Owner;
 };
 
 const ACCOUNT_TYPES = Object.keys(ACCOUNT_TYPE_LABEL) as (keyof typeof ACCOUNT_TYPE_LABEL)[];
@@ -27,17 +30,24 @@ const COLORS = [
   "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#737373",
 ];
 
+type SettingsLite = { partnerAName: string; partnerBName: string };
+
 export function ContasClient() {
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [settings, setSettings] = useState<SettingsLite | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Account | null>(null);
   const [creating, setCreating] = useState(false);
 
   async function load() {
     setLoading(true);
-    const res = await fetch("/api/financas/accounts");
-    const data = await res.json();
+    const [resA, resS] = await Promise.all([
+      fetch("/api/financas/accounts"),
+      fetch("/api/financas/settings"),
+    ]);
+    const data = await resA.json();
     setAccounts(Array.isArray(data) ? data : []);
+    setSettings(await resS.json());
     setLoading(false);
   }
 
@@ -113,16 +123,35 @@ export function ContasClient() {
           <p className="text-sm text-muted-foreground">Nenhuma conta ainda.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {active.map((a) => (
-            <AccountCard
-              key={a.id}
-              account={a}
-              onEdit={() => setEditing(a)}
-              onArchive={() => toggleArchive(a)}
-              onDelete={() => remove(a.id)}
-            />
-          ))}
+        <div className="space-y-6">
+          {(["PARTNER_A", "PARTNER_B", "COUPLE"] as Owner[]).map((o) => {
+            const group = active.filter((a) => a.owner === o);
+            if (group.length === 0) return null;
+            const label =
+              o === "PARTNER_A"
+                ? settings?.partnerAName ?? "Você"
+                : o === "PARTNER_B"
+                ? settings?.partnerBName ?? "Parceiro"
+                : "Casal (compartilhadas)";
+            return (
+              <div key={o}>
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  {label}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {group.map((a) => (
+                    <AccountCard
+                      key={a.id}
+                      account={a}
+                      onEdit={() => setEditing(a)}
+                      onArchive={() => toggleArchive(a)}
+                      onDelete={() => remove(a.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -147,6 +176,7 @@ export function ContasClient() {
 
       {creating && (
         <AccountModal
+          settings={settings}
           onClose={() => setCreating(false)}
           onSaved={() => {
             setCreating(false);
@@ -156,6 +186,7 @@ export function ContasClient() {
       )}
       {editing && (
         <AccountModal
+          settings={settings}
           account={editing}
           onClose={() => setEditing(null)}
           onSaved={() => {
@@ -238,13 +269,21 @@ function AccountCard({
 
 function AccountModal({
   account,
+  settings,
   onClose,
   onSaved,
 }: {
   account?: Account;
+  settings: SettingsLite | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const ownerLabel = (o: Owner) =>
+    o === "PARTNER_A"
+      ? settings?.partnerAName ?? "Você"
+      : o === "PARTNER_B"
+      ? settings?.partnerBName ?? "Parceiro"
+      : "Casal";
   const [name, setName] = useState(account?.name || "");
   const [type, setType] = useState<keyof typeof ACCOUNT_TYPE_LABEL>(account?.type || "CHECKING");
   const [initialBalance, setInitialBalance] = useState(
@@ -254,6 +293,7 @@ function AccountModal({
   const [creditLimit, setCreditLimit] = useState(account?.creditLimit?.toString() ?? "");
   const [closingDay, setClosingDay] = useState(account?.closingDay?.toString() ?? "");
   const [dueDay, setDueDay] = useState(account?.dueDay?.toString() ?? "");
+  const [owner, setOwner] = useState<Owner>(account?.owner || "COUPLE");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -264,7 +304,7 @@ function AccountModal({
     const url = account
       ? `/api/financas/accounts/${account.id}`
       : "/api/financas/accounts";
-    const payload: any = { name, type, initialBalance, color };
+    const payload: any = { name, type, initialBalance, color, owner };
     if (type === "CREDIT_CARD") {
       payload.creditLimit = creditLimit ? parseFloat(creditLimit) : null;
       payload.closingDay = closingDay ? parseInt(closingDay, 10) : null;
@@ -314,6 +354,28 @@ function AccountModal({
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Dono</label>
+          <div className="grid grid-cols-3 gap-2">
+            {(["PARTNER_A", "PARTNER_B", "COUPLE"] as const).map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => setOwner(o)}
+                className={`px-3 py-2 rounded-lg border text-sm ${
+                  owner === o
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border hover:bg-muted"
+                }`}
+              >
+                {ownerLabel(o)}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Quem é dono dessa conta. Despesas dessa pessoa vão sugerir essa conta automaticamente.
+          </p>
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">

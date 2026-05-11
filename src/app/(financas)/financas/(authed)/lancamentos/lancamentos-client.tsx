@@ -49,7 +49,7 @@ function presetRange(p: PeriodPreset): { from: string; to: string } {
   return { from: "", to: "" };
 }
 
-type Account = { id: string; name: string; color: string; type: string; archived?: boolean };
+type Account = { id: string; name: string; color: string; type: string; archived?: boolean; owner?: "PARTNER_A" | "PARTNER_B" | "COUPLE" };
 type Category = {
   id: string;
   name: string;
@@ -703,9 +703,26 @@ function TransactionModal({
   const [splitPercentA, setSplitPercentA] = useState(
     typeof transaction?.splitRatio === "number" ? Math.round(transaction.splitRatio * 100) : 50
   );
-  const [accountId, setAccountId] = useState(
-    transaction?.account.id || accounts.find((a) => !a.archived)?.id || ""
-  );
+  const [accountId, setAccountId] = useState(() => {
+    if (transaction?.account.id) return transaction.account.id;
+    const preferred = accounts.find(
+      (a) =>
+        !a.archived &&
+        a.type !== "CREDIT_CARD" &&
+        a.owner === (transaction?.owner || "COUPLE")
+    );
+    return preferred?.id || accounts.find((a) => !a.archived)?.id || "";
+  });
+
+  useEffect(() => {
+    if (transaction) return;
+    const current = accounts.find((a) => a.id === accountId);
+    if (current && (current.owner === owner || current.owner === "COUPLE")) return;
+    const next = accounts.find(
+      (a) => !a.archived && a.type !== "CREDIT_CARD" && a.owner === owner
+    );
+    if (next) setAccountId(next.id);
+  }, [owner, accounts, transaction]);
   const [toAccountId, setToAccountId] = useState(
     transaction?.toAccount?.id || ""
   );
@@ -834,11 +851,20 @@ function TransactionModal({
             onChange={(e) => setAccountId(e.target.value)}
             className="w-full px-3 py-2 rounded-lg border border-border bg-background"
           >
-            {accounts.filter((a) => !a.archived).map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
+            {[...accounts.filter((a) => !a.archived)]
+              .sort((a, b) => {
+                const aMatch = a.owner === owner ? 0 : a.owner === "COUPLE" ? 1 : 2;
+                const bMatch = b.owner === owner ? 0 : b.owner === "COUPLE" ? 1 : 2;
+                return aMatch - bMatch;
+              })
+              .map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                  {a.owner && a.owner !== owner && a.owner !== "COUPLE"
+                    ? ` (de outro)`
+                    : ""}
+                </option>
+              ))}
           </select>
         </div>
 
