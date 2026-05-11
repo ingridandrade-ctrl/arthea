@@ -75,6 +75,7 @@ export function OrcamentoClient() {
 
   const totalPlanned = items.reduce((s, i) => s + i.planned, 0);
   const totalActual = items.reduce((s, i) => s + i.actual, 0);
+  const overBudgetItems = items.filter((i) => i.planned > 0 && i.actual > i.planned);
 
   return (
     <div>
@@ -125,6 +126,43 @@ export function OrcamentoClient() {
             value={totalPlanned - totalActual}
             tone={totalPlanned - totalActual >= 0 ? "good" : "bad"}
           />
+        </div>
+      )}
+
+      {!defaultMode && overBudgetItems.length > 0 && (
+        <div className="mb-4 bg-destructive/5 border border-destructive/30 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+              <span className="text-destructive font-bold">!</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold mb-1">
+                {overBudgetItems.length === 1
+                  ? "1 categoria estourou o orçamento"
+                  : `${overBudgetItems.length} categorias estouraram o orçamento`}
+              </p>
+              <ul className="flex flex-wrap gap-1.5 text-xs">
+                {overBudgetItems.map((b) => {
+                  const over = b.actual - b.planned;
+                  return (
+                    <li
+                      key={b.categoryId}
+                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-card border border-destructive/30"
+                    >
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ backgroundColor: b.categoryColor }}
+                      />
+                      <span>{b.categoryName}</span>
+                      <span className="text-destructive tabular-nums font-medium">
+                        +{formatCurrency(over)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
         </div>
       )}
 

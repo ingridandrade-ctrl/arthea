@@ -5,6 +5,7 @@ import { User, Users, Wallet, CreditCard, Tag } from "lucide-react";
 import { PageHeader } from "@/components/financas/page-header";
 import { FilterBar, FilterGroup, SegControl } from "@/components/financas/filters";
 import { formatCurrency } from "@/lib/utils";
+import { GroupedBars } from "@/components/financas/charts";
 
 type CategoryAgg = {
   id: string | null;
@@ -129,12 +130,78 @@ export function PorPessoaClient() {
       {loading || !data ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
       ) : (
-        <div className="grid md:grid-cols-2 gap-4">
-          <PersonCard name={data.partnerAName} person={data.partnerA} groupBy={groupBy} />
-          <PersonCard name={data.partnerBName} person={data.partnerB} groupBy={groupBy} />
-        </div>
+        <>
+          <div className="bg-card border border-border rounded-xl p-5 mb-4">
+            <div className="flex items-baseline justify-between mb-3">
+              <h2 className="text-sm font-semibold">
+                {data.partnerAName} vs {data.partnerBName}
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Comparativo por {groupBy === "category" ? "categoria" : "origem"}
+              </p>
+            </div>
+            <ComparisonChart data={data} groupBy={groupBy} />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <PersonCard name={data.partnerAName} person={data.partnerA} groupBy={groupBy} />
+            <PersonCard name={data.partnerBName} person={data.partnerB} groupBy={groupBy} />
+          </div>
+        </>
       )}
     </div>
+  );
+}
+
+function ComparisonChart({
+  data,
+  groupBy,
+}: {
+  data: Data;
+  groupBy: GroupBy;
+}) {
+  const aggregate = (bucket: Bucket) =>
+    groupBy === "category"
+      ? bucket.byCategory.map((c) => ({ key: c.id ?? "__none__", label: c.name, amount: c.amount }))
+      : bucket.byAccount.map((a) => ({ key: a.id, label: a.name, amount: a.amount }));
+
+  const aA = new Map<string, { label: string; amount: number }>();
+  for (const it of [...aggregate(data.partnerA.own), ...aggregate(data.partnerA.couple)]) {
+    const prev = aA.get(it.key);
+    aA.set(it.key, { label: it.label, amount: (prev?.amount ?? 0) + it.amount });
+  }
+  const aB = new Map<string, { label: string; amount: number }>();
+  for (const it of [...aggregate(data.partnerB.own), ...aggregate(data.partnerB.couple)]) {
+    const prev = aB.get(it.key);
+    aB.set(it.key, { label: it.label, amount: (prev?.amount ?? 0) + it.amount });
+  }
+
+  const keys = new Set<string>([...aA.keys(), ...aB.keys()]);
+  const rows = Array.from(keys).map((k) => ({
+    key: k,
+    label: aA.get(k)?.label ?? aB.get(k)?.label ?? "—",
+    [data.partnerAName]: aA.get(k)?.amount ?? 0,
+    [data.partnerBName]: aB.get(k)?.amount ?? 0,
+    _total: (aA.get(k)?.amount ?? 0) + (aB.get(k)?.amount ?? 0),
+  }));
+
+  rows.sort((x, y) => y._total - x._total);
+  const top = rows.slice(0, 8);
+
+  if (top.length === 0) {
+    return <p className="text-sm text-muted-foreground py-6 text-center">Sem dados no período.</p>;
+  }
+
+  return (
+    <GroupedBars
+      data={top}
+      series={[
+        { key: data.partnerAName, name: data.partnerAName, color: "var(--color-primary)" },
+        { key: data.partnerBName, name: data.partnerBName, color: "#94a3b8" },
+      ]}
+      layout="horizontal"
+      height={Math.max(220, top.length * 36 + 60)}
+    />
   );
 }
 

@@ -19,11 +19,14 @@ import {
 } from "@/components/financas/filters";
 import { formatCurrency } from "@/lib/utils";
 import { ACCOUNT_TYPE_LABEL } from "@/lib/financas/defaults";
+import { CategoryDonut, IncomeExpenseLine, Sparkline, PercentChange } from "@/components/financas/charts";
 
 type DashboardData = {
   household: { partnerAName: string; partnerBName: string; currency: string; hideBalances: boolean };
   period: { year: number; month: number; label: string };
   totals: { balance: number; income: number; expense: number; net: number };
+  previous: { income: number; expense: number; net: number };
+  dailyExpense: { day: string; amount: number }[];
   accounts: {
     id: string;
     name: string;
@@ -86,11 +89,6 @@ export function DashboardClient() {
   const totalExpenseInCategories = data.expensesByCategory.reduce(
     (acc, c) => acc + c.amount,
     0
-  );
-
-  const maxBar = Math.max(
-    ...data.monthlySeries.flatMap((m) => [m.income, m.expense]),
-    1
   );
 
   return (
@@ -172,6 +170,7 @@ export function DashboardClient() {
             label="Receitas do mês"
             value={data.totals.income}
             tone="positive"
+            previous={data.previous?.income}
           />
         )}
         <KpiCard
@@ -179,6 +178,10 @@ export function DashboardClient() {
           label="Despesas do mês"
           value={data.totals.expense}
           tone="negative"
+          previous={data.previous?.expense}
+          invertChangeColors
+          sparkData={data.dailyExpense}
+          sparkColor="var(--color-destructive)"
         />
         {!data.household.hideBalances && (
           <KpiCard
@@ -186,6 +189,7 @@ export function DashboardClient() {
             label="Resultado do mês"
             value={data.totals.net}
             tone={data.totals.net >= 0 ? "positive" : "negative"}
+            previous={data.previous?.net}
           />
         )}
       </div>
@@ -193,36 +197,10 @@ export function DashboardClient() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <div className="lg:col-span-2 bg-card border border-border rounded-xl p-5">
           <h2 className="text-sm font-semibold mb-4">Últimos 6 meses</h2>
-          {data.monthlySeries.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sem dados.</p>
-          ) : (
-            <div className="space-y-3">
-              {data.monthlySeries.map((m) => (
-                <div key={m.month}>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">
-                      {monthLabel(m.month)}
-                    </span>
-                    <span className="tabular-nums">
-                      <span className="text-success">{formatCurrency(m.income)}</span>
-                      {"  /  "}
-                      <span className="text-destructive">{formatCurrency(m.expense)}</span>
-                    </span>
-                  </div>
-                  <div className="flex gap-1 h-3">
-                    <div
-                      className="bg-success rounded-sm"
-                      style={{ width: `${(m.income / maxBar) * 100}%` }}
-                    />
-                    <div
-                      className="bg-destructive rounded-sm"
-                      style={{ width: `${(m.expense / maxBar) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <IncomeExpenseLine
+            data={data.monthlySeries}
+            hideIncome={data.household.hideBalances}
+          />
         </div>
 
         <div className="bg-card border border-border rounded-xl p-5">
@@ -256,39 +234,38 @@ export function DashboardClient() {
               Nenhuma despesa neste mês.
             </p>
           ) : (
-            <div className="space-y-2.5">
-              {data.expensesByCategory.slice(0, 8).map((c) => {
-                const pct =
-                  totalExpenseInCategories > 0
-                    ? (c.amount / totalExpenseInCategories) * 100
-                    : 0;
-                return (
-                  <div key={c.categoryId || "none"}>
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="flex items-center gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+              <CategoryDonut
+                data={data.expensesByCategory.map((c) => ({
+                  name: c.name,
+                  amount: c.amount,
+                  color: c.color,
+                }))}
+                size={200}
+              />
+              <ul className="space-y-1.5 text-xs">
+                {data.expensesByCategory.slice(0, 8).map((c) => {
+                  const pct =
+                    totalExpenseInCategories > 0
+                      ? (c.amount / totalExpenseInCategories) * 100
+                      : 0;
+                  return (
+                    <li key={c.categoryId || "none"} className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-2 min-w-0">
                         <span
-                          className="w-2.5 h-2.5 rounded-full"
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
                           style={{ backgroundColor: c.color }}
                         />
-                        {c.name}
+                        <span className="truncate">{c.name}</span>
                       </span>
-                      <span className="tabular-nums text-muted-foreground">
+                      <span className="tabular-nums shrink-0">
                         {formatCurrency(c.amount)}{" "}
-                        <span className="text-xs">({pct.toFixed(0)}%)</span>
+                        <span className="text-muted-foreground">({pct.toFixed(0)}%)</span>
                       </span>
-                    </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${pct}%`,
-                          backgroundColor: c.color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
         </div>
@@ -348,11 +325,19 @@ function KpiCard({
   label,
   value,
   tone,
+  previous,
+  invertChangeColors,
+  sparkData,
+  sparkColor,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number;
   tone: "positive" | "negative" | "neutral";
+  previous?: number;
+  invertChangeColors?: boolean;
+  sparkData?: { day: string; amount: number }[];
+  sparkColor?: string;
 }) {
   const color =
     tone === "positive"
@@ -366,9 +351,19 @@ function KpiCard({
         <p className="text-xs text-muted-foreground">{label}</p>
         <span className="text-muted-foreground">{icon}</span>
       </div>
-      <p className={`text-2xl font-bold tabular-nums ${color}`}>
-        {formatCurrency(value)}
-      </p>
+      <div className="flex items-baseline gap-2">
+        <p className={`text-2xl font-bold tabular-nums ${color}`}>
+          {formatCurrency(value)}
+        </p>
+        {previous !== undefined && (
+          <PercentChange current={value} previous={previous} invertColors={invertChangeColors} />
+        )}
+      </div>
+      {sparkData && sparkData.length > 0 && (
+        <div className="mt-2 -mx-1">
+          <Sparkline data={sparkData} color={sparkColor} height={36} />
+        </div>
+      )}
     </div>
   );
 }
@@ -403,8 +398,3 @@ function OwnerRow({
   );
 }
 
-function monthLabel(yyyymm: string): string {
-  const [y, m] = yyyymm.split("-").map(Number);
-  const d = new Date(y, m - 1, 1);
-  return d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
-}
