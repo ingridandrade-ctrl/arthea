@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
   }
 
   const accounts = await prisma.metaAdAccount.findMany({
-    where: { connection: { userId, status: "ACTIVE" } },
+    where: { connection: { userId, status: "ACTIVE" }, hidden: false },
     include: {
       connection: { select: { accessToken: true, status: true } },
       clientProject: { select: { id: true, name: true } },
