@@ -1,7 +1,44 @@
 import axios, { AxiosInstance } from "axios";
+import crypto from "crypto";
 
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v21.0";
 const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_VERSION}`;
+const STATE_TTL_MS = 10 * 60 * 1000;
+
+export function buildSignedState(): string {
+  const secret = process.env.META_APP_SECRET;
+  if (!secret) throw new Error("META_APP_SECRET nao configurado");
+  const nonce = crypto.randomBytes(16).toString("hex");
+  const ts = Date.now().toString();
+  const sig = crypto
+    .createHmac("sha256", secret)
+    .update(`${nonce}.${ts}`)
+    .digest("hex")
+    .slice(0, 24);
+  return `${nonce}.${ts}.${sig}`;
+}
+
+export function verifySignedState(state: string | null | undefined): boolean {
+  if (!state) return false;
+  const secret = process.env.META_APP_SECRET;
+  if (!secret) return false;
+  const parts = state.split(".");
+  if (parts.length !== 3) return false;
+  const [nonce, ts, sig] = parts;
+  const tsNum = Number(ts);
+  if (!Number.isFinite(tsNum)) return false;
+  if (Date.now() - tsNum > STATE_TTL_MS) return false;
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(`${nonce}.${ts}`)
+    .digest("hex")
+    .slice(0, 24);
+  try {
+    return crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+  } catch {
+    return false;
+  }
+}
 
 export const META_OAUTH_SCOPES = [
   "ads_management",

@@ -7,6 +7,7 @@ import {
   exchangeForLongLivedToken,
   getMeProfile,
   META_OAUTH_SCOPES,
+  verifySignedState,
 } from "@/lib/meta/api";
 
 const CONFIG_URL = "/meta";
@@ -32,8 +33,7 @@ export async function GET(request: NextRequest) {
 
   const code = search.get("code");
   const state = search.get("state");
-  const cookieState = request.cookies.get("meta_oauth_state")?.value;
-  if (!code || !state || !cookieState || state !== cookieState) {
+  if (!code || !verifySignedState(state)) {
     return redirectWith("invalid_state", request);
   }
 
@@ -64,9 +64,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const response = redirectWith("connected", request);
-    response.cookies.delete("meta_oauth_state");
-    return response;
+    return redirectWith("connected", request);
   } catch (err: any) {
     console.error("Meta OAuth callback failed:", err?.response?.data || err.message);
     return redirectWith("error", request);
