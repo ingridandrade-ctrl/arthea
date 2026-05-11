@@ -58,7 +58,7 @@ export function CasalClient() {
     const [s, d, dashRes] = await Promise.all([
       fetch("/api/financas/settings").then((r) => r.json()),
       fetch("/api/financas/settlements").then((r) => r.json()),
-      fetch("/api/financas/dashboard").then((r) => r.json()),
+      fetch("/api/financas/dashboard?owner=COUPLE").then((r) => r.json()),
     ]);
     setSettings(s);
     setSettlements(d.settlements || []);
