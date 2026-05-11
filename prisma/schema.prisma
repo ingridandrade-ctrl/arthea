@@ -86,6 +86,12 @@ enum ExpenseCategory {
   OTHER
 }
 
+enum MetaConnectionStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
 model User {
   id             String         @id @default(cuid())
   name           String
@@ -101,6 +107,7 @@ model User {
   createdTasks   Task[]         @relation("CreatedTasks")
   notifications  Notification[]
   clientProject  ClientProject?
+  metaConnections MetaConnection[]
 }
 
 model Service {
@@ -737,6 +744,7 @@ model ClientProject {
   accesses     ClientAccess[]
   references   ClientReference[]
   summary      ClientSummary?
+  metaAdAccounts MetaAdAccount[]
 
   @@index([clientId])
 }
@@ -838,4 +846,54 @@ model ClientReference {
   order       Int           @default(0)
 
   @@index([projectId])
+}
+
+model MetaConnection {
+  id              String               @id @default(cuid())
+  userId          String
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metaUserId      String
+  metaUserName    String?
+  accessToken     String
+  tokenExpiresAt  DateTime?
+  scopes          String[]
+  status          MetaConnectionStatus @default(ACTIVE)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  adAccounts      MetaAdAccount[]
+
+  @@unique([userId, metaUserId])
+  @@index([userId])
+}
+
+model MetaAdAccount {
+  id               String         @id @default(cuid())
+  connectionId     String
+  connection       MetaConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  clientProjectId  String?
+  clientProject    ClientProject? @relation(fields: [clientProjectId], references: [id], onDelete: SetNull)
+  accountId        String
+  name             String
+  currency         String?
+  timezoneName     String?
+  status           Int?
+  businessName     String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  leadForms        MetaLeadAdsForm[]
+
+  @@unique([connectionId, accountId])
+  @@index([clientProjectId])
+}
+
+model MetaLeadAdsForm {
+  id            String        @id @default(cuid())
+  adAccountId   String
+  adAccount     MetaAdAccount @relation(fields: [adAccountId], references: [id], onDelete: Cascade)
+  formId        String
+  name          String?
+  pageId        String?
+  createdAt     DateTime      @default(now())
+
+  @@unique([adAccountId, formId])
 }
