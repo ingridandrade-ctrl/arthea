@@ -6,7 +6,18 @@ import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
 import { formatCurrency } from "@/lib/utils";
 
-type Account = { id: string; name: string; color: string; type: string; archived: boolean };
+type Account = {
+  id: string;
+  name: string;
+  color: string;
+  type: string;
+  archived: boolean;
+  creditLimit?: number | null;
+  closingDay?: number | null;
+  dueDay?: number | null;
+  initialBalance?: number;
+  owner?: "PARTNER_A" | "PARTNER_B" | "COUPLE";
+};
 
 type Settings = { partnerAName: string; partnerBName: string };
 
@@ -79,6 +90,7 @@ export function CartoesClient() {
   const [paying, setPaying] = useState<Invoice | null>(null);
   const [importing, setImporting] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editingCard, setEditingCard] = useState<Account | null>(null);
   const [editingTx, setEditingTx] = useState<InvoiceTx | null>(null);
   const [bulkDateInvoice, setBulkDateInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
@@ -152,20 +164,32 @@ export function CartoesClient() {
         <>
           <div className="flex flex-wrap gap-2 mb-5">
             {cards.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setSelected(c.id)}
-                className={`px-3 py-2 rounded-lg border text-sm font-medium ${
-                  selected === c.id
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border hover:bg-muted"
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
-                  {c.name}
-                </span>
-              </button>
+              <div key={c.id} className="flex items-stretch">
+                <button
+                  onClick={() => setSelected(c.id)}
+                  className={`px-3 py-2 rounded-l-lg border text-sm font-medium ${
+                    selected === c.id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border hover:bg-muted"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.color }} />
+                    {c.name}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setEditingCard(c)}
+                  title="Editar cartão"
+                  className={`px-2 rounded-r-lg border-y border-r ${
+                    selected === c.id
+                      ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
+                      : "border-border hover:bg-muted"
+                  }`}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              </div>
             ))}
           </div>
 
@@ -298,6 +322,18 @@ export function CartoesClient() {
           onClose={() => setCreating(false)}
           onCreated={() => {
             setCreating(false);
+            load();
+          }}
+        />
+      )}
+
+      {editingCard && (
+        <NewCardModal
+          settings={settings}
+          card={editingCard}
+          onClose={() => setEditingCard(null)}
+          onCreated={() => {
+            setEditingCard(null);
             load();
           }}
         />
@@ -1159,20 +1195,22 @@ function ImportInvoiceModal({
 
 function NewCardModal({
   settings,
+  card,
   onClose,
   onCreated,
 }: {
   settings: Settings | null;
+  card?: Account | null;
   onClose: () => void;
   onCreated: () => void;
 }) {
-  const [name, setName] = useState("");
-  const [color, setColor] = useState("#6366f1");
-  const [creditLimit, setCreditLimit] = useState("");
-  const [closingDay, setClosingDay] = useState("");
-  const [dueDay, setDueDay] = useState("");
-  const [initialBalance, setInitialBalance] = useState("0");
-  const [owner, setOwner] = useState<"PARTNER_A" | "PARTNER_B" | "COUPLE">("COUPLE");
+  const [name, setName] = useState(card?.name ?? "");
+  const [color, setColor] = useState(card?.color ?? "#6366f1");
+  const [creditLimit, setCreditLimit] = useState(card?.creditLimit?.toString() ?? "");
+  const [closingDay, setClosingDay] = useState(card?.closingDay?.toString() ?? "");
+  const [dueDay, setDueDay] = useState(card?.dueDay?.toString() ?? "");
+  const [initialBalance, setInitialBalance] = useState(card?.initialBalance?.toString() ?? "0");
+  const [owner, setOwner] = useState<"PARTNER_A" | "PARTNER_B" | "COUPLE">(card?.owner ?? "COUPLE");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -1190,8 +1228,9 @@ function NewCardModal({
       setSaving(false);
       return;
     }
-    const res = await fetch("/api/financas/accounts", {
-      method: "POST",
+    const url = card ? `/api/financas/accounts/${card.id}` : "/api/financas/accounts";
+    const res = await fetch(url, {
+      method: card ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: name.trim(),
@@ -1213,8 +1252,15 @@ function NewCardModal({
     onCreated();
   }
 
+  async function archiveCard() {
+    if (!card) return;
+    if (!confirm("Arquivar este cartão? Ele some das listas mas os lançamentos antigos continuam.")) return;
+    const res = await fetch(`/api/financas/accounts/${card.id}`, { method: "DELETE" });
+    if (res.ok) onCreated();
+  }
+
   return (
-    <Modal title="Novo cartão de crédito" onClose={onClose} maxWidth="max-w-md">
+    <Modal title={card ? "Editar cartão" : "Novo cartão de crédito"} onClose={onClose} maxWidth="max-w-md">
       <form onSubmit={submit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Nome do cartão</label>
@@ -1326,21 +1372,34 @@ function NewCardModal({
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-border hover:bg-muted text-sm"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 text-sm font-medium"
-          >
-            {saving ? "Salvando..." : "Cadastrar"}
-          </button>
+        <div className="flex justify-between items-center gap-2 pt-2">
+          <div>
+            {card && (
+              <button
+                type="button"
+                onClick={archiveCard}
+                className="px-3 py-2 rounded-lg text-sm text-destructive hover:bg-destructive/10"
+              >
+                Arquivar
+              </button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg border border-border hover:bg-muted text-sm"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 text-sm font-medium"
+            >
+              {saving ? "Salvando..." : card ? "Salvar" : "Cadastrar"}
+            </button>
+          </div>
         </div>
       </form>
     </Modal>
