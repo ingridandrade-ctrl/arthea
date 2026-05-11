@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 import { ensureInvoice } from "@/lib/financas/credit-cards";
 import { parseLocalDate } from "@/lib/financas/dates";
+import { addMonths, installmentGroupId, parseInstallment } from "@/lib/financas/installments";
 
 const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
 
@@ -62,8 +63,10 @@ export async function POST(req: Request) {
         : [];
     const validCatIds = new Set(cats.map((c) => c.id));
 
-    const created = await prisma.$transaction(async (tx) => {
-      const results = [];
+    const result = await prisma.$transaction(async (tx) => {
+      const createdIds: string[] = [];
+      let projectedCreated = 0;
+
       for (const r of validRows) {
         const date = parseLocalDate(r.date);
         const inv = await ensureInvoice(household.id, account, date);
@@ -77,26 +80,117 @@ export async function POST(req: Request) {
         const categoryId =
           r.categoryId && validCatIds.has(r.categoryId) ? r.categoryId : null;
 
-        const created = await tx.finTransaction.create({
-          data: {
+        const parc = parseInstallment(r.description);
+        const trimmedDesc = r.description.trim();
+
+        if (!parc) {
+          const created = await tx.finTransaction.create({
+            data: {
+              householdId: household.id,
+              type: "EXPENSE",
+              amount: r.amount,
+              date,
+              description: trimmedDesc,
+              owner,
+              paidByOwner,
+              accountId: account.id,
+              categoryId,
+              invoiceId: inv?.id ?? null,
+            },
+          });
+          createdIds.push(created.id);
+          continue;
+        }
+
+        const groupId = installmentGroupId(account.id, parc.baseDescription, parc.total);
+
+        const existing = await tx.finTransaction.findFirst({
+          where: {
             householdId: household.id,
-            type: "EXPENSE",
-            amount: r.amount,
-            date,
-            description: r.description.trim(),
-            owner,
-            paidByOwner,
-            accountId: account.id,
-            categoryId,
-            invoiceId: inv?.id ?? null,
+            installmentGroupId: groupId,
+            installmentIndex: parc.index,
           },
         });
-        results.push(created.id);
+
+        if (existing) {
+          const updated = await tx.finTransaction.update({
+            where: { id: existing.id },
+            data: {
+              amount: r.amount,
+              date,
+              description: trimmedDesc,
+              owner,
+              paidByOwner,
+              accountId: account.id,
+              categoryId,
+              invoiceId: inv?.id ?? null,
+              installmentProjected: false,
+            },
+          });
+          createdIds.push(updated.id);
+        } else {
+          const created = await tx.finTransaction.create({
+            data: {
+              householdId: household.id,
+              type: "EXPENSE",
+              amount: r.amount,
+              date,
+              description: trimmedDesc,
+              owner,
+              paidByOwner,
+              accountId: account.id,
+              categoryId,
+              invoiceId: inv?.id ?? null,
+              installmentGroupId: groupId,
+              installmentIndex: parc.index,
+              installmentTotal: parc.total,
+              installmentProjected: false,
+            },
+          });
+          createdIds.push(created.id);
+        }
+
+        for (let idx = parc.index + 1; idx <= parc.total; idx++) {
+          const futureExisting = await tx.finTransaction.findFirst({
+            where: {
+              householdId: household.id,
+              installmentGroupId: groupId,
+              installmentIndex: idx,
+            },
+          });
+          if (futureExisting) continue;
+
+          const futureDate = addMonths(date, idx - parc.index);
+          const futureInv = await ensureInvoice(household.id, account, futureDate);
+          await tx.finTransaction.create({
+            data: {
+              householdId: household.id,
+              type: "EXPENSE",
+              amount: r.amount,
+              date: futureDate,
+              description: trimmedDesc,
+              owner,
+              paidByOwner,
+              accountId: account.id,
+              categoryId,
+              invoiceId: futureInv?.id ?? null,
+              installmentGroupId: groupId,
+              installmentIndex: idx,
+              installmentTotal: parc.total,
+              installmentProjected: true,
+              paid: false,
+            },
+          });
+          projectedCreated += 1;
+        }
       }
-      return results;
+      return { createdIds, projectedCreated };
     });
 
-    return NextResponse.json({ created: created.length });
+    return NextResponse.json({
+      created: result.createdIds.length,
+      projected: result.projectedCreated,
+    });
   } catch (e: any) {
     if (e instanceof HouseholdAuthError) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });

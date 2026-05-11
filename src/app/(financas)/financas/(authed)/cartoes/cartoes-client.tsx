@@ -31,6 +31,10 @@ type InvoiceTx = {
   description: string;
   date: string;
   owner: "PARTNER_A" | "PARTNER_B" | "COUPLE";
+  installmentGroupId: string | null;
+  installmentIndex: number | null;
+  installmentTotal: number | null;
+  installmentProjected: boolean;
   category: { id: string; name: string; color: string } | null;
 };
 
@@ -275,13 +279,30 @@ export function CartoesClient() {
                             {inv.transactions.map((t) => (
                               <tr
                                 key={t.id}
-                                className="border-t border-border hover:bg-muted/30 cursor-pointer"
+                                className={`border-t border-border hover:bg-muted/30 cursor-pointer ${
+                                  t.installmentProjected ? "text-muted-foreground italic" : ""
+                                }`}
                                 onClick={() => setEditingTx(t)}
+                                title={t.installmentProjected ? "Parcela projetada — vai ser confirmada quando você importar a fatura desse mês" : undefined}
                               >
                                 <td className="px-4 py-2 text-muted-foreground">
                                   {new Date(t.date).toLocaleDateString("pt-BR")}
                                 </td>
-                                <td className="px-4 py-2">{t.description}</td>
+                                <td className="px-4 py-2">
+                                  <span className="flex items-center gap-2">
+                                    <span>{t.description}</span>
+                                    {t.installmentIndex && t.installmentTotal && (
+                                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                        t.installmentProjected
+                                          ? "bg-muted text-muted-foreground border border-dashed border-border"
+                                          : "bg-primary/10 text-primary"
+                                      }`}>
+                                        {t.installmentIndex}/{t.installmentTotal}
+                                        {t.installmentProjected ? " · projetada" : ""}
+                                      </span>
+                                    )}
+                                  </span>
+                                </td>
                                 <td className="px-4 py-2">
                                   {t.category ? (
                                     <span className="inline-flex items-center gap-1.5">
