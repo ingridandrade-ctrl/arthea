@@ -10,7 +10,6 @@ export const META_OAUTH_SCOPES = [
   "leads_retrieval",
   "pages_show_list",
   "pages_read_engagement",
-  "pages_manage_metadata",
 ];
 
 export function getRedirectUri(): string {
