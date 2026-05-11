@@ -205,6 +205,11 @@ const STATEMENTS: string[] = [
   `ALTER TABLE "FinTransaction" ADD COLUMN IF NOT EXISTS "paid" BOOLEAN NOT NULL DEFAULT true;`,
   `ALTER TABLE "FinTransaction" ADD COLUMN IF NOT EXISTS "paidAt" TIMESTAMP(3);`,
   `ALTER TABLE "FinAccount" ADD COLUMN IF NOT EXISTS "owner" "FinOwner" NOT NULL DEFAULT 'COUPLE';`,
+  `ALTER TABLE "FinTransaction" ADD COLUMN IF NOT EXISTS "installmentGroupId" TEXT;`,
+  `ALTER TABLE "FinTransaction" ADD COLUMN IF NOT EXISTS "installmentIndex" INTEGER;`,
+  `ALTER TABLE "FinTransaction" ADD COLUMN IF NOT EXISTS "installmentTotal" INTEGER;`,
+  `ALTER TABLE "FinTransaction" ADD COLUMN IF NOT EXISTS "installmentProjected" BOOLEAN NOT NULL DEFAULT false;`,
+  `CREATE INDEX IF NOT EXISTS "FinTransaction_installmentGroupId_idx" ON "FinTransaction"("installmentGroupId");`,
 ];
 
 let migrationPromise: Promise<void> | null = null;

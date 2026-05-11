@@ -573,12 +573,17 @@ model FinTransaction {
   invoice      FinCreditCardInvoice? @relation(fields: [invoiceId], references: [id])
   recurringId  String?
   recurring    FinRecurringRule?     @relation(fields: [recurringId], references: [id])
+  installmentGroupId String?
+  installmentIndex   Int?
+  installmentTotal   Int?
+  installmentProjected Boolean       @default(false)
   createdAt    DateTime              @default(now())
   updatedAt    DateTime              @updatedAt
 
   @@index([householdId, date])
   @@index([accountId])
   @@index([categoryId])
+  @@index([installmentGroupId])
   @@index([invoiceId])
 }
 
