@@ -2,29 +2,44 @@
 
 import { useEffect, useState } from "react";
 
-export function CircularProgress({
-  value,
-  total,
-  size = 220,
-  stroke = 14,
-}: {
-  value: number;
-  total: number;
-  size?: number;
-  stroke?: number;
-}) {
-  const pct = total > 0 ? (value / total) * 100 : 0;
+type CircularProgressProps =
+  | {
+      value: number;
+      total: number;
+      pct?: never;
+      caption?: string;
+      size?: number;
+      stroke?: number;
+    }
+  | {
+      value?: never;
+      total?: never;
+      pct: number; // 0..1
+      caption?: string;
+      size?: number;
+      stroke?: number;
+    };
+
+export function CircularProgress(props: CircularProgressProps) {
+  const { size = 220, stroke = 14, caption } = props;
+  const targetPct =
+    "pct" in props && typeof props.pct === "number"
+      ? Math.max(0, Math.min(1, props.pct)) * 100
+      : props.total && props.total > 0
+      ? (props.value / props.total) * 100
+      : 0;
+
   const [animatedPct, setAnimatedPct] = useState(0);
-  const [animatedValue, setAnimatedValue] = useState(0);
+  const [displayedNumber, setDisplayedNumber] = useState(0);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setAnimatedPct(pct), 100);
+    const t1 = setTimeout(() => setAnimatedPct(targetPct), 100);
     const start = Date.now();
     const dur = 900;
     const tick = () => {
       const t = Math.min(1, (Date.now() - start) / dur);
       const eased = 1 - Math.pow(1 - t, 3);
-      setAnimatedValue(Math.round(eased * value));
+      setDisplayedNumber(Math.round(eased * targetPct));
       if (t < 1) requestAnimationFrame(tick);
     };
     const t2 = setTimeout(tick, 100);
@@ -32,11 +47,16 @@ export function CircularProgress({
       clearTimeout(t1);
       clearTimeout(t2);
     };
-  }, [pct, value]);
+  }, [targetPct]);
 
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (animatedPct / 100) * circumference;
+
+  const fallbackCaption =
+    !caption && "total" in props && typeof props.value === "number"
+      ? `${props.value} de ${props.total}`
+      : caption;
 
   return (
     <div
@@ -85,6 +105,8 @@ export function CircularProgress({
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          textAlign: "center",
+          padding: "0 12px",
         }}
       >
         <p
@@ -98,21 +120,24 @@ export function CircularProgress({
             lineHeight: 1,
           }}
         >
-          {Math.round((animatedValue / Math.max(total, 1)) * 100)}
+          {displayedNumber}
           <span style={{ fontSize: size * 0.16, color: "#A0A0A0" }}>%</span>
         </p>
-        <p
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "#A0A0A0",
-            margin: "8px 0 0",
-          }}
-        >
-          {animatedValue} de {total}
-        </p>
+        {fallbackCaption && (
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              color: "#A0A0A0",
+              margin: "8px 0 0",
+              lineHeight: 1.3,
+            }}
+          >
+            {fallbackCaption}
+          </p>
+        )}
       </div>
     </div>
   );

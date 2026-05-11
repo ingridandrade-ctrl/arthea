@@ -65,6 +65,24 @@ export default async function PortalDashboard() {
   const approved = project.deliverables.filter((d) => d.status === "APPROVED").length;
   const waitingReview = project.deliverables.filter((d) => d.status === "WAITING_REVIEW");
   const inProgress = project.deliverables.filter((d) => d.status === "IN_PROGRESS");
+  const inRevision = project.deliverables.filter((d) => d.status === "REVISION");
+
+  // Weighted "agency progress": reflects what the agency has actually done,
+  // not just what the client approved.
+  // PENDING 0% · IN_PROGRESS 40% · REVISION 50% · WAITING_REVIEW 85% · APPROVED 100%
+  const WEIGHT: Record<string, number> = {
+    PENDING: 0,
+    IN_PROGRESS: 0.4,
+    REVISION: 0.5,
+    WAITING_REVIEW: 0.85,
+    APPROVED: 1,
+  };
+  const weightedSum = project.deliverables.reduce(
+    (acc, d) => acc + (WEIGHT[d.status] ?? 0),
+    0
+  );
+  const agencyProgress = total > 0 ? weightedSum / total : 0;
+  const approvedProgress = total > 0 ? approved / total : 0;
 
   // Recent comments (last 3) — fetch only on first deliverable to keep it light
   const recentComments = await prisma.deliverableComment.findMany({
@@ -207,7 +225,7 @@ export default async function PortalDashboard() {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            gap: 12,
+            gap: 18,
           }}
         >
           <p
@@ -222,7 +240,35 @@ export default async function PortalDashboard() {
           >
             Progresso geral
           </p>
-          <CircularProgress value={approved} total={total} size={200} stroke={14} />
+          <CircularProgress
+            pct={agencyProgress}
+            caption="Equipe entregou"
+            size={200}
+            stroke={14}
+          />
+          <div
+            style={{
+              display: "flex",
+              gap: 18,
+              alignItems: "center",
+              borderTop: "0.5px solid rgba(29,112,112,0.08)",
+              paddingTop: 14,
+              marginTop: 4,
+            }}
+          >
+            <Mini
+              label="Aprovados"
+              value={`${approved}/${total}`}
+              sub={`${Math.round(approvedProgress * 100)}%`}
+              tone="accent"
+            />
+            <Mini
+              label="Aguardando você"
+              value={String(waitingReview.length)}
+              sub={waitingReview.length > 0 ? "Ação necessária" : "Nada pendente"}
+              tone={waitingReview.length > 0 ? "warn" : "muted"}
+            />
+          </div>
         </div>
 
         {/* Next action */}
@@ -347,14 +393,104 @@ export default async function PortalDashboard() {
       <section
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(4, 1fr)",
           gap: 14,
         }}
       >
         <Stat label="Total" value={total} />
         <Stat label="Aprovados" value={approved} accent />
-        <Stat label="Em produção" value={inProgress.length} />
+        <Stat label="Aguardando você" value={waitingReview.length} warn={waitingReview.length > 0} />
+        <Stat label="Em produção" value={inProgress.length + inRevision.length} />
       </section>
+
+      {/* Lista completa de itens aguardando o cliente */}
+      {waitingReview.length > 0 && (
+        <section>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              marginBottom: 16,
+            }}
+          >
+            <Sparkles size={14} strokeWidth={2} color="var(--accent)" />
+            <h2
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: "var(--accent)",
+                margin: 0,
+              }}
+            >
+              Aguardando sua aprovação
+            </h2>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "white",
+                background: "var(--accent)",
+                padding: "2px 8px",
+                borderRadius: 999,
+              }}
+            >
+              {waitingReview.length}
+            </span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {waitingReview.map((d) => (
+              <Link
+                key={d.id}
+                href={`/portal/entregaveis/${d.id}`}
+                className="portal-card-hover"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 16,
+                  background: "white",
+                  border: "0.5px solid var(--accent-border)",
+                  borderLeft: "3px solid var(--accent)",
+                  borderRadius: 14,
+                  padding: "16px 20px",
+                  textDecoration: "none",
+                  color: "inherit",
+                  boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 14.5, fontWeight: 500, color: "#2A2A2A", margin: 0 }}>
+                    {d.title}
+                  </p>
+                  <p style={{ fontSize: 12.5, color: "#6B7280", margin: "4px 0 0" }}>
+                    Fase {d.phase} · {PHASE_NAMES[d.phase]}
+                  </p>
+                </div>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "var(--accent)",
+                    background: "var(--accent-soft)",
+                    padding: "6px 12px",
+                    borderRadius: 999,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Revisar
+                  <ArrowRight size={13} strokeWidth={2} />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Recent comments timeline */}
       {recentComments.length > 0 && (
@@ -475,20 +611,39 @@ function Stat({
   label,
   value,
   accent,
+  warn,
 }: {
   label: string;
   value: number;
   accent?: boolean;
+  warn?: boolean;
 }) {
   return (
     <div
       style={{
         background: "white",
-        border: "0.5px solid rgba(29,112,112,0.08)",
+        border: warn
+          ? "0.5px solid var(--accent-border)"
+          : "0.5px solid rgba(29,112,112,0.08)",
         borderRadius: 16,
         padding: "20px 22px",
+        position: "relative",
       }}
     >
+      {warn && (
+        <span
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            width: 8,
+            height: 8,
+            borderRadius: 999,
+            background: "var(--accent)",
+            boxShadow: "0 0 0 4px var(--accent-soft)",
+          }}
+        />
+      )}
       <p
         style={{
           fontSize: 11,
@@ -506,7 +661,7 @@ function Stat({
           fontFamily: "Fraunces, Georgia, serif",
           fontSize: 36,
           fontWeight: 400,
-          color: accent ? "var(--accent)" : "#2A2A2A",
+          color: accent ? "var(--accent)" : warn ? "var(--accent)" : "#2A2A2A",
           margin: 0,
           letterSpacing: "-0.03em",
           lineHeight: 1,
@@ -514,6 +669,59 @@ function Stat({
       >
         {value}
       </p>
+    </div>
+  );
+}
+
+function Mini({
+  label,
+  value,
+  sub,
+  tone = "muted",
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: "accent" | "warn" | "muted";
+}) {
+  const color =
+    tone === "accent" ? "var(--accent)" : tone === "warn" ? "var(--accent)" : "#2A2A2A";
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+      <span
+        style={{
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: "#A0A0A0",
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          fontFamily: "Fraunces, Georgia, serif",
+          fontSize: 22,
+          fontWeight: 400,
+          color,
+          letterSpacing: "-0.02em",
+          lineHeight: 1.1,
+        }}
+      >
+        {value}
+      </span>
+      {sub && (
+        <span
+          style={{
+            fontSize: 11,
+            color: tone === "muted" ? "#A0A0A0" : color,
+            fontWeight: 500,
+          }}
+        >
+          {sub}
+        </span>
+      )}
     </div>
   );
 }
