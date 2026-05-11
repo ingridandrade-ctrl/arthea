@@ -828,7 +828,7 @@ function MovementStatusBadge({
         createPortal(
           <div
             ref={menuRef}
-            className="fixed z-50 w-40 bg-popover border border-border rounded-lg shadow-lg py-1"
+            className="fixed z-[100] w-40 bg-card border border-border rounded-lg shadow-lg py-1"
             style={{ top: pos.top, left: pos.left }}
             onClick={(e) => e.stopPropagation()}
           >
