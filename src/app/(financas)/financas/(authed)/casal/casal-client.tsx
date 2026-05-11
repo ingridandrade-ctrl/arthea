@@ -188,21 +188,62 @@ export function CasalClient() {
                 <Scale className="w-5 h-5 text-muted-foreground" />
                 <h2 className="text-lg font-semibold">Saldo atual</h2>
               </div>
+              {balance && (
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  {(() => {
+                    const aOwesB = Math.max(
+                      0,
+                      balance.details.bPaidForCouple +
+                        balance.details.bPaidForA -
+                        balance.details.settlementsAtoB
+                    );
+                    const bOwesA = Math.max(
+                      0,
+                      balance.details.aPaidForCouple +
+                        balance.details.aPaidForB -
+                        balance.details.settlementsBtoA
+                    );
+                    return (
+                      <>
+                        <div className="rounded-lg border border-border p-4">
+                          <p className="text-xs text-muted-foreground mb-1">
+                            {ownerName("PARTNER_A")} deve mandar para {ownerName("PARTNER_B")}
+                          </p>
+                          <p className="text-2xl font-bold tabular-nums">
+                            {formatCurrency(aOwesB)}
+                          </p>
+                        </div>
+                        <div className="rounded-lg border border-border p-4">
+                          <p className="text-xs text-muted-foreground mb-1">
+                            {ownerName("PARTNER_B")} deve mandar para {ownerName("PARTNER_A")}
+                          </p>
+                          <p className="text-2xl font-bold tabular-nums">
+                            {formatCurrency(bOwesA)}
+                          </p>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
               {!balance || balance.amount < 0.01 ? (
-                <div className="text-center py-6">
-                  <p className="text-2xl font-bold text-success">Tudo certo!</p>
-                  <p className="text-sm text-muted-foreground mt-1">Ninguém deve nada a ninguém.</p>
+                <div className="text-center py-4 border-t border-border">
+                  <p className="text-lg font-semibold text-success">Tudo certo!</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    No líquido, ninguém deve nada.
+                  </p>
                 </div>
               ) : (
-                <div className="text-center py-6">
-                  <div className="flex items-center justify-center gap-3 mb-2">
-                    <span className="text-base">{ownerName(balance.whoOwes!)}</span>
-                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-base">
+                <div className="text-center pt-4 border-t border-border">
+                  <p className="text-xs text-muted-foreground mb-1">Líquido (deduzindo)</p>
+                  <div className="flex items-center justify-center gap-3 mb-1">
+                    <span className="text-sm">{ownerName(balance.whoOwes!)}</span>
+                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">
                       {ownerName(balance.whoOwes === "PARTNER_A" ? "PARTNER_B" : "PARTNER_A")}
                     </span>
                   </div>
-                  <p className="text-3xl font-bold text-primary tabular-nums">
+                  <p className="text-2xl font-bold text-primary tabular-nums">
                     {formatCurrency(balance.amount)}
                   </p>
                 </div>

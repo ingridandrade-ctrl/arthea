@@ -266,6 +266,7 @@ function RuleModal({
   const [monthOfYear, setMonthOfYear] = useState(rule?.monthOfYear?.toString() || "1");
   const [startDate, setStartDate] = useState(rule ? rule.startDate.slice(0, 10) : todayISO());
   const [endDate, setEndDate] = useState(rule?.endDate ? rule.endDate.slice(0, 10) : "");
+  const [notes, setNotes] = useState(rule?.notes || "");
   const [applyToExisting, setApplyToExisting] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -289,6 +290,7 @@ function RuleModal({
       name,
       amount: numericAmount,
       description: description || name,
+      notes: notes.trim() || null,
       owner,
       dayOfMonth: frequency !== "WEEKLY" ? parseInt(dayOfMonth, 10) : null,
       dayOfWeek: frequency === "WEEKLY" ? parseInt(dayOfWeek, 10) : null,
@@ -535,6 +537,19 @@ function RuleModal({
               className="w-full px-3 py-2 rounded-lg border border-border bg-background"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Observações <span className="text-muted-foreground font-normal">(opcional)</span>
+          </label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            placeholder="Detalhes extras, número de contrato, lembretes..."
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background resize-y"
+          />
         </div>
 
         {editing && (
