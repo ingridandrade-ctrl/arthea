@@ -204,7 +204,7 @@ const STATEMENTS: string[] = [
   `ALTER TABLE "Household" ADD COLUMN IF NOT EXISTS "hideBalances" BOOLEAN NOT NULL DEFAULT false;`,
   `ALTER TABLE "FinTransaction" ADD COLUMN IF NOT EXISTS "paid" BOOLEAN NOT NULL DEFAULT true;`,
   `ALTER TABLE "FinTransaction" ADD COLUMN IF NOT EXISTS "paidAt" TIMESTAMP(3);`,
-  `ALTER TABLE "FinAccount" ADD COLUMN IF NOT EXISTS "owner" "FinTransactionOwner" NOT NULL DEFAULT 'COUPLE';`,
+  `ALTER TABLE "FinAccount" ADD COLUMN IF NOT EXISTS "owner" "FinOwner" NOT NULL DEFAULT 'COUPLE';`,
 ];
 
 let migrationPromise: Promise<void> | null = null;

@@ -517,7 +517,7 @@ model FinAccount {
   creditLimit     Float?
   closingDay      Int?
   dueDay          Int?
-  owner           FinTransactionOwner    @default(COUPLE)
+  owner           FinOwner               @default(COUPLE)
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
   transactions    FinTransaction[]       @relation("AccountTransactions")
