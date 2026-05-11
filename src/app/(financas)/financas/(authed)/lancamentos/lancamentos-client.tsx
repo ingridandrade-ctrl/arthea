@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Pencil, Trash2, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Download, X, CreditCard, Check, Clock, AlertCircle } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
@@ -113,6 +113,7 @@ export function LancamentosClient() {
   const [hideBalances, setHideBalances] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Transaction | null>(null);
+  const [viewingInvoice, setViewingInvoice] = useState<{ id: string; title: string } | null>(null);
   const [creating, setCreating] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -169,9 +170,10 @@ export function LancamentosClient() {
     (status ? 1 : 0) +
     (q ? 1 : 0);
 
-  async function togglePaid(m: Movement) {
+  async function setPaid(m: Movement, paidValue: boolean) {
+    if (paidValue === m.paid) return;
     if (m.kind === "invoice" && m.invoiceId) {
-      if (!m.paid) {
+      if (paidValue) {
         router.push("/financas/cartoes");
         return;
       }
@@ -184,7 +186,7 @@ export function LancamentosClient() {
       await fetch(`/api/financas/transactions/${m.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paid: !m.paid }),
+        body: JSON.stringify({ paid: paidValue }),
       });
     }
     loadTx();
@@ -471,7 +473,9 @@ export function LancamentosClient() {
                     m.kind === "invoice" ? "cursor-pointer" : ""
                   }`}
                   onClick={
-                    m.kind === "invoice" ? () => router.push("/financas/cartoes") : undefined
+                    m.kind === "invoice" && m.invoiceId
+                      ? () => setViewingInvoice({ id: m.invoiceId!, title: m.description })
+                      : undefined
                   }
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -491,7 +495,7 @@ export function LancamentosClient() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <MovementStatusBadge m={m} onToggle={() => togglePaid(m)} />
+                    <MovementStatusBadge m={m} onSetPaid={(p) => setPaid(m, p)} />
                   </td>
                   <td className="px-4 py-3">
                     {m.kind === "invoice" ? (
@@ -551,9 +555,15 @@ export function LancamentosClient() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground">Cartões →</span>
-                    )}
+                    ) : m.invoiceId ? (
+                      <button
+                        onClick={() => setViewingInvoice({ id: m.invoiceId!, title: m.description })}
+                        title="Ver/editar compras da fatura"
+                        className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    ) : null}
                   </td>
                 </tr>
               ))}
@@ -587,7 +597,142 @@ export function LancamentosClient() {
           }}
         />
       )}
+      {viewingInvoice && (
+        <InvoiceTxModal
+          invoiceId={viewingInvoice.id}
+          title={viewingInvoice.title}
+          settings={settings}
+          onClose={() => setViewingInvoice(null)}
+          onEditTx={async (id) => {
+            const res = await fetch(`/api/financas/transactions/${id}`);
+            if (!res.ok) return;
+            const t = await res.json();
+            setViewingInvoice(null);
+            setEditing(t as Transaction);
+          }}
+          onChanged={() => loadTx()}
+        />
+      )}
     </div>
+  );
+}
+
+function InvoiceTxModal({
+  invoiceId,
+  title,
+  settings,
+  onClose,
+  onEditTx,
+  onChanged,
+}: {
+  invoiceId: string;
+  title: string;
+  settings: Settings | null;
+  onClose: () => void;
+  onEditTx: (id: string) => void;
+  onChanged: () => void;
+}) {
+  const [txs, setTxs] = useState<any[] | null>(null);
+
+  async function load() {
+    const res = await fetch(`/api/financas/transactions?invoiceId=${invoiceId}&limit=500`);
+    const data = await res.json();
+    setTxs(Array.isArray(data) ? data : []);
+  }
+
+  useEffect(() => {
+    load();
+  }, [invoiceId]);
+
+  async function remove(id: string) {
+    if (!confirm("Excluir esta compra da fatura?")) return;
+    await fetch(`/api/financas/transactions/${id}`, { method: "DELETE" });
+    onChanged();
+    load();
+  }
+
+  const total = txs ? txs.reduce((s, t) => s + (t.amount || 0), 0) : 0;
+  const ownerName = (o: "PARTNER_A" | "PARTNER_B" | "COUPLE") =>
+    o === "PARTNER_A"
+      ? settings?.partnerAName ?? "Pessoa A"
+      : o === "PARTNER_B"
+      ? settings?.partnerBName ?? "Pessoa B"
+      : "Casal";
+
+  return (
+    <Modal title={`Fatura · ${title}`} onClose={onClose} maxWidth="max-w-2xl">
+      {!txs ? (
+        <p className="text-sm text-muted-foreground">Carregando...</p>
+      ) : txs.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Nenhuma compra nesta fatura.</p>
+      ) : (
+        <div>
+          <div className="flex items-baseline justify-between mb-2">
+            <p className="text-xs text-muted-foreground">{txs.length} compra{txs.length === 1 ? "" : "s"}</p>
+            <p className="text-sm font-medium tabular-nums text-destructive">
+              Total: −{formatCurrency(total)}
+            </p>
+          </div>
+          <div className="border border-border rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-xs text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium">Data</th>
+                  <th className="px-3 py-2 text-left font-medium">Descrição</th>
+                  <th className="px-3 py-2 text-left font-medium">Categoria</th>
+                  <th className="px-3 py-2 text-left font-medium">Dono</th>
+                  <th className="px-3 py-2 text-right font-medium">Valor</th>
+                  <th className="px-3 py-2 w-16"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {txs.map((t) => (
+                  <tr key={t.id} className="border-t border-border">
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {new Date(t.date).toLocaleDateString("pt-BR")}
+                    </td>
+                    <td className="px-3 py-2">{t.description}</td>
+                    <td className="px-3 py-2">
+                      {t.category ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: t.category.color }}
+                          />
+                          {t.category.name}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">{ownerName(t.owner)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">
+                      {formatCurrency(t.amount)}
+                    </td>
+                    <td className="px-3 py-2 text-right whitespace-nowrap">
+                      <button
+                        onClick={() => onEditTx(t.id)}
+                        title="Editar"
+                        className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => remove(t.id)}
+                        title="Excluir"
+                        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </Modal>
   );
 }
 
@@ -598,33 +743,78 @@ function MovementTypeIcon({ type }: { type: Movement["type"] }) {
   return <CreditCard className="w-4 h-4 text-primary" />;
 }
 
-function MovementStatusBadge({ m, onToggle }: { m: Movement; onToggle: () => void }) {
+function MovementStatusBadge({
+  m,
+  onSetPaid,
+}: {
+  m: Movement;
+  onSetPaid: (paid: boolean) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
   if (m.type === "INCOME" || m.type === "TRANSFER") return null;
   const s = m.status;
   const Icon = s === "paid" ? Check : s === "overdue" ? AlertCircle : Clock;
   const color =
     s === "paid" ? "text-success" : s === "overdue" ? "text-destructive" : "text-warning";
   const label = s === "paid" ? "Pago" : s === "overdue" ? "Atrasado" : "Pendente";
+
+  const options: { value: "paid" | "pending" | "overdue"; label: string; icon: any; color: string }[] = [
+    { value: "paid", label: "Pago", icon: Check, color: "text-success" },
+    { value: "pending", label: "Pendente", icon: Clock, color: "text-warning" },
+    { value: "overdue", label: "Atrasado", icon: AlertCircle, color: "text-destructive" },
+  ];
+
   return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        onToggle();
-      }}
-      className={`inline-flex items-center justify-center p-1 rounded hover:bg-muted ${color}`}
-      title={
-        m.kind === "invoice"
-          ? s === "paid"
-            ? `${label} · Clique para reabrir`
-            : `${label} · Clique para pagar em Cartões`
-          : s === "paid"
-          ? `${label} · Clique para marcar como não-pago`
-          : `${label} · Clique para marcar como pago`
-      }
-      aria-label={label}
-    >
-      <Icon className="w-4 h-4" />
-    </button>
+    <div ref={ref} className="relative inline-block">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        className={`inline-flex items-center justify-center p-1 rounded hover:bg-muted ${color}`}
+        title={`${label} · Clique para mudar`}
+        aria-label={label}
+      >
+        <Icon className="w-4 h-4" />
+      </button>
+      {open && (
+        <div
+          className="absolute z-50 left-0 mt-1 w-36 bg-popover border border-border rounded-lg shadow-md py-1 text-sm"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {options.map((opt) => {
+            const OptIcon = opt.icon;
+            const active = opt.value === s;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  setOpen(false);
+                  onSetPaid(opt.value === "paid");
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-1.5 hover:bg-muted ${
+                  active ? "font-medium" : ""
+                }`}
+              >
+                <OptIcon className={`w-3.5 h-3.5 ${opt.color}`} />
+                <span>{opt.label}</span>
+                {active && <span className="ml-auto text-[10px] text-muted-foreground">atual</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 

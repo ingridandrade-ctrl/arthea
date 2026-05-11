@@ -22,6 +22,8 @@ export async function GET(req: Request) {
     }
     const accountId = searchParams.get("accountId");
     if (accountId) where.accountId = accountId;
+    const invoiceId = searchParams.get("invoiceId");
+    if (invoiceId) where.invoiceId = invoiceId;
     const categoryId = searchParams.get("categoryId");
     if (categoryId) where.categoryId = categoryId;
     const owner = searchParams.get("owner");
