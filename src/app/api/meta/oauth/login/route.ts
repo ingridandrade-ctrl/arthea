@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getOAuthLoginUrl } from "@/lib/meta/api";
+import { buildSignedState, getOAuthLoginUrl } from "@/lib/meta/api";
 
 export async function GET(_request: NextRequest) {
   const session = (await getServerSession(authOptions)) as any;
@@ -12,16 +11,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({ error: "Permissao insuficiente" }, { status: 403 });
   }
 
-  const state = crypto.randomBytes(24).toString("hex");
+  const state = buildSignedState();
   const url = getOAuthLoginUrl(state);
-
-  const response = NextResponse.redirect(url);
-  response.cookies.set("meta_oauth_state", state, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 600,
-    path: "/",
-  });
-  return response;
+  return NextResponse.redirect(url);
 }
