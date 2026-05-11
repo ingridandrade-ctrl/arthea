@@ -36,8 +36,8 @@ type NavItem = {
 
 function buildGroups(hideBalances: boolean): { label: string; items: NavItem[] }[] {
   const movChildren: SubItem[] = [
-    { name: "Despesas", href: "/financas/lancamentos", query: { type: "EXPENSE" }, icon: ArrowDownCircle },
-    { name: "Faturas", href: "/financas/lancamentos", query: { type: "INVOICE" }, icon: CreditCard },
+    { name: "Despesas Gerais", href: "/financas/lancamentos", query: { type: "EXPENSE" }, icon: ArrowDownCircle },
+    { name: "Faturas de Cartões", href: "/financas/lancamentos", query: { type: "INVOICE" }, icon: CreditCard },
   ];
   if (!hideBalances) {
     movChildren.push({ name: "Receitas", href: "/financas/lancamentos", query: { type: "INCOME" }, icon: ArrowUpCircle });
@@ -57,7 +57,7 @@ function buildGroups(hideBalances: boolean): { label: string; items: NavItem[] }
           icon: Receipt,
           children: movChildren,
         },
-        { name: "Cartões", href: "/financas/cartoes", icon: CreditCard },
+        { name: "Cartões de Crédito", href: "/financas/cartoes", icon: CreditCard },
         { name: "Recorrências", href: "/financas/recorrencias", icon: Repeat },
       ],
     },

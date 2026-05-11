@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Users, Wallet, CreditCard, Tag } from "lucide-react";
+import { User, CreditCard, Tag } from "lucide-react";
 import { PageHeader } from "@/components/financas/page-header";
 import { FilterBar, FilterGroup, SegControl } from "@/components/financas/filters";
 import { formatCurrency } from "@/lib/utils";
@@ -102,36 +102,50 @@ export function PorPessoaClient() {
         description="Quanto cada um gastou: próprios + sua parte das despesas do casal."
       />
 
-      <FilterBar>
-        <FilterGroup label="Período">
-          <SegControl
-            value={period}
-            onChange={(v) => setPeriod(v as Period)}
-            options={(Object.keys(PERIOD_LABEL) as Period[]).map((p) => ({
-              value: p,
-              label: PERIOD_LABEL[p],
-            }))}
-          />
-        </FilterGroup>
-
-        <FilterGroup label="Agrupar por">
-          <SegControl
-            value={groupBy}
-            onChange={(v) => setGroupBy(v)}
-            options={[
-              { value: "category", label: "Categoria", icon: <Tag className="w-3.5 h-3.5" /> },
-              { value: "account", label: "Origem", icon: <CreditCard className="w-3.5 h-3.5" /> },
-            ]}
-          />
-        </FilterGroup>
-
-      </FilterBar>
-
       {loading || !data ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
       ) : (
         <>
-          <div className="bg-card border border-border rounded-xl p-5 mb-4">
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            <PersonCard
+              name={data.partnerAName}
+              person={data.partnerA}
+              groupBy={groupBy}
+              accentColor="var(--color-primary)"
+            />
+            <PersonCard
+              name={data.partnerBName}
+              person={data.partnerB}
+              groupBy={groupBy}
+              accentColor="#0ea5e9"
+            />
+          </div>
+
+          <FilterBar>
+            <FilterGroup label="Período">
+              <SegControl
+                value={period}
+                onChange={(v) => setPeriod(v as Period)}
+                options={(Object.keys(PERIOD_LABEL) as Period[]).map((p) => ({
+                  value: p,
+                  label: PERIOD_LABEL[p],
+                }))}
+              />
+            </FilterGroup>
+
+            <FilterGroup label="Agrupar por">
+              <SegControl
+                value={groupBy}
+                onChange={(v) => setGroupBy(v)}
+                options={[
+                  { value: "category", label: "Categoria", icon: <Tag className="w-3.5 h-3.5" /> },
+                  { value: "account", label: "Origem", icon: <CreditCard className="w-3.5 h-3.5" /> },
+                ]}
+              />
+            </FilterGroup>
+          </FilterBar>
+
+          <div className="bg-card border border-border rounded-xl p-5">
             <div className="flex items-baseline justify-between mb-3">
               <h2 className="text-sm font-semibold">
                 {data.partnerAName} vs {data.partnerBName}
@@ -141,11 +155,6 @@ export function PorPessoaClient() {
               </p>
             </div>
             <ComparisonChart data={data} groupBy={groupBy} />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <PersonCard name={data.partnerAName} person={data.partnerA} groupBy={groupBy} />
-            <PersonCard name={data.partnerBName} person={data.partnerB} groupBy={groupBy} />
           </div>
         </>
       )}
@@ -209,10 +218,12 @@ function PersonCard({
   name,
   person,
   groupBy,
+  accentColor,
 }: {
   name: string;
   person: Person;
   groupBy: GroupBy;
+  accentColor: string;
 }) {
   const grand = person.total;
   const ownPct = grand > 0 ? (person.own.total / grand) * 100 : 0;
@@ -220,64 +231,65 @@ function PersonCard({
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden">
-      <div className="p-5 border-b border-border">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-            <User className="w-5 h-5 text-primary" />
+      <div
+        className="p-6 border-b border-border"
+        style={{ background: `linear-gradient(135deg, ${accentColor}15 0%, transparent 60%)` }}
+      >
+        <div className="flex items-center gap-3 mb-3">
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: `${accentColor}25` }}
+          >
+            <User className="w-6 h-6" style={{ color: accentColor }} />
           </div>
-          <h3 className="text-lg font-semibold">{name}</h3>
+          <h2 className="text-xl font-bold">{name}</h2>
         </div>
-        <p className="text-3xl font-bold tabular-nums">{formatCurrency(grand)}</p>
-        <p className="text-xs text-muted-foreground mt-1">Total gasto no período</p>
+        <p className="text-4xl font-bold tabular-nums mb-1">{formatCurrency(grand)}</p>
+        <p className="text-xs text-muted-foreground">Total gasto no período</p>
 
         {grand > 0 && (
-          <div className="mt-4 flex h-2 rounded-full overflow-hidden bg-muted">
-            <div
-              className="bg-primary"
-              style={{ width: `${ownPct}%` }}
-              title={`Próprios: ${ownPct.toFixed(0)}%`}
-            />
-            <div
-              className="bg-accent"
-              style={{ width: `${couplePct}%`, backgroundColor: "#94a3b8" }}
-              title={`Casal: ${couplePct.toFixed(0)}%`}
-            />
+          <div className="mt-5 space-y-2">
+            <div className="flex h-2.5 rounded-full overflow-hidden bg-muted">
+              <div style={{ width: `${ownPct}%`, backgroundColor: accentColor }} />
+              <div style={{ width: `${couplePct}%`, backgroundColor: "#cbd5e1" }} />
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }} />
+                <span className="text-muted-foreground">Próprios</span>
+                <span className="font-semibold tabular-nums">
+                  {formatCurrency(person.own.total)}
+                </span>
+                <span className="text-muted-foreground">({ownPct.toFixed(0)}%)</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#cbd5e1" }} />
+                <span className="text-muted-foreground">Sua parte do casal</span>
+                <span className="font-semibold tabular-nums">
+                  {formatCurrency(person.couple.total)}
+                </span>
+                <span className="text-muted-foreground">({couplePct.toFixed(0)}%)</span>
+              </span>
+            </div>
           </div>
         )}
       </div>
 
-      <Section
-        icon={<Wallet className="w-4 h-4" />}
-        label="Próprios"
-        sublabel="Despesas marcadas como suas"
-        bucket={person.own}
-        groupBy={groupBy}
-      />
-      <Section
-        icon={<Users className="w-4 h-4" />}
-        label="Compartilhados (sua parte)"
-        sublabel="Sua fatia das despesas marcadas como Casal"
-        bucket={person.couple}
-        groupBy={groupBy}
-      />
+      <CombinedSection person={person} groupBy={groupBy} accentColor={accentColor} />
     </div>
   );
 }
 
-function Section({
-  icon,
-  label,
-  sublabel,
-  bucket,
+function CombinedSection({
+  person,
   groupBy,
+  accentColor,
 }: {
-  icon: React.ReactNode;
-  label: string;
-  sublabel: string;
-  bucket: Bucket;
+  person: Person;
   groupBy: GroupBy;
+  accentColor: string;
 }) {
-  const items =
+  const aggregate = (bucket: Bucket) =>
     groupBy === "category"
       ? bucket.byCategory.map((c) => ({
           key: c.id ?? "__none__",
@@ -292,49 +304,73 @@ function Section({
           amount: a.amount,
         }));
 
-  const max = items.reduce((m, it) => Math.max(m, it.amount), 0);
+  const items = new Map<string, { name: string; color: string; own: number; couple: number }>();
+  for (const it of aggregate(person.own)) {
+    items.set(it.key, { name: it.name, color: it.color, own: it.amount, couple: 0 });
+  }
+  for (const it of aggregate(person.couple)) {
+    const prev = items.get(it.key);
+    if (prev) {
+      prev.couple = it.amount;
+    } else {
+      items.set(it.key, { name: it.name, color: it.color, own: 0, couple: it.amount });
+    }
+  }
+
+  const rows = Array.from(items.entries())
+    .map(([key, v]) => ({ key, ...v, total: v.own + v.couple }))
+    .sort((a, b) => b.total - a.total);
+
+  const max = rows.reduce((m, r) => Math.max(m, r.total), 0);
+
+  if (rows.length === 0) {
+    return (
+      <div className="p-5 text-xs text-muted-foreground italic text-center">
+        Sem despesas no período.
+      </div>
+    );
+  }
 
   return (
-    <div className="border-b border-border last:border-b-0">
-      <div className="px-5 py-3 flex items-center justify-between bg-muted/30">
-        <div>
-          <div className="flex items-center gap-2 text-sm font-medium">
-            {icon}
-            {label}
-          </div>
-          <p className="text-xs text-muted-foreground">{sublabel}</p>
-        </div>
-        <p className="text-lg font-semibold tabular-nums">{formatCurrency(bucket.total)}</p>
-      </div>
-      {items.length === 0 ? (
-        <p className="px-5 py-3 text-xs text-muted-foreground italic">Nada nesse período.</p>
-      ) : (
-        <div className="px-5 py-3 space-y-2">
-          {items.map((it) => {
-            const pct = max > 0 ? (it.amount / max) * 100 : 0;
-            return (
-              <div key={it.key}>
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="flex items-center gap-2">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: it.color }}
-                    />
-                    {it.name}
-                  </span>
-                  <span className="tabular-nums font-medium">{formatCurrency(it.amount)}</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${pct}%`, backgroundColor: it.color }}
-                  />
-                </div>
+    <div className="p-5 space-y-3">
+      <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
+        Detalhe por {groupBy === "category" ? "categoria" : "origem"}
+      </p>
+      {rows.map((r) => {
+        const ownPct = max > 0 ? (r.own / max) * 100 : 0;
+        const couplePct = max > 0 ? (r.couple / max) * 100 : 0;
+        return (
+          <div key={r.key}>
+            <div className="flex items-center justify-between text-sm mb-1.5">
+              <span className="flex items-center gap-2 min-w-0">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: r.color }}
+                />
+                <span className="truncate">{r.name}</span>
+              </span>
+              <span className="tabular-nums font-semibold shrink-0">
+                {formatCurrency(r.total)}
+              </span>
+            </div>
+            <div className="flex h-1.5 rounded-full bg-muted overflow-hidden">
+              <div style={{ width: `${ownPct}%`, backgroundColor: accentColor }} />
+              <div style={{ width: `${couplePct}%`, backgroundColor: "#cbd5e1" }} />
+            </div>
+            {(r.own > 0 || r.couple > 0) && (
+              <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5 tabular-nums">
+                {r.own > 0 ? (
+                  <span>Próprio {formatCurrency(r.own)}</span>
+                ) : (
+                  <span />
+                )}
+                {r.couple > 0 && <span>Casal {formatCurrency(r.couple)}</span>}
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
+

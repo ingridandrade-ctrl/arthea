@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Trash2, ArrowRight, Users, Scale, HandCoins } from "lucide-react";
+import { Plus, Trash2, ArrowRight, Users, Scale, HandCoins, TrendingDown, BarChart3 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
 import { formatCurrency } from "@/lib/utils";
+import { CategoryDonut, IncomeExpenseLine } from "@/components/financas/charts";
 
 type Settings = { partnerAName: string; partnerBName: string };
 
@@ -38,22 +39,35 @@ function todayISO() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+type DashboardLite = {
+  totals: { income: number; expense: number };
+  expensesByCategory: { name: string; color: string; amount: number }[];
+  monthlySeries: { month: string; income: number; expense: number }[];
+};
+
 export function CasalClient() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [balance, setBalance] = useState<Balance | null>(null);
+  const [dash, setDash] = useState<DashboardLite | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
   async function load() {
     setLoading(true);
-    const [s, d] = await Promise.all([
+    const [s, d, dashRes] = await Promise.all([
       fetch("/api/financas/settings").then((r) => r.json()),
       fetch("/api/financas/settlements").then((r) => r.json()),
+      fetch("/api/financas/dashboard").then((r) => r.json()),
     ]);
     setSettings(s);
     setSettlements(d.settlements || []);
     setBalance(d.balance);
+    setDash({
+      totals: dashRes.totals,
+      expensesByCategory: dashRes.expensesByCategory || [],
+      monthlySeries: dashRes.monthlySeries || [],
+    });
     setLoading(false);
   }
 
@@ -73,8 +87,8 @@ export function CasalClient() {
   return (
     <div>
       <PageHeader
-        title="Acerto do casal"
-        description="Quando um paga uma despesa que era do outro (ou compartilhada), aparece aqui quem deve a quem."
+        title="Casal"
+        description="Análise dos gastos do casal e acertos entre vocês."
         actions={
           <button
             onClick={() => setCreating(true)}
@@ -90,6 +104,84 @@ export function CasalClient() {
         <p className="text-sm text-muted-foreground">Carregando...</p>
       ) : (
         <>
+          {dash && (
+            <>
+              <div className="flex items-center gap-2 mb-3">
+                <BarChart3 className="w-4 h-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Visão geral do casal
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                <div className="bg-card border border-border rounded-xl p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-muted-foreground">Despesas do mês (casal)</p>
+                    <TrendingDown className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <p className="text-2xl font-bold tabular-nums text-destructive">
+                    {formatCurrency(dash.totals.expense)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Soma de tudo que vocês dois gastaram juntos
+                  </p>
+                </div>
+
+                <div className="lg:col-span-2 bg-card border border-border rounded-xl p-5">
+                  <h3 className="text-sm font-semibold mb-3">Últimos 6 meses</h3>
+                  <IncomeExpenseLine data={dash.monthlySeries} height={180} />
+                </div>
+              </div>
+
+              <div className="bg-card border border-border rounded-xl p-5 mb-6">
+                <h3 className="text-sm font-semibold mb-3">Despesas do mês por categoria</h3>
+                {dash.expensesByCategory.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-6 text-center">
+                    Nenhuma despesa neste mês.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <CategoryDonut
+                      data={dash.expensesByCategory.map((c) => ({
+                        name: c.name,
+                        amount: c.amount,
+                        color: c.color,
+                      }))}
+                      size={220}
+                    />
+                    <ul className="space-y-1 text-xs max-h-56 overflow-y-auto">
+                      {dash.expensesByCategory.slice(0, 10).map((c, i) => {
+                        const total = dash.expensesByCategory.reduce((s, x) => s + x.amount, 0);
+                        const pct = total > 0 ? (c.amount / total) * 100 : 0;
+                        return (
+                          <li key={i} className="flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-2 min-w-0">
+                              <span
+                                className="w-2 h-2 rounded-full shrink-0"
+                                style={{ backgroundColor: c.color }}
+                              />
+                              <span className="truncate">{c.name}</span>
+                            </span>
+                            <span className="tabular-nums shrink-0">
+                              {formatCurrency(c.amount)}{" "}
+                              <span className="text-muted-foreground">({pct.toFixed(0)}%)</span>
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 mb-3 mt-8">
+                <Scale className="w-4 h-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Acertos entre vocês
+                </h2>
+              </div>
+            </>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
             <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6">
               <div className="flex items-center gap-2 mb-4">

@@ -78,6 +78,7 @@ export function CartoesClient() {
   const [selected, setSelected] = useState<string>("");
   const [paying, setPaying] = useState<Invoice | null>(null);
   const [importing, setImporting] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [editingTx, setEditingTx] = useState<InvoiceTx | null>(null);
   const [bulkDateInvoice, setBulkDateInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,18 +111,27 @@ export function CartoesClient() {
     <div>
       <div className="flex items-start justify-between flex-wrap gap-3">
         <PageHeader
-          title="Cartões de crédito"
+          title="Cartões de Crédito"
           description="Acompanhe faturas, marque como paga e veja as compras de cada mês."
         />
-        {cards.length > 0 && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setImporting(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm font-medium"
+            onClick={() => setCreating(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border hover:bg-muted text-sm font-medium"
           >
-            <Sparkles className="w-4 h-4" />
-            Importar fatura com IA
+            <CreditCard className="w-4 h-4" />
+            Novo cartão
           </button>
-        )}
+          {cards.length > 0 && (
+            <button
+              onClick={() => setImporting(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm font-medium"
+            >
+              <Sparkles className="w-4 h-4" />
+              Importar fatura com IA
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -129,11 +139,14 @@ export function CartoesClient() {
       ) : cards.length === 0 ? (
         <div className="text-center py-12 bg-card border border-border rounded-xl">
           <CreditCard className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground mb-2">Nenhum cartão cadastrado.</p>
-          <p className="text-xs text-muted-foreground">
-            Vá em <strong>Contas</strong>, crie uma nova com tipo "Cartão de crédito" e informe os dias de
-            fechamento e vencimento.
-          </p>
+          <p className="text-sm text-muted-foreground mb-3">Nenhum cartão cadastrado.</p>
+          <button
+            onClick={() => setCreating(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm font-medium"
+          >
+            <CreditCard className="w-4 h-4" />
+            Cadastrar primeiro cartão
+          </button>
         </div>
       ) : (
         <>
@@ -277,6 +290,17 @@ export function CartoesClient() {
             </div>
           )}
         </>
+      )}
+
+      {creating && (
+        <NewCardModal
+          settings={settings}
+          onClose={() => setCreating(false)}
+          onCreated={() => {
+            setCreating(false);
+            load();
+          }}
+        />
       )}
 
       {paying && (
@@ -1131,3 +1155,195 @@ function ImportInvoiceModal({
     </Modal>
   );
 }
+
+
+function NewCardModal({
+  settings,
+  onClose,
+  onCreated,
+}: {
+  settings: Settings | null;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [name, setName] = useState("");
+  const [color, setColor] = useState("#6366f1");
+  const [creditLimit, setCreditLimit] = useState("");
+  const [closingDay, setClosingDay] = useState("");
+  const [dueDay, setDueDay] = useState("");
+  const [initialBalance, setInitialBalance] = useState("0");
+  const [owner, setOwner] = useState<"PARTNER_A" | "PARTNER_B" | "COUPLE">("COUPLE");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    if (!name.trim()) {
+      setError("Nome obrigatório");
+      setSaving(false);
+      return;
+    }
+    if (!closingDay || !dueDay) {
+      setError("Dia de fechamento e vencimento são obrigatórios");
+      setSaving(false);
+      return;
+    }
+    const res = await fetch("/api/financas/accounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: name.trim(),
+        type: "CREDIT_CARD",
+        color,
+        initialBalance: parseFloat(initialBalance.replace(",", ".")) || 0,
+        creditLimit: creditLimit ? parseFloat(creditLimit.replace(",", ".")) : null,
+        closingDay: parseInt(closingDay, 10),
+        dueDay: parseInt(dueDay, 10),
+        owner,
+      }),
+    });
+    setSaving(false);
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      setError(j.error || "Erro ao salvar");
+      return;
+    }
+    onCreated();
+  }
+
+  return (
+    <Modal title="Novo cartão de crédito" onClose={onClose} maxWidth="max-w-md">
+      <form onSubmit={submit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Nome do cartão</label>
+          <input
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ex: Itaú Platinum"
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Dono do cartão</label>
+          <div className="grid grid-cols-3 gap-2">
+            {(["PARTNER_A", "PARTNER_B", "COUPLE"] as const).map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => setOwner(o)}
+                className={`px-3 py-2 rounded-lg border text-sm ${
+                  owner === o
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border hover:bg-muted"
+                }`}
+              >
+                {o === "PARTNER_A"
+                  ? settings?.partnerAName ?? "Você"
+                  : o === "PARTNER_B"
+                  ? settings?.partnerBName ?? "Parceiro"
+                  : "Casal"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Cor</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              className="h-9 w-12 rounded border border-border cursor-pointer"
+            />
+            <span className="text-xs text-muted-foreground">{color}</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Dia de fechamento</label>
+            <input
+              required
+              type="number"
+              min={1}
+              max={31}
+              value={closingDay}
+              onChange={(e) => setClosingDay(e.target.value)}
+              placeholder="Ex: 20"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">Quando a fatura fecha</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Dia de vencimento</label>
+            <input
+              required
+              type="number"
+              min={1}
+              max={31}
+              value={dueDay}
+              onChange={(e) => setDueDay(e.target.value)}
+              placeholder="Ex: 9"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">Quando você paga</p>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Limite do cartão <span className="text-muted-foreground font-normal">(opcional)</span>
+          </label>
+          <input
+            inputMode="decimal"
+            value={creditLimit}
+            onChange={(e) => setCreditLimit(e.target.value)}
+            placeholder="Ex: 5000"
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Saldo da fatura em aberto <span className="text-muted-foreground font-normal">(opcional)</span>
+          </label>
+          <input
+            inputMode="decimal"
+            value={initialBalance}
+            onChange={(e) => setInitialBalance(e.target.value)}
+            placeholder="0,00"
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+          />
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Se o cartão já tem gasto antes de você cadastrar
+          </p>
+        </div>
+
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg border border-border hover:bg-muted text-sm"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 text-sm font-medium"
+          >
+            {saving ? "Salvando..." : "Cadastrar"}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+

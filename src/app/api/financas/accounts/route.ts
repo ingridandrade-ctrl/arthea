@@ -4,6 +4,7 @@ import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 import { computeAccountBalances } from "@/lib/financas/balances";
 
 const VALID_TYPES = ["CHECKING", "SAVINGS", "CASH", "CREDIT_CARD", "INVESTMENT", "OTHER"];
+const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
 
 export async function GET() {
   try {
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
   try {
     const household = await requireHousehold();
     const body = await req.json();
-    const { name, type, initialBalance, color, icon, creditLimit, closingDay, dueDay } = body ?? {};
+    const { name, type, initialBalance, color, icon, creditLimit, closingDay, dueDay, owner } = body ?? {};
 
     if (typeof name !== "string" || !name.trim()) {
       return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 });
@@ -49,6 +50,7 @@ export async function POST(req: Request) {
         creditLimit: typeof creditLimit === "number" ? creditLimit : null,
         closingDay: typeof closingDay === "number" ? closingDay : null,
         dueDay: typeof dueDay === "number" ? dueDay : null,
+        owner: VALID_OWNERS.includes(owner) ? (owner as any) : "COUPLE",
       },
     });
     return NextResponse.json(account, { status: 201 });
