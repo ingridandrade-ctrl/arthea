@@ -242,7 +242,7 @@ export default async function PortalDashboard() {
           </p>
           <CircularProgress
             pct={agencyProgress}
-            caption="Equipe entregou"
+            caption="Andamento do projeto"
             size={200}
             stroke={14}
           />
