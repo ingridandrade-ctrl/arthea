@@ -155,6 +155,11 @@ function CRMLoginUI({
         <p className="text-center text-sm text-muted-foreground mt-6">
           Credenciais padrão: admin@arthea.com / admin123
         </p>
+        <p className="text-center text-xs text-muted-foreground mt-4">
+          <a href="/politica-de-privacidade" className="underline hover:text-foreground">
+            Política de privacidade
+          </a>
+        </p>
       </div>
     </div>
   );
@@ -349,6 +354,21 @@ function PortalLoginUI({
           }}
         >
           Esqueceu sua senha? Fale com nossa equipe.
+        </p>
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: 11,
+            color: "#A0A0A0",
+            marginTop: 12,
+          }}
+        >
+          <a
+            href="/politica-de-privacidade"
+            style={{ color: "#6B7280", textDecoration: "underline" }}
+          >
+            Política de privacidade
+          </a>
         </p>
       </div>
     </div>
