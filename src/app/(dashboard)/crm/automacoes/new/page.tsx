@@ -71,7 +71,7 @@ export default function NewAutomationPage() {
       return;
     }
 
-    router.push("/configuracoes/automacoes");
+    router.push("/crm/automacoes");
   }
 
   return (

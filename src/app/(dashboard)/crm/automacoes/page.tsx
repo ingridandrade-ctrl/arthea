@@ -57,7 +57,7 @@ export default function AutomacoesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Automacoes</h1>
         <Link
-          href="/configuracoes/automacoes/new"
+          href="/crm/automacoes/new"
           className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition"
         >
           <Plus className="w-4 h-4" />

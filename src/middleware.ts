@@ -2,10 +2,19 @@ import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const CRM_PREFIXES = [
+// Caminhos do painel da agência (qualquer coisa que NÃO seja /portal do cliente).
+const ADMIN_PREFIXES = [
+  "/inicio",
+  "/crm",
+  "/clientes",
+  "/sistema",
+  "/financeiro",
+  "/admin",
+  "/services",
+  "/settings",
+  // Aliases legados — redirects no next.config cuidam de levar pra rota nova
   "/dashboard",
   "/leads",
-  "/financeiro",
   "/pipeline",
   "/conversations",
   "/relatorios",
@@ -13,6 +22,7 @@ const CRM_PREFIXES = [
   "/configuracoes",
   "/automations",
   "/portal-clientes",
+  "/meta",
 ];
 
 function isClientHost(host: string | null) {
@@ -25,7 +35,7 @@ function isPublicPath(pathname: string) {
 }
 
 function isPortalPath(pathname: string) {
-  // /portal exato ou /portal/<algo> — NÃO inclui /portal-clientes
+  // /portal exato ou /portal/<algo> — NÃO inclui /portal-clientes (legado)
   return pathname === "/portal" || pathname.startsWith("/portal/");
 }
 
@@ -39,28 +49,25 @@ export default withAuth(
 
     // ── Subdomínio do cliente (clientes.arthea.com.br) ──
     if (onClientHost) {
-      // /, /dashboard, etc → empurra pro portal (ou login)
-      if (CRM_PREFIXES.some((p) => pathname.startsWith(p))) {
+      if (ADMIN_PREFIXES.some((p) => pathname.startsWith(p))) {
         return NextResponse.redirect(new URL(role === "CLIENT" ? "/portal" : "/login", req.url));
       }
-      // raiz
       if (pathname === "/") {
         return NextResponse.redirect(new URL(role === "CLIENT" ? "/portal" : "/login", req.url));
       }
-      // qualquer rota /portal/* (não /portal-clientes) exige CLIENT
       if (isPortalPath(pathname) && role !== "CLIENT") {
         return NextResponse.redirect(new URL("/login", req.url));
       }
       return NextResponse.next();
     }
 
-    // ── Domínio principal (CRM) ──
+    // ── Domínio principal (agência) ──
     if (isPortalPath(pathname)) {
       if (role !== "CLIENT") {
         return NextResponse.redirect(new URL("/login", req.url));
       }
     }
-    if (CRM_PREFIXES.some((p) => pathname.startsWith(p))) {
+    if (ADMIN_PREFIXES.some((p) => pathname.startsWith(p))) {
       if (role === "CLIENT") {
         return NextResponse.redirect(new URL("/portal", req.url));
       }
@@ -72,21 +79,28 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const pathname = req.nextUrl.pathname;
-        // Permite a tela de login passar pelo middleware sem token (público)
         if (isPublicPath(pathname)) return true;
         return !!token;
       },
     },
-  }
+  },
 );
 
 export const config = {
   matcher: [
     "/",
-    "/dashboard/:path*",
     "/portal/:path*",
-    "/leads/:path*",
+    "/inicio/:path*",
+    "/crm/:path*",
+    "/clientes/:path*",
+    "/sistema/:path*",
     "/financeiro/:path*",
+    "/admin/:path*",
+    "/services/:path*",
+    "/settings/:path*",
+    // Legados (passam pelo middleware antes do redirect do next.config aplicar)
+    "/dashboard/:path*",
+    "/leads/:path*",
     "/pipeline/:path*",
     "/conversations/:path*",
     "/relatorios/:path*",
@@ -94,5 +108,6 @@ export const config = {
     "/configuracoes/:path*",
     "/automations/:path*",
     "/portal-clientes/:path*",
+    "/meta/:path*",
   ],
 };

@@ -9,7 +9,7 @@ export default async function FinanceiroLayout({
 }) {
   const session = await getServerSession(authOptions) as any;
   if (!session) redirect("/login");
-  if (session.user.role !== "ADMIN") redirect("/dashboard");
+  if (session.user.role !== "ADMIN") redirect("/inicio");
 
   return <>{children}</>;
 }

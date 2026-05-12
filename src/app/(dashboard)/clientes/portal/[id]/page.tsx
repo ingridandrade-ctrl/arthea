@@ -14,7 +14,7 @@ export default async function PortalClienteDetail({
   const session = (await getServerSession(authOptions)) as any;
   if (!session) redirect("/login");
   const role = session.user?.role;
-  if (role !== "ADMIN" && role !== "MANAGER") redirect("/dashboard");
+  if (role !== "ADMIN" && role !== "MANAGER") redirect("/inicio");
 
   const project = await prisma.clientEngagement.findUnique({
     where: { id: params.id },
@@ -39,7 +39,7 @@ export default async function PortalClienteDetail({
   return (
     <div className="space-y-6">
       <Link
-        href="/portal-clientes"
+        href="/clientes/portal"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="w-4 h-4" /> Portal de Clientes

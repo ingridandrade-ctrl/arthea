@@ -15,7 +15,7 @@ export default async function MetaPage({
   const session = (await getServerSession(authOptions)) as any;
   if (!session) redirect("/login");
   const role = session.user?.role;
-  if (role !== "ADMIN" && role !== "MANAGER") redirect("/dashboard");
+  if (role !== "ADMIN" && role !== "MANAGER") redirect("/inicio");
 
   const userId = session.user.id;
 

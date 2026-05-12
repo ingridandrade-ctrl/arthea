@@ -10,7 +10,7 @@ import {
   verifySignedState,
 } from "@/lib/meta/api";
 
-const CONFIG_URL = "/meta";
+const CONFIG_URL = "/clientes/meta";
 
 function redirectWith(reason: string, request: NextRequest) {
   const url = new URL(CONFIG_URL, request.url);
