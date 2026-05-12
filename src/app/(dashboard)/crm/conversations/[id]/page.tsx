@@ -80,7 +80,7 @@ export default function ConversationPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
         <div className="flex items-center gap-3">
-          <Link href="/conversations" className="text-muted-foreground hover:text-foreground">
+          <Link href="/crm/conversations" className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           {conversation && (

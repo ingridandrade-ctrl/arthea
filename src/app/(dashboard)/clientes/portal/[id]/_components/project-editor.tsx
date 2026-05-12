@@ -148,7 +148,7 @@ function GeralTab({ project }: { project: any }) {
   async function deleteProject() {
     if (!confirm("Excluir este projeto e todos os entregáveis? Não dá pra desfazer.")) return;
     await fetch(`/api/admin/client-projects/${project.id}`, { method: "DELETE" });
-    window.location.href = "/portal-clientes";
+    window.location.href = "/clientes/portal";
   }
 
   return (

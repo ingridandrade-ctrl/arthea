@@ -89,7 +89,7 @@ export default function LoginPage() {
     if (role === "CLIENT") {
       router.push("/portal");
     } else {
-      router.push("/dashboard");
+      router.push("/inicio");
     }
   }
 

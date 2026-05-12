@@ -15,7 +15,7 @@ export default async function PortalLayout({
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-  if ((session.user as any).role !== "CLIENT") redirect("/dashboard");
+  if ((session.user as any).role !== "CLIENT") redirect("/inicio");
 
   const userId = (session.user as any).id;
   const engagements = await prisma.clientEngagement.findMany({
