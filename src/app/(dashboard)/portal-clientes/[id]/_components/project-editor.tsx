@@ -13,6 +13,7 @@ import {
   ArrowUp,
   ArrowDown,
   Check,
+  KeyRound,
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { FileUploadField } from "./file-upload-field";
@@ -97,7 +98,12 @@ export function ProjectEditor({ project }: { project: any }) {
         ))}
       </div>
 
-      {tab === "geral" && <GeralTab project={project} />}
+      {tab === "geral" && (
+        <>
+          <GeralTab project={project} />
+          <ClientAccountSection projectId={project.id} client={project.client} />
+        </>
+      )}
       {tab === "entregaveis" && <EntregaveisTab project={project} />}
       {tab === "acessos" && <AcessosTab project={project} />}
       {tab === "referencias" && <ReferenciasTab project={project} />}
@@ -234,6 +240,112 @@ function GeralTab({ project }: { project: any }) {
         >
           <Save className="w-4 h-4" />
           {saving ? "Salvando..." : "Salvar alterações"}
+        </button>
+      </div>
+      {toast.node}
+    </form>
+  );
+}
+
+// ─────────────────── CONTA DO CLIENTE ───────────────────
+function ClientAccountSection({
+  projectId,
+  client,
+}: {
+  projectId: string;
+  client: { id: string; name: string; email: string };
+}) {
+  const router = useRouter();
+  const toast = useToast();
+  const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  async function save(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSaving(true);
+    const fd = new FormData(e.currentTarget);
+    const password = (fd.get("password") as string) || "";
+    const body: Record<string, string> = {
+      name: (fd.get("name") as string) || "",
+      email: (fd.get("email") as string) || "",
+    };
+    if (password) body.password = password;
+
+    const res = await fetch(`/api/admin/client-projects/${projectId}/client`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    setSaving(false);
+    if (res.ok) {
+      toast.show(password ? "Credenciais e senha atualizadas" : "Credenciais atualizadas");
+      (e.currentTarget.elements.namedItem("password") as HTMLInputElement).value = "";
+      router.refresh();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      toast.show(data.error || "Erro ao salvar");
+    }
+  }
+
+  return (
+    <form
+      onSubmit={save}
+      className="space-y-5 bg-card border border-border rounded-2xl p-6 max-w-3xl mt-6"
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <KeyRound className="w-4 h-4 text-primary" strokeWidth={1.7} />
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Conta de acesso ao portal
+          </p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            O cliente entra em clientes.arthea.com.br com esse e-mail e senha.
+          </p>
+        </div>
+      </div>
+
+      <Field label="Nome (aparece no portal)">
+        <input name="name" required defaultValue={client.name} className={input} />
+      </Field>
+      <Field label="E-mail">
+        <input
+          name="email"
+          type="email"
+          required
+          defaultValue={client.email}
+          className={input}
+        />
+      </Field>
+      <Field label="Nova senha (em branco = manter atual)">
+        <div className="relative">
+          <input
+            name="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Deixe em branco pra não alterar"
+            className={`${input} pr-10`}
+            autoComplete="new-password"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((s) => !s)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
+      </Field>
+
+      <div className="flex items-center justify-end pt-4 border-t border-border">
+        <button
+          type="submit"
+          disabled={saving}
+          className="px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60 inline-flex items-center gap-2 hover:opacity-90 transition"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Salvando..." : "Salvar credenciais"}
         </button>
       </div>
       {toast.node}
