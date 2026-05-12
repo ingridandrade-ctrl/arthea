@@ -36,7 +36,13 @@ const STATUS_ICON: Record<string, any> = {
   REVISION: RotateCcw,
 };
 
-export function DeliverablesView({ items }: { items: Item[] }) {
+export function DeliverablesView({
+  items,
+  engagementSlug,
+}: {
+  items: Item[];
+  engagementSlug: string;
+}) {
   const [activeStatus, setActiveStatus] = useState<"ALL" | DeliverableStatus>("ALL");
 
   const counts = useMemo(() => {
@@ -235,7 +241,7 @@ export function DeliverablesView({ items }: { items: Item[] }) {
                     return (
                       <Link
                         key={d.id}
-                        href={`/portal/entregaveis/${d.id}`}
+                        href={`/portal/${engagementSlug}/entregaveis/${d.id}`}
                         className="portal-card-hover portal-stagger"
                         style={{
                           display: "flex",

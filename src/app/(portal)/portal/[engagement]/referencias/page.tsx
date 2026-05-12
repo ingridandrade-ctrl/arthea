@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Pin, FolderOpen, FileText, LayoutGrid, Link2 } from "lucide-react";
@@ -26,24 +26,20 @@ function faviconUrl(url: string) {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 }
 
-export default async function ReferenciasPage() {
+export default async function ReferenciasPage({
+  params,
+}: {
+  params: { engagement: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
   const userId = (session.user as any).id;
 
-  const project = await prisma.clientEngagement.findFirst({
-    where: { clientId: userId, isActive: true },
-    orderBy: { createdAt: "asc" },
+  const project = await prisma.clientEngagement.findUnique({
+    where: { clientId_slug: { clientId: userId, slug: params.engagement } },
     include: { references: { orderBy: { order: "asc" } } },
   });
-
-  if (!project) {
-    return (
-      <div style={{ textAlign: "center", padding: "80px 0", color: "#6B7280" }}>
-        Projeto não disponível.
-      </div>
-    );
-  }
+  if (!project) notFound();
 
   return (
     <div className="portal-fade-in" style={{ display: "flex", flexDirection: "column", gap: 28 }}>

@@ -1,17 +1,20 @@
 import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { DeliverablesView } from "../../_components/deliverables-view";
+import { DeliverablesView } from "../../../_components/deliverables-view";
 
-export default async function DeliverablesPage() {
+export default async function DeliverablesPage({
+  params,
+}: {
+  params: { engagement: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
   const userId = (session.user as any).id;
 
-  const project = await prisma.clientEngagement.findFirst({
-    where: { clientId: userId, isActive: true },
-    orderBy: { createdAt: "asc" },
+  const project = await prisma.clientEngagement.findUnique({
+    where: { clientId_slug: { clientId: userId, slug: params.engagement } },
     include: {
       deliverables: {
         where: { isVisible: true },
@@ -19,14 +22,7 @@ export default async function DeliverablesPage() {
       },
     },
   });
-
-  if (!project) {
-    return (
-      <div style={{ textAlign: "center", padding: "80px 0", color: "#6B7280" }}>
-        Projeto não disponível.
-      </div>
-    );
-  }
+  if (!project) notFound();
 
   const items = project.deliverables.map((d) => ({
     id: d.id,
@@ -36,5 +32,5 @@ export default async function DeliverablesPage() {
     status: d.status,
   }));
 
-  return <DeliverablesView items={items} />;
+  return <DeliverablesView items={items} engagementSlug={project.slug} />;
 }
