@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     where: { connection: { userId, status: "ACTIVE" }, hidden: false },
     include: {
       connection: { select: { accessToken: true, status: true } },
-      clientProject: { select: { id: true, name: true } },
+      engagement: { select: { id: true, name: true } },
     },
   });
 
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
       accountId: r.acc.accountId,
       name: r.acc.name,
       currency: r.acc.currency,
-      clientProject: r.acc.clientProject,
+      engagement: r.acc.engagement,
       spend,
       impressions,
       clicks,
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
         campaignName: c.campaign_name,
         accountName: r.acc.name,
         accountId: r.acc.accountId,
-        clientProjectName: r.acc.clientProject?.name ?? null,
+        engagementName: r.acc.engagement?.name ?? null,
         currency: r.acc.currency,
         spend: Number(c.spend || 0),
         impressions: Number(c.impressions || 0),

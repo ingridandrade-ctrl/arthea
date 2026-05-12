@@ -14,7 +14,7 @@ export default async function PortalClientesPage() {
   const role = session.user?.role;
   if (role !== "ADMIN" && role !== "MANAGER") redirect("/dashboard");
 
-  const projects = await prisma.clientProject.findMany({
+  const projects = await prisma.clientEngagement.findMany({
     include: {
       client: { select: { id: true, name: true, email: true } },
       _count: { select: { deliverables: true, accesses: true, references: true } },

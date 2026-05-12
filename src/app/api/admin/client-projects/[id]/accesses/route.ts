@@ -12,7 +12,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const access = await prisma.clientAccess.create({
     data: {
-      projectId: params.id,
+      engagementId: params.id,
       platform,
       icon: icon || null,
       username: username || null,

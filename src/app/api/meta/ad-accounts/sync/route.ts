@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     const stored = await prisma.metaAdAccount.findMany({
       where: { connectionId: conn.id },
-      include: { clientProject: { select: { id: true, name: true } } },
+      include: { engagement: { select: { id: true, name: true } } },
       orderBy: { name: "asc" },
     });
 

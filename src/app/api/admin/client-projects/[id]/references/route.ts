@@ -14,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const ref = await prisma.clientReference.create({
     data: {
-      projectId: params.id,
+      engagementId: params.id,
       title,
       type: type || "link",
       url,

@@ -30,8 +30,8 @@ interface AdAccount {
   currency: string | null;
   businessName: string | null;
   hidden: boolean;
-  clientProjectId: string | null;
-  clientProject: { id: string; name: string } | null;
+  engagementId: string | null;
+  engagement: { id: string; name: string } | null;
 }
 
 interface Connection {
@@ -43,7 +43,7 @@ interface Connection {
   adAccounts: AdAccount[];
 }
 
-interface ProjectOption {
+interface EngagementOption {
   id: string;
   name: string;
   clientName: string;
@@ -59,11 +59,11 @@ const STATUS_BANNER: Record<string, { tone: "ok" | "warn" | "err"; text: string 
 
 export function MetaClient({
   initialConnections,
-  projects,
+  engagements,
   statusParam,
 }: {
   initialConnections: Connection[];
-  projects: ProjectOption[];
+  engagements: EngagementOption[];
   statusParam: string | null;
 }) {
   const router = useRouter();
@@ -121,11 +121,11 @@ export function MetaClient({
     }
   }
 
-  async function linkAccount(adAccountId: string, clientProjectId: string | null) {
+  async function linkAccount(adAccountId: string, engagementId: string | null) {
     const res = await fetch(`/api/meta/ad-accounts/${adAccountId}/link`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ clientProjectId }),
+      body: JSON.stringify({ engagementId }),
     });
     if (!res.ok) {
       const e = await res.json().catch(() => ({}));
@@ -140,8 +140,8 @@ export function MetaClient({
           a.id === adAccountId
             ? {
                 ...a,
-                clientProjectId: updated.clientProjectId,
-                clientProject: updated.clientProject,
+                engagementId: updated.engagementId,
+                engagement: updated.engagement,
               }
             : a,
         ),
@@ -337,10 +337,10 @@ export function MetaClient({
                                 {!acc.hidden && (
                                   <>
                                     <LinkSelect
-                                      value={acc.clientProjectId}
-                                      currentLabel={acc.clientProject?.name ?? null}
-                                      projects={projects}
-                                      onChange={(pid) => linkAccount(acc.id, pid)}
+                                      value={acc.engagementId}
+                                      currentLabel={acc.engagement?.name ?? null}
+                                      engagements={engagements}
+                                      onChange={(eid) => linkAccount(acc.id, eid)}
                                     />
                                     <button
                                       onClick={() => toggleOverview(acc.id)}
@@ -396,8 +396,8 @@ export function MetaClient({
 
           {allAccounts.length > 0 && (
             <p className="text-xs text-muted-foreground">
-              Vincule cada conta a um projeto de cliente para que apareca automaticamente no portal
-              do cliente correspondente.
+              Vincule cada conta a um engagement de cliente para que apareca automaticamente no
+              portal correspondente.
             </p>
           )}
         </div>
@@ -409,12 +409,12 @@ export function MetaClient({
 function LinkSelect({
   value,
   currentLabel,
-  projects,
+  engagements,
   onChange,
 }: {
   value: string | null;
   currentLabel: string | null;
-  projects: ProjectOption[];
+  engagements: EngagementOption[];
   onChange: (id: string | null) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -448,25 +448,25 @@ function LinkSelect({
                 Desvincular
               </button>
             )}
-            {projects.length === 0 ? (
+            {engagements.length === 0 ? (
               <div className="px-3 py-2 text-sm text-muted-foreground">
-                Nenhum projeto de cliente cadastrado.
+                Nenhum engagement cadastrado.
               </div>
             ) : (
-              projects.map((p) => (
+              engagements.map((e) => (
                 <button
-                  key={p.id}
+                  key={e.id}
                   onClick={() => {
-                    onChange(p.id);
+                    onChange(e.id);
                     setOpen(false);
                   }}
                   className={
                     "w-full text-left px-3 py-2 text-sm hover:bg-muted " +
-                    (value === p.id ? "bg-primary/5 font-medium" : "")
+                    (value === e.id ? "bg-primary/5 font-medium" : "")
                   }
                 >
-                  <div>{p.name}</div>
-                  <div className="text-xs text-muted-foreground">{p.clientName}</div>
+                  <div>{e.name}</div>
+                  <div className="text-xs text-muted-foreground">{e.clientName}</div>
                 </button>
               ))
             )}

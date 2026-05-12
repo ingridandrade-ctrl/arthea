@@ -28,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const deliverable = await prisma.clientDeliverable.create({
     data: {
-      projectId: params.id,
+      engagementId: params.id,
       title,
       description: description || null,
       category,

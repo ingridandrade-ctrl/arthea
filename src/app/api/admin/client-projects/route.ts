@@ -7,14 +7,14 @@ export async function GET() {
   const auth = await requireAdmin();
   if ("error" in auth) return auth.error;
 
-  const projects = await prisma.clientProject.findMany({
+  const engagements = await prisma.clientEngagement.findMany({
     include: {
       client: { select: { id: true, name: true, email: true } },
       _count: { select: { deliverables: true, accesses: true, references: true } },
     },
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json(projects);
+  return NextResponse.json(engagements);
 }
 
 export async function POST(request: NextRequest) {
@@ -28,8 +28,11 @@ export async function POST(request: NextRequest) {
     startDate,
     endDate,
     currentPhase,
+    totalPhases,
     accentColor,
     logoUrl,
+    type,
+    slug,
     // Client user
     clientId,
     clientName,
@@ -37,7 +40,7 @@ export async function POST(request: NextRequest) {
     clientPassword,
   } = body;
 
-  if (!name) return NextResponse.json({ error: "Nome do projeto obrigatório" }, { status: 400 });
+  if (!name) return NextResponse.json({ error: "Nome do engagement obrigatório" }, { status: 400 });
 
   // Resolve / create client user
   let resolvedClientId = clientId;
@@ -65,24 +68,44 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // One project per client
-  const existingProject = await prisma.clientProject.findUnique({ where: { clientId: resolvedClientId } });
-  if (existingProject) {
-    return NextResponse.json({ error: "Esse cliente já tem um projeto." }, { status: 409 });
+  const resolvedSlug =
+    (slug as string | undefined)?.trim() ||
+    name
+      .toString()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+      .slice(0, 40) ||
+    "principal";
+
+  // Engagement único por (clientId, slug)
+  const existingEngagement = await prisma.clientEngagement.findUnique({
+    where: { clientId_slug: { clientId: resolvedClientId, slug: resolvedSlug } },
+  });
+  if (existingEngagement) {
+    return NextResponse.json(
+      { error: `Esse cliente já tem um engagement com slug "${resolvedSlug}".` },
+      { status: 409 },
+    );
   }
 
-  const project = await prisma.clientProject.create({
+  const engagement = await prisma.clientEngagement.create({
     data: {
       name,
+      slug: resolvedSlug,
+      type: type ?? "STRATEGY",
       clientId: resolvedClientId,
       description: description || null,
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
       currentPhase: currentPhase ?? 1,
+      totalPhases: totalPhases ?? 4,
       accentColor: accentColor || "#1D7070",
       logoUrl: logoUrl || null,
     },
     include: { client: { select: { id: true, name: true, email: true } } },
   });
-  return NextResponse.json(project, { status: 201 });
+  return NextResponse.json(engagement, { status: 201 });
 }

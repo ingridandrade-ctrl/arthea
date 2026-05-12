@@ -16,10 +16,10 @@ export async function POST(
   const userId = session.user.id;
   const deliverable = await prisma.clientDeliverable.findUnique({
     where: { id: params.id },
-    include: { project: { select: { clientId: true } } },
+    include: { engagement: { select: { clientId: true } } },
   });
   if (!deliverable) return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
-  if (deliverable.project.clientId !== userId) {
+  if (deliverable.engagement.clientId !== userId) {
     return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
 

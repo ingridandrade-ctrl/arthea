@@ -18,8 +18,9 @@ export default async function PortalLayout({
   if ((session.user as any).role !== "CLIENT") redirect("/dashboard");
 
   const userId = (session.user as any).id;
-  const project = await prisma.clientProject.findUnique({
-    where: { clientId: userId },
+  const project = await prisma.clientEngagement.findFirst({
+    where: { clientId: userId, isActive: true },
+    orderBy: { createdAt: "asc" },
     select: {
       name: true,
       currentPhase: true,

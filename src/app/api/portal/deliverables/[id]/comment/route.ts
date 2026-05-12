@@ -15,12 +15,12 @@ export async function POST(
 
   const deliverable = await prisma.clientDeliverable.findUnique({
     where: { id: params.id },
-    include: { project: { select: { clientId: true } } },
+    include: { engagement: { select: { clientId: true } } },
   });
   if (!deliverable) return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
 
   // Client can only comment on their own deliverables
-  if (role === "CLIENT" && deliverable.project.clientId !== userId) {
+  if (role === "CLIENT" && deliverable.engagement.clientId !== userId) {
     return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
   if (!["CLIENT", "ADMIN", "MANAGER", "AGENT"].includes(role)) {

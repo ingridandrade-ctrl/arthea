@@ -26,7 +26,7 @@ export async function POST(
   const updated = await prisma.metaAdAccount.update({
     where: { id: params.id },
     data: { hidden },
-    include: { clientProject: { select: { id: true, name: true } } },
+    include: { engagement: { select: { id: true, name: true } } },
   });
 
   return NextResponse.json(updated);

@@ -19,18 +19,18 @@ export default async function MetaPage({
 
   const userId = session.user.id;
 
-  const [connections, projects] = await Promise.all([
+  const [connections, engagements] = await Promise.all([
     prisma.metaConnection.findMany({
       where: { userId },
       include: {
         adAccounts: {
-          include: { clientProject: { select: { id: true, name: true } } },
+          include: { engagement: { select: { id: true, name: true } } },
           orderBy: { name: "asc" },
         },
       },
       orderBy: { createdAt: "asc" },
     }),
-    prisma.clientProject.findMany({
+    prisma.clientEngagement.findMany({
       select: { id: true, name: true, client: { select: { name: true } } },
       orderBy: { name: "asc" },
     }),
@@ -43,10 +43,10 @@ export default async function MetaPage({
       <MetaDashboard hasConnections={hasAccounts} />
       <MetaClient
         initialConnections={JSON.parse(JSON.stringify(connections))}
-        projects={projects.map((p) => ({
-          id: p.id,
-          name: p.name,
-          clientName: p.client.name,
+        engagements={engagements.map((e) => ({
+          id: e.id,
+          name: e.name,
+          clientName: e.client.name,
         }))}
         statusParam={searchParams.status ?? null}
       />
