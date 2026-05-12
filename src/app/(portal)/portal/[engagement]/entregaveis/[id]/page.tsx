@@ -10,13 +10,17 @@ import {
   STATUS_FG,
   STATUS_LABEL,
   type DeliverableStatus,
-} from "../../../_components/deliverable-status";
-import { ValidationForm } from "../../../_components/validation-form";
-import { SimpleApprove } from "../../../_components/simple-approve";
-import { CommentsSection } from "../../../_components/comments-section";
-import { DocumentViewer } from "../../../_components/document-viewer";
+} from "../../../../_components/deliverable-status";
+import { ValidationForm } from "../../../../_components/validation-form";
+import { SimpleApprove } from "../../../../_components/simple-approve";
+import { CommentsSection } from "../../../../_components/comments-section";
+import { DocumentViewer } from "../../../../_components/document-viewer";
 
-export default async function DeliverableDetail({ params }: { params: { id: string } }) {
+export default async function DeliverableDetail({
+  params,
+}: {
+  params: { id: string; engagement: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
   const userId = (session.user as any).id;
@@ -24,7 +28,7 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
   const deliverable = await prisma.clientDeliverable.findUnique({
     where: { id: params.id },
     include: {
-      engagement: { select: { clientId: true, name: true } },
+      engagement: { select: { clientId: true, name: true, slug: true } },
       questions: { orderBy: { order: "asc" } },
       responses: true,
       comments: { orderBy: { createdAt: "asc" } },
@@ -33,6 +37,7 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
 
   if (!deliverable) notFound();
   if (deliverable.engagement.clientId !== userId) redirect("/portal");
+  if (deliverable.engagement.slug !== params.engagement) notFound();
 
   const authorIds = Array.from(new Set(deliverable.comments.map((c) => c.authorId)));
   const authors = await prisma.user.findMany({
@@ -47,7 +52,7 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
   return (
     <div className="portal-fade-in" style={{ display: "flex", flexDirection: "column", gap: 28 }}>
       <Link
-        href="/portal/entregaveis"
+        href={`/portal/${params.engagement}/entregaveis`}
         style={{
           fontSize: 12.5,
           color: "#6B7280",

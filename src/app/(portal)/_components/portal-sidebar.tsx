@@ -13,35 +13,57 @@ import {
   LogOut,
   Menu,
   X,
+  FileText,
+  Briefcase,
+  Megaphone,
+  Globe,
+  MapPin,
 } from "lucide-react";
 import { ArtheaStar } from "./arthea-star";
 
-const items = [
-  { href: "/portal", label: "Visão geral", icon: LayoutDashboard },
-  { href: "/portal/entregaveis", label: "Entregáveis", icon: ListChecks },
-  { href: "/portal/acessos", label: "Acessos", icon: KeyRound },
-  { href: "/portal/referencias", label: "Referências", icon: BookmarkCheck },
-  { href: "/portal/perfil", label: "Meu perfil", icon: UserCircle },
-];
+type EngagementType = "STRATEGY" | "PAID_TRAFFIC" | "LANDING_PAGE" | "GMB";
+
+const TYPE_ICON: Record<EngagementType, any> = {
+  STRATEGY: Briefcase,
+  PAID_TRAFFIC: Megaphone,
+  LANDING_PAGE: Globe,
+  GMB: MapPin,
+};
+
+const TYPE_LABEL: Record<EngagementType, string> = {
+  STRATEGY: "Estratégia",
+  PAID_TRAFFIC: "Tráfego",
+  LANDING_PAGE: "Landing page",
+  GMB: "Google Meu Negócio",
+};
+
+interface EngagementSummary {
+  slug: string;
+  name: string;
+  type: EngagementType;
+  accentColor: string;
+}
 
 export function PortalSidebar({
   accent,
   logoUrl,
   userName,
-  projectName,
+  engagements,
 }: {
   accent: string;
   logoUrl: string | null;
   userName: string;
-  projectName: string | null;
+  engagements: EngagementSummary[];
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  // Close drawer when route changes
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  const isExactPath = (href: string) => pathname === href;
+  const isUnderPath = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   const sidebarBody = (
     <>
@@ -51,7 +73,7 @@ export function PortalSidebar({
           alignItems: "center",
           gap: 12,
           padding: "0 8px",
-          marginBottom: 32,
+          marginBottom: 28,
         }}
       >
         {logoUrl ? (
@@ -99,54 +121,87 @@ export function PortalSidebar({
               overflow: "hidden",
               textOverflow: "ellipsis",
             }}
-            title={projectName || "Portal"}
           >
-            {projectName || "Portal"}
+            Portal
           </p>
         </div>
       </div>
 
-      <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-        {items.map((item) => {
-          const active =
-            item.href === "/portal" ? pathname === "/portal" : pathname.startsWith(item.href);
-          const Icon = item.icon;
+      <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, overflow: "auto" }}>
+        <SidebarItem
+          href="/portal"
+          label="Visão geral"
+          icon={LayoutDashboard}
+          active={isExactPath("/portal")}
+        />
+        <SidebarItem
+          href="/portal/sobre"
+          label="Sobre você"
+          icon={FileText}
+          active={isUnderPath("/portal/sobre")}
+        />
+
+        {engagements.map((e) => {
+          const Icon = TYPE_ICON[e.type] || Briefcase;
+          const base = `/portal/${e.slug}`;
+          const sectionActive = isUnderPath(base);
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "10px 12px",
-                borderRadius: 10,
-                fontSize: 14,
-                color: active ? "#0D4A4A" : "#4A4A4A",
-                background: active ? "var(--accent-soft)" : "transparent",
-                textDecoration: "none",
-                fontWeight: active ? 500 : 400,
-                transition: "all 0.15s ease",
-              }}
-            >
-              <Icon
-                size={18}
-                strokeWidth={1.6}
-                color={active ? "var(--accent)" : "#6B7280"}
+            <div key={e.slug} style={{ marginTop: 16 }}>
+              <SidebarSection
+                label={TYPE_LABEL[e.type] || e.type}
+                accent={e.accentColor}
               />
-              <span>{item.label}</span>
-            </Link>
+              <SidebarItem
+                href={base}
+                label={e.name}
+                icon={Icon}
+                active={isExactPath(base)}
+                accent={e.accentColor}
+                emphasized={sectionActive}
+              />
+              <SidebarItem
+                href={`${base}/entregaveis`}
+                label="Entregáveis"
+                icon={ListChecks}
+                active={isUnderPath(`${base}/entregaveis`)}
+                indent
+              />
+              <SidebarItem
+                href={`${base}/acessos`}
+                label="Acessos"
+                icon={KeyRound}
+                active={isUnderPath(`${base}/acessos`)}
+                indent
+              />
+              <SidebarItem
+                href={`${base}/referencias`}
+                label="Referências"
+                icon={BookmarkCheck}
+                active={isUnderPath(`${base}/referencias`)}
+                indent
+              />
+            </div>
           );
         })}
+
+        <div style={{ marginTop: 24 }}>
+          <SidebarItem
+            href="/portal/perfil"
+            label="Meu perfil"
+            icon={UserCircle}
+            active={isUnderPath("/portal/perfil")}
+          />
+        </div>
       </nav>
 
       <div
         style={{
           borderTop: "0.5px solid rgba(13,74,74,0.08)",
-          paddingTop: 16,
+          paddingTop: 14,
+          marginTop: 12,
           display: "flex",
           flexDirection: "column",
-          gap: 12,
+          gap: 8,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 8px" }}>
@@ -248,7 +303,7 @@ export function PortalSidebar({
           borderRight: "0.5px solid rgba(13,74,74,0.08)",
           display: "flex",
           flexDirection: "column",
-          padding: "28px 18px 18px",
+          padding: "28px 14px 18px",
           zIndex: 40,
         }}
       >
@@ -279,7 +334,7 @@ export function PortalSidebar({
               borderRight: "0.5px solid rgba(13,74,74,0.08)",
               display: "flex",
               flexDirection: "column",
-              padding: "28px 18px 18px",
+              padding: "28px 14px 18px",
               zIndex: 70,
               animation: "portal-slide-in 0.24s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
@@ -309,5 +364,88 @@ export function PortalSidebar({
         </>
       )}
     </>
+  );
+}
+
+function SidebarSection({ label, accent }: { label: string; accent: string }) {
+  return (
+    <p
+      style={{
+        fontSize: 10,
+        fontWeight: 600,
+        letterSpacing: "0.16em",
+        textTransform: "uppercase",
+        color: "#A0A0A0",
+        margin: "8px 12px 6px",
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+      }}
+    >
+      <span
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: 999,
+          background: accent,
+          flexShrink: 0,
+        }}
+      />
+      {label}
+    </p>
+  );
+}
+
+function SidebarItem({
+  href,
+  label,
+  icon: Icon,
+  active,
+  accent,
+  indent,
+  emphasized,
+}: {
+  href: string;
+  label: string;
+  icon: any;
+  active: boolean;
+  accent?: string;
+  indent?: boolean;
+  emphasized?: boolean;
+}) {
+  const activeColor = accent || "var(--accent)";
+  const activeBg = accent ? accent + "12" : "var(--accent-soft)";
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: indent ? "8px 12px 8px 30px" : "10px 12px",
+        borderRadius: 10,
+        fontSize: indent ? 13 : 14,
+        color: active ? "#0D4A4A" : "#4A4A4A",
+        background: active ? activeBg : emphasized ? "rgba(13,74,74,0.025)" : "transparent",
+        textDecoration: "none",
+        fontWeight: active ? 500 : 400,
+        transition: "all 0.15s ease",
+      }}
+    >
+      <Icon
+        size={indent ? 15 : 17}
+        strokeWidth={1.6}
+        color={active ? activeColor : "#8B867B"}
+      />
+      <span
+        style={{
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {label}
+      </span>
+    </Link>
   );
 }

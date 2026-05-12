@@ -18,19 +18,21 @@ export default async function PortalLayout({
   if ((session.user as any).role !== "CLIENT") redirect("/dashboard");
 
   const userId = (session.user as any).id;
-  const project = await prisma.clientEngagement.findFirst({
+  const engagements = await prisma.clientEngagement.findMany({
     where: { clientId: userId, isActive: true },
     orderBy: { createdAt: "asc" },
     select: {
+      id: true,
+      slug: true,
       name: true,
-      currentPhase: true,
+      type: true,
       accentColor: true,
       logoUrl: true,
-      _count: { select: { deliverables: true } },
     },
   });
 
-  const accent = project?.accentColor || "#1D7070";
+  const primary = engagements[0];
+  const accent = primary?.accentColor || "#1D7070";
 
   return (
     <div
@@ -53,9 +55,14 @@ export default async function PortalLayout({
     >
       <PortalSidebar
         accent={accent}
-        logoUrl={project?.logoUrl || null}
+        logoUrl={primary?.logoUrl || null}
         userName={session.user?.name || ""}
-        projectName={project?.name || null}
+        engagements={engagements.map((e) => ({
+          slug: e.slug,
+          name: e.name,
+          type: e.type,
+          accentColor: e.accentColor,
+        }))}
       />
       <main
         className="portal-main"
