@@ -55,6 +55,7 @@ const TABS = [
   { key: "acessos", label: "Acessos" },
   { key: "referencias", label: "Referências" },
   { key: "resumo", label: "Sobre você" },
+  { key: "interno", label: "Interno" },
 ];
 
 // ─────────────────────────── Toast helper (shared) ───────────────────────────
@@ -108,6 +109,7 @@ export function ProjectEditor({ project }: { project: any }) {
       {tab === "acessos" && <AcessosTab project={project} />}
       {tab === "referencias" && <ReferenciasTab project={project} />}
       {tab === "resumo" && <ResumoTab project={project} />}
+      {tab === "interno" && <InternoTab project={project} />}
     </div>
   );
 }
@@ -1180,6 +1182,151 @@ function FormatButton({ children, onClick }: { children: React.ReactNode; onClic
     >
       {children}
     </button>
+  );
+}
+
+// ─────────────────── INTERNO (admin-only) ───────────────────
+function InternoTab({ project }: { project: any }) {
+  const router = useRouter();
+  const toast = useToast();
+  const initial = (project.internalData || {}) as Record<string, any>;
+
+  const [contractUrl, setContractUrl] = useState<string | null>(initial.contractUrl || null);
+  const [contractStartDate, setContractStartDate] = useState(initial.contractStartDate || "");
+  const [contractEndDate, setContractEndDate] = useState(initial.contractEndDate || "");
+  const [contractValue, setContractValue] = useState(
+    initial.contractValue != null ? String(initial.contractValue) : "",
+  );
+  const [paymentTerms, setPaymentTerms] = useState(initial.paymentTerms || "");
+  const [notes, setNotes] = useState(initial.notes || "");
+  const [saving, setSaving] = useState(false);
+
+  async function save(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSaving(true);
+    const res = await fetch(`/api/admin/client-projects/${project.id}/internal`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contractUrl: contractUrl || null,
+        contractStartDate: contractStartDate || null,
+        contractEndDate: contractEndDate || null,
+        contractValue: contractValue === "" ? null : Number(contractValue),
+        paymentTerms: paymentTerms || null,
+        notes: notes || null,
+      }),
+    });
+    setSaving(false);
+    if (res.ok) {
+      toast.show("Dados internos salvos");
+      router.refresh();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      toast.show(data.error || "Erro ao salvar");
+    }
+  }
+
+  return (
+    <form onSubmit={save} className="space-y-5 max-w-3xl">
+      <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-start gap-3">
+        <Eye className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" strokeWidth={1.7} />
+        <div className="text-xs text-amber-900">
+          <p className="font-semibold mb-0.5">Dados internos · privados da agência</p>
+          <p>
+            Nada aqui aparece no portal do cliente. É onde a Arthea guarda contrato, valores
+            internos e anotações operacionais sobre essa frente.
+          </p>
+        </div>
+      </div>
+
+      <fieldset className="bg-card border border-border rounded-2xl p-6 space-y-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Contrato
+          </p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Link pro contrato (Drive, Dropbox, etc.) e janela vigente.
+          </p>
+        </div>
+        <Field label="URL do contrato">
+          <input
+            value={contractUrl ?? ""}
+            onChange={(e) => setContractUrl(e.target.value || null)}
+            placeholder="https://drive.google.com/..."
+            className={input}
+          />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Início do contrato">
+            <input
+              type="date"
+              value={contractStartDate}
+              onChange={(e) => setContractStartDate(e.target.value)}
+              className={input}
+            />
+          </Field>
+          <Field label="Fim do contrato">
+            <input
+              type="date"
+              value={contractEndDate}
+              onChange={(e) => setContractEndDate(e.target.value)}
+              className={input}
+            />
+          </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Valor (R$)">
+            <input
+              type="number"
+              step="0.01"
+              value={contractValue}
+              onChange={(e) => setContractValue(e.target.value)}
+              placeholder="0,00"
+              className={input}
+            />
+          </Field>
+          <Field label="Termos de pagamento">
+            <input
+              value={paymentTerms}
+              onChange={(e) => setPaymentTerms(e.target.value)}
+              placeholder="Ex: Mensal · todo dia 5"
+              className={input}
+            />
+          </Field>
+        </div>
+      </fieldset>
+
+      <fieldset className="bg-card border border-border rounded-2xl p-6 space-y-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Anotações privadas
+          </p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Histórico interno, contexto, alertas. Markdown simples é bem-vindo.
+          </p>
+        </div>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={8}
+          placeholder="Ex: cliente prefere chamadas após 18h · revisar paleta na próxima call · …"
+          className={`${input} font-normal leading-relaxed`}
+          style={{ resize: "vertical" }}
+        />
+      </fieldset>
+
+      <div className="flex justify-end">
+        <button
+          type="submit"
+          disabled={saving}
+          className="px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium disabled:opacity-60 inline-flex items-center gap-2 hover:opacity-90 transition"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Salvando..." : "Salvar dados internos"}
+        </button>
+      </div>
+      {toast.node}
+    </form>
   );
 }
 
