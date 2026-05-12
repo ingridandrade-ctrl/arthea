@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dossiê — Preview Arthea</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAF9F6;
+    --surface: #FFFFFF;
+    --card: #FFFFFF;
+    --text: #2A2A2A;
+    --text-soft: #4A4A4A;
+    --muted: #8B867B;
+    --border: rgba(13,74,74,0.10);
+    --border-soft: rgba(13,74,74,0.05);
+    --accent: #1D7070;
+    --accent-deep: #0D4A4A;
+    --accent-soft: rgba(29,112,112,0.07);
+    --accent-mint: #9bf0e0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    background-image:
+      linear-gradient(rgba(13,74,74,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(13,74,74,0.035) 1px, transparent 1px);
+    background-size: 44px 44px;
+    background-position: -1px -1px;
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.88em; }
+
+  /* ── Simulação do layout do portal (sidebar 260px) ── */
+  .sim {
+    display: flex;
+    min-height: 100vh;
+  }
+  .sim-sidebar {
+    width: 260px;
+    background: white;
+    border-right: 0.5px solid var(--border);
+    padding: 28px 18px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .sim-sidebar-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 8px; margin-bottom: 32px;
+  }
+  .sim-sidebar-logo {
+    width: 40px; height: 40px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 18px;
+    font-family: "Inter";
+  }
+  .sim-sidebar-brand-eyebrow {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase; color: #A0A0A0; margin: 0; line-height: 1.2;
+  }
+  .sim-sidebar-brand-name {
+    font-size: 13px; font-weight: 500; color: var(--text);
+    margin: 2px 0 0; line-height: 1.2;
+  }
+  .sim-sidebar-section {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.16em;
+    text-transform: uppercase; color: #A0A0A0;
+    padding: 0 12px; margin: 18px 0 8px;
+  }
+  .sim-sidebar-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: 10px;
+    font-size: 14px; color: var(--text-soft);
+    text-decoration: none; margin-bottom: 2px;
+    cursor: pointer;
+  }
+  .sim-sidebar-item.active {
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+    font-weight: 500;
+  }
+  .sim-sidebar-item .ico {
+    width: 18px; height: 18px; flex: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .sim-main {
+    flex: 1;
+    padding: 0;
+    max-width: calc(100vw - 260px);
+    overflow: hidden;
+  }
+
+  /* ── Dossiê content ── */
+  .dossier {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 48px 56px 80px;
+  }
+
+  /* Top meta bar */
+  .doc-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 36px;
+  }
+  .doc-meta-left { display: flex; align-items: center; gap: 14px; }
+  .doc-meta-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); position: relative;
+  }
+  .doc-meta-dot::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 50%;
+    border: 1px solid var(--accent); opacity: 0.4;
+  }
+  .doc-meta-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--muted);
+    letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .doc-actions { display: flex; gap: 10px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 8px;
+    font-size: 12.5px; font-weight: 500;
+    letter-spacing: 0.02em;
+    border: 0.5px solid var(--border);
+    background: white; color: var(--text);
+    cursor: pointer; text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-deep); }
+  .btn-primary {
+    background: var(--accent); color: white; border-color: var(--accent);
+  }
+  .btn-primary:hover { background: var(--accent-deep); border-color: var(--accent-deep); color: white; }
+
+  /* Hero */
+  .hero {
+    display: grid; grid-template-columns: 2.4fr 1fr;
+    background: white;
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 32px;
+    box-shadow: 0 1px 2px rgba(13,74,74,0.04);
+  }
+  .hero-main { padding: 44px 44px 38px; border-right: 0.5px solid var(--border-soft); }
+  .hero-eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--accent);
+    letter-spacing: 0.18em; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .hero-eyebrow::before {
+    content: ""; width: 16px; height: 1px; background: var(--accent);
+  }
+  .hero-title {
+    font-size: 52px; line-height: 1.02; letter-spacing: -0.035em;
+    font-weight: 600; margin: 0; color: var(--text);
+  }
+  .hero-title em {
+    font-style: normal; font-weight: 500; color: var(--accent);
+  }
+  .hero-sub {
+    color: var(--muted); margin: 18px 0 0; max-width: 520px; font-size: 15px;
+  }
+  .hero-side {
+    display: grid; grid-template-rows: 1fr 1fr;
+  }
+  .hero-stat {
+    padding: 28px 32px; display: flex; flex-direction: column;
+    justify-content: space-between; gap: 14px;
+  }
+  .hero-stat + .hero-stat { border-top: 0.5px solid var(--border-soft); }
+  .hero-stat-lbl {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--muted);
+    letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .hero-stat-num {
+    font-size: 42px; line-height: 1; letter-spacing: -0.03em;
+    font-weight: 500; color: var(--text);
+  }
+  .hero-stat-tag {
+    font-size: 12.5px; color: var(--muted);
+  }
+
+  /* Section */
+  .section {
+    background: white;
+    border: 0.5px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 18px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(13,74,74,0.03);
+  }
+  .section-header {
+    padding: 30px 36px 26px;
+    border-bottom: 0.5px solid var(--border-soft);
+    background: linear-gradient(180deg, rgba(250,249,246,0.6), white);
+  }
+  .section-num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--muted);
+    letter-spacing: 0.16em; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .section-num .badge {
+    padding: 3px 8px; border-radius: 4px;
+    background: var(--accent-soft); color: var(--accent-deep);
+    font-weight: 600;
+  }
+  .section-title {
+    font-size: 26px; line-height: 1.1; letter-spacing: -0.025em;
+    font-weight: 600; margin: 0; color: var(--text);
+  }
+  .section-desc {
+    color: var(--muted); margin: 8px 0 0; font-size: 14px;
+    max-width: 580px;
+  }
+  .section-edit {
+    float: right; margin-top: -32px;
+  }
+
+  /* Fields */
+  .fields { padding: 8px 0; }
+  .field {
+    display: grid; grid-template-columns: 200px 1fr;
+    gap: 28px;
+    padding: 18px 36px;
+    border-bottom: 0.5px solid var(--border-soft);
+  }
+  .field:last-child { border-bottom: none; }
+  .field-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--muted);
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding-top: 6px;
+  }
+  .field-value {
+    color: var(--text); font-size: 15px;
+    min-height: 24px;
+    line-height: 1.55;
+  }
+  .field-value.empty {
+    color: var(--muted); font-style: italic; font-size: 13.5px;
+  }
+  .field-value a {
+    color: var(--accent-deep); text-decoration: underline;
+    text-underline-offset: 3px; text-decoration-thickness: 0.5px;
+    text-decoration-color: var(--accent);
+  }
+  .field-value.mono { font-family: "JetBrains Mono", monospace; font-size: 13.5px; }
+
+  /* Chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    padding: 4px 10px; border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+    font-size: 12px; font-weight: 500;
+    border: 0.5px solid rgba(29,112,112,0.18);
+  }
+
+  /* Colors swatches */
+  .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+  .swatch {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 10px 6px 6px;
+    background: white; border: 0.5px solid var(--border);
+    border-radius: 8px;
+  }
+  .swatch-tile {
+    width: 32px; height: 32px; border-radius: 5px;
+    border: 0.5px solid var(--border);
+  }
+  .swatch-name { font-size: 13px; font-weight: 500; }
+  .swatch-hex { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--muted); }
+
+  /* Files list */
+  .files { display: flex; flex-direction: column; gap: 6px; }
+  .file-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 0.5px solid var(--border-soft);
+    background: linear-gradient(180deg, white, rgba(250,249,246,0.5));
+    font-size: 14px;
+  }
+  .file-icon {
+    width: 32px; height: 32px; border-radius: 6px;
+    background: var(--accent-soft); color: var(--accent-deep);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 600;
+  }
+  .file-name { flex: 1; }
+  .file-meta { font-size: 12px; color: var(--muted); font-family: "JetBrains Mono", monospace; }
+
+  /* Contacts */
+  .contact-card {
+    display: grid; grid-template-columns: auto 1fr auto;
+    gap: 16px; align-items: center;
+    padding: 14px 18px;
+    border: 0.5px solid var(--border-soft);
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  .contact-avatar {
+    width: 40px; height: 40px; border-radius: 999px;
+    background: var(--accent); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 14px;
+  }
+  .contact-name { font-weight: 600; font-size: 15px; }
+  .contact-role { font-size: 13px; color: var(--muted); margin-top: 1px; }
+  .contact-channels { display: flex; gap: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+  .contact-channels span { padding: 4px 8px; background: var(--accent-soft); color: var(--accent-deep); border-radius: 6px; }
+
+  /* Performance metrics */
+  .metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; padding: 0 36px 28px; }
+  .metric {
+    padding: 22px 0;
+    border-right: 0.5px solid var(--border-soft);
+  }
+  .metric:last-child { border-right: none; }
+  .metric-lbl {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; color: var(--muted);
+    letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .metric-val {
+    font-size: 28px; font-weight: 500; letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .metric-val.empty { font-style: italic; color: var(--muted); font-size: 14px; }
+  .metric-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .sub-block { padding: 22px 36px; border-bottom: 0.5px solid var(--border-soft); }
+  .sub-block:last-child { border-bottom: none; }
+  .sub-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; color: var(--muted);
+    letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 0.5px solid var(--border-soft);
+    display: flex; justify-content: space-between;
+    color: var(--muted);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+
+  /* Print */
+  @page { size: A4; margin: 14mm; }
+  @media print {
+    body { background: white; background-image: none; }
+    .sim-sidebar, .doc-actions { display: none; }
+    .sim-main { max-width: none; }
+    .dossier { padding: 0; max-width: none; }
+    .section, .hero { box-shadow: none; break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="sim">
+  <!-- Sidebar simulada -->
+  <aside class="sim-sidebar">
+    <div class="sim-sidebar-head">
+      <div class="sim-sidebar-logo">A</div>
+      <div>
+        <p class="sim-sidebar-brand-eyebrow">Arthea</p>
+        <p class="sim-sidebar-brand-name">André Borges</p>
+      </div>
+    </div>
+
+    <p class="sim-sidebar-section">Cliente</p>
+    <a class="sim-sidebar-item active">
+      <span class="ico">◐</span><span>Sobre o cliente</span>
+    </a>
+
+    <p class="sim-sidebar-section">Frentes ativas</p>
+    <a class="sim-sidebar-item">
+      <span class="ico">◇</span><span>Estratégia Digital</span>
+    </a>
+    <a class="sim-sidebar-item">
+      <span class="ico">◇</span><span>Tráfego Pago</span>
+    </a>
+
+    <div style="flex:1"></div>
+
+    <p class="sim-sidebar-section">Conta</p>
+    <a class="sim-sidebar-item"><span class="ico">◌</span><span>Meu perfil</span></a>
+    <a class="sim-sidebar-item"><span class="ico">↗</span><span>Sair</span></a>
+  </aside>
+
+  <main class="sim-main">
+    <div class="dossier">
+
+      <!-- Top meta -->
+      <div class="doc-meta">
+        <div class="doc-meta-left">
+          <div class="doc-meta-dot"></div>
+          <span class="doc-meta-label">Dossiê / Cliente</span>
+          <span class="doc-meta-label" style="color:#bcb6a8">·</span>
+          <span class="doc-meta-label">Atualizado 12·mai·2026</span>
+        </div>
+        <div class="doc-actions">
+          <button class="btn">↓ Exportar PDF</button>
+          <button class="btn btn-primary">Editar dossiê</button>
+        </div>
+      </div>
+
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-main">
+          <span class="hero-eyebrow">00 / Contexto Estratégico</span>
+          <h1 class="hero-title">Tudo que importa saber<br/>sobre <em>André Borges</em>.</h1>
+          <p class="hero-sub">A base que orienta todo o trabalho da Arthea para este cliente — presença digital, marca, voz, mercado, contatos, comercial, acervo e metas. Vivo e editável.</p>
+        </div>
+        <div class="hero-side">
+          <div class="hero-stat">
+            <span class="hero-stat-lbl">Frentes ativas</span>
+            <div>
+              <div class="hero-stat-num">02</div>
+              <div class="hero-stat-tag">Estratégia · Tráfego</div>
+            </div>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-lbl">Seções</span>
+            <div>
+              <div class="hero-stat-num">09</div>
+              <div class="hero-stat-tag">Categorias estruturadas</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 01 Presença Digital -->
+      <section class="section">
+        <header class="section-header">
+          <span class="section-num"><span class="badge">01</span> Foundations</span>
+          <h2 class="section-title">Presença Digital</h2>
+          <p class="section-desc">Links e endereços públicos do cliente.</p>
+        </header>
+        <div class="fields">
+          <div class="field">
+            <div class="field-label">Instagram</div>
+            <div class="field-value mono"><a href="#">@psi.andreborges</a></div>
+          </div>
+          <div class="field">
+            <div class="field-label">TikTok</div>
+            <div class="field-value mono"><a href="#">@psi.andreborges</a></div>
+          </div>
+          <div class="field">
+            <div class="field-label">Site</div>
+            <div class="field-value mono empty">— ainda não temos</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Google Meu Negócio</div>
+            <div class="field-value mono empty">—</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Endereço</div>
+            <div class="field-value">Pirassununga — SP · atendimento online em todo o Brasil</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Grupo WhatsApp</div>
+            <div class="field-value mono empty">—</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Pasta Google Drive</div>
+            <div class="field-value mono empty">—</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 Identidade -->
+      <section class="section">
+        <header class="section-header">
+          <span class="section-num"><span class="badge">02</span> Identidade</span>
+          <h2 class="section-title">Contexto da Marca</h2>
+          <p class="section-desc">Quem é o cliente, no que acredita e o que entrega.</p>
+        </header>
+        <div class="fields">
+          <div class="field">
+            <div class="field-label">Descrição</div>
+            <div class="field-value">
+              Psicólogo especialista em relacionamentos. Atende presencial em Pirassununga/SP e online no Brasil. CRP 06/215883. Antes da psicologia, foi militar concursado federal — controlador de tráfego aéreo, instrutor e coordenador na AFA. Saiu de um salário seguro para empreender em algo escolhido por propósito.
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label">Valores</div>
+            <div class="field-value">
+              <div class="chips">
+                <span class="chip">Presença</span>
+                <span class="chip">Verdade</span>
+                <span class="chip">Comunicação real</span>
+                <span class="chip">Propósito</span>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label">Diferenciais</div>
+            <div class="field-value">Trabalha a dinâmica mais ampla do ser humano — não só comportamento, mas existência, presença e comunicação real. Vivência militar dá disciplina e leitura de hierarquia rara entre psicólogos.</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Produtos &amp; Serviços</div>
+            <div class="field-value">Terapia individual · Terapia de casal · Conteúdo sobre relacionamentos</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 Voz -->
+      <section class="section">
+        <header class="section-header">
+          <span class="section-num"><span class="badge">03</span> Voz</span>
+          <h2 class="section-title">Comunicação &amp; Público</h2>
+          <p class="section-desc">Como o cliente fala e com quem.</p>
+        </header>
+        <div class="fields">
+          <div class="field">
+            <div class="field-label">Tom de Voz</div>
+            <div class="field-value">Direto, sem rodeios. Mistura técnica e experiência vivida. Não infantiliza nem dramatiza. Permite humor seco quando cabe. Nada de jargão acadêmico solto.</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Público-alvo</div>
+            <div class="field-value">Pessoas e casais entre 28-45 anos, casados ou em relacionamentos longos, vivendo crise de comunicação ou perda de conexão. Classe B/C, conscientes de que precisam de ajuda mas céticos com terapia tradicional.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 Mercado -->
+      <section class="section">
+        <header class="section-header">
+          <span class="section-num"><span class="badge">04</span> Contexto</span>
+          <h2 class="section-title">Mercado &amp; Extras</h2>
+          <p class="section-desc">Concorrentes e qualquer informação relevante.</p>
+        </header>
+        <div class="fields">
+          <div class="field">
+            <div class="field-label">Concorrentes</div>
+            <div class="field-value empty">A preencher</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Informações Relevantes</div>
+            <div class="field-value">Casado com Isa, pai. Histórico militar é diferencial narrativo forte mas precisa ser usado com cuidado pra não dominar a comunicação.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 Pessoas -->
+      <section class="section">
+        <header class="section-header">
+          <span class="section-num"><span class="badge">05</span> Pessoas</span>
+          <h2 class="section-title">Contatos do Cliente</h2>
+          <p class="section-desc">Pessoas-chave para o relacionamento.</p>
+        </header>
+        <div class="sub-block">
+          <div class="contact-card">
+            <div class="contact-avatar">AB</div>
+            <div>
+              <div class="contact-name">André Borges</div>
+              <div class="contact-role">Psicólogo · titular</div>
+            </div>
+            <div class="contact-channels">
+              <span>WHATSAPP</span><span>E-MAIL</span>
+            </div>
+          </div>
+          <div class="contact-card">
+            <div class="contact-avatar" style="background:#0D4A4A">IB</div>
+            <div>
+              <div class="contact-name">Isa Borges</div>
+              <div class="contact-role">Esposa · suporte estratégico</div>
+            </div>
+            <div class="contact-channels">
+              <span>WHATSAPP</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06 Comercial -->
+      <section class="section">
+        <header class="section-header">
+          <span class="section-num"><span class="badge">06</span> Negócio</span>
+          <h2 class="section-title">Informações Comerciais</h2>
+          <p class="section-desc">Termos do contrato e cronograma.</p>
+        </header>
+        <div class="fields">
+          <div class="field">
+            <div class="field-label">Valor mensal</div>
+            <div class="field-value mono">R$ 0,00 <span style="color:var(--muted)">(projeto fechado — case)</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label">Tipo de engajamento</div>
+            <div class="field-value">Projeto pontual · 60 dias · Construção de presença digital estratégica</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Início do Projeto</div>
+            <div class="field-value mono">11·mai·2026</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Entrega prevista</div>
+            <div class="field-value mono">10·jul·2026</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 07 Acervo -->
+      <section class="section">
+        <header class="section-header">
+          <span class="section-num"><span class="badge">07</span> Acervo</span>
+          <h2 class="section-title">Arquivos &amp; Roteiros</h2>
+          <p class="section-desc">Transcrições, materiais e roteiros de anúncios.</p>
+        </header>
+        <div class="sub-block">
+          <div class="sub-label">Transcrições de Reuniões</div>
+          <div class="files">
+            <div class="file-row">
+              <div class="file-icon">PDF</div>
+              <div class="file-name">Kick-off — 11·mai·2026</div>
+              <div class="file-meta">1.2 MB</div>
+            </div>
+          </div>
+        </div>
+        <div class="sub-block">
+          <div class="sub-label">Arquivos Relevantes</div>
+          <div class="files">
+            <div class="file-row">
+              <div class="file-icon">DOC</div>
+              <div class="file-name">Pesquisa de persona — comportamental</div>
+              <div class="file-meta">Google Docs</div>
+            </div>
+          </div>
+        </div>
+        <div class="sub-block">
+          <div class="sub-label">Roteiros de Anúncios</div>
+          <div class="files">
+            <div class="file-row">
+              <div class="file-icon" style="background:var(--accent);color:white">01</div>
+              <div class="file-name">Roteiro — "A crise que ninguém viu chegar"</div>
+              <div class="file-meta">draft</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 08 Branding -->
+      <section class="section">
+        <header class="section-header">
+          <span class="section-num"><span class="badge">08</span> Visual</span>
+          <h2 class="section-title">Identidade Visual</h2>
+          <p class="section-desc">Cores e logos da marca.</p>
+        </header>
+        <div class="sub-block">
+          <div class="sub-label">Paleta da Marca</div>
+          <div class="swatches">
+            <div class="swatch">
+              <div class="swatch-tile" style="background:#1D7070"></div>
+              <div><div class="swatch-name">Verde André</div><div class="swatch-hex">#1D7070</div></div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-tile" style="background:#0D4A4A"></div>
+              <div><div class="swatch-name">Verde Profundo</div><div class="swatch-hex">#0D4A4A</div></div>
+            </div>
+            <div class="swatch">
+              <div class="swatch-tile" style="background:#FAF9F6;border-color:#ccc"></div>
+              <div><div class="swatch-name">Papel</div><div class="swatch-hex">#FAF9F6</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sub-block">
+          <div class="sub-label">Logos</div>
+          <div class="files">
+            <div class="file-row">
+              <div class="file-icon">SVG</div>
+              <div class="file-name">logo-andre-borges-principal.svg</div>
+              <div class="file-meta">12 KB</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 09 Performance -->
+      <section class="section">
+        <header class="section-header">
+          <span class="section-num"><span class="badge">09</span> Performance</span>
+          <h2 class="section-title">Benchmark Operacional &amp; Metas</h2>
+          <p class="section-desc">Indicadores que guiam a operação.</p>
+        </header>
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-lbl">CPA Alvo</div>
+            <div class="metric-val">R$ 35</div>
+            <div class="metric-sub">por lead qualificado</div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">ROAS Mínimo</div>
+            <div class="metric-val">3.5×</div>
+            <div class="metric-sub">retorno mensal</div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Ticket Médio</div>
+            <div class="metric-val">R$ 280</div>
+            <div class="metric-sub">por sessão</div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Conversão</div>
+            <div class="metric-val">8%</div>
+            <div class="metric-sub">lead → cliente</div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Taxa/Hora</div>
+            <div class="metric-val empty">a definir</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">
+        <span>Dossiê / André Borges</span>
+        <span>Atualizado 12·mai·2026 · arthea</span>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
