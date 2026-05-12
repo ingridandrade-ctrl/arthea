@@ -17,13 +17,22 @@ export function NewClientButton({ variant = "default" }: { variant?: "default" |
     setSaving(true);
     try {
       const fd = new FormData(e.currentTarget);
+      const type = (fd.get("type") as string) || "STRATEGY";
+      const typeTotalPhases: Record<string, number> = {
+        STRATEGY: 4,
+        PAID_TRAFFIC: 3,
+        LANDING_PAGE: 5,
+        GMB: 3,
+      };
       const res = await fetch("/api/admin/client-projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: fd.get("name"),
           description: fd.get("description") || null,
+          type,
           currentPhase: Number(fd.get("currentPhase") || 1),
+          totalPhases: typeTotalPhases[type] || 4,
           accentColor: fd.get("accentColor") || "#1D7070",
           clientName: fd.get("clientName"),
           clientEmail: fd.get("clientEmail"),
@@ -99,10 +108,23 @@ export function NewClientButton({ variant = "default" }: { variant?: "default" |
 
             <fieldset className="space-y-3 border border-border rounded-lg p-4">
               <legend className="text-xs font-semibold text-muted-foreground px-1">
-                Projeto
+                Frente
               </legend>
               <div>
-                <label className="block text-xs font-medium mb-1">Nome do projeto *</label>
+                <label className="block text-xs font-medium mb-1">Tipo da frente *</label>
+                <select
+                  name="type"
+                  defaultValue="STRATEGY"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                >
+                  <option value="STRATEGY">Estratégia digital</option>
+                  <option value="PAID_TRAFFIC">Tráfego pago</option>
+                  <option value="LANDING_PAGE">Landing page</option>
+                  <option value="GMB">Google Meu Negócio</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Nome da frente *</label>
                 <input
                   name="name"
                   required
@@ -121,16 +143,13 @@ export function NewClientButton({ variant = "default" }: { variant?: "default" |
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium mb-1">Fase atual</label>
-                  <select
+                  <input
                     name="currentPhase"
+                    type="number"
+                    min={1}
                     defaultValue="1"
                     className="w-full px-3 py-2 border border-border rounded-lg text-sm"
-                  >
-                    <option value="1">1 — Imersão</option>
-                    <option value="2">2 — Construção</option>
-                    <option value="3">3 — Rastreamento</option>
-                    <option value="4">4 — Entrega</option>
-                  </select>
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1">Cor de destaque</label>
@@ -153,7 +172,7 @@ export function NewClientButton({ variant = "default" }: { variant?: "default" |
               disabled={saving}
               className="w-full bg-primary text-primary-foreground py-2.5 rounded-lg text-sm font-medium disabled:opacity-60"
             >
-              {saving ? "Criando..." : "Criar cliente e projeto"}
+              {saving ? "Criando..." : "Criar cliente e frente"}
             </button>
           </form>
         </Modal>
