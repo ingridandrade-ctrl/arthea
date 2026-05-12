@@ -24,7 +24,7 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
   const deliverable = await prisma.clientDeliverable.findUnique({
     where: { id: params.id },
     include: {
-      project: { select: { clientId: true, name: true } },
+      engagement: { select: { clientId: true, name: true } },
       questions: { orderBy: { order: "asc" } },
       responses: true,
       comments: { orderBy: { createdAt: "asc" } },
@@ -32,7 +32,7 @@ export default async function DeliverableDetail({ params }: { params: { id: stri
   });
 
   if (!deliverable) notFound();
-  if (deliverable.project.clientId !== userId) redirect("/portal");
+  if (deliverable.engagement.clientId !== userId) redirect("/portal");
 
   const authorIds = Array.from(new Set(deliverable.comments.map((c) => c.authorId)));
   const authors = await prisma.user.findMany({

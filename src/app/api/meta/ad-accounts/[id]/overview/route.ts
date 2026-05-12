@@ -17,7 +17,7 @@ export async function GET(
 
   const account = await prisma.metaAdAccount.findUnique({
     where: { id: params.id },
-    include: { connection: true, clientProject: { select: { id: true, name: true } } },
+    include: { connection: true, engagement: { select: { id: true, name: true } } },
   });
   if (!account || account.connection.userId !== userId) {
     return NextResponse.json({ error: "Conta nao encontrada" }, { status: 404 });
@@ -36,7 +36,7 @@ export async function GET(
         name: account.name,
         currency: account.currency,
         businessName: account.businessName,
-        clientProject: account.clientProject,
+        engagement: account.engagement,
       },
       campaigns,
       insights,

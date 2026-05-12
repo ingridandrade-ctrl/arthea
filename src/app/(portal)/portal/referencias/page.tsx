@@ -31,8 +31,9 @@ export default async function ReferenciasPage() {
   if (!session) redirect("/login");
   const userId = (session.user as any).id;
 
-  const project = await prisma.clientProject.findUnique({
-    where: { clientId: userId },
+  const project = await prisma.clientEngagement.findFirst({
+    where: { clientId: userId, isActive: true },
+    orderBy: { createdAt: "asc" },
     include: { references: { orderBy: { order: "asc" } } },
   });
 

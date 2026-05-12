@@ -13,12 +13,18 @@ export default async function PortalDashboard() {
   if (!session) redirect("/login");
   const userId = (session.user as any).id;
 
-  const project = await prisma.clientProject.findUnique({
-    where: { clientId: userId },
+  const project = await prisma.clientEngagement.findFirst({
+    where: { clientId: userId, isActive: true },
+    orderBy: { createdAt: "asc" },
     include: {
       deliverables: { orderBy: [{ phase: "asc" }, { order: "asc" }] },
-      summary: true,
     },
+  });
+
+  // Dossiê vive no client agora, não no engagement.
+  const dossier = await prisma.clientDossier.findUnique({
+    where: { clientId: userId },
+    select: { legacySummaryHtml: true },
   });
 
   if (!project) {
@@ -86,7 +92,7 @@ export default async function PortalDashboard() {
 
   // Recent comments (last 3) — fetch only on first deliverable to keep it light
   const recentComments = await prisma.deliverableComment.findMany({
-    where: { deliverable: { projectId: project.id } },
+    where: { deliverable: { engagementId: project.id } },
     orderBy: { createdAt: "desc" },
     take: 3,
     include: {
@@ -575,7 +581,7 @@ export default async function PortalDashboard() {
       )}
 
       {/* Sobre você */}
-      {project.summary && (
+      {dossier?.legacySummaryHtml && (
         <section
           style={{
             background: "white",
@@ -599,7 +605,7 @@ export default async function PortalDashboard() {
           </p>
           <div
             className="portal-prose"
-            dangerouslySetInnerHTML={{ __html: project.summary.content }}
+            dangerouslySetInnerHTML={{ __html: dossier.legacySummaryHtml }}
           />
         </section>
       )}

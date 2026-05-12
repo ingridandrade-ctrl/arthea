@@ -13,7 +13,8 @@ export async function POST(
   if (!userId) return NextResponse.json({ error: "Sem sessao" }, { status: 401 });
 
   const body = await request.json().catch(() => ({}));
-  const clientProjectId: string | null = body.clientProjectId ?? null;
+  // Aceita `engagementId` (novo) ou `clientProjectId` (legacy) por enquanto.
+  const engagementId: string | null = body.engagementId ?? body.clientProjectId ?? null;
 
   const account = await prisma.metaAdAccount.findUnique({
     where: { id: params.id },
@@ -23,17 +24,17 @@ export async function POST(
     return NextResponse.json({ error: "Conta nao encontrada" }, { status: 404 });
   }
 
-  if (clientProjectId) {
-    const project = await prisma.clientProject.findUnique({ where: { id: clientProjectId } });
-    if (!project) {
-      return NextResponse.json({ error: "Projeto de cliente nao encontrado" }, { status: 404 });
+  if (engagementId) {
+    const engagement = await prisma.clientEngagement.findUnique({ where: { id: engagementId } });
+    if (!engagement) {
+      return NextResponse.json({ error: "Engagement nao encontrado" }, { status: 404 });
     }
   }
 
   const updated = await prisma.metaAdAccount.update({
     where: { id: params.id },
-    data: { clientProjectId },
-    include: { clientProject: { select: { id: true, name: true } } },
+    data: { engagementId },
+    include: { engagement: { select: { id: true, name: true } } },
   });
 
   return NextResponse.json(updated);

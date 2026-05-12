@@ -959,7 +959,7 @@ function ReferenceForm({
 // ─────────────────── RESUMO ───────────────────
 function ResumoTab({ project }: { project: any }) {
   const router = useRouter();
-  const [content, setContent] = useState(project.summary?.content || "");
+  const [content, setContent] = useState(project.dossier?.legacySummaryHtml || "");
   const [saving, setSaving] = useState(false);
   const toast = useToast();
 

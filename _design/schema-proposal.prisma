@@ -1,0 +1,135 @@
+// ─────────────────────────────────────────────────────────────────
+//  PROPOSTA — NÃO É O SCHEMA ATIVO
+//  Cole estas seções dentro do schema.prisma real depois de revisar.
+//  Mudanças:
+//   1. ClientProject → ClientEngagement (N por cliente, com type)
+//   2. ClientSummary  → ClientDossier (estruturado em 9 seções JSON)
+//   3. DeliverableCategory ampliado p/ os 4 tipos de engagement
+//   4. Tabelas auxiliares opcionais por tipo (TrafficEngagement, etc.)
+//   5. MetaAdAccount.clientProjectId → engagementId
+// ─────────────────────────────────────────────────────────────────
+
+enum EngagementType {
+  STRATEGY        // Estratégia digital completa (case André)
+  PAID_TRAFFIC    // Tráfego pago mensal recorrente
+  LANDING_PAGE    // Landing page / site pontual
+  GMB             // Google Meu Negócio
+}
+
+enum DeliverableCategory {
+  // STRATEGY
+  POSITIONING
+  CONTENT
+  TRACKING
+  DELIVERY
+  // PAID_TRAFFIC
+  CAMPAIGN_SETUP
+  CREATIVE
+  REPORT
+  OPTIMIZATION
+  // LANDING_PAGE
+  BRIEFING
+  WIREFRAME
+  DESIGN
+  DEVELOPMENT
+  LAUNCH
+  // GMB
+  PROFILE_SETUP
+  POST
+  REVIEW_RESPONSE
+}
+
+model User {
+  // ... campos existentes
+  // Mudança: deixa de ser 1:1 → 1:N
+  // clientProject ClientProject?       ← REMOVE
+  engagements   ClientEngagement[]   // 1 cliente pode ter N frentes
+  dossier       ClientDossier?       // 1 dossiê único por cliente
+}
+
+model ClientEngagement {
+  id              String          @id @default(cuid())
+  clientId        String                                    // SEM @unique agora
+  client          User            @relation(fields: [clientId], references: [id])
+  type            EngagementType  @default(STRATEGY)
+  slug            String                                    // /portal/[slug]
+  name            String
+  description     String?
+  startDate       DateTime?
+  endDate         DateTime?
+  currentPhase    Int             @default(1)
+  totalPhases     Int             @default(4)               // varia por tipo
+  accentColor     String          @default("#1D7070")
+  logoUrl         String?
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  deliverables    ClientDeliverable[]
+  accesses        ClientAccess[]
+  references      ClientReference[]
+  metaAdAccounts  MetaAdAccount[]
+
+  // Sub-modelos específicos por tipo (1:1 opcional)
+  trafficData     TrafficEngagement?
+  landingPageData LandingPageEngagement?
+  gmbData         GmbEngagement?
+
+  @@unique([clientId, slug])
+  @@index([clientId])
+  @@index([type])
+}
+
+model ClientDossier {
+  id               String   @id @default(cuid())
+  clientId         String   @unique
+  client           User     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // 9 seções — JSON estruturado validado em Zod na app
+  digitalPresence  Json     @default("{}")
+  brandContext     Json     @default("{}")
+  voice            Json     @default("{}")
+  market           Json     @default("{}")
+  contacts         Json     @default("[]")
+  commercial       Json     @default("{}")
+  archive          Json     @default("{}")
+  brandIdentity    Json     @default("{}")
+  performance      Json     @default("{}")
+
+  legacySummaryHtml String?              // migra ClientSummary.content antigo aqui
+  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now())
+}
+
+// ─── Sub-modelos por tipo (opcionais) ───
+model TrafficEngagement {
+  id            String           @id @default(cuid())
+  engagementId  String           @unique
+  engagement    ClientEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  monthlyBudget Float?
+  cpaTarget     Float?
+  roasTarget    Float?
+  primaryObjective String?       // "leads" | "conversões" | "tráfego"
+}
+
+model LandingPageEngagement {
+  id             String           @id @default(cuid())
+  engagementId   String           @unique
+  engagement     ClientEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  stagingUrl     String?
+  productionUrl  String?
+  designToolUrl  String?          // Figma, etc.
+}
+
+model GmbEngagement {
+  id            String           @id @default(cuid())
+  engagementId  String           @unique
+  engagement    ClientEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  profileUrl    String?
+  category      String?
+  serviceArea   String?
+}
+
+// ─── Modelos existentes — só renomear FK ───
+// ClientDeliverable: projectId → engagementId (idem ClientAccess, ClientReference)
+// MetaAdAccount.clientProjectId → engagementId

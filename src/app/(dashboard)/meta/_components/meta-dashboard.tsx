@@ -37,7 +37,7 @@ interface DashboardData {
     accountId: string;
     name: string;
     currency: string | null;
-    clientProject: { id: string; name: string } | null;
+    engagement: { id: string; name: string } | null;
     spend: number;
     impressions: number;
     clicks: number;
@@ -48,7 +48,7 @@ interface DashboardData {
     campaignName: string;
     accountName: string;
     accountId: string;
-    clientProjectName: string | null;
+    engagementName: string | null;
     currency: string | null;
     spend: number;
     impressions: number;
@@ -206,7 +206,7 @@ export function MetaDashboard({ hasConnections }: { hasConnections: boolean }) {
                       <tr key={a.id} className="border-t border-border">
                         <td className="px-3 py-2 font-medium">{a.name}</td>
                         <td className="px-3 py-2 text-muted-foreground">
-                          {a.clientProject?.name || (
+                          {a.engagement?.name || (
                             <span className="italic text-xs">não vinculada</span>
                           )}
                         </td>
@@ -251,7 +251,7 @@ export function MetaDashboard({ hasConnections }: { hasConnections: boolean }) {
                       <tr key={`${c.accountId}-${c.campaignId}`} className="border-t border-border">
                         <td className="px-3 py-2">{c.campaignName}</td>
                         <td className="px-3 py-2 text-xs text-muted-foreground">
-                          {c.clientProjectName || c.accountName}
+                          {c.engagementName || c.accountName}
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums">
                           {fmt(c.spend, c.currency)}

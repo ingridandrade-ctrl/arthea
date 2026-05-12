@@ -16,7 +16,7 @@ export default async function PortalClienteDetail({
   const role = session.user?.role;
   if (role !== "ADMIN" && role !== "MANAGER") redirect("/dashboard");
 
-  const project = await prisma.clientProject.findUnique({
+  const project = await prisma.clientEngagement.findUnique({
     where: { id: params.id },
     include: {
       client: { select: { id: true, name: true, email: true } },
@@ -25,11 +25,16 @@ export default async function PortalClienteDetail({
       },
       accesses: { orderBy: { order: "asc" } },
       references: { orderBy: { order: "asc" } },
-      summary: true,
     },
   });
 
   if (!project) notFound();
+
+  // Dossier vive no cliente — buscado separadamente
+  const dossier = await prisma.clientDossier.findUnique({
+    where: { clientId: project.clientId },
+  });
+  const projectWithDossier = { ...project, dossier };
 
   return (
     <div className="space-y-6">
@@ -54,7 +59,7 @@ export default async function PortalClienteDetail({
       </div>
 
       <ProjectEditor
-        project={JSON.parse(JSON.stringify(project))}
+        project={JSON.parse(JSON.stringify(projectWithDossier))}
       />
     </div>
   );
