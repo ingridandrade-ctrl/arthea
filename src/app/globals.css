@@ -143,6 +143,26 @@
   .portal-progress-grid {
     grid-template-columns: 1fr !important;
   }
+  .dossier-hero {
+    grid-template-columns: 1fr !important;
+  }
+  .dossier-field {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+    padding: 16px 22px !important;
+  }
+  .dossier-metrics {
+    grid-template-columns: repeat(2, 1fr) !important;
+    padding: 0 22px 22px !important;
+  }
+  .dossier-metrics > div {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 18px !important;
+  }
+  .dossier-metrics > div:nth-child(2n) {
+    border-right: none !important;
+  }
 }
 
 /* Skeleton loading shimmer */

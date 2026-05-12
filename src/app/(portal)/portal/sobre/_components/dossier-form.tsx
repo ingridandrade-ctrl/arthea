@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Plus, Trash2, Save, X } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, X, Check } from "lucide-react";
 import type { Dossier, Contact, PaletteColor } from "@/lib/dossier";
 import { SECTIONS } from "@/lib/dossier";
 
@@ -12,7 +12,14 @@ export function DossierForm({ initialData }: { initialData: Dossier }) {
   const [data, setData] = useState<Dossier>(initialData);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2400);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   function patch<K extends keyof Dossier>(key: K, value: Dossier[K]) {
     setData((d) => ({ ...d, [key]: value }));
@@ -20,18 +27,23 @@ export function DossierForm({ initialData }: { initialData: Dossier }) {
 
   async function save() {
     setError(null);
-    const res = await fetch("/api/portal/dossier", {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-      const e = await res.json().catch(() => ({}));
-      setError(e.error || "Erro ao salvar");
-      return false;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/portal/dossier", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        setError(e.error || "Erro ao salvar");
+        return false;
+      }
+      setToast("Dossiê salvo");
+      return true;
+    } finally {
+      setSaving(false);
     }
-    setSavedAt(new Date());
-    return true;
   }
 
   async function saveAndExit() {
@@ -67,21 +79,9 @@ export function DossierForm({ initialData }: { initialData: Dossier }) {
           Voltar ao dossiê
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {savedAt && (
-            <span
-              style={{
-                fontSize: 12,
-                color: "#8B867B",
-                fontFamily: "ui-monospace, 'JetBrains Mono', Menlo, monospace",
-                letterSpacing: "0.04em",
-              }}
-            >
-              Salvo às {savedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-            </span>
-          )}
           <button
             onClick={() => save()}
-            disabled={pending}
+            disabled={pending || saving}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -93,15 +93,16 @@ export function DossierForm({ initialData }: { initialData: Dossier }) {
               background: "white",
               color: "#1A1A1A",
               border: "0.5px solid rgba(13,74,74,0.18)",
-              cursor: "pointer",
+              cursor: pending || saving ? "wait" : "pointer",
+              opacity: pending || saving ? 0.7 : 1,
             }}
           >
             <Save size={14} strokeWidth={1.8} />
-            Salvar
+            {saving ? "Salvando…" : "Salvar"}
           </button>
           <button
             onClick={saveAndExit}
-            disabled={pending}
+            disabled={pending || saving}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -113,13 +114,23 @@ export function DossierForm({ initialData }: { initialData: Dossier }) {
               background: "var(--accent)",
               color: "white",
               border: "0.5px solid var(--accent)",
-              cursor: "pointer",
+              cursor: pending || saving ? "wait" : "pointer",
+              opacity: pending || saving ? 0.7 : 1,
             }}
           >
             Salvar e sair
           </button>
         </div>
       </div>
+
+      {toast && (
+        <div className="portal-toast" role="status">
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <Check size={14} strokeWidth={2.4} />
+            {toast}
+          </span>
+        </div>
+      )}
 
       {error && (
         <div
