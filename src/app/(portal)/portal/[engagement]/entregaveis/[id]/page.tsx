@@ -15,6 +15,7 @@ import { ValidationForm } from "../../../../_components/validation-form";
 import { SimpleApprove } from "../../../../_components/simple-approve";
 import { CommentsSection } from "../../../../_components/comments-section";
 import { DocumentViewer } from "../../../../_components/document-viewer";
+import { FormRespondAction } from "../../../../_components/form-respond-action";
 
 export default async function DeliverableDetail({
   params,
@@ -121,31 +122,43 @@ export default async function DeliverableDetail({
         </span>
       </header>
 
-      {/* Documento */}
-      <DocumentViewer url={deliverable.documentUrl} embed={deliverable.documentEmbed} />
-
-      {/* Validação */}
-      {(status === "WAITING_REVIEW" || status === "REVISION" || status === "APPROVED") && (
-        deliverable.questions.length > 0 ? (
-          <ValidationForm
+      {deliverable.kind === "FORM" ? (
+        <>
+          {deliverable.documentEmbed && (
+            <DocumentViewer url={null} embed={deliverable.documentEmbed} />
+          )}
+          <FormRespondAction
             deliverableId={deliverable.id}
-            questions={deliverable.questions.map((q) => ({
-              id: q.id,
-              question: q.question,
-              type: q.type,
-              options: q.options,
-              isRequired: q.isRequired,
-              previousAnswer: responsesByQuestion.get(q.id) || "",
-            }))}
-            readOnly={status === "APPROVED"}
-            initialStatus={status}
+            documentUrl={deliverable.documentUrl}
+            initialStatus={deliverable.status}
           />
-        ) : (
-          <SimpleApprove
-            deliverableId={deliverable.id}
-            currentStatus={status}
-          />
-        )
+        </>
+      ) : deliverable.kind === "TASK" ? (
+        // Setup que a Arthea executa — cliente só acompanha, não aprova
+        <DocumentViewer url={deliverable.documentUrl} embed={deliverable.documentEmbed} />
+      ) : (
+        // DOCUMENT (fluxo padrão de revisão + aprovação)
+        <>
+          <DocumentViewer url={deliverable.documentUrl} embed={deliverable.documentEmbed} />
+          {(status === "WAITING_REVIEW" || status === "REVISION" || status === "APPROVED") &&
+            (deliverable.questions.length > 0 ? (
+              <ValidationForm
+                deliverableId={deliverable.id}
+                questions={deliverable.questions.map((q) => ({
+                  id: q.id,
+                  question: q.question,
+                  type: q.type,
+                  options: q.options,
+                  isRequired: q.isRequired,
+                  previousAnswer: responsesByQuestion.get(q.id) || "",
+                }))}
+                readOnly={status === "APPROVED"}
+                initialStatus={status}
+              />
+            ) : (
+              <SimpleApprove deliverableId={deliverable.id} currentStatus={status} />
+            ))}
+        </>
       )}
 
       {/* Comentários */}

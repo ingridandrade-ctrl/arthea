@@ -14,6 +14,7 @@ import {
   ArrowDown,
   Check,
   KeyRound,
+  Sparkles,
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { FileUploadField } from "./file-upload-field";
@@ -360,6 +361,7 @@ function EntregaveisTab({ project }: { project: any }) {
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [applyingTemplate, setApplyingTemplate] = useState(false);
   const toast = useToast();
 
   async function deleteOne(id: string) {
@@ -367,6 +369,33 @@ function EntregaveisTab({ project }: { project: any }) {
     await fetch(`/api/admin/deliverables/${id}`, { method: "DELETE" });
     toast.show("Entregável excluído");
     router.refresh();
+  }
+
+  async function applyTemplate() {
+    const hasItems = project.deliverables.length > 0;
+    if (hasItems) {
+      if (
+        !confirm(
+          `Essa frente já tem ${project.deliverables.length} entregáveis. Aplicar o template vai ADICIONAR os entregáveis padrão por cima (não substitui). Continuar?`,
+        )
+      )
+        return;
+    }
+    setApplyingTemplate(true);
+    const res = await fetch(`/api/admin/client-projects/${project.id}/apply-template`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ force: hasItems }),
+    });
+    setApplyingTemplate(false);
+    if (res.ok) {
+      const data = await res.json();
+      toast.show(`Template "${data.template}" aplicado · ${data.created} entregáveis criados`);
+      router.refresh();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      toast.show(data.error || "Erro ao aplicar template");
+    }
   }
 
   async function quickStatus(id: string, status: string) {
@@ -410,16 +439,27 @@ function EntregaveisTab({ project }: { project: any }) {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <p className="text-sm text-muted-foreground">
           {project.deliverables.length} entregáveis. Mude o status pelo dropdown e a ordem com as setas.
         </p>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="px-3.5 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium inline-flex items-center gap-1.5 hover:opacity-90 transition"
-        >
-          <Plus className="w-4 h-4" /> Adicionar
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={applyTemplate}
+            disabled={applyingTemplate}
+            className="px-3.5 py-1.5 border border-border rounded-lg text-sm font-medium inline-flex items-center gap-1.5 hover:bg-muted transition disabled:opacity-60"
+            title="Cria os entregáveis padrão Arthea pro tipo dessa frente"
+          >
+            <Sparkles className="w-4 h-4" />
+            {applyingTemplate ? "Aplicando…" : "Aplicar template"}
+          </button>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="px-3.5 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium inline-flex items-center gap-1.5 hover:opacity-90 transition"
+          >
+            <Plus className="w-4 h-4" /> Adicionar
+          </button>
+        </div>
       </div>
 
       {[1, 2, 3, 4].map((phase) => (
@@ -547,6 +587,7 @@ function DeliverableForm({
       title: fd.get("title"),
       description: fd.get("description") || null,
       category: fd.get("category"),
+      kind: fd.get("kind") || "DOCUMENT",
       phase: Number(fd.get("phase")),
       order: editing ? editing.order : nextOrder,
       status: fd.get("status"),
@@ -606,6 +647,18 @@ function DeliverableForm({
                   {c.label}
                 </option>
               ))}
+            </select>
+          </Field>
+          <Field label="Tipo">
+            <select
+              name="kind"
+              defaultValue={editing?.kind || "DOCUMENT"}
+              className={input}
+              title="TASK: setup interno · FORM: formulário · DOCUMENT: material pra revisar"
+            >
+              <option value="DOCUMENT">📄 Documento (revisa + aprova)</option>
+              <option value="FORM">📋 Formulário (cliente preenche)</option>
+              <option value="TASK">🔧 Setup (Arthea faz, cliente acompanha)</option>
             </select>
           </Field>
           <Field label="Status">
