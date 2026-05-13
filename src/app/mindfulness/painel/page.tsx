@@ -52,6 +52,7 @@ export default async function PainelPage() {
         ffmq: ffmqScores
           ? {
               scores: ffmqScores,
+              answers: ffmqResp!.answers as Record<string, number>,
               bands: (Object.keys(FFMQ_LABELS) as FFMQFacet[]).reduce((acc, f) => {
                 acc[f] = ffmqBand(f, ffmqScores[f]);
                 return acc;
@@ -67,6 +68,7 @@ export default async function PainelPage() {
         dass: dassScores
           ? {
               scores: dassScores,
+              answers: dassResp!.answers as Record<string, number>,
               bands: (Object.keys(DASS_LABELS) as DASSSubscale[]).reduce((acc, s) => {
                 acc[s] = dassBand(s, dassScores[s]);
                 return acc;
