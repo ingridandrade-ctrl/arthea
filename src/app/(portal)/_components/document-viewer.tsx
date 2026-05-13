@@ -100,6 +100,22 @@ function hasStickyOrFixed(embed: string): boolean {
   return /position\s*:\s*(sticky|fixed)/i.test(embed);
 }
 
+// Detecta embeds que parecem ter colado o próprio portal dentro — comum
+// quando alguém copia HTML da página inteira por engano. Evita o loop visual
+// de "portal dentro do portal".
+function looksSelfReferential(embed: string): boolean {
+  // 1) Embeds com iframes apontando pra domínios da Arthea
+  if (/<iframe[^>]*src\s*=\s*["']?[^"'>]*arthea\.com\.br/i.test(embed)) return true;
+  if (/<iframe[^>]*src\s*=\s*["']?\/portal\//i.test(embed)) return true;
+  // 2) Embeds que trazem a sidebar/nav do próprio portal (marcadores únicos)
+  const portalMarkers = [
+    /Portal\s+Ag[êe]ncia\s+Arthea/i,
+    /Acompanhe\s+cada\s+etapa\s+do\s+seu\s+projeto/i,
+    /TR[ÁA]FEGO[\s\S]{0,80}Projeto\s+Estrat[ée]gico[\s\S]{0,80}Entreg[áa]veis/i,
+  ];
+  return portalMarkers.some((rx) => rx.test(embed));
+}
+
 function EmbedFrame({ embed }: { embed: string }) {
   // Detect "rich" docs (full HTML or sticky/fixed CSS) and render them in a
   // fixed viewport so internal scrolling works (sticky/fixed has somewhere to stick).
@@ -264,6 +280,52 @@ export function DocumentViewer({
         <p style={{ fontSize: 13, color: "#6B7280", margin: "6px 0 0" }}>
           Você será notificado quando estiver pronto para revisão.
         </p>
+      </section>
+    );
+  }
+
+  // Proteção: detecta embeds que carregam o próprio portal dentro (paste
+  // acidental de HTML da página inteira). Renderiza aviso amigável em vez
+  // do loop visual.
+  if (embed && looksSelfReferential(embed)) {
+    return (
+      <section
+        style={{
+          background: "#FEF7E5",
+          border: "0.5px solid #F5D88A",
+          borderRadius: 18,
+          padding: "32px 28px",
+          boxShadow: "0 1px 2px rgba(13,74,74,0.03)",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 14,
+        }}
+      >
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            background: "#FCD34D",
+            color: "#78350F",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <FileText size={18} strokeWidth={1.7} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 14.5, fontWeight: 600, color: "#78350F", margin: 0 }}>
+            Embed inválido
+          </p>
+          <p style={{ fontSize: 13, color: "#92400E", margin: "6px 0 0", lineHeight: 1.55 }}>
+            O conteúdo HTML salvo aqui aponta pro próprio portal — não dá pra
+            renderizar (geraria um loop visual). Peça pra Arthea revisar o
+            embed do documento no painel.
+          </p>
+        </div>
       </section>
     );
   }
