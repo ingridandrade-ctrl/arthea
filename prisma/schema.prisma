@@ -720,6 +720,15 @@ enum DeliverableStatus {
   REVISION
 }
 
+enum DeliverableKind {
+  // Setup que a Arthea executa — cliente só vê o status, não aprova
+  TASK
+  // Formulário/input — cliente preenche e marca como respondido
+  FORM
+  // Material entregue pra revisar — fluxo padrão de aprovação
+  DOCUMENT
+}
+
 enum DeliverableCategory {
   // STRATEGY
   POSITIONING
@@ -803,6 +812,7 @@ model ClientDeliverable {
   title         String
   description   String?
   category      DeliverableCategory
+  kind          DeliverableKind       @default(DOCUMENT)
   phase         Int
   order         Int
   status        DeliverableStatus     @default(PENDING)
