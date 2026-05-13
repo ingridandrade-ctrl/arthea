@@ -18,16 +18,16 @@ export function TaskStatusCard({
   const Icon = icon;
 
   const title = isDone
-    ? "Configurado pela Arthea"
+    ? "Tudo configurado"
     : inProgress
-      ? "A Arthea está configurando"
-      : "Vamos cuidar disso";
+      ? "A Arthea está trabalhando"
+      : "Aguardando o início";
 
   const subtitle = isDone
-    ? "Setup concluído. Não há nada que você precise fazer aqui."
+    ? "Setup finalizado pela Arthea. Você não precisa fazer nada por aqui."
     : inProgress
-      ? "Tô na cola pra finalizar. Te avisaremos quando estiver pronto."
-      : "Esse setup é interno — a Arthea executa e você acompanha o status por aqui.";
+      ? "Estamos cuidando dessa configuração. Te avisamos assim que estiver pronto."
+      : "Esse setup faz parte do trabalho interno da Arthea. Você acompanha o status por aqui.";
 
   return (
     <section
