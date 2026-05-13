@@ -8,7 +8,7 @@ import {
   phaseNamesFor,
   STATUS_BG,
   STATUS_FG,
-  STATUS_LABEL,
+  statusLabelFor,
   type DeliverableStatus,
 } from "../../../../_components/deliverable-status";
 import { ValidationForm } from "../../../../_components/validation-form";
@@ -16,6 +16,7 @@ import { SimpleApprove } from "../../../../_components/simple-approve";
 import { CommentsSection } from "../../../../_components/comments-section";
 import { DocumentViewer } from "../../../../_components/document-viewer";
 import { FormRespondAction } from "../../../../_components/form-respond-action";
+import { TaskStatusCard } from "../../../../_components/task-status-card";
 
 export default async function DeliverableDetail({
   params,
@@ -119,7 +120,7 @@ export default async function DeliverableDetail({
             whiteSpace: "nowrap",
           }}
         >
-          {STATUS_LABEL[status]}
+          {statusLabelFor(status, deliverable.kind)}
         </span>
       </header>
 
@@ -136,7 +137,7 @@ export default async function DeliverableDetail({
         </>
       ) : deliverable.kind === "TASK" ? (
         // Setup que a Arthea executa — cliente só acompanha, não aprova
-        <DocumentViewer url={deliverable.documentUrl} embed={deliverable.documentEmbed} />
+        <TaskStatusCard status={status} documentUrl={deliverable.documentUrl} />
       ) : (
         // DOCUMENT (fluxo padrão de revisão + aprovação)
         <>
