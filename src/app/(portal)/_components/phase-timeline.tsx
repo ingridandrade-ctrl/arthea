@@ -2,36 +2,35 @@
 
 import { Check } from "lucide-react";
 
-const PHASE_NAMES = [
-  "Imersão e Posicionamento",
-  "Construção e Conteúdo",
-  "Rastreamento e Ads",
-  "Entrega Final",
-];
-
 export function PhaseTimeline({
   current,
   perPhase,
+  phaseNames,
 }: {
   current: number;
-  perPhase: { total: number; approved: number }[]; // index 0..3
+  perPhase: { total: number; approved: number }[]; // por fase
+  phaseNames: string[]; // 1-indexed: índice 0 é vazio, fases começam em 1
 }) {
+  // Pega só os nomes a partir do índice 1 (pulando o "" inicial)
+  const names = phaseNames.slice(1).filter(Boolean);
+  const totalPhases = names.length;
+
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
+        gridTemplateColumns: `repeat(${totalPhases}, 1fr)`,
         gap: 0,
         position: "relative",
       }}
     >
-      {PHASE_NAMES.map((name, i) => {
+      {names.map((name, i) => {
         const phase = i + 1;
         const stats = perPhase[i] || { total: 0, approved: 0 };
         const pct = stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0;
         const completed = phase < current || (stats.total > 0 && pct === 100);
         const active = phase === current;
-        const isLast = i === PHASE_NAMES.length - 1;
+        const isLast = i === totalPhases - 1;
 
         return (
           <div
