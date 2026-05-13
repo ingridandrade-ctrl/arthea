@@ -202,7 +202,7 @@ function WelcomeView({ onStart }: { onStart: () => void }) {
       </h1>
       <p className="m-welcome-intro">
         Bem-vinda. Você está sendo convidada a participar de um projeto de supervisão da formação em
-        Mindfulness da Iasmim Sasseron — instrutora pelo IPq-USP.
+        Mindfulness da Iasmim Sasseron — pelo IPq-USP.
       </p>
 
       <div className="m-welcome-cards">
