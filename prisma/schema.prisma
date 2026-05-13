@@ -11,6 +11,7 @@ enum Role {
   ADMIN
   MANAGER
   AGENT
+  CLIENT
 }
 
 enum LeadSource {
@@ -62,6 +63,12 @@ enum ContractStatus {
   COMPLETED
 }
 
+enum ClientType {
+  ACTIVE
+  INACTIVE
+  TEMPORARY
+}
+
 enum InvoiceStatus {
   PENDING
   PAID
@@ -70,36 +77,55 @@ enum InvoiceStatus {
   REFUNDED
 }
 
+enum ExpenseCategory {
+  TOOL
+  SALARY
+  TAX
+  MARKETING
+  INFRASTRUCTURE
+  OTHER
+}
+
+enum MetaConnectionStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
 model User {
-  id             String         @id @default(cuid())
-  name           String
-  email          String         @unique
-  password       String
-  role           Role           @default(AGENT)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  deals          Deal[]
-  messages       Message[]      @relation("SentByUser")
-  activities     Activity[]     @relation("UserActivities")
-  assignedTasks  Task[]         @relation("AssignedTasks")
-  createdTasks   Task[]         @relation("CreatedTasks")
-  notifications  Notification[]
+  id              String             @id @default(cuid())
+  name            String
+  email           String             @unique
+  password        String
+  role            Role               @default(AGENT)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  deals           Deal[]
+  messages        Message[]          @relation("SentByUser")
+  activities      Activity[]         @relation("UserActivities")
+  assignedTasks   Task[]             @relation("AssignedTasks")
+  createdTasks    Task[]             @relation("CreatedTasks")
+  notifications   Notification[]
+  engagements     ClientEngagement[]
+  dossier         ClientDossier?
+  metaConnections MetaConnection[]
 }
 
 model Service {
-  id          String       @id @default(cuid())
-  name        String       @unique
-  slug        String       @unique
+  id          String        @id @default(cuid())
+  name        String        @unique
+  slug        String        @unique
   description String?
   icon        String?
-  color       String       @default("#6366f1")
-  isActive    Boolean      @default(true)
-  basePrice     Float?
-  setupFee      Float?
-  createdAt   DateTime     @default(now())
+  color       String        @default("#6366f1")
+  isActive    Boolean       @default(true)
+  basePrice   Float?
+  setupFee    Float?
+  createdAt   DateTime      @default(now())
   leads       LeadService[]
   deals       Deal[]
-  contracts Contract[]
+  contracts   Contract[]
+  invoices    Invoice[]
 }
 
 model Lead {
@@ -125,8 +151,8 @@ model Lead {
   automationLogs AutomationLog[]
   activities     Activity[]
   tasks          Task[]
-  contracts Contract[]
-  invoices Invoice[]
+  contracts      Contract[]
+  invoices       Invoice[]
 
   @@index([status])
   @@index([phone])
@@ -188,7 +214,7 @@ model Deal {
   activities        Activity[]
   tasks             Task[]
   followUps         FollowUp[]
-  contract Contract?
+  contract          Contract?
 
   @@index([serviceId])
   @@index([stageId])
@@ -197,20 +223,20 @@ model Deal {
 }
 
 model FollowUp {
-  id              String    @id @default(cuid())
+  id              String        @id @default(cuid())
   dealId          String
-  deal            Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  deal            Deal          @relation(fields: [dealId], references: [id], onDelete: Cascade)
   stageId         String
   stage           PipelineStage @relation(fields: [stageId], references: [id])
   order           Int
   delayHours      Int
   messageTemplate String
-  channel         String    @default("whatsapp")
-  isAutomatic     Boolean   @default(false)
-  status          String    @default("pending") // pending, sent, skipped
+  channel         String        @default("whatsapp")
+  isAutomatic     Boolean       @default(false)
+  status          String        @default("pending") // pending, sent, skipped
   scheduledAt     DateTime?
   sentAt          DateTime?
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime      @default(now())
 
   @@index([dealId])
   @@index([stageId])
@@ -245,15 +271,15 @@ model Conversation {
 }
 
 model Message {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   content        String
   sender         MessageSender
   sentByUserId   String?
-  sentByUser     User?        @relation("SentByUser", fields: [sentByUserId], references: [id])
+  sentByUser     User?         @relation("SentByUser", fields: [sentByUserId], references: [id])
   evolutionMsgId String?
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime      @default(now())
 
   @@index([conversationId])
 }
@@ -333,17 +359,22 @@ model Task {
 model Contract {
   id             String         @id @default(cuid())
   number         String         @unique
-  dealId         String         @unique
-  deal           Deal           @relation(fields: [dealId], references: [id])
+  dealId         String?        @unique
+  deal           Deal?          @relation(fields: [dealId], references: [id])
   leadId         String
   lead           Lead           @relation(fields: [leadId], references: [id])
   serviceId      String?
   service        Service?       @relation(fields: [serviceId], references: [id])
+  serviceIds     String[]       @default([])
   monthlyValue   Float
   setupValue     Float?
   durationMonths Int            @default(12)
   recurrence     Recurrence     @default(MONTHLY)
   status         ContractStatus @default(ACTIVE)
+  clientType     ClientType     @default(ACTIVE)
+  niche          String?
+  tags           String[]
+  paymentLink    String?
   startDate      DateTime
   endDate        DateTime?
   paymentDay     Int            @default(10)
@@ -353,27 +384,54 @@ model Contract {
   updatedAt      DateTime       @updatedAt
 
   @@index([status])
+  @@index([clientType])
   @@index([leadId])
 }
 
 model Invoice {
-  id            String        @id @default(cuid())
-  number        String        @unique
-  contractId    String?
-  contract      Contract?     @relation(fields: [contractId], references: [id])
-  leadId        String
-  lead          Lead          @relation(fields: [leadId], references: [id])
-  amount        Float
-  status        InvoiceStatus @default(PENDING)
-  dueDate       DateTime
-  paidAt        DateTime?
-  paymentMethod String?
-  description   String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                String        @id @default(cuid())
+  number            String        @unique
+  contractId        String?
+  contract          Contract?     @relation(fields: [contractId], references: [id])
+  leadId            String
+  lead              Lead          @relation(fields: [leadId], references: [id])
+  serviceId         String?
+  service           Service?      @relation(fields: [serviceId], references: [id])
+  serviceIds        String[]      @default([])
+  amount            Float
+  status            InvoiceStatus @default(PENDING)
+  dueDate           DateTime
+  paidAt            DateTime?
+  paymentMethod     String?
+  paymentLink       String?
+  description       String?
+  installmentNumber Int?
+  totalInstallments Int?
+  invoiceIssued     Boolean       @default(false)
+  invoiceNumber     String?
+  invoiceIssuedAt   DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   @@index([status, dueDate])
   @@index([leadId])
+  @@index([serviceId])
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  description String
+  amount      Float
+  category    ExpenseCategory @default(OTHER)
+  date        DateTime
+  recurring   Boolean         @default(false)
+  notes       String?
+  tags        String[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([date])
+  @@index([category])
 }
 
 model Notification {
@@ -388,4 +446,505 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId, read])
+}
+
+// =====================================================================
+// Personal Finance Module (independent from CRM)
+// Single shared login per couple ("Household").
+// =====================================================================
+
+enum FinOwner {
+  PARTNER_A
+  PARTNER_B
+  COUPLE
+}
+
+enum FinAccountType {
+  CHECKING
+  SAVINGS
+  CASH
+  CREDIT_CARD
+  INVESTMENT
+  OTHER
+}
+
+enum FinCategoryKind {
+  INCOME
+  EXPENSE
+}
+
+enum FinTransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum FinRecurrenceFrequency {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum FinInvoiceStatus {
+  OPEN
+  CLOSED
+  PAID
+  OVERDUE
+}
+
+model Household {
+  id             String                 @id @default(cuid())
+  email          String                 @unique
+  password       String
+  partnerAName   String                 @default("Pessoa A")
+  partnerBName   String                 @default("Pessoa B")
+  currency       String                 @default("BRL")
+  hideBalances   Boolean                @default(false)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  accounts       FinAccount[]
+  categories     FinCategory[]
+  transactions   FinTransaction[]
+  recurringRules FinRecurringRule[]
+  budgets        FinBudget[]
+  invoices       FinCreditCardInvoice[]
+  goals          FinGoal[]
+  settlements    FinSettlement[]
+}
+
+model FinAccount {
+  id              String                 @id @default(cuid())
+  householdId     String
+  household       Household              @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  name            String
+  type            FinAccountType         @default(CHECKING)
+  initialBalance  Float                  @default(0)
+  color           String                 @default("#6366f1")
+  icon            String?
+  archived        Boolean                @default(false)
+  creditLimit     Float?
+  closingDay      Int?
+  dueDay          Int?
+  owner           FinOwner               @default(COUPLE)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  transactions    FinTransaction[]       @relation("AccountTransactions")
+  transfersIn     FinTransaction[]       @relation("AccountTransfersIn")
+  recurringRules  FinRecurringRule[]     @relation("RecurringFromAccount")
+  invoices        FinCreditCardInvoice[]
+  invoicePayments FinCreditCardInvoice[] @relation("InvoicePayment")
+
+  @@index([householdId])
+}
+
+model FinCategory {
+  id             String             @id @default(cuid())
+  householdId    String
+  household      Household          @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  name           String
+  kind           FinCategoryKind
+  color          String             @default("#6366f1")
+  icon           String?
+  parentId       String?
+  parent         FinCategory?       @relation("FinCategoryTree", fields: [parentId], references: [id])
+  children       FinCategory[]      @relation("FinCategoryTree")
+  archived       Boolean            @default(false)
+  createdAt      DateTime           @default(now())
+  transactions   FinTransaction[]
+  recurringRules FinRecurringRule[]
+  budgets        FinBudget[]
+
+  @@index([householdId, kind])
+}
+
+model FinTransaction {
+  id                   String                @id @default(cuid())
+  householdId          String
+  household            Household             @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  type                 FinTransactionType
+  amount               Float
+  date                 DateTime
+  description          String
+  notes                String?
+  owner                FinOwner              @default(COUPLE)
+  paidByOwner          FinOwner?
+  splitRatio           Float?
+  paid                 Boolean               @default(true)
+  paidAt               DateTime?
+  accountId            String
+  account              FinAccount            @relation("AccountTransactions", fields: [accountId], references: [id])
+  toAccountId          String?
+  toAccount            FinAccount?           @relation("AccountTransfersIn", fields: [toAccountId], references: [id])
+  categoryId           String?
+  category             FinCategory?          @relation(fields: [categoryId], references: [id])
+  invoiceId            String?
+  invoice              FinCreditCardInvoice? @relation(fields: [invoiceId], references: [id])
+  recurringId          String?
+  recurring            FinRecurringRule?     @relation(fields: [recurringId], references: [id])
+  installmentGroupId   String?
+  installmentIndex     Int?
+  installmentTotal     Int?
+  installmentProjected Boolean               @default(false)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  @@index([householdId, date])
+  @@index([accountId])
+  @@index([categoryId])
+  @@index([installmentGroupId])
+  @@index([invoiceId])
+}
+
+model FinRecurringRule {
+  id              String                 @id @default(cuid())
+  householdId     String
+  household       Household              @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  name            String
+  type            FinTransactionType
+  amount          Float
+  description     String
+  notes           String?
+  owner           FinOwner               @default(COUPLE)
+  accountId       String
+  account         FinAccount             @relation("RecurringFromAccount", fields: [accountId], references: [id])
+  toAccountId     String?
+  categoryId      String?
+  category        FinCategory?           @relation(fields: [categoryId], references: [id])
+  frequency       FinRecurrenceFrequency @default(MONTHLY)
+  dayOfMonth      Int?
+  dayOfWeek       Int?
+  monthOfYear     Int?
+  startDate       DateTime
+  endDate         DateTime?
+  lastGeneratedAt DateTime?
+  active          Boolean                @default(true)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  transactions    FinTransaction[]
+
+  @@index([householdId, active])
+}
+
+model FinBudget {
+  id          String      @id @default(cuid())
+  householdId String
+  household   Household   @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    FinCategory @relation(fields: [categoryId], references: [id])
+  amount      Float
+  month       String      @default("default")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([categoryId, month])
+  @@index([householdId])
+}
+
+model FinCreditCardInvoice {
+  id               String           @id @default(cuid())
+  householdId      String
+  household        Household        @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  accountId        String
+  account          FinAccount       @relation(fields: [accountId], references: [id])
+  year             Int
+  month            Int
+  closingDate      DateTime
+  dueDate          DateTime
+  paidAt           DateTime?
+  paymentAccountId String?
+  paymentAccount   FinAccount?      @relation("InvoicePayment", fields: [paymentAccountId], references: [id])
+  status           FinInvoiceStatus @default(OPEN)
+  notes            String?
+  transactions     FinTransaction[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([accountId, year, month])
+  @@index([householdId, year, month])
+}
+
+model FinGoal {
+  id            String                @id @default(cuid())
+  householdId   String
+  household     Household             @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  name          String
+  targetAmount  Float
+  currentAmount Float                 @default(0)
+  targetDate    DateTime?
+  color         String                @default("#6366f1")
+  icon          String?
+  notes         String?
+  archived      Boolean               @default(false)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  contributions FinGoalContribution[]
+
+  @@index([householdId])
+}
+
+model FinGoalContribution {
+  id        String   @id @default(cuid())
+  goalId    String
+  goal      FinGoal  @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  amount    Float
+  date      DateTime
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([goalId])
+}
+
+model FinSettlement {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  amount      Float
+  fromOwner   FinOwner
+  toOwner     FinOwner
+  date        DateTime
+  notes       String?
+  periodStart DateTime?
+  periodEnd   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([householdId, date])
+}
+
+// ─── Portal de clientes ────────────────────────────────────────
+
+enum DeliverableStatus {
+  PENDING
+  IN_PROGRESS
+  WAITING_REVIEW
+  APPROVED
+  REVISION
+}
+
+enum DeliverableKind {
+  // Setup que a Arthea executa — cliente só vê o status, não aprova
+  TASK
+  // Formulário/input — cliente preenche e marca como respondido
+  FORM
+  // Material entregue pra revisar — fluxo padrão de aprovação
+  DOCUMENT
+}
+
+enum DeliverableCategory {
+  // STRATEGY
+  POSITIONING
+  CONTENT
+  TRACKING
+  DELIVERY
+  // PAID_TRAFFIC
+  CAMPAIGN_SETUP
+  CREATIVE
+  REPORT
+  OPTIMIZATION
+  // LANDING_PAGE
+  BRIEFING
+  WIREFRAME
+  DESIGN
+  DEVELOPMENT
+  LAUNCH
+  // GMB
+  PROFILE_SETUP
+  POST
+  REVIEW_RESPONSE
+}
+
+enum EngagementType {
+  STRATEGY
+  PAID_TRAFFIC
+  LANDING_PAGE
+  GMB
+}
+
+model ClientEngagement {
+  id             String              @id @default(cuid())
+  clientId       String
+  client         User                @relation(fields: [clientId], references: [id])
+  type           EngagementType      @default(STRATEGY)
+  slug           String
+  name           String
+  description    String?
+  startDate      DateTime?
+  endDate        DateTime?
+  currentPhase   Int                 @default(1)
+  totalPhases    Int                 @default(4)
+  accentColor    String              @default("#1D7070")
+  logoUrl        String?
+  isActive       Boolean             @default(true)
+  internalData   Json                @default("{}")
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  deliverables   ClientDeliverable[]
+  accesses       ClientAccess[]
+  references     ClientReference[]
+  metaAdAccounts MetaAdAccount[]
+
+  @@unique([clientId, slug])
+  @@index([clientId])
+  @@index([type])
+}
+
+model ClientDossier {
+  id                String   @id @default(cuid())
+  clientId          String   @unique
+  client            User     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  digitalPresence   Json     @default("{}")
+  brandContext      Json     @default("{}")
+  voice             Json     @default("{}")
+  market            Json     @default("{}")
+  contacts          Json     @default("[]")
+  commercial        Json     @default("{}")
+  archive           Json     @default("{}")
+  brandIdentity     Json     @default("{}")
+  performance       Json     @default("{}")
+  legacySummaryHtml String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model ClientDeliverable {
+  id            String                @id @default(cuid())
+  engagementId  String
+  engagement    ClientEngagement      @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  category      DeliverableCategory
+  kind          DeliverableKind       @default(DOCUMENT)
+  phase         Int
+  order         Int
+  status        DeliverableStatus     @default(PENDING)
+  documentUrl   String?
+  documentEmbed String?
+  isVisible     Boolean               @default(true)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  questions     DeliverableQuestion[]
+  comments      DeliverableComment[]
+  responses     DeliverableResponse[]
+
+  @@index([engagementId, phase])
+  @@index([status])
+}
+
+model DeliverableQuestion {
+  id            String                @id @default(cuid())
+  deliverableId String
+  deliverable   ClientDeliverable     @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  question      String
+  type          String                @default("text")
+  options       String[]
+  order         Int
+  isRequired    Boolean               @default(false)
+  responses     DeliverableResponse[]
+
+  @@index([deliverableId])
+}
+
+model DeliverableResponse {
+  id            String              @id @default(cuid())
+  deliverableId String
+  deliverable   ClientDeliverable   @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  questionId    String
+  question      DeliverableQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer        String
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([deliverableId])
+  @@index([questionId])
+}
+
+model DeliverableComment {
+  id            String            @id @default(cuid())
+  deliverableId String
+  deliverable   ClientDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  authorId      String
+  content       String
+  isFromArthea  Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+
+  @@index([deliverableId])
+}
+
+model ClientAccess {
+  id           String           @id @default(cuid())
+  engagementId String
+  engagement   ClientEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  platform     String
+  icon         String?
+  username     String?
+  password     String?
+  url          String?
+  notes        String?
+  order        Int              @default(0)
+
+  @@index([engagementId])
+}
+
+model ClientReference {
+  id           String           @id @default(cuid())
+  engagementId String
+  engagement   ClientEngagement @relation(fields: [engagementId], references: [id], onDelete: Cascade)
+  title        String
+  type         String
+  url          String
+  description  String?
+  order        Int              @default(0)
+
+  @@index([engagementId])
+}
+
+model MetaConnection {
+  id             String               @id @default(cuid())
+  userId         String
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metaUserId     String
+  metaUserName   String?
+  accessToken    String
+  tokenExpiresAt DateTime?
+  scopes         String[]
+  status         MetaConnectionStatus @default(ACTIVE)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  adAccounts     MetaAdAccount[]
+
+  @@unique([userId, metaUserId])
+  @@index([userId])
+}
+
+model MetaAdAccount {
+  id           String            @id @default(cuid())
+  connectionId String
+  connection   MetaConnection    @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  engagementId String?
+  engagement   ClientEngagement? @relation(fields: [engagementId], references: [id], onDelete: SetNull)
+  accountId    String
+  name         String
+  currency     String?
+  timezoneName String?
+  status       Int?
+  businessName String?
+  hidden       Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  leadForms    MetaLeadAdsForm[]
+
+  @@unique([connectionId, accountId])
+  @@index([engagementId])
+  @@index([hidden])
+}
+
+model MetaLeadAdsForm {
+  id          String        @id @default(cuid())
+  adAccountId String
+  adAccount   MetaAdAccount @relation(fields: [adAccountId], references: [id], onDelete: Cascade)
+  formId      String
+  name        String?
+  pageId      String?
+  createdAt   DateTime      @default(now())
+
+  @@unique([adAccountId, formId])
 }

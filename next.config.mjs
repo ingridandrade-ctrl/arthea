@@ -9,6 +9,40 @@ const nextConfig = {
       bodySizeLimit: "2mb",
     },
   },
+  async redirects() {
+    return [
+      // Reorganização do painel da agência (mai/2026) — mantém URLs antigas funcionando
+      { source: "/dashboard", destination: "/crm", permanent: false },
+      { source: "/dashboard/:path*", destination: "/crm/:path*", permanent: false },
+      { source: "/leads", destination: "/crm/leads", permanent: false },
+      { source: "/leads/:path*", destination: "/crm/leads/:path*", permanent: false },
+      { source: "/pipeline", destination: "/crm/pipeline", permanent: false },
+      { source: "/pipeline/:path*", destination: "/crm/pipeline/:path*", permanent: false },
+      { source: "/conversations", destination: "/crm/conversations", permanent: false },
+      { source: "/conversations/:path*", destination: "/crm/conversations/:path*", permanent: false },
+      { source: "/tarefas", destination: "/crm/tarefas", permanent: false },
+      { source: "/tarefas/:path*", destination: "/crm/tarefas/:path*", permanent: false },
+      { source: "/relatorios", destination: "/crm/relatorios", permanent: false },
+      { source: "/relatorios/:path*", destination: "/crm/relatorios/:path*", permanent: false },
+      { source: "/automations", destination: "/crm/automacoes", permanent: false },
+      { source: "/automations/:path*", destination: "/crm/automacoes/:path*", permanent: false },
+      { source: "/configuracoes", destination: "/sistema", permanent: false },
+      { source: "/configuracoes/automacoes", destination: "/crm/automacoes", permanent: false },
+      { source: "/configuracoes/automacoes/:path*", destination: "/crm/automacoes/:path*", permanent: false },
+      { source: "/configuracoes/templates", destination: "/crm/templates", permanent: false },
+      { source: "/configuracoes/templates/:path*", destination: "/crm/templates/:path*", permanent: false },
+      { source: "/configuracoes/servicos", destination: "/sistema/servicos", permanent: false },
+      { source: "/configuracoes/servicos/:path*", destination: "/sistema/servicos/:path*", permanent: false },
+      { source: "/configuracoes/usuarios", destination: "/sistema/usuarios", permanent: false },
+      { source: "/configuracoes/usuarios/:path*", destination: "/sistema/usuarios/:path*", permanent: false },
+      { source: "/portal-clientes", destination: "/clientes/portal", permanent: false },
+      { source: "/portal-clientes/:path*", destination: "/clientes/portal/:path*", permanent: false },
+      { source: "/meta", destination: "/clientes/meta", permanent: false },
+      { source: "/meta/:path*", destination: "/clientes/meta/:path*", permanent: false },
+      { source: "/services", destination: "/sistema/servicos", permanent: false },
+      { source: "/settings", destination: "/sistema", permanent: false },
+    ];
+  },
 };
 
 export default nextConfig;

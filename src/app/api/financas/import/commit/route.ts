@@ -1,0 +1,204 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { ensureInvoice } from "@/lib/financas/credit-cards";
+import { parseLocalDate } from "@/lib/financas/dates";
+import { addMonths, installmentGroupId, parseInstallment } from "@/lib/financas/installments";
+
+const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
+
+type Row = {
+  date: string;
+  description: string;
+  amount: number;
+  categoryId?: string | null;
+  owner?: "PARTNER_A" | "PARTNER_B" | "COUPLE";
+  paidByOwner?: "PARTNER_A" | "PARTNER_B" | null;
+};
+
+export async function POST(req: Request) {
+  try {
+    const household = await requireHousehold();
+    const body = await req.json().catch(() => ({}));
+    const { accountId, rows } = body ?? {};
+
+    if (typeof accountId !== "string" || !accountId) {
+      return NextResponse.json({ error: "Cartão é obrigatório" }, { status: 400 });
+    }
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return NextResponse.json({ error: "Nenhum lançamento para importar" }, { status: 400 });
+    }
+    if (rows.length > 500) {
+      return NextResponse.json({ error: "Máximo 500 linhas por importação" }, { status: 400 });
+    }
+
+    const account = await prisma.finAccount.findFirst({
+      where: { id: accountId, householdId: household.id, type: "CREDIT_CARD" },
+    });
+    if (!account) {
+      return NextResponse.json({ error: "Cartão não encontrado" }, { status: 404 });
+    }
+
+    const validRows: Row[] = [];
+    for (const r of rows as Row[]) {
+      if (!r || typeof r !== "object") continue;
+      if (typeof r.description !== "string" || !r.description.trim()) continue;
+      if (typeof r.amount !== "number" || !Number.isFinite(r.amount) || r.amount <= 0) continue;
+      if (typeof r.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(r.date)) continue;
+      validRows.push(r);
+    }
+    if (validRows.length === 0) {
+      return NextResponse.json({ error: "Nenhuma linha válida" }, { status: 400 });
+    }
+
+    const categoryIds = Array.from(
+      new Set(validRows.map((r) => r.categoryId).filter((x): x is string => !!x))
+    );
+    const cats =
+      categoryIds.length > 0
+        ? await prisma.finCategory.findMany({
+            where: { id: { in: categoryIds }, householdId: household.id },
+            select: { id: true },
+          })
+        : [];
+    const validCatIds = new Set(cats.map((c) => c.id));
+
+    const result = await prisma.$transaction(async (tx) => {
+      const createdIds: string[] = [];
+      let projectedCreated = 0;
+
+      for (const r of validRows) {
+        const date = parseLocalDate(r.date);
+        const inv = await ensureInvoice(household.id, account, date);
+        const owner = VALID_OWNERS.includes(r.owner as string)
+          ? (r.owner as "PARTNER_A" | "PARTNER_B" | "COUPLE")
+          : "COUPLE";
+        const paidByOwner =
+          r.paidByOwner === "PARTNER_A" || r.paidByOwner === "PARTNER_B"
+            ? r.paidByOwner
+            : null;
+        const categoryId =
+          r.categoryId && validCatIds.has(r.categoryId) ? r.categoryId : null;
+
+        const parc = parseInstallment(r.description);
+        const trimmedDesc = r.description.trim();
+
+        if (!parc) {
+          const created = await tx.finTransaction.create({
+            data: {
+              householdId: household.id,
+              type: "EXPENSE",
+              amount: r.amount,
+              date,
+              description: trimmedDesc,
+              owner,
+              paidByOwner,
+              accountId: account.id,
+              categoryId,
+              invoiceId: inv?.id ?? null,
+            },
+          });
+          createdIds.push(created.id);
+          continue;
+        }
+
+        const groupId = installmentGroupId(account.id, parc.baseDescription, parc.total);
+
+        const existing = await tx.finTransaction.findFirst({
+          where: {
+            householdId: household.id,
+            installmentGroupId: groupId,
+            installmentIndex: parc.index,
+          },
+        });
+
+        if (existing) {
+          const updated = await tx.finTransaction.update({
+            where: { id: existing.id },
+            data: {
+              amount: r.amount,
+              date,
+              description: trimmedDesc,
+              owner,
+              paidByOwner,
+              accountId: account.id,
+              categoryId,
+              invoiceId: inv?.id ?? null,
+              installmentProjected: false,
+            },
+          });
+          createdIds.push(updated.id);
+        } else {
+          const created = await tx.finTransaction.create({
+            data: {
+              householdId: household.id,
+              type: "EXPENSE",
+              amount: r.amount,
+              date,
+              description: trimmedDesc,
+              owner,
+              paidByOwner,
+              accountId: account.id,
+              categoryId,
+              invoiceId: inv?.id ?? null,
+              installmentGroupId: groupId,
+              installmentIndex: parc.index,
+              installmentTotal: parc.total,
+              installmentProjected: false,
+            },
+          });
+          createdIds.push(created.id);
+        }
+
+        for (let idx = parc.index + 1; idx <= parc.total; idx++) {
+          const futureExisting = await tx.finTransaction.findFirst({
+            where: {
+              householdId: household.id,
+              installmentGroupId: groupId,
+              installmentIndex: idx,
+            },
+          });
+          if (futureExisting) continue;
+
+          const futureDate = addMonths(date, idx - parc.index);
+          const futureInv = await ensureInvoice(household.id, account, futureDate);
+          await tx.finTransaction.create({
+            data: {
+              householdId: household.id,
+              type: "EXPENSE",
+              amount: r.amount,
+              date: futureDate,
+              description: trimmedDesc,
+              owner,
+              paidByOwner,
+              accountId: account.id,
+              categoryId,
+              invoiceId: futureInv?.id ?? null,
+              installmentGroupId: groupId,
+              installmentIndex: idx,
+              installmentTotal: parc.total,
+              installmentProjected: true,
+              paid: false,
+            },
+          });
+          projectedCreated += 1;
+        }
+      }
+      return { createdIds, projectedCreated };
+    });
+
+    return NextResponse.json({
+      created: result.createdIds.length,
+      projected: result.projectedCreated,
+    });
+  } catch (e: any) {
+    if (e instanceof HouseholdAuthError) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+    console.error("[financas/import/commit] error", e);
+    return NextResponse.json(
+      { error: "Erro ao salvar: " + (e?.message || "desconhecido") },
+      { status: 500 }
+    );
+  }
+}
