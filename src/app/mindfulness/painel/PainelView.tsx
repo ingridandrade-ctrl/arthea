@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ResponsiveContainer,
@@ -14,11 +15,20 @@ import {
 import {
   FFMQ_LABELS,
   DASS_LABELS,
+  FFMQ_FACETS,
+  FFMQ_REVERSED,
+  DASS_SUBSCALES,
   type FFMQFacet,
   type FFMQScores,
   type DASSSubscale,
   type DASSScores,
 } from "@/lib/mindfulness/scoring";
+import {
+  FFMQ_QUESTIONS,
+  DASS_QUESTIONS,
+  FFMQ_SCALE,
+  DASS_SCALE,
+} from "@/lib/mindfulness/questions";
 
 export type ParticipantSummary = {
   id: string;
@@ -33,6 +43,7 @@ export type ParticipantSummary = {
   tempoMeditacao: string | null;
   ffmq: {
     scores: FFMQScores;
+    answers: Record<string, number>;
     bands: Record<FFMQFacet, "abaixo" | "media" | "acima">;
     maxes: Record<FFMQFacet, number>;
     interpretation: string;
@@ -40,6 +51,7 @@ export type ParticipantSummary = {
   } | null;
   dass: {
     scores: DASSScores;
+    answers: Record<string, number>;
     bands: Record<DASSSubscale, string>;
     interpretation: string;
     respondedAt: string;
@@ -54,6 +66,28 @@ export type PainelData = {
 const FACETS: FFMQFacet[] = ["observe", "describe", "act_aware", "nonjudge", "nonreact"];
 const SUBSCALES: DASSSubscale[] = ["depressao", "ansiedade", "estresse"];
 const RADAR_COLORS = ["#8a9e8c", "#c4a05a", "#b08282", "#7a9eb4", "#9e8aaa"];
+
+// Lookup: nº da pergunta → faceta FFMQ (1-indexed)
+const FFMQ_ITEM_TO_FACET: Record<number, FFMQFacet> = (() => {
+  const map: Record<number, FFMQFacet> = {};
+  (Object.keys(FFMQ_FACETS) as FFMQFacet[]).forEach((f) => {
+    FFMQ_FACETS[f].forEach((item) => {
+      map[item] = f;
+    });
+  });
+  return map;
+})();
+
+// Lookup: nº da pergunta → subescala DASS
+const DASS_ITEM_TO_SUB: Record<number, DASSSubscale> = (() => {
+  const map: Record<number, DASSSubscale> = {};
+  (Object.keys(DASS_SUBSCALES) as DASSSubscale[]).forEach((s) => {
+    DASS_SUBSCALES[s].forEach((item) => {
+      map[item] = s;
+    });
+  });
+  return map;
+})();
 
 export default function PainelView({ data }: { data: PainelData }) {
   const router = useRouter();
@@ -98,7 +132,7 @@ export default function PainelView({ data }: { data: PainelData }) {
             <div className="m-empty">
               <div className="m-empty-icon">◌</div>
               <div>Nenhuma resposta registrada ainda.</div>
-              <div style={{ fontSize: "0.8rem", marginTop: "0.5rem" }}>
+              <div style={{ fontSize: "0.88rem", marginTop: "0.5rem" }}>
                 Compartilhe o link público e aguarde os preenchimentos.
               </div>
             </div>
@@ -121,10 +155,14 @@ export default function PainelView({ data }: { data: PainelData }) {
   );
 }
 
+type CardTab = "analise" | "respostas";
+
 function ParticipantCard({ p }: { p: ParticipantSummary }) {
+  const [tab, setTab] = useState<CardTab>("analise");
   const meta = [p.profissao, `${p.idade} anos`, p.escolaridade].filter(Boolean).join(" · ");
   const date = p.ffmq?.respondedAt || p.dass?.respondedAt;
   const dateStr = date ? new Date(date).toLocaleDateString("pt-BR") : null;
+  const hasResponses = !!(p.ffmq || p.dass);
 
   return (
     <div className="m-participant">
@@ -137,7 +175,9 @@ function ParticipantCard({ p }: { p: ParticipantSummary }) {
           </div>
           <div className="m-participant-meta" style={{ marginTop: "0.25rem" }}>
             {p.email}
-            {p.meditacaoPrevia ? ` · prática prévia: ${p.qualMeditacao || "sim"}${p.tempoMeditacao ? ` (${p.tempoMeditacao})` : ""}` : " · sem prática prévia"}
+            {p.meditacaoPrevia
+              ? ` · prática prévia: ${p.qualMeditacao || "sim"}${p.tempoMeditacao ? ` (${p.tempoMeditacao})` : ""}`
+              : " · sem prática prévia"}
           </div>
         </div>
         <div className="m-badges">
@@ -154,24 +194,55 @@ function ParticipantCard({ p }: { p: ParticipantSummary }) {
         </div>
       </div>
 
+      {hasResponses && (
+        <div className="m-tabs">
+          <button
+            type="button"
+            className={`m-tab ${tab === "analise" ? "active" : ""}`}
+            onClick={() => setTab("analise")}
+          >
+            Análise
+          </button>
+          <button
+            type="button"
+            className={`m-tab ${tab === "respostas" ? "active" : ""}`}
+            onClick={() => setTab("respostas")}
+          >
+            Respostas detalhadas
+          </button>
+        </div>
+      )}
+
       <div className="m-participant-body">
-        {p.ffmq && <FFMQSection ffmq={p.ffmq} />}
-        {p.ffmq && p.dass && <div className="m-divider" />}
-        {p.dass && <DASSSection dass={p.dass} />}
-        {(p.ffmq || p.dass) && (
+        {tab === "analise" && (
           <>
-            {p.ffmq && (
-              <div className="m-interp">
-                <div className="m-interp-title">Leitura — atenção plena</div>
-                <div className="m-interp-text">{p.ffmq.interpretation}</div>
-              </div>
+            {p.ffmq && <FFMQSection ffmq={p.ffmq} />}
+            {p.ffmq && p.dass && <div className="m-divider" />}
+            {p.dass && <DASSSection dass={p.dass} />}
+            {hasResponses && (
+              <>
+                {p.ffmq && (
+                  <div className="m-interp">
+                    <div className="m-interp-title">Leitura — atenção plena</div>
+                    <div className="m-interp-text">{p.ffmq.interpretation}</div>
+                  </div>
+                )}
+                {p.dass && (
+                  <div className="m-interp" style={{ marginTop: p.ffmq ? "1rem" : "1.5rem" }}>
+                    <div className="m-interp-title">Leitura — saúde mental</div>
+                    <div className="m-interp-text">{p.dass.interpretation}</div>
+                  </div>
+                )}
+              </>
             )}
-            {p.dass && (
-              <div className="m-interp" style={{ marginTop: p.ffmq ? "1rem" : "1.5rem" }}>
-                <div className="m-interp-title">Leitura — saúde mental</div>
-                <div className="m-interp-text">{p.dass.interpretation}</div>
-              </div>
-            )}
+          </>
+        )}
+
+        {tab === "respostas" && (
+          <>
+            {p.ffmq && <ResponsesList kind="ffmq" answers={p.ffmq.answers} />}
+            {p.ffmq && p.dass && <div className="m-divider" />}
+            {p.dass && <ResponsesList kind="dass" answers={p.dass.answers} />}
           </>
         )}
       </div>
@@ -225,11 +296,7 @@ function DASSSection({ dass }: { dass: NonNullable<ParticipantSummary["dass"]> }
         {SUBSCALES.map((s) => {
           const band = dass.bands[s];
           const bandClass =
-            band === "Normal"
-              ? "m-band-high"
-              : band === "Leve"
-              ? "m-band-mid"
-              : "m-band-low";
+            band === "Normal" ? "m-band-high" : band === "Leve" ? "m-band-mid" : "m-band-low";
           return (
             <div key={s} className="m-score-item">
               <div className="m-score-label">{DASS_LABELS[s]}</div>
@@ -253,6 +320,55 @@ function DASSSection({ dass }: { dass: NonNullable<ParticipantSummary["dass"]> }
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function ResponsesList({
+  kind,
+  answers,
+}: {
+  kind: "ffmq" | "dass";
+  answers: Record<string, number>;
+}) {
+  const questions = kind === "ffmq" ? FFMQ_QUESTIONS : DASS_QUESTIONS;
+  const scale = kind === "ffmq" ? FFMQ_SCALE : DASS_SCALE;
+  const total = questions.length;
+  const title =
+    kind === "ffmq"
+      ? "Atenção plena · 39 perguntas"
+      : "Saúde mental · 21 perguntas";
+
+  return (
+    <div className="m-responses-section">
+      <div className="m-scores-title">{title}</div>
+      <ol className="m-responses-list">
+        {questions.map((text, idx) => {
+          const i = idx + 1;
+          const val = answers[String(i)];
+          const opt = scale.find((s) => s.val === val);
+          const isReversed = kind === "ffmq" && FFMQ_REVERSED.has(i);
+          const facet = kind === "ffmq" ? FFMQ_LABELS[FFMQ_ITEM_TO_FACET[i]] : DASS_LABELS[DASS_ITEM_TO_SUB[i]];
+
+          return (
+            <li key={i} className="m-response-item">
+              <div className="m-response-head">
+                <span className="m-response-num">{i.toString().padStart(2, "0")}</span>
+                <span className="m-response-tag">
+                  {facet}
+                  {isReversed && <span className="m-response-rev"> · invertido</span>}
+                </span>
+              </div>
+              <div className="m-response-text">{text}</div>
+              <div className="m-response-answer">
+                <span className="m-response-val">{val}</span>
+                <span className="m-response-label">{opt?.label ?? "—"}</span>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      <div className="m-responses-foot">{total} perguntas respondidas</div>
     </div>
   );
 }
@@ -285,8 +401,8 @@ function CollectiveView({
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart data={radarData} outerRadius="75%">
             <PolarGrid stroke="rgba(196,212,198,0.6)" />
-            <PolarAngleAxis dataKey="faceta" tick={{ fontSize: 11, fill: "#5a5a52" }} />
-            <PolarRadiusAxis domain={[0, 100]} tickCount={5} tick={{ fontSize: 9, fill: "#8a8a7e" }} />
+            <PolarAngleAxis dataKey="faceta" tick={{ fontSize: 12, fill: "#5a5a52" }} />
+            <PolarRadiusAxis domain={[0, 100]} tickCount={5} tick={{ fontSize: 10, fill: "#75756a" }} />
             {participants.map((p, i) => (
               <Radar
                 key={p.id}
@@ -298,7 +414,7 @@ function CollectiveView({
                 strokeWidth={2}
               />
             ))}
-            <Legend wrapperStyle={{ fontSize: 11, color: "#5a5a52" }} />
+            <Legend wrapperStyle={{ fontSize: 12, color: "#5a5a52" }} />
             <Tooltip />
           </RadarChart>
         </ResponsiveContainer>
