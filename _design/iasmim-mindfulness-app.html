@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avaliação Mindfulness · Iasmim Sasseron</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sage: #8a9e8c;
+    --sage-light: #c4d4c6;
+    --sage-pale: #edf2ee;
+    --sand: #d4c5a9;
+    --sand-light: #f0ead9;
+    --warm-dark: #2c2c28;
+    --warm-mid: #5a5a52;
+    --warm-light: #8a8a7e;
+    --cream: #faf8f3;
+    --white: #ffffff;
+    --accent: #7a9e7e;
+    --danger: #c17a7a;
+    --warning: #c4a05a;
+    --success: #7a9e8a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--warm-dark);
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(250,248,243,0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--sage-light);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; font-weight: 400; letter-spacing: 0.02em;
+    color: var(--warm-dark);
+  }
+  .nav-brand span { color: var(--sage); font-style: italic; }
+  .nav-tabs { display: flex; gap: 0.25rem; }
+  .nav-tab {
+    padding: 0.4rem 1rem; border-radius: 20px; border: none;
+    background: transparent; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+    color: var(--warm-light); transition: all 0.2s;
+  }
+  .nav-tab.active { background: var(--sage); color: white; }
+  .nav-tab:hover:not(.active) { background: var(--sage-pale); color: var(--warm-dark); }
+
+  /* MAIN */
+  main { padding-top: 56px; min-height: 100vh; }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ===== HOME ===== */
+  #view-home {
+    min-height: calc(100vh - 56px);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 4rem 2rem; text-align: center;
+  }
+  #view-home.active { display: flex; }
+  .home-ornament {
+    width: 48px; height: 1px; background: var(--sage);
+    margin: 0 auto 2.5rem;
+    position: relative;
+  }
+  .home-ornament::before, .home-ornament::after {
+    content: ''; position: absolute; top: -3px;
+    width: 7px; height: 7px; border-radius: 50%; background: var(--sage);
+  }
+  .home-ornament::before { left: -10px; }
+  .home-ornament::after { right: -10px; }
+  .home-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 300; line-height: 1.2;
+    color: var(--warm-dark);
+    margin-bottom: 1rem;
+  }
+  .home-sub {
+    font-size: 0.9rem; color: var(--warm-light);
+    max-width: 480px; line-height: 1.7;
+    margin-bottom: 3rem;
+  }
+  .home-cards {
+    display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center;
+    max-width: 700px;
+  }
+  .home-card {
+    background: white; border: 1px solid var(--sage-light);
+    border-radius: 12px; padding: 2rem 2.5rem;
+    cursor: pointer; transition: all 0.25s;
+    flex: 1; min-width: 240px; max-width: 300px;
+    text-align: left;
+  }
+  .home-card:hover {
+    border-color: var(--sage); transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(138,158,140,0.15);
+  }
+  .card-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem; font-weight: 300;
+    color: var(--sage-light); line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+  .card-title {
+    font-size: 1rem; font-weight: 500;
+    color: var(--warm-dark); margin-bottom: 0.4rem;
+  }
+  .card-desc { font-size: 0.78rem; color: var(--warm-light); line-height: 1.5; }
+  .card-items { font-size: 0.75rem; color: var(--sage); margin-top: 0.75rem; }
+
+  /* ===== FORM ===== */
+  #view-form { max-width: 680px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+  #view-form.active { display: block; }
+
+  .form-header { margin-bottom: 3rem; }
+  .form-step-label {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--sage); margin-bottom: 0.75rem;
+  }
+  .form-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 300; color: var(--warm-dark);
+    line-height: 1.2; margin-bottom: 0.5rem;
+  }
+  .form-instruction {
+    font-size: 0.85rem; color: var(--warm-light); line-height: 1.6;
+    padding: 1rem 1.25rem; background: var(--sage-pale);
+    border-left: 2px solid var(--sage); border-radius: 0 6px 6px 0;
+    margin-top: 1rem;
+  }
+
+  /* PROGRESS */
+  .progress-wrap { margin-bottom: 2.5rem; }
+  .progress-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+  .progress-text { font-size: 0.78rem; color: var(--warm-light); }
+  .progress-pct { font-size: 0.78rem; color: var(--sage); font-weight: 500; }
+  .progress-bar { height: 3px; background: var(--sage-light); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--sage); border-radius: 2px; transition: width 0.4s ease; }
+
+  /* QUESTION CARD */
+  .question-card {
+    background: white; border: 1px solid #e8e4dc;
+    border-radius: 14px; padding: 2rem; margin-bottom: 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .question-card.answered { border-color: var(--sage-light); }
+  .question-num {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--warm-light); margin-bottom: 0.75rem;
+  }
+  .question-text {
+    font-size: 0.95rem; line-height: 1.6; color: var(--warm-dark);
+    margin-bottom: 1.5rem;
+  }
+
+  /* SCALE FFMQ */
+  .scale-ffmq { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .scale-option {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+    cursor: pointer;
+  }
+  .scale-btn {
+    width: 100%; padding: 0.6rem 0.25rem;
+    border: 1.5px solid var(--sage-light); border-radius: 8px;
+    background: white; cursor: pointer; transition: all 0.18s;
+    font-size: 1rem; font-weight: 500; color: var(--warm-mid);
+    font-family: 'Cormorant Garamond', serif;
+    text-align: center;
+  }
+  .scale-btn:hover { border-color: var(--sage); background: var(--sage-pale); }
+  .scale-btn.selected { border-color: var(--sage); background: var(--sage); color: white; }
+  .scale-label { font-size: 0.62rem; color: var(--warm-light); text-align: center; line-height: 1.3; }
+
+  /* SCALE DASS */
+  .scale-dass { display: flex; gap: 0.5rem; }
+  .dass-option {
+    flex: 1; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+  }
+  .dass-btn {
+    width: 100%; padding: 0.9rem 0.25rem;
+    border: 1.5px solid var(--sage-light); border-radius: 8px;
+    background: white; cursor: pointer; transition: all 0.18s;
+    font-size: 1.1rem; font-weight: 500; color: var(--warm-mid);
+    font-family: 'Cormorant Garamond', serif; text-align: center;
+  }
+  .dass-btn:hover { border-color: var(--sage); background: var(--sage-pale); }
+  .dass-btn.selected { border-color: var(--sage); background: var(--sage); color: white; }
+  .dass-label { font-size: 0.6rem; color: var(--warm-light); text-align: center; line-height: 1.3; }
+
+  /* PERSONAL DATA */
+  .field-group { display: flex; flex-direction: column; gap: 1.25rem; }
+  .field-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .field {
+    display: flex; flex-direction: column; gap: 0.4rem;
+    flex: 1; min-width: 200px;
+  }
+  .field label { font-size: 0.78rem; color: var(--warm-mid); font-weight: 500; }
+  .field input, .field select, .field textarea {
+    padding: 0.65rem 0.9rem; border: 1.5px solid #e0dbd0;
+    border-radius: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem; color: var(--warm-dark);
+    background: white; transition: border-color 0.2s; outline: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--sage); }
+  .field textarea { resize: vertical; min-height: 70px; }
+
+  .radio-group { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.25rem; }
+  .radio-opt {
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.4rem 0.85rem; border: 1.5px solid #e0dbd0;
+    border-radius: 20px; cursor: pointer; transition: all 0.18s;
+    font-size: 0.82rem; color: var(--warm-mid);
+  }
+  .radio-opt input { display: none; }
+  .radio-opt.selected { border-color: var(--sage); background: var(--sage-pale); color: var(--warm-dark); }
+
+  /* NAVIGATION BUTTONS */
+  .form-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 2.5rem; }
+  .btn-back {
+    background: none; border: 1.5px solid var(--sage-light);
+    color: var(--warm-mid); padding: 0.65rem 1.5rem;
+    border-radius: 8px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem; transition: all 0.2s;
+  }
+  .btn-back:hover { border-color: var(--sage); color: var(--warm-dark); }
+  .btn-next {
+    background: var(--sage); border: none; color: white;
+    padding: 0.65rem 2rem; border-radius: 8px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem; font-weight: 500; transition: all 0.2s;
+  }
+  .btn-next:hover { background: var(--accent); }
+  .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* COMPLETE */
+  .complete-screen {
+    text-align: center; padding: 4rem 2rem;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .complete-icon {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--sage-pale); border: 2px solid var(--sage);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; margin-bottom: 1.5rem;
+  }
+  .complete-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 300; margin-bottom: 0.75rem;
+  }
+  .complete-sub { font-size: 0.88rem; color: var(--warm-light); line-height: 1.7; max-width: 420px; }
+
+  /* ===== DASHBOARD ===== */
+  #view-dashboard { padding: 3rem 2rem 6rem; max-width: 1100px; margin: 0 auto; }
+  #view-dashboard.active { display: block; }
+
+  .dash-header { margin-bottom: 3rem; }
+  .dash-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem; font-weight: 300; color: var(--warm-dark);
+    margin-bottom: 0.4rem;
+  }
+  .dash-sub { font-size: 0.85rem; color: var(--warm-light); }
+
+  .dash-empty {
+    text-align: center; padding: 5rem 2rem;
+    color: var(--warm-light);
+  }
+  .dash-empty-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.4; }
+  .dash-empty-text { font-size: 0.9rem; }
+
+  /* PARTICIPANT CARDS */
+  .participants-grid { display: flex; flex-direction: column; gap: 2rem; }
+
+  .participant-card {
+    background: white; border: 1px solid #e8e4dc;
+    border-radius: 16px; overflow: hidden;
+  }
+  .participant-header {
+    padding: 1.5rem 2rem; display: flex;
+    justify-content: space-between; align-items: flex-start;
+    border-bottom: 1px solid #f0ebe0;
+    background: var(--sand-light);
+  }
+  .participant-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 400; color: var(--warm-dark);
+    margin-bottom: 0.2rem;
+  }
+  .participant-meta { font-size: 0.78rem; color: var(--warm-light); }
+  .participant-badges { display: flex; gap: 0.5rem; }
+  .badge {
+    padding: 0.25rem 0.65rem; border-radius: 20px;
+    font-size: 0.7rem; font-weight: 500;
+  }
+  .badge-ffmq { background: var(--sage-pale); color: var(--sage); border: 1px solid var(--sage-light); }
+  .badge-dass { background: var(--sand-light); color: #8a7a5a; border: 1px solid var(--sand); }
+
+  .participant-body { padding: 2rem; }
+
+  /* SCORES */
+  .scores-section { margin-bottom: 2rem; }
+  .scores-title {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--warm-light); margin-bottom: 1rem;
+  }
+  .scores-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+  .score-item {
+    flex: 1; min-width: 140px;
+    padding: 1rem 1.25rem; border-radius: 10px;
+    background: var(--cream); border: 1px solid #e8e4dc;
+  }
+  .score-label { font-size: 0.7rem; color: var(--warm-light); margin-bottom: 0.3rem; }
+  .score-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 300; color: var(--warm-dark); line-height: 1;
+    margin-bottom: 0.2rem;
+  }
+  .score-band {
+    font-size: 0.7rem; font-weight: 500;
+    padding: 0.15rem 0.5rem; border-radius: 4px; display: inline-block;
+  }
+  .band-low { background: #fde8e8; color: var(--danger); }
+  .band-mid { background: #fef3e2; color: var(--warning); }
+  .band-high { background: #e8f5ea; color: var(--success); }
+  .band-normal { background: #e8f5ea; color: var(--success); }
+  .band-mild { background: #fef3e2; color: var(--warning); }
+  .band-moderate { background: #fde8e8; color: var(--danger); }
+  .band-severe { background: #fde8e8; color: var(--danger); }
+
+  /* BAR CHART */
+  .bar-section { margin-bottom: 1.5rem; }
+  .bar-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
+  .bar-label { font-size: 0.75rem; color: var(--warm-mid); width: 130px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 6px; background: var(--sage-pale); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; background: var(--sage); transition: width 0.8s ease; }
+  .bar-val { font-size: 0.75rem; color: var(--warm-light); width: 30px; text-align: right; }
+
+  /* INTERPRETATION */
+  .interpretation-box {
+    background: var(--sage-pale); border-left: 3px solid var(--sage);
+    border-radius: 0 8px 8px 0; padding: 1.25rem 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .interp-title {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--sage); margin-bottom: 0.5rem;
+  }
+  .interp-text { font-size: 0.83rem; color: var(--warm-mid); line-height: 1.6; }
+
+  /* COLLECTIVE VIEW */
+  .collective-section {
+    background: white; border: 1px solid #e8e4dc;
+    border-radius: 16px; padding: 2rem; margin-top: 2rem;
+  }
+  .collective-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem; font-weight: 300; color: var(--warm-dark);
+    margin-bottom: 0.5rem;
+  }
+  .collective-sub { font-size: 0.82rem; color: var(--warm-light); margin-bottom: 2rem; }
+
+  .radar-wrap { display: flex; justify-content: center; margin: 1.5rem 0; }
+  canvas#radarChart { max-width: 400px; max-height: 400px; }
+
+  .collective-insights {
+    background: var(--sand-light); border-radius: 10px;
+    padding: 1.5rem; margin-top: 1.5rem;
+  }
+  .insights-title {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: #8a7a5a; margin-bottom: 0.75rem;
+  }
+  .insight-item {
+    display: flex; gap: 0.75rem; margin-bottom: 0.75rem;
+    align-items: flex-start;
+  }
+  .insight-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--sage); flex-shrink: 0; margin-top: 0.4rem;
+  }
+  .insight-text { font-size: 0.82rem; color: var(--warm-mid); line-height: 1.55; }
+
+  /* TABS */
+  .resp-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .resp-tab {
+    padding: 0.4rem 1rem; border-radius: 6px; border: none;
+    background: var(--cream); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.78rem;
+    color: var(--warm-light); transition: all 0.2s;
+  }
+  .resp-tab.active { background: var(--sage); color: white; }
+
+  /* DELETE */
+  .btn-delete {
+    background: none; border: 1px solid #e0dbd0;
+    color: var(--warm-light); padding: 0.3rem 0.75rem;
+    border-radius: 6px; cursor: pointer; font-size: 0.72rem;
+    transition: all 0.2s; margin-left: 0.5rem;
+  }
+  .btn-delete:hover { border-color: var(--danger); color: var(--danger); }
+
+  .section-divider {
+    height: 1px; background: #f0ebe0;
+    margin: 1.5rem 0;
+  }
+
+  /* PENDING NOTE */
+  .pending-note {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.3rem 0.75rem; border-radius: 20px;
+    background: #fef3e2; color: var(--warning);
+    font-size: 0.72rem; font-weight: 500;
+  }
+
+  @media (max-width: 600px) {
+    .scale-ffmq { gap: 0.3rem; }
+    .scale-label { display: none; }
+    .dass-label { font-size: 0.55rem; }
+    .nav-brand { font-size: 0.9rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Iasmim <span>Sasseron</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showView('home')">Início</button>
+    <button class="nav-tab" onclick="showView('form')">Responder</button>
+    <button class="nav-tab" onclick="showView('dashboard')">Painel</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- HOME -->
+  <section id="view-home" class="view active">
+    <div class="home-ornament"></div>
+    <h1 class="home-title">Avaliação de<br><em>Atenção Plena</em></h1>
+    <p class="home-sub">Instrumentos validados para mapeamento das facetas de mindfulness e indicadores de bem-estar emocional. Projeto de Supervisão — Formação de Mindfulness.</p>
+    <div class="home-cards">
+      <div class="home-card" onclick="startForm('ffmq')">
+        <div class="card-num">01</div>
+        <div class="card-title">FFMQ</div>
+        <div class="card-desc">Five Facet Mindfulness Questionnaire — avalia as dimensões da atenção plena na vida cotidiana.</div>
+        <div class="card-items">39 itens · Escala 1–5</div>
+      </div>
+      <div class="home-card" onclick="startForm('dass')">
+        <div class="card-num">02</div>
+        <div class="card-title">DASS-21</div>
+        <div class="card-desc">Depression Anxiety Stress Scale — rastreia indicadores de depressão, ansiedade e estresse.</div>
+        <div class="card-items">21 itens · Escala 0–3 · Última semana</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORM -->
+  <section id="view-form" class="view">
+    <div id="form-personal" style="display:none; max-width:680px; margin:0 auto; padding:3rem 2rem 6rem;">
+      <div class="form-header">
+        <div class="form-step-label" id="personal-instrument-label">Questionário</div>
+        <h2 class="form-title">Dados pessoais</h2>
+        <div class="form-instruction">Suas informações são utilizadas exclusivamente para organização dos dados deste projeto. Preencha com atenção.</div>
+      </div>
+      <div class="field-group">
+        <div class="field"><label>Nome completo *</label><input type="text" id="p-nome" placeholder="Seu nome completo"></div>
+        <div class="field-row">
+          <div class="field"><label>E-mail *</label><input type="email" id="p-email" placeholder="seu@email.com"></div>
+          <div class="field"><label>Telefone</label><input type="tel" id="p-tel" placeholder="(11) 00000-0000"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Profissão</label><input type="text" id="p-prof" placeholder=""></div>
+          <div class="field"><label>Idade *</label><input type="number" id="p-idade" placeholder="Ex: 34" min="16" max="99"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Escolaridade</label>
+            <select id="p-escolaridade">
+              <option value="">Selecione</option>
+              <option>Ensino Médio</option>
+              <option>Graduação incompleta</option>
+              <option>Graduação completa</option>
+              <option>Pós-graduação</option>
+              <option>Mestrado</option>
+              <option>Doutorado</option>
+            </select>
+          </div>
+          <div class="field"><label>Estado civil</label>
+            <select id="p-estadocivil">
+              <option value="">Selecione</option>
+              <option>Solteiro(a)</option>
+              <option>Casado(a) / União estável</option>
+              <option>Separado(a) / Divorciado(a)</option>
+              <option>Viúvo(a)</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Já praticava alguma forma de meditação antes?</label>
+          <div class="radio-group" id="p-meditacao-group">
+            <label class="radio-opt" onclick="selectRadio(this,'p-meditacao','Sim')"><input type="radio" name="p-meditacao" value="Sim">Sim</label>
+            <label class="radio-opt" onclick="selectRadio(this,'p-meditacao','Não')"><input type="radio" name="p-meditacao" value="Não">Não</label>
+          </div>
+        </div>
+        <div id="p-meditacao-extra" style="display:none;">
+          <div class="field-row">
+            <div class="field"><label>Qual prática?</label><input type="text" id="p-qual-med" placeholder="Ex: meditação vipassana, yoga..."></div>
+            <div class="field"><label>Há quanto tempo?</label><input type="text" id="p-tempo-med" placeholder="Ex: 2 anos"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button class="btn-back" onclick="showView('home')">← Voltar</button>
+        <button class="btn-next" onclick="startQuestions()">Iniciar questionário →</button>
+      </div>
+    </div>
+
+    <div id="form-questions" style="display:none; max-width:680px; margin:0 auto; padding:3rem 2rem 6rem;">
+      <div class="form-header">
+        <div class="form-step-label" id="q-instrument-label">Questionário</div>
+        <h2 class="form-title" id="q-title">Perguntas</h2>
+        <div class="form-instruction" id="q-instruction"></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-info">
+          <span class="progress-text" id="q-progress-text"></span>
+          <span class="progress-pct" id="q-progress-pct"></span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="q-progress-fill" style="width:0%"></div></div>
+      </div>
+      <div id="question-area"></div>
+      <div class="form-nav">
+        <button class="btn-back" id="q-back-btn" onclick="questionNav(-1)">← Anterior</button>
+        <button class="btn-next" id="q-next-btn" onclick="questionNav(1)">Próxima →</button>
+      </div>
+    </div>
+
+    <div id="form-complete" style="display:none;">
+      <div class="complete-screen">
+        <div class="complete-icon">✓</div>
+        <h2 class="complete-title">Respostas registradas</h2>
+        <p class="complete-sub" id="complete-message">Obrigada por participar. Suas respostas foram salvas com segurança para análise.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="view-dashboard" class="view">
+    <div class="dash-header">
+      <h2 class="dash-title">Painel de Resultados</h2>
+      <p class="dash-sub">Visão individual e coletiva dos instrumentos aplicados.</p>
+    </div>
+    <div id="dash-content"></div>
+  </section>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ============================================================
+// DATA: QUESTIONNAIRES
+// ============================================================
+
+const FFMQ_QUESTIONS = [
+  "Quando estou caminhando, eu deliberadamente percebo as sensações do meu corpo em movimento.",
+  "Sou bom para encontrar palavras que descrevam os meus sentimentos.",
+  "Eu me critico por ter emoções irracionais ou inapropriadas.",
+  "Eu percebo meus sentimentos e emoções sem ter que reagir a eles.",
+  "Quando faço algo, minha mente voa e me distraio facilmente.",
+  "Quando eu tomo banho, eu fico atento(a) às sensações da água no meu corpo.",
+  "Eu consigo facilmente descrever minhas crenças, opiniões e expectativas em palavras.",
+  "Eu não presto atenção no que faço porque fico sonhando acordado(a), preocupado(a) com outras coisas ou distraído(a).",
+  "Eu observo meus sentimentos sem me perder neles.",
+  "Eu digo a mim mesmo(a) que não deveria me sentir da forma como estou me sentindo.",
+  "Eu percebo como a comida e a bebida afetam meus pensamentos, minhas sensações corporais e emoções.",
+  "É difícil para mim encontrar palavras para descrever o que estou pensando.",
+  "Eu me distraio facilmente.",
+  "Eu acredito que alguns dos meus pensamentos são maus ou anormais e que eu não deveria pensar dessa forma.",
+  "Eu presto atenção em sensações, tais como o vento no meu cabelo ou o sol no meu rosto.",
+  "Eu tenho problemas para encontrar as palavras certas para expressar como me sinto sobre as coisas.",
+  "Eu faço julgamentos sobre se os meus pensamentos são bons ou maus.",
+  "Eu acho difícil permanecer focado no que está acontecendo no presente.",
+  "Geralmente, quando tenho imagens ou pensamentos ruins, eu 'dou um passo atrás' e tomo consciência do pensamento ou imagem sem ser levado por eles.",
+  "Eu presto atenção aos sons, tais como o tic-tac do relógio, o canto dos pássaros ou dos carros passando.",
+  "Em situações difíceis eu consigo fazer uma pausa, sem reagir imediatamente.",
+  "Quando tenho uma sensação no meu corpo, é difícil para mim descrevê-la porque não consigo encontrar as palavras certas.",
+  "Parece que eu estou 'funcionando em piloto automático' sem muita consciência do que estou fazendo.",
+  "Geralmente, quando tenho imagens ou pensamentos ruins, eu me sinto calmo(a) logo depois.",
+  "Eu digo a mim mesmo(a) que não deveria pensar da forma como estou pensando.",
+  "Eu percebo o cheiro e o aroma das coisas.",
+  "Mesmo quando me sinto terrivelmente aborrecido, consigo encontrar uma maneira de me expressar em palavras.",
+  "Eu realizo atividades apressadamente sem estar realmente atento(a) a elas.",
+  "Geralmente, quando tenho imagens ou pensamentos aflitivos, eu sou capaz de notá-los, sem reagir a eles.",
+  "Eu acho que algumas das minhas emoções são más e inapropriadas e que eu não deveria senti-las.",
+  "Eu percebo elementos visuais na arte ou na natureza, tais como: cores, formatos, texturas ou padrões de luz e sombras.",
+  "Minha tendência natural é colocar as minhas experiências em palavras.",
+  "Geralmente, quando tenho imagens ou pensamentos ruins, eu apenas os percebo e os deixo ir.",
+  "Eu realizo tarefas automaticamente, sem prestar atenção no que estou fazendo.",
+  "Normalmente, quando tenho pensamentos ruins ou imagens estressantes, eu me julgo como bom(boa) ou mau(má), dependendo do tipo de imagens ou pensamentos.",
+  "Eu presto atenção em como minhas emoções afetam meus pensamentos e comportamentos.",
+  "Normalmente eu consigo descrever detalhadamente como me sinto no momento presente.",
+  "Eu me pego fazendo coisas sem prestar atenção a elas.",
+  "Eu me reprovo quando tenho ideias irracionais."
+];
+
+// Facetas: 1=observe, 2=describe, 3=nonjudge(R), 4=nonreact, 5=act_aware(R)
+// R = reversed
+const FFMQ_MAP = {
+  observe: [1,6,11,15,20,26,31,36],
+  describe: [2,7,27,32,37],
+  nonjudge: [3,10,14,17,25,30,35,39], // reversed
+  nonreact: [4,9,19,21,24,29,33],
+  act_aware: [5,8,13,18,23,28,34,38]  // reversed
+};
+const FFMQ_REVERSED = [3,5,8,10,12,13,14,16,17,18,22,23,25,28,30,34,35,38,39];
+
+const FFMQ_LABELS = {
+  observe: 'Observar',
+  describe: 'Descrever',
+  nonjudge: 'Não Julgar',
+  nonreact: 'Não Reagir',
+  act_aware: 'Agir com Atenção'
+};
+
+const FFMQ_SCALE = [
+  { val: 1, label: 'Nunca ou\nraramente' },
+  { val: 2, label: 'Às vezes' },
+  { val: 3, label: 'Não tenho\ncerteza' },
+  { val: 4, label: 'Normalmente' },
+  { val: 5, label: 'Quase sempre\nou sempre' }
+];
+
+const DASS_QUESTIONS = [
+  "Achei difícil me acalmar.",
+  "Senti minha boca seca.",
+  "Não consegui vivenciar nenhum sentimento positivo.",
+  "Tive dificuldade de respirar em alguns momentos (por ex.: respiração ofegante ou falta de ar sem ter feito nenhum esforço físico).",
+  "Achei difícil ter iniciativa para fazer as coisas.",
+  "Tive a tendência de reagir de forma exagerada às situações.",
+  "Senti tremores (por ex.: nas mãos).",
+  "Senti que estava sempre nervoso(a).",
+  "Preocupei-me com situações em que eu pudesse entrar em pânico e parecesse ridículo(a).",
+  "Senti que não tinha nada a desejar.",
+  "Senti-me agitado.",
+  "Achei difícil relaxar.",
+  "Senti-me depressivo(a) e sem ânimo.",
+  "Fui intolerante com as coisas que me impediam de continuar o que eu estava fazendo.",
+  "Senti que ia entrar em pânico.",
+  "Não consegui me entusiasmar com nada.",
+  "Senti que não tinha valor como pessoa.",
+  "Senti que estava um pouco emotivo(a)/sensível demais.",
+  "Senti que meu coração estava alterado mesmo não tendo feito nenhum esforço físico (por ex.: aumento da frequência cardíaca, disritmia cardíaca).",
+  "Senti medo sem motivo.",
+  "Senti que a vida não tinha sentido."
+];
+
+// subscale assignment (1-indexed)
+const DASS_MAP = {
+  depressao: [3,5,10,13,16,17,21],
+  ansiedade: [2,4,7,9,15,19,20],
+  estresse:  [1,6,8,11,12,14,18]
+};
+
+const DASS_SCALE = [
+  { val: 0, label: 'Não se aplicou\nde maneira alguma' },
+  { val: 1, label: 'Aplicou-se\npor pouco tempo' },
+  { val: 2, label: 'Aplicou-se por\nboa parte do tempo' },
+  { val: 3, label: 'Aplicou-se\nna maioria do tempo' }
+];
+
+// ============================================================
+// SCORING FUNCTIONS
+// ============================================================
+function scoreFFMQ(answers) {
+  const scores = {};
+  for (const [facet, items] of Object.entries(FFMQ_MAP)) {
+    scores[facet] = items.reduce((sum, i) => {
+      let v = answers[i] || 0;
+      if (FFMQ_REVERSED.includes(i)) v = 6 - v;
+      return sum + v;
+    }, 0);
+  }
+  scores.total = Object.values(scores).reduce((a,b) => a+b, 0);
+  return scores;
+}
+
+function scoreDASSItem(facetAnswers) { return facetAnswers.reduce((a,b) => a+b, 0); }
+
+function scoreDASSAll(answers) {
+  const scores = {};
+  for (const [sub, items] of Object.entries(DASS_MAP)) {
+    scores[sub] = items.reduce((sum,i) => sum + (answers[i] || 0), 0);
+  }
+  return scores;
+}
+
+function ffmqBand(facet, score) {
+  const bands = {
+    observe:   [[27,'abaixo'],[32,'média'],[Infinity,'acima']],
+    describe:  [[30,'abaixo'],[32,'média'],[Infinity,'acima']],
+    nonjudge:  [[29,'abaixo'],[32,'média'],[Infinity,'acima']],
+    nonreact:  [[22,'abaixo'],[25,'média'],[Infinity,'acima']],
+    act_aware: [[26,'abaixo'],[28,'média'],[Infinity,'acima']]
+  };
+  for (const [limit, band] of bands[facet]) {
+    if (score <= limit) return band;
+  }
+  return 'acima';
+}
+
+function dassBand(sub, score) {
+  const limits = {
+    depressao: [[4,'Normal'],[6,'Leve'],[10,'Moderado'],[13,'Severo'],[Infinity,'Extremamente severo']],
+    ansiedade: [[3,'Normal'],[5,'Leve'],[7,'Moderado'],[9,'Severo'],[Infinity,'Extremamente severo']],
+    estresse:  [[7,'Normal'],[9,'Leve'],[12,'Moderado'],[16,'Severo'],[Infinity,'Extremamente severo']]
+  };
+  for (const [limit, band] of limits[sub]) {
+    if (score <= limit) return band;
+  }
+  return 'Extremamente severo';
+}
+
+function bandClass(band) {
+  if (['abaixo','Moderado','Severo','Extremamente severo'].includes(band)) return 'band-low';
+  if (['média','Leve'].includes(band)) return 'band-mid';
+  return 'band-high';
+}
+
+function ffmqMax(facet) {
+  return FFMQ_MAP[facet].length * 5;
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let currentInstrument = null;
+let currentPersonal = {};
+let currentAnswers = {};
+let currentQuestion = 0;
+
+function getResponses() {
+  try { return JSON.parse(localStorage.getItem('iasmim_responses') || '[]'); }
+  catch { return []; }
+}
+function saveResponses(arr) {
+  localStorage.setItem('iasmim_responses', JSON.stringify(arr));
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  const map = ['home','form','dashboard'];
+  const idx = map.indexOf(v);
+  if (idx >= 0) tabs[idx].classList.add('active');
+  if (v === 'dashboard') renderDashboard();
+  window.scrollTo(0,0);
+}
+
+function startForm(instrument) {
+  currentInstrument = instrument;
+  currentAnswers = {};
+  currentQuestion = 0;
+  showView('form');
+  document.getElementById('form-personal').style.display = 'block';
+  document.getElementById('form-questions').style.display = 'none';
+  document.getElementById('form-complete').style.display = 'none';
+  document.getElementById('personal-instrument-label').textContent =
+    instrument === 'ffmq' ? 'FFMQ — Five Facet Mindfulness Questionnaire' : 'DASS-21 — Depression Anxiety Stress Scale';
+  // reset radio
+  document.querySelectorAll('.radio-opt').forEach(o => o.classList.remove('selected'));
+  document.getElementById('p-meditacao-extra').style.display = 'none';
+}
+
+function selectRadio(el, name, val) {
+  document.querySelectorAll(`[onclick*="${name}"]`).forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  if (name === 'p-meditacao') {
+    document.getElementById('p-meditacao-extra').style.display = val === 'Sim' ? 'block' : 'none';
+  }
+}
+
+function startQuestions() {
+  const nome = document.getElementById('p-nome').value.trim();
+  const email = document.getElementById('p-email').value.trim();
+  const idade = document.getElementById('p-idade').value.trim();
+  if (!nome || !email || !idade) {
+    alert('Por favor, preencha nome, e-mail e idade para continuar.');
+    return;
+  }
+  currentPersonal = {
+    nome, email, idade,
+    tel: document.getElementById('p-tel').value.trim(),
+    profissao: document.getElementById('p-prof').value.trim(),
+    escolaridade: document.getElementById('p-escolaridade').value,
+    estadoCivil: document.getElementById('p-estadocivil').value,
+    meditacao: document.querySelector('[name="p-meditacao"]:checked')?.value || '',
+    qualMeditacao: document.getElementById('p-qual-med').value.trim(),
+    tempoMeditacao: document.getElementById('p-tempo-med').value.trim(),
+    timestamp: new Date().toISOString()
+  };
+  document.getElementById('form-personal').style.display = 'none';
+  document.getElementById('form-questions').style.display = 'block';
+  currentQuestion = 0;
+  renderQuestion();
+}
+
+// ============================================================
+// QUESTION RENDERING
+// ============================================================
+function renderQuestion() {
+  const questions = currentInstrument === 'ffmq' ? FFMQ_QUESTIONS : DASS_QUESTIONS;
+  const total = questions.length;
+  const i = currentQuestion;
+
+  // labels
+  document.getElementById('q-instrument-label').textContent =
+    currentInstrument === 'ffmq' ? 'FFMQ — Questionário de Mindfulness' : 'DASS-21 — Bem-estar emocional';
+  document.getElementById('q-title').textContent =
+    currentInstrument === 'ffmq' ? 'Como você se percebe?' : 'Como você se sentiu na última semana?';
+  document.getElementById('q-instruction').textContent =
+    currentInstrument === 'ffmq'
+      ? 'Avalie cada afirmação de acordo com o que considera geralmente verdadeiro para você. Não há resposta certa ou errada — apenas sua experiência real.'
+      : 'Leia cada afirmação e indique o quanto ela se aplicou a você durante a última semana. Não há resposta certa ou errada.';
+
+  // progress
+  const pct = Math.round((i / total) * 100);
+  document.getElementById('q-progress-text').textContent = `Pergunta ${i+1} de ${total}`;
+  document.getElementById('q-progress-pct').textContent = `${pct}%`;
+  document.getElementById('q-progress-fill').style.width = pct + '%';
+
+  // back button
+  document.getElementById('q-back-btn').style.visibility = i === 0 ? 'hidden' : 'visible';
+
+  // next button
+  const nextBtn = document.getElementById('q-next-btn');
+  nextBtn.textContent = i === total - 1 ? 'Finalizar →' : 'Próxima →';
+
+  // render question
+  const area = document.getElementById('question-area');
+  const answered = currentAnswers[i+1] !== undefined;
+  const scale = currentInstrument === 'ffmq' ? FFMQ_SCALE : DASS_SCALE;
+
+  let scaleHtml = '';
+  if (currentInstrument === 'ffmq') {
+    scaleHtml = `<div class="scale-ffmq">` +
+      scale.map(s => `
+        <label class="scale-option" onclick="selectAnswer(${i+1}, ${s.val}, this)">
+          <button class="scale-btn ${currentAnswers[i+1]===s.val?'selected':''}" type="button">${s.val}</button>
+          <span class="scale-label">${s.label.replace('\n','<br>')}</span>
+        </label>`).join('') + `</div>`;
+  } else {
+    scaleHtml = `<div class="scale-dass">` +
+      scale.map(s => `
+        <label class="dass-option" onclick="selectAnswer(${i+1}, ${s.val}, this)">
+          <button class="dass-btn ${currentAnswers[i+1]===s.val?'selected':''}" type="button">${s.val}</button>
+          <span class="dass-label">${s.label.replace('\n','<br>')}</span>
+        </label>`).join('') + `</div>`;
+  }
+
+  area.innerHTML = `
+    <div class="question-card ${answered?'answered':''}">
+      <div class="question-num">Pergunta ${i+1}</div>
+      <div class="question-text">${questions[i]}</div>
+      ${scaleHtml}
+    </div>`;
+}
+
+function selectAnswer(qNum, val, el) {
+  currentAnswers[qNum] = val;
+  // update buttons in this question
+  const parent = el.closest('.scale-ffmq, .scale-dass');
+  parent.querySelectorAll('.scale-btn, .dass-btn').forEach(b => b.classList.remove('selected'));
+  el.querySelector('button').classList.add('selected');
+  el.closest('.question-card').classList.add('answered');
+
+  // auto-advance after short delay
+  const questions = currentInstrument === 'ffmq' ? FFMQ_QUESTIONS : DASS_QUESTIONS;
+  if (currentQuestion < questions.length - 1) {
+    setTimeout(() => { questionNav(1); }, 350);
+  }
+}
+
+function questionNav(dir) {
+  const questions = currentInstrument === 'ffmq' ? FFMQ_QUESTIONS : DASS_QUESTIONS;
+  if (dir === 1 && currentAnswers[currentQuestion+1] === undefined) {
+    const area = document.getElementById('question-area');
+    area.querySelector('.question-card').style.borderColor = '#c17a7a';
+    area.querySelector('.question-card').style.boxShadow = '0 0 0 3px rgba(193,122,122,0.15)';
+    setTimeout(() => {
+      area.querySelector('.question-card').style.borderColor = '';
+      area.querySelector('.question-card').style.boxShadow = '';
+    }, 800);
+    return;
+  }
+  if (dir === 1 && currentQuestion === questions.length - 1) {
+    submitForm();
+    return;
+  }
+  currentQuestion += dir;
+  if (currentQuestion < 0) currentQuestion = 0;
+  renderQuestion();
+  window.scrollTo(0,0);
+}
+
+function submitForm() {
+  const responses = getResponses();
+  // find if this person+instrument already exists
+  const existing = responses.find(r =>
+    r.email === currentPersonal.email && r.instrument === currentInstrument);
+
+  const entry = {
+    id: Date.now(),
+    instrument: currentInstrument,
+    personal: currentPersonal,
+    email: currentPersonal.email,
+    nome: currentPersonal.nome,
+    answers: {...currentAnswers},
+    scores: currentInstrument === 'ffmq'
+      ? scoreFFMQ(currentAnswers)
+      : scoreDASSAll(currentAnswers),
+    timestamp: new Date().toISOString()
+  };
+
+  if (existing) {
+    const idx = responses.indexOf(existing);
+    responses[idx] = entry;
+  } else {
+    responses.push(entry);
+  }
+  saveResponses(responses);
+
+  document.getElementById('form-questions').style.display = 'none';
+  document.getElementById('form-complete').style.display = 'block';
+  document.getElementById('complete-message').textContent =
+    currentInstrument === 'ffmq'
+      ? `Obrigada, ${currentPersonal.nome.split(' ')[0]}. Suas respostas ao FFMQ foram registradas com sucesso. Quando estiver pronta, você pode retornar para responder o DASS-21.`
+      : `Obrigada, ${currentPersonal.nome.split(' ')[0]}. Suas respostas ao DASS-21 foram registradas. Os dois questionários estão completos.`;
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+let radarChart = null;
+
+function renderDashboard() {
+  const responses = getResponses();
+  const container = document.getElementById('dash-content');
+
+  if (responses.length === 0) {
+    container.innerHTML = `
+      <div class="dash-empty">
+        <div class="dash-empty-icon">◌</div>
+        <div class="dash-empty-text">Nenhuma resposta registrada ainda.<br>Compartilhe o link e aguarde os preenchimentos.</div>
+      </div>`;
+    return;
+  }
+
+  // Group by person (email)
+  const byEmail = {};
+  responses.forEach(r => {
+    if (!byEmail[r.email]) byEmail[r.email] = { nome: r.nome, ffmq: null, dass: null };
+    byEmail[r.email][r.instrument] = r;
+  });
+
+  const people = Object.values(byEmail);
+
+  let html = `<div class="participants-grid">`;
+
+  people.forEach((p, idx) => {
+    html += renderParticipantCard(p, idx);
+  });
+
+  html += `</div>`;
+
+  // Collective if ≥2 people with FFMQ
+  const withFFMQ = people.filter(p => p.ffmq);
+  if (withFFMQ.length >= 2) {
+    html += renderCollective(withFFMQ);
+  }
+
+  container.innerHTML = html;
+
+  // Draw radar
+  if (withFFMQ.length >= 2) {
+    drawRadar(withFFMQ);
+  }
+
+  // Attach delete handlers
+  document.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const email = this.dataset.delete;
+      const inst = this.dataset.inst;
+      if (confirm(`Remover as respostas de ${inst.toUpperCase()} desta pessoa?`)) {
+        const arr = getResponses().filter(r => !(r.email === email && r.instrument === inst));
+        saveResponses(arr);
+        renderDashboard();
+      }
+    });
+  });
+}
+
+function renderParticipantCard(p, idx) {
+  const nome = p.nome;
+  const ffmq = p.ffmq;
+  const dass = p.dass;
+  const meta = (ffmq || dass)?.personal;
+  const metaStr = [meta?.profissao, meta?.idade ? meta.idade + ' anos' : '', meta?.escolaridade].filter(Boolean).join(' · ');
+  const dataStr = ffmq?.timestamp ? new Date(ffmq.timestamp).toLocaleDateString('pt-BR') : '';
+
+  let badgesHtml = '';
+  if (ffmq) badgesHtml += `<span class="badge badge-ffmq">FFMQ ✓</span>`;
+  else badgesHtml += `<span class="pending-note">FFMQ pendente</span>`;
+  if (dass) badgesHtml += `<span class="badge badge-dass">DASS-21 ✓</span>`;
+  else badgesHtml += `<span class="pending-note" style="margin-left:0.25rem">DASS pendente</span>`;
+
+  let bodyHtml = '';
+
+  if (ffmq) {
+    const s = ffmq.scores;
+    const facets = ['observe','describe','nonjudge','nonreact','act_aware'];
+    bodyHtml += `
+      <div class="scores-section">
+        <div class="scores-title">FFMQ — Facetas de Mindfulness</div>
+        <div class="scores-grid">
+          ${facets.map(f => {
+            const band = ffmqBand(f, s[f]);
+            const bLabel = band === 'abaixo' ? 'Abaixo da média' : band === 'média' ? 'Na média' : 'Acima da média';
+            const bClass = band === 'abaixo' ? 'band-low' : band === 'média' ? 'band-mid' : 'band-high';
+            return `<div class="score-item">
+              <div class="score-label">${FFMQ_LABELS[f]}</div>
+              <div class="score-value">${s[f]}</div>
+              <span class="score-band ${bClass}">${bLabel}</span>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="bar-section" style="margin-top:1.25rem">
+          ${facets.map(f => {
+            const max = ffmqMax(f);
+            const pct = Math.round((s[f] / max) * 100);
+            return `<div class="bar-row">
+              <div class="bar-label">${FFMQ_LABELS[f]}</div>
+              <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+              <div class="bar-val">${s[f]}/${max}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <button class="btn-delete" data-delete="${p.ffmq.email}" data-inst="ffmq">Remover FFMQ</button>
+      </div>`;
+  }
+
+  if (ffmq && dass) bodyHtml += `<div class="section-divider"></div>`;
+
+  if (dass) {
+    const s = dass.scores;
+    const subs = ['depressao','ansiedade','estresse'];
+    const subLabels = { depressao: 'Depressão', ansiedade: 'Ansiedade', estresse: 'Estresse' };
+    const maxSub = 21; // 7 items * 3
+
+    bodyHtml += `
+      <div class="scores-section">
+        <div class="scores-title">DASS-21 — Indicadores de Bem-estar</div>
+        <div class="scores-grid">
+          ${subs.map(sub => {
+            const band = dassBand(sub, s[sub]);
+            const bClass = ['Normal'].includes(band) ? 'band-normal' : band === 'Leve' ? 'band-mild' : 'band-moderate';
+            return `<div class="score-item">
+              <div class="score-label">${subLabels[sub]}</div>
+              <div class="score-value">${s[sub]}</div>
+              <span class="score-band ${bClass}">${band}</span>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="bar-section" style="margin-top:1.25rem">
+          ${subs.map(sub => {
+            const pct = Math.round((s[sub] / maxSub) * 100);
+            return `<div class="bar-row">
+              <div class="bar-label">${subLabels[sub]}</div>
+              <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+              <div class="bar-val">${s[sub]}/21</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <button class="btn-delete" data-delete="${dass.email}" data-inst="dass">Remover DASS</button>
+      </div>`;
+  }
+
+  // Interpretation
+  if (ffmq || dass) {
+    bodyHtml += `<div class="interpretation-box">
+      <div class="interp-title">Leitura clínica</div>
+      <div class="interp-text">${generateInterpretation(p)}</div>
+    </div>`;
+  }
+
+  return `
+    <div class="participant-card">
+      <div class="participant-header">
+        <div>
+          <div class="participant-name">${nome}</div>
+          <div class="participant-meta">${metaStr}${dataStr ? ' · ' + dataStr : ''}</div>
+        </div>
+        <div class="participant-badges">${badgesHtml}</div>
+      </div>
+      <div class="participant-body">${bodyHtml}</div>
+    </div>`;
+}
+
+function generateInterpretation(p) {
+  const parts = [];
+  if (p.ffmq) {
+    const s = p.ffmq.scores;
+    const nome = p.nome.split(' ')[0];
+    const facets = ['observe','describe','nonjudge','nonreact','act_aware'];
+    const low = facets.filter(f => ffmqBand(f,s[f]) === 'abaixo').map(f => FFMQ_LABELS[f]);
+    const high = facets.filter(f => ffmqBand(f,s[f]) === 'acima').map(f => FFMQ_LABELS[f]);
+
+    if (low.length > 0) {
+      parts.push(`${nome} apresenta pontuação abaixo da média em ${low.join(', ')}, o que pode indicar espaço de desenvolvimento nessas facetas durante as aulas.`);
+    }
+    if (high.length > 0) {
+      parts.push(`Pontuação acima da média em ${high.join(', ')} sugere recursos já disponíveis que podem ser mobilizados como base da prática.`);
+    }
+    if (low.length === 0 && high.length === 0) {
+      parts.push(`${nome} apresenta perfil equilibrado nas facetas do FFMQ, com pontuações dentro da média em todas as dimensões.`);
+    }
+  }
+  if (p.dass) {
+    const s = p.dass.scores;
+    const subs = ['depressao','ansiedade','estresse'];
+    const labels = { depressao:'depressão', ansiedade:'ansiedade', estresse:'estresse' };
+    const elevated = subs.filter(sub => !['Normal'].includes(dassBand(sub, s[sub])));
+    if (elevated.length > 0) {
+      parts.push(`No DASS-21, os indicadores de ${elevated.map(e => labels[e]).join(' e ')} merecem atenção — considere a adequação das práticas às necessidades emocionais presentes.`);
+    } else {
+      parts.push(`O DASS-21 indica indicadores dentro da faixa normal para as três subescalas, favorável à participação no programa.`);
+    }
+  }
+  if (parts.length === 0) return 'Aguardando preenchimento dos questionários para gerar interpretação.';
+  return parts.join(' ');
+}
+
+function renderCollective(people) {
+  const insights = generateCollectiveInsights(people);
+  return `
+    <div class="collective-section">
+      <h3 class="collective-title">Visão Coletiva</h3>
+      <p class="collective-sub">Padrões compartilhados entre os participantes — base para o desenho das aulas.</p>
+      <div class="radar-wrap">
+        <canvas id="radarChart" width="400" height="400"></canvas>
+      </div>
+      <div class="collective-insights">
+        <div class="insights-title">Padrões para considerar nas aulas</div>
+        ${insights.map(ins => `
+          <div class="insight-item">
+            <div class="insight-dot"></div>
+            <div class="insight-text">${ins}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function drawRadar(people) {
+  const ctx = document.getElementById('radarChart');
+  if (!ctx) return;
+  if (radarChart) { radarChart.destroy(); radarChart = null; }
+
+  const facets = ['observe','describe','nonjudge','nonreact','act_aware'];
+  const labels = facets.map(f => FFMQ_LABELS[f]);
+  const colors = ['rgba(138,158,140,0.7)', 'rgba(196,160,90,0.7)', 'rgba(176,130,130,0.7)'];
+  const bgColors = ['rgba(138,158,140,0.15)', 'rgba(196,160,90,0.15)', 'rgba(176,130,130,0.15)'];
+
+  const datasets = people.slice(0,3).map((p, i) => ({
+    label: p.nome.split(' ')[0],
+    data: facets.map(f => {
+      const max = ffmqMax(f);
+      return Math.round((p.ffmq.scores[f] / max) * 100);
+    }),
+    borderColor: colors[i],
+    backgroundColor: bgColors[i],
+    borderWidth: 2,
+    pointBackgroundColor: colors[i],
+    pointRadius: 4
+  }));
+
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { stepSize: 25, font: { size: 10, family: 'DM Sans' }, color: '#8a8a7e' },
+          pointLabels: { font: { size: 11, family: 'DM Sans' }, color: '#5a5a52' },
+          grid: { color: 'rgba(196,212,198,0.4)' },
+          angleLines: { color: 'rgba(196,212,198,0.6)' }
+        }
+      },
+      plugins: {
+        legend: { labels: { font: { size: 11, family: 'DM Sans' }, color: '#5a5a52' } }
+      }
+    }
+  });
+}
+
+function generateCollectiveInsights(people) {
+  const facets = ['observe','describe','nonjudge','nonreact','act_aware'];
+  const insights = [];
+
+  // find facets where most are below average
+  const lowFacets = facets.filter(f => {
+    const below = people.filter(p => ffmqBand(f, p.ffmq.scores[f]) === 'abaixo');
+    return below.length >= Math.ceil(people.length / 2);
+  });
+  if (lowFacets.length > 0) {
+    insights.push(`A maioria das participantes apresenta pontuação abaixo da média em ${lowFacets.map(f => FFMQ_LABELS[f]).join(', ')} — essas facetas podem ser priorizadas nas práticas formais das aulas.`);
+  }
+
+  // high facets
+  const highFacets = facets.filter(f => {
+    const above = people.filter(p => ffmqBand(f, p.ffmq.scores[f]) === 'acima');
+    return above.length >= Math.ceil(people.length / 2);
+  });
+  if (highFacets.length > 0) {
+    insights.push(`O grupo demonstra recursos compartilhados em ${highFacets.map(f => FFMQ_LABELS[f]).join(', ')}, que podem ser evocados como ancoragem nas práticas coletivas.`);
+  }
+
+  // DASS
+  const withDASS = people.filter(p => {
+    const responses = getResponses();
+    const r = responses.find(r => r.email === p.ffmq.email && r.instrument === 'dass');
+    return r;
+  });
+  if (withDASS.length > 0) {
+    const allDASS = withDASS.map(p => {
+      const r = getResponses().find(r => r.email === p.ffmq.email && r.instrument === 'dass');
+      return r?.scores;
+    }).filter(Boolean);
+    const subs = ['depressao','ansiedade','estresse'];
+    const labels = { depressao:'depressão', ansiedade:'ansiedade', estresse:'estresse' };
+    const elevated = subs.filter(sub => {
+      const count = allDASS.filter(s => !['Normal'].includes(dassBand(sub, s[sub]))).length;
+      return count >= Math.ceil(allDASS.length / 2);
+    });
+    if (elevated.length > 0) {
+      insights.push(`Indicadores elevados de ${elevated.map(e => labels[e]).join(' e ')} aparecem em mais da metade do grupo — recomenda-se atenção ao ritmo e à regulação emocional nas sessões.`);
+    }
+  }
+
+  // Meditação prévia
+  const withMed = people.filter(p => p.ffmq?.personal?.meditacao === 'Sim');
+  if (withMed.length === 0) {
+    insights.push(`Nenhuma participante do grupo tem prática de meditação anterior — as aulas podem partir de fundamentos básicos sem assumir familiaridade prévia com técnicas contemplativas.`);
+  } else if (withMed.length === people.length) {
+    insights.push(`Todas as participantes já possuem alguma experiência com meditação, o que permite uma introdução mais aprofundada aos fundamentos teóricos do mindfulness.`);
+  } else {
+    insights.push(`O grupo misto — algumas com prática anterior, outras sem — sugere uma abordagem que acolha diferentes pontos de entrada sem criar hierarquias de experiência.`);
+  }
+
+  if (insights.length === 0) {
+    insights.push('Aguardando mais dados para gerar padrões coletivos.');
+  }
+
+  return insights;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  showView('home');
+});
+</script>
+</body>
+</html>
