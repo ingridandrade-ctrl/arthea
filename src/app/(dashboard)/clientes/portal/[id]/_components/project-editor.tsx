@@ -686,6 +686,9 @@ function DeliverableForm({
             placeholder="<p>Texto, imagens, links...</p>"
             className={input}
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            Cole apenas o conteúdo do documento (parágrafos, imagens, listas). Não cole URLs do portal nem HTML de páginas inteiras — vai criar um loop visual.
+          </p>
         </Field>
         <label className="flex items-center gap-2 text-sm">
           <input
