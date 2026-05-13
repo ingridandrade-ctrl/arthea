@@ -8,6 +8,7 @@ import {
   STATUS_BG,
   STATUS_FG,
   STATUS_LABEL,
+  statusLabelFor,
   type DeliverableStatus,
 } from "./deliverable-status";
 
@@ -17,6 +18,7 @@ type Item = {
   description: string | null;
   phase: number;
   status: string;
+  kind?: string | null;
 };
 
 const STATUS_FILTERS: { key: "ALL" | DeliverableStatus; label: string }[] = [
@@ -341,7 +343,7 @@ export function DeliverablesView({
                             }}
                           >
                             <Icon size={11} strokeWidth={2} />
-                            {STATUS_LABEL[status]}
+                            {statusLabelFor(status, d.kind)}
                           </span>
                           <ArrowRight size={14} strokeWidth={1.6} color="#A0A0A0" />
                         </div>

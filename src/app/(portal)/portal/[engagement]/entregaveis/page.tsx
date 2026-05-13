@@ -30,6 +30,7 @@ export default async function DeliverablesPage({
     description: d.description,
     phase: d.phase,
     status: d.status,
+    kind: d.kind,
   }));
 
   return (

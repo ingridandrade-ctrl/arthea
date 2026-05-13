@@ -13,6 +13,28 @@ export const STATUS_LABEL: Record<DeliverableStatus, string> = {
   REVISION: "Em revisão",
 };
 
+// Labels variam por kind do entregável. TASK não tem "aprovação" — quando
+// está APPROVED, na verdade está "Concluído". Idem PENDING vira "A fazer".
+const STATUS_LABEL_BY_KIND: Record<string, Partial<Record<DeliverableStatus, string>>> = {
+  TASK: {
+    PENDING: "A fazer",
+    IN_PROGRESS: "Em andamento",
+    APPROVED: "Concluído ✓",
+  },
+  FORM: {
+    PENDING: "Aguardando você",
+    IN_PROGRESS: "Aguardando você",
+    APPROVED: "Respondido ✓",
+  },
+};
+
+export function statusLabelFor(status: DeliverableStatus, kind?: string | null): string {
+  if (kind && STATUS_LABEL_BY_KIND[kind]?.[status]) {
+    return STATUS_LABEL_BY_KIND[kind]![status]!;
+  }
+  return STATUS_LABEL[status];
+}
+
 export const STATUS_BG: Record<DeliverableStatus, string> = {
   PENDING: "#EDE9E0",
   IN_PROGRESS: "#FEF3C7",
