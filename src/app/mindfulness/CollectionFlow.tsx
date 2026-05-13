@@ -200,9 +200,14 @@ function WelcomeView({ onStart }: { onStart: () => void }) {
         Avaliação de <em>Atenção Plena</em>
         <br />e Saúde Mental
       </h1>
+
       <p className="m-welcome-intro">
-        Bem-vinda. Você está sendo convidada a participar de um projeto de supervisão da formação em
-        Mindfulness da Iasmim Sasseron — pelo IPq-USP.
+        Bem-vindo(a). Você está sendo convidado(a) a participar de um projeto de supervisão da minha
+        formação em Mindfulness pelo IPq-USP.
+      </p>
+
+      <p className="m-welcome-lead">
+        A coleta acontece em <strong>dois questionários validados</strong>, respondidos em sequência:
       </p>
 
       <div className="m-welcome-cards">
@@ -218,16 +223,32 @@ function WelcomeView({ onStart }: { onStart: () => void }) {
         </div>
       </div>
 
-      <div className="m-welcome-note">
-        <strong>Reserve de 20 a 30 minutos.</strong> Se possível, responda os dois questionários no mesmo
-        momento, em um espaço tranquilo. Os dois são respondidos em sequência — o segundo começa
-        automaticamente quando você terminar o primeiro.
+      <div className="m-welcome-time">
+        <svg
+          className="m-welcome-time-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </svg>
+        <div className="m-welcome-time-text">
+          <strong>Reserve de 20 a 30 minutos.</strong> De preferência, responda aos questionários de
+          uma só vez, no mesmo momento. Se não for possível, tente finalizar até no dia seguinte no
+          máximo. Os dois questionários serão apresentados em sequência — o segundo começa
+          automaticamente quando você terminar o primeiro.
+        </div>
       </div>
 
-      <p className="m-welcome-intro" style={{ marginBottom: "2rem" }}>
-        Não há respostas certas ou erradas. Procure responder com sinceridade, escolhendo o que mais se
-        aproxima da sua experiência real. Suas respostas vão contribuir para o projeto e para o desenho
-        das aulas que a Iasmim irá construir a partir do grupo.
+      <p className="m-welcome-final">
+        Não há respostas certas ou erradas. Procure responder com sinceridade, escolhendo o que mais
+        se aproxima da sua experiência real. Suas respostas vão contribuir para que eu estruture a
+        aula da forma que melhor atenda ao grupo. <em>Desde já, agradeço sua participação.</em>
       </p>
 
       <button className="m-btn-cta" onClick={onStart} type="button">
