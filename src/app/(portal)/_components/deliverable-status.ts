@@ -35,6 +35,37 @@ export function statusLabelFor(status: DeliverableStatus, kind?: string | null):
   return STATUS_LABEL[status];
 }
 
+// Labels das categorias de entregável em português, pra mostrar no portal
+// do cliente. O enum DeliverableCategory mantém valores em inglês porque
+// é referência estável (não muda quando renomeia label).
+export const CATEGORY_LABEL: Record<string, string> = {
+  // STRATEGY
+  POSITIONING: "Posicionamento",
+  CONTENT: "Conteúdo",
+  TRACKING: "Rastreamento",
+  DELIVERY: "Entrega",
+  // PAID_TRAFFIC
+  CAMPAIGN_SETUP: "Setup de campanha",
+  CREATIVE: "Criativo",
+  REPORT: "Relatório",
+  OPTIMIZATION: "Otimização",
+  // LANDING_PAGE
+  BRIEFING: "Briefing",
+  WIREFRAME: "Wireframe",
+  DESIGN: "Design",
+  DEVELOPMENT: "Desenvolvimento",
+  LAUNCH: "Publicação",
+  // GMB
+  PROFILE_SETUP: "Configuração",
+  POST: "Post",
+  REVIEW_RESPONSE: "Resposta a review",
+};
+
+export function categoryLabelFor(category: string | null | undefined): string {
+  if (!category) return "";
+  return CATEGORY_LABEL[category] || category;
+}
+
 export const STATUS_BG: Record<DeliverableStatus, string> = {
   PENDING: "#EDE9E0",
   IN_PROGRESS: "#FEF3C7",

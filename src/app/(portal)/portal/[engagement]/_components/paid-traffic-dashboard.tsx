@@ -16,6 +16,9 @@ import {
   type MetaCampaignInsight,
 } from "@/lib/meta/api";
 import type { ClientEngagement, ClientDeliverable } from "@prisma/client";
+import { phaseNamesFor, categoryLabelFor } from "../../../_components/deliverable-status";
+import { PhaseTimeline } from "../../../_components/phase-timeline";
+import { CircularProgress } from "../../../_components/circular-progress";
 
 type Project = ClientEngagement & { deliverables: ClientDeliverable[] };
 
@@ -93,6 +96,35 @@ export async function PaidTrafficDashboard({
   const reports = project.deliverables.filter((d) => d.category === "REPORT");
   const waitingReview = project.deliverables.filter((d) => d.status === "WAITING_REVIEW");
 
+  // Progresso ponderado (mesma fórmula do StrategyDashboard)
+  const total = project.deliverables.length;
+  const approved = project.deliverables.filter((d) => d.status === "APPROVED").length;
+  const WEIGHT: Record<string, number> = {
+    PENDING: 0,
+    IN_PROGRESS: 0.4,
+    REVISION: 0.5,
+    WAITING_REVIEW: 0.85,
+    APPROVED: 1,
+  };
+  const weightedSum = project.deliverables.reduce(
+    (acc, d) => acc + (WEIGHT[d.status] ?? 0),
+    0,
+  );
+  const agencyProgress = total > 0 ? weightedSum / total : 0;
+  const approvedProgress = total > 0 ? approved / total : 0;
+
+  // Stats por fase (até totalPhases do engagement)
+  const perPhase = Array.from({ length: project.totalPhases }, (_, idx) => {
+    const phase = idx + 1;
+    const items = project.deliverables.filter((d) => d.phase === phase);
+    return {
+      total: items.length,
+      approved: items.filter((d) => d.status === "APPROVED").length,
+    };
+  });
+
+  const phaseNames = phaseNamesFor(project.type);
+
   const greeting = (() => {
     const h = new Date().getHours();
     if (h < 12) return "Bom dia";
@@ -166,22 +198,67 @@ export async function PaidTrafficDashboard({
         </p>
       </header>
 
-      {/* Aviso quando não tem nenhuma conta linkada */}
-      {adAccounts.length === 0 && (
-        <div
+      {/* Phase timeline */}
+      {total > 0 && (
+        <section
           style={{
             background: "white",
-            border: "0.5px dashed rgba(13,74,74,0.25)",
-            borderRadius: 18,
-            padding: "32px 28px",
-            textAlign: "center",
-            color: "#6B7280",
+            borderRadius: 24,
+            padding: "32px 36px",
+            boxShadow: "0 1px 2px rgba(13,74,74,0.04)",
+            border: "0.5px solid rgba(29,112,112,0.08)",
           }}
         >
-          <p style={{ fontSize: 14, margin: 0 }}>
-            Nenhuma conta de anúncios linkada a essa frente ainda. A Arthea está configurando.
-          </p>
-        </div>
+          <PhaseTimeline
+            current={project.currentPhase}
+            perPhase={perPhase}
+            phaseNames={phaseNames}
+          />
+        </section>
+      )}
+
+      {/* Progresso geral */}
+      {total > 0 && (
+        <section
+          style={{
+            background: "white",
+            borderRadius: 24,
+            padding: "36px 40px",
+            boxShadow: "0 1px 2px rgba(13,74,74,0.04), 0 16px 40px rgba(13,74,74,0.04)",
+            border: "0.5px solid rgba(29,112,112,0.08)",
+            display: "flex",
+            alignItems: "center",
+            gap: 32,
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <CircularProgress
+            pct={agencyProgress}
+            caption="Andamento do projeto"
+            size={160}
+            stroke={12}
+          />
+          <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
+            <Mini
+              label="Aprovados"
+              value={`${approved}/${total}`}
+              sub={`${Math.round(approvedProgress * 100)}%`}
+              tone="accent"
+            />
+            <Mini
+              label="Aguardando você"
+              value={String(waitingReview.length)}
+              sub={waitingReview.length > 0 ? "Ação necessária" : "Nada pendente"}
+              tone={waitingReview.length > 0 ? "warn" : "muted"}
+            />
+            <Mini
+              label="Fase atual"
+              value={String(project.currentPhase)}
+              sub={phaseNames[project.currentPhase] || ""}
+            />
+          </div>
+        </section>
       )}
 
       {/* Métricas */}
@@ -314,11 +391,7 @@ export async function PaidTrafficDashboard({
                       margin: 0,
                     }}
                   >
-                    {d.category === "CREATIVE"
-                      ? "Criativo"
-                      : d.category === "REPORT"
-                        ? "Relatório"
-                        : d.category}
+                    {categoryLabelFor(d.category)}
                   </p>
                   <p style={{ fontSize: 14.5, fontWeight: 500, color: "#2A2A2A", margin: "4px 0 0" }}>
                     {d.title}
@@ -629,5 +702,58 @@ function ContextCard({
         <span style={{ fontSize: 12, color: "#8B867B", marginLeft: 6 }}>{metricLabel}</span>
       </div>
     </Link>
+  );
+}
+
+function Mini({
+  label,
+  value,
+  sub,
+  tone = "muted",
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: "accent" | "warn" | "muted";
+}) {
+  const color =
+    tone === "accent" ? "var(--accent)" : tone === "warn" ? "var(--accent)" : "#2A2A2A";
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+      <span
+        style={{
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: "#A0A0A0",
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          fontFamily: "Fraunces, Georgia, serif",
+          fontSize: 22,
+          fontWeight: 400,
+          color,
+          letterSpacing: "-0.02em",
+          lineHeight: 1.1,
+        }}
+      >
+        {value}
+      </span>
+      {sub && (
+        <span
+          style={{
+            fontSize: 11,
+            color: tone === "muted" ? "#A0A0A0" : color,
+            fontWeight: 500,
+          }}
+        >
+          {sub}
+        </span>
+      )}
+    </div>
   );
 }
