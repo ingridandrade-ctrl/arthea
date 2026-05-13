@@ -7,11 +7,13 @@ import { ServiceFilter } from "./service-filter";
 export function Header() {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const hideServiceFilter = pathname?.startsWith("/financeiro");
+  // Filter de serviço (Todos / Tráfego pago / GMN / CRM / LP) só faz sentido no CRM —
+  // é o filtro do funil de vendas. Em outros mundos, o header fica enxuto.
+  const showServiceFilter = pathname?.startsWith("/crm");
 
   return (
     <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6">
-      {hideServiceFilter ? <div /> : <ServiceFilter />}
+      {showServiceFilter ? <ServiceFilter /> : <div />}
       <div className="flex items-center gap-3">
         <div className="text-right">
           <p className="text-sm font-medium">{session?.user?.name}</p>
