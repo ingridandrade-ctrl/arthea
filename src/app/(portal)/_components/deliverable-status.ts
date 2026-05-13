@@ -29,10 +29,38 @@ export const STATUS_FG: Record<DeliverableStatus, string> = {
   REVISION: "#9A3412",
 };
 
-export const PHASE_NAMES = [
-  "",
-  "Imersão e Posicionamento",
-  "Construção e Conteúdo",
-  "Rastreamento e Ads",
-  "Entrega Final",
-];
+// Nomes das fases por tipo de frente. Cada array é 1-indexed (índice 0 vazio
+// pra que phase=1 mapeie pra index 1, mantendo o template legível).
+export const PHASE_NAMES_BY_TYPE: Record<string, string[]> = {
+  STRATEGY: [
+    "",
+    "Imersão e Posicionamento",
+    "Construção e Conteúdo",
+    "Rastreamento e Ads",
+    "Entrega Final",
+  ],
+  PAID_TRAFFIC: [
+    "",
+    "Imersão & Estrutura",
+    "Execução & Estratégia",
+    "Crescimento & Refinamento",
+  ],
+  LANDING_PAGE: [
+    "",
+    "Briefing",
+    "Wireframe",
+    "Design",
+    "Desenvolvimento",
+    "Publicação",
+  ],
+  GMB: ["", "Setup da ficha", "Operação contínua"],
+};
+
+export function phaseNamesFor(type: string | null | undefined): string[] {
+  if (!type) return PHASE_NAMES_BY_TYPE.STRATEGY;
+  return PHASE_NAMES_BY_TYPE[type] || PHASE_NAMES_BY_TYPE.STRATEGY;
+}
+
+// Mantém o alias antigo apontando pra STRATEGY pra retro-compatibilidade.
+// Componentes novos devem usar phaseNamesFor(engagement.type).
+export const PHASE_NAMES = PHASE_NAMES_BY_TYPE.STRATEGY;

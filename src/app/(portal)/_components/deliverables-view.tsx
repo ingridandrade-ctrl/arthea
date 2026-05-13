@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, Sparkles, Clock, RotateCcw, FileText } from "lucide-react";
 import {
-  PHASE_NAMES,
+  phaseNamesFor,
   STATUS_BG,
   STATUS_FG,
   STATUS_LABEL,
@@ -39,10 +39,13 @@ const STATUS_ICON: Record<string, any> = {
 export function DeliverablesView({
   items,
   engagementSlug,
+  engagementType,
 }: {
   items: Item[];
   engagementSlug: string;
+  engagementType?: string | null;
 }) {
+  const phaseNames = phaseNamesFor(engagementType);
   const [activeStatus, setActiveStatus] = useState<"ALL" | DeliverableStatus>("ALL");
 
   const counts = useMemo(() => {
@@ -184,7 +187,7 @@ export function DeliverablesView({
                     letterSpacing: "-0.01em",
                   }}
                 >
-                  {PHASE_NAMES[phase]}
+                  {phaseNames[phase] || ""}
                 </h2>
                 <span
                   style={{

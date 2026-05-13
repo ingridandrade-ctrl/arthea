@@ -32,5 +32,11 @@ export default async function DeliverablesPage({
     status: d.status,
   }));
 
-  return <DeliverablesView items={items} engagementSlug={project.slug} />;
+  return (
+    <DeliverablesView
+      items={items}
+      engagementSlug={project.slug}
+      engagementType={project.type}
+    />
+  );
 }

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import {
-  PHASE_NAMES,
+  phaseNamesFor,
   STATUS_BG,
   STATUS_FG,
   STATUS_LABEL,
@@ -29,7 +29,7 @@ export default async function DeliverableDetail({
   const deliverable = await prisma.clientDeliverable.findUnique({
     where: { id: params.id },
     include: {
-      engagement: { select: { clientId: true, name: true, slug: true } },
+      engagement: { select: { clientId: true, name: true, slug: true, type: true } },
       questions: { orderBy: { order: "asc" } },
       responses: true,
       comments: { orderBy: { createdAt: "asc" } },
@@ -49,6 +49,7 @@ export default async function DeliverableDetail({
 
   const status = deliverable.status as DeliverableStatus;
   const responsesByQuestion = new Map(deliverable.responses.map((r) => [r.questionId, r.answer]));
+  const phaseNames = phaseNamesFor(deliverable.engagement.type);
 
   return (
     <div className="portal-fade-in" style={{ display: "flex", flexDirection: "column", gap: 28 }}>
@@ -86,7 +87,7 @@ export default async function DeliverableDetail({
               margin: 0,
             }}
           >
-            Fase {deliverable.phase} · {PHASE_NAMES[deliverable.phase]}
+            Fase {deliverable.phase} · {phaseNames[deliverable.phase] || ""}
           </p>
           <h1
             style={{
