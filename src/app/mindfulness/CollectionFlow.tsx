@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   FFMQ_QUESTIONS,
   DASS_QUESTIONS,
@@ -9,6 +9,43 @@ import {
 } from "@/lib/mindfulness/questions";
 
 type Step = "welcome" | "personal" | "ffmq" | "transition" | "dass" | "done";
+
+const STORAGE_KEY = "mindfulness_progress_v1";
+const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 dias
+
+type SavedProgress = {
+  step: Step;
+  personal: Personal;
+  participantId: string | null;
+  firstName: string;
+  ffmqAnswers: Record<number, number>;
+  dassAnswers: Record<number, number>;
+  savedAt: number;
+};
+
+function loadProgress(): SavedProgress | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as SavedProgress;
+    if (!data?.savedAt || Date.now() - data.savedAt > MAX_AGE_MS) {
+      window.localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    if (data.step === "welcome" || data.step === "done") return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function clearProgress() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {}
+}
 
 type Personal = {
   nome: string;
@@ -48,6 +85,45 @@ export default function CollectionFlow() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [firstName, setFirstName] = useState("");
+  const [resumed, setResumed] = useState(false);
+  const hydrated = useRef(false);
+
+  // Carrega progresso salvo (uma vez, no mount).
+  useEffect(() => {
+    const saved = loadProgress();
+    if (saved) {
+      setStep(saved.step);
+      setPersonal(saved.personal || EMPTY_PERSONAL);
+      setParticipantId(saved.participantId || null);
+      setFirstName(saved.firstName || "");
+      setFfmqAnswers(saved.ffmqAnswers || {});
+      setDassAnswers(saved.dassAnswers || {});
+      setResumed(true);
+    }
+    hydrated.current = true;
+  }, []);
+
+  // Persiste progresso a cada mudança relevante (depois do hydrate).
+  useEffect(() => {
+    if (!hydrated.current) return;
+    if (step === "done") {
+      clearProgress();
+      return;
+    }
+    if (step === "welcome") return;
+    try {
+      const data: SavedProgress = {
+        step,
+        personal,
+        participantId,
+        firstName,
+        ffmqAnswers,
+        dassAnswers,
+        savedAt: Date.now(),
+      };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {}
+  }, [step, personal, participantId, firstName, ffmqAnswers, dassAnswers]);
 
   const stepLabel =
     step === "welcome"
@@ -62,6 +138,13 @@ export default function CollectionFlow() {
       ? "Questionário 2 de 2"
       : "Finalizado";
 
+  // Esconde a dica de "continuando" após alguns segundos.
+  useEffect(() => {
+    if (!resumed) return;
+    const t = setTimeout(() => setResumed(false), 6000);
+    return () => clearTimeout(t);
+  }, [resumed]);
+
   return (
     <>
       <nav className="m-nav">
@@ -71,6 +154,11 @@ export default function CollectionFlow() {
         </div>
         <div className="m-nav-step">{stepLabel}</div>
       </nav>
+      {resumed && (
+        <div className="m-resume-hint" role="status" aria-live="polite">
+          Continuando de onde você parou
+        </div>
+      )}
       <main>
         {step === "welcome" && <WelcomeView onStart={() => setStep("personal")} />}
         {step === "personal" && (
@@ -203,8 +291,7 @@ function WelcomeView({ onStart }: { onStart: () => void }) {
     <section className="m-welcome">
       <div className="m-ornament" />
       <h1 className="m-title">
-        Avaliação de <em>Atenção Plena</em>
-        <br />e Saúde Mental
+        Questionários sobre Habilidades de <em>Mindfulness (Atenção Plena)</em> e Saúde Mental
       </h1>
 
       <p className="m-welcome-intro">
@@ -473,7 +560,13 @@ function QuestionFlow({
 }) {
   const questions = kind === "ffmq" ? FFMQ_QUESTIONS : DASS_QUESTIONS;
   const scale = kind === "ffmq" ? FFMQ_SCALE : DASS_SCALE;
-  const [cursor, setCursor] = useState(0);
+  const [cursor, setCursor] = useState(() => {
+    const list = kind === "ffmq" ? FFMQ_QUESTIONS : DASS_QUESTIONS;
+    for (let i = 0; i < list.length; i++) {
+      if (answers[i + 1] === undefined) return i;
+    }
+    return list.length - 1;
+  });
   const [shake, setShake] = useState(false);
 
   const total = questions.length;
@@ -487,8 +580,8 @@ function QuestionFlow({
     kind === "ffmq" ? "Como você se percebe?" : "Como você se sentiu na última semana?";
   const instruction =
     kind === "ffmq"
-      ? "Avalie cada afirmação de acordo com o que considera geralmente verdadeiro para você. Não há resposta certa ou errada — apenas sua experiência real. Assim que você clicar na resposta, a próxima pergunta aparecerá automaticamente; não é necessário clicar no botão próxima."
-      : "Leia cada afirmação e indique o quanto ela se aplicou a você durante a última semana. Não há resposta certa ou errada. Assim que você clicar na resposta, a próxima pergunta aparecerá automaticamente; não é necessário clicar no botão próxima.";
+      ? "Avalie cada afirmação de acordo com o que considera geralmente verdadeiro para você. Não há resposta certa ou errada — apenas sua experiência real. Assim que você clicar na resposta, a próxima pergunta aparecerá automaticamente, não é necessário clicar no botão “próxima”. Ao chegar na última pergunta, clique em “Finalizar →” para concluir."
+      : "Leia cada afirmação e indique o quanto ela se aplicou a você durante a última semana. Não há resposta certa ou errada. Assim que você clicar na resposta, a próxima pergunta aparecerá automaticamente, não é necessário clicar no botão “próxima”. Ao chegar na última pergunta, clique em “Finalizar →” para concluir.";
 
   function selectAnswer(val: number) {
     const newAnswers = { ...answers, [cursor + 1]: val };
@@ -605,6 +698,7 @@ function DoneView({ firstName }: { firstName: string }) {
         com segurança. Eu usarei essas informações para estruturar as aulas da forma que melhor atenda
         às necessidades do grupo. Você já pode fechar esta página.
       </p>
+      <p className="m-complete-farewell">Até breve!</p>
     </div>
   );
 }
@@ -628,8 +722,7 @@ function TransitionView({ onContinue }: { onContinue: () => void }) {
       <div className="m-transition-step">Primeiro de dois finalizado</div>
       <h2 className="m-transition-title">Muito bem.</h2>
       <p className="m-transition-text">
-        Você finalizou o primeiro questionário. Quando estiver pronta(o), clique em começar para
-        responder ao segundo.
+        Você finalizou o primeiro questionário. Clique em começar para responder ao segundo.
       </p>
       <button className="m-btn-cta" type="button" onClick={onContinue}>
         Começar →
