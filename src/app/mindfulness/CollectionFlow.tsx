@@ -332,7 +332,7 @@ function WelcomeView({ onStart }: { onStart: () => void }) {
         </svg>
         <div className="m-welcome-time-text">
           <strong>Reserve de 20 a 30 minutos.</strong> De preferência, responda aos questionários de
-          uma só vez, no mesmo momento. Se não for possível, tente finalizar até no dia seguinte no
+          uma só vez, no mesmo momento. Se não for possível, tente finalizar até no dia seguinte, no
           máximo. Os dois questionários serão apresentados em sequência — o segundo começa
           automaticamente quando você terminar o primeiro.
         </div>
@@ -580,7 +580,7 @@ function QuestionFlow({
     kind === "ffmq" ? "Como você se percebe?" : "Como você se sentiu na última semana?";
   const instruction =
     kind === "ffmq"
-      ? "Avalie cada afirmação de acordo com o que considera geralmente verdadeiro para você. Não há resposta certa ou errada — apenas sua experiência real. Assim que você clicar na resposta, a próxima pergunta aparecerá automaticamente, não é necessário clicar no botão “próxima”. Ao chegar na última pergunta, clique em “Finalizar →” para concluir."
+      ? "Avalie cada afirmação de acordo com o que considera ser geralmente verdadeiro para você. Não há resposta certa ou errada — apenas sua experiência real. Assim que você clicar na resposta, a próxima pergunta aparecerá automaticamente, não é necessário clicar no botão “próxima”. Ao chegar na última pergunta, clique em “Finalizar →” para concluir."
       : "Leia cada afirmação e indique o quanto ela se aplicou a você durante a última semana. Não há resposta certa ou errada. Assim que você clicar na resposta, a próxima pergunta aparecerá automaticamente, não é necessário clicar no botão “próxima”. Ao chegar na última pergunta, clique em “Finalizar →” para concluir.";
 
   function selectAnswer(val: number) {
