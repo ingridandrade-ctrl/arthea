@@ -975,6 +975,7 @@ model MindfulnessParticipant {
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @updatedAt
   responses       MindfulnessResponse[]
+  drafts          MindfulnessDraft[]
 
   @@index([createdAt])
 }
@@ -991,4 +992,16 @@ model MindfulnessResponse {
 
   @@unique([participantId, instrument])
   @@index([instrument])
+}
+
+model MindfulnessDraft {
+  id            String                 @id @default(cuid())
+  participantId String
+  participant   MindfulnessParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  instrument    MindfulnessInstrument
+  answers       Json
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@unique([participantId, instrument])
 }

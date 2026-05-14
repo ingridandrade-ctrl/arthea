@@ -145,6 +145,62 @@ export default function CollectionFlow() {
     return () => clearTimeout(t);
   }, [resumed]);
 
+  // Auto-save no servidor durante os questionários (debounce 1.5s).
+  // Garante que o progresso atravesse navegadores/dispositivos.
+  const draftSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!hydrated.current) return;
+    if (!participantId) return;
+
+    let instrument: "FFMQ" | "DASS21" | null = null;
+    let answers: Record<number, number> = {};
+    if (step === "ffmq") {
+      instrument = "FFMQ";
+      answers = ffmqAnswers;
+    } else if (step === "dass") {
+      instrument = "DASS21";
+      answers = dassAnswers;
+    } else {
+      return;
+    }
+    if (Object.keys(answers).length === 0) return;
+
+    if (draftSaveRef.current) clearTimeout(draftSaveRef.current);
+    draftSaveRef.current = setTimeout(() => {
+      fetch("/api/mindfulness/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ participantId, instrument, answers }),
+      }).catch(() => {
+        /* falha de rede é tolerada — localStorage continua valendo */
+      });
+    }, 1500);
+
+    return () => {
+      if (draftSaveRef.current) clearTimeout(draftSaveRef.current);
+    };
+  }, [step, ffmqAnswers, dassAnswers, participantId]);
+
+  // Retomada por e-mail (busca participante + drafts no servidor).
+  async function handleResume(email: string): Promise<void> {
+    const res = await fetch(`/api/mindfulness/resume?email=${encodeURIComponent(email)}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data?.error || "Não foi possível buscar seu progresso.");
+    }
+    if (data.step === "done") {
+      throw new Error("Você já finalizou os dois questionários. Obrigada pela participação!");
+    }
+    setParticipantId(data.participantId);
+    setPersonal(data.personal);
+    setFirstName((data.nome ?? "").split(" ")[0] ?? "");
+    setFfmqAnswers(data.ffmqAnswers ?? {});
+    setDassAnswers(data.dassAnswers ?? {});
+    setStep(data.step);
+    setResumed(true);
+    window.scrollTo(0, 0);
+  }
+
   return (
     <>
       <nav className="m-nav">
@@ -160,7 +216,9 @@ export default function CollectionFlow() {
         </div>
       )}
       <main>
-        {step === "welcome" && <WelcomeView onStart={() => setStep("personal")} />}
+        {step === "welcome" && (
+          <WelcomeView onStart={() => setStep("personal")} onResume={handleResume} />
+        )}
         {step === "personal" && (
           <PersonalView
             personal={personal}
@@ -286,7 +344,36 @@ export default function CollectionFlow() {
 // =========================================================================
 // WELCOME
 // =========================================================================
-function WelcomeView({ onStart }: { onStart: () => void }) {
+function WelcomeView({
+  onStart,
+  onResume,
+}: {
+  onStart: () => void;
+  onResume: (email: string) => Promise<void>;
+}) {
+  const [showResume, setShowResume] = useState(false);
+  const [resumeEmail, setResumeEmail] = useState("");
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [resumeLoading, setResumeLoading] = useState(false);
+
+  async function submitResume(e: React.FormEvent) {
+    e.preventDefault();
+    const email = resumeEmail.trim().toLowerCase();
+    if (!EMAIL_RE.test(email)) {
+      setResumeError("E-mail inválido.");
+      return;
+    }
+    setResumeError(null);
+    setResumeLoading(true);
+    try {
+      await onResume(email);
+    } catch (err) {
+      setResumeError(err instanceof Error ? err.message : "Erro inesperado.");
+    } finally {
+      setResumeLoading(false);
+    }
+  }
+
   return (
     <section className="m-welcome">
       <div className="m-ornament" />
@@ -306,7 +393,7 @@ function WelcomeView({ onStart }: { onStart: () => void }) {
       <div className="m-welcome-cards">
         <div className="m-welcome-card">
           <div className="m-card-num">01</div>
-          <div className="m-card-title">Questionário sobre atenção plena</div>
+          <div className="m-card-title">Questionário sobre Habilidades de Mindfulness (Atenção Plena)</div>
           <div className="m-card-desc">39 afirmações sobre como você se percebe no dia a dia.</div>
         </div>
         <div className="m-welcome-card">
@@ -347,6 +434,51 @@ function WelcomeView({ onStart }: { onStart: () => void }) {
       <button className="m-btn-cta" onClick={onStart} type="button">
         Começar →
       </button>
+
+      {!showResume ? (
+        <button
+          type="button"
+          className="m-resume-link"
+          onClick={() => setShowResume(true)}
+        >
+          Já comecei e quero continuar
+        </button>
+      ) : (
+        <form className="m-resume-form" onSubmit={submitResume}>
+          <label className="m-resume-label">
+            Informe o e-mail que você usou ao começar
+          </label>
+          <input
+            type="email"
+            value={resumeEmail}
+            onChange={(e) => {
+              setResumeEmail(e.target.value);
+              if (resumeError) setResumeError(null);
+            }}
+            placeholder="seu@email.com"
+            autoFocus
+            required
+          />
+          {resumeError && <div className="m-resume-error">{resumeError}</div>}
+          <div className="m-resume-actions">
+            <button
+              type="button"
+              className="m-btn-ghost"
+              onClick={() => {
+                setShowResume(false);
+                setResumeEmail("");
+                setResumeError(null);
+              }}
+              disabled={resumeLoading}
+            >
+              Cancelar
+            </button>
+            <button type="submit" className="m-btn-primary" disabled={resumeLoading}>
+              {resumeLoading ? "Buscando..." : "Retomar →"}
+            </button>
+          </div>
+        </form>
+      )}
     </section>
   );
 }
