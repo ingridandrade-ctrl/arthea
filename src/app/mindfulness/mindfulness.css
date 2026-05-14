@@ -824,10 +824,38 @@
   color: var(--m-warm-mid);
   line-height: 1.55;
 }
+.m-participant-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.7rem;
+}
 .m-badges {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.m-btn-card-delete {
+  background: none;
+  border: 1px solid var(--m-input-border);
+  color: var(--m-warm-soft);
+  font-size: 0.78rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--m-font-sans);
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.m-btn-card-delete:hover:not(:disabled) {
+  border-color: var(--m-danger);
+  color: var(--m-danger);
+  background: #fff5f5;
+}
+.m-btn-card-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .m-badge {
   padding: 0.32rem 0.8rem;

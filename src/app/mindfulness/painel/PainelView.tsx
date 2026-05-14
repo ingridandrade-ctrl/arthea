@@ -158,11 +158,32 @@ export default function PainelView({ data }: { data: PainelData }) {
 type CardTab = "analise" | "respostas";
 
 function ParticipantCard({ p }: { p: ParticipantSummary }) {
+  const router = useRouter();
   const [tab, setTab] = useState<CardTab>("analise");
+  const [deleting, setDeleting] = useState(false);
   const meta = [p.profissao, `${p.idade} anos`, p.escolaridade].filter(Boolean).join(" · ");
   const date = p.ffmq?.respondedAt || p.dass?.respondedAt;
   const dateStr = date ? new Date(date).toLocaleDateString("pt-BR") : null;
   const hasResponses = !!(p.ffmq || p.dass);
+
+  async function handleDelete() {
+    const ok = window.confirm(
+      `Excluir todos os dados de ${p.nome} (${p.email}) permanentemente? Esta ação remove respostas e rascunhos e não pode ser desfeita.`,
+    );
+    if (!ok) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/mindfulness/participants/${p.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "Não foi possível excluir.");
+      }
+      router.refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Erro ao excluir.");
+      setDeleting(false);
+    }
+  }
 
   return (
     <div className="m-participant">
@@ -180,17 +201,28 @@ function ParticipantCard({ p }: { p: ParticipantSummary }) {
               : " · sem prática prévia"}
           </div>
         </div>
-        <div className="m-badges">
-          {p.ffmq ? (
-            <span className="m-badge m-badge-ffmq">Atenção plena ✓</span>
-          ) : (
-            <span className="m-badge m-badge-pending">Atenção plena pendente</span>
-          )}
-          {p.dass ? (
-            <span className="m-badge m-badge-dass">Saúde mental ✓</span>
-          ) : (
-            <span className="m-badge m-badge-pending">Saúde mental pendente</span>
-          )}
+        <div className="m-participant-header-right">
+          <div className="m-badges">
+            {p.ffmq ? (
+              <span className="m-badge m-badge-ffmq">Atenção plena ✓</span>
+            ) : (
+              <span className="m-badge m-badge-pending">Atenção plena pendente</span>
+            )}
+            {p.dass ? (
+              <span className="m-badge m-badge-dass">Saúde mental ✓</span>
+            ) : (
+              <span className="m-badge m-badge-pending">Saúde mental pendente</span>
+            )}
+          </div>
+          <button
+            type="button"
+            className="m-btn-card-delete"
+            onClick={handleDelete}
+            disabled={deleting}
+            title="Remove permanentemente este participante e todas as respostas associadas"
+          >
+            {deleting ? "Excluindo..." : "Excluir participante"}
+          </button>
         </div>
       </div>
 
