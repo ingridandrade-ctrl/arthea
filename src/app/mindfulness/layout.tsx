@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { Playfair_Display, DM_Sans } from "next/font/google";
 import "./mindfulness.css";
 
-const cormorant = Cormorant_Garamond({
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["400", "500", "600"],
   style: ["normal", "italic"],
-  variable: "--font-cormorant",
+  variable: "--font-playfair",
   display: "swap",
 });
 
@@ -26,6 +26,6 @@ export const metadata: Metadata = {
 
 export default function MindfulnessLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`mindfulness-app ${cormorant.variable} ${dmSans.variable}`}>{children}</div>
+    <div className={`mindfulness-app ${playfair.variable} ${dmSans.variable}`}>{children}</div>
   );
 }
