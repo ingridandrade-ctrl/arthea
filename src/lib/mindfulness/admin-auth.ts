@@ -11,7 +11,7 @@ import { cookies } from "next/headers";
  *      NEXTAUTH_SECRET. Sem o secret, ninguém forja o cookie.
  */
 
-const COOKIE_NAME = "mindfulness_admin";
+const COOKIE_NAME = "mindfulness_admin_v2";
 const TOKEN_PAYLOAD = "ok"; // valor fixo — a presença válida do cookie já autentica
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 dias
 
@@ -61,15 +61,6 @@ export function setAdminCookie(): void {
     path: "/",
     maxAge: MAX_AGE_SECONDS,
   });
-  // Limpa qualquer cookie antigo gravado em /mindfulness por versões
-  // anteriores — senão fica duplicado e o navegador pode mandar o errado.
-  cookies().set({
-    name: COOKIE_NAME,
-    value: "",
-    httpOnly: true,
-    path: "/mindfulness",
-    maxAge: 0,
-  });
 }
 
 export function clearAdminCookie(): void {
@@ -78,13 +69,6 @@ export function clearAdminCookie(): void {
     value: "",
     httpOnly: true,
     path: "/",
-    maxAge: 0,
-  });
-  cookies().set({
-    name: COOKIE_NAME,
-    value: "",
-    httpOnly: true,
-    path: "/mindfulness",
     maxAge: 0,
   });
 }

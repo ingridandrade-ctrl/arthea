@@ -774,8 +774,35 @@
   font-size: 1rem;
   outline: none;
   transition: border-color 0.2s;
+  width: 100%;
 }
 .m-login input:focus { border-color: var(--m-sage); }
+.m-login-pwd {
+  position: relative;
+}
+.m-login-pwd input {
+  padding-right: 5rem;
+}
+.m-login-pwd-toggle {
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--m-warm-soft);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  font-family: var(--m-font-sans);
+  transition: color 0.18s, background 0.18s;
+}
+.m-login-pwd-toggle:hover {
+  color: var(--m-sage);
+  background: var(--m-sage-pale);
+}
 
 /* Empty state */
 .m-empty {
