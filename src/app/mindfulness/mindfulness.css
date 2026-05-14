@@ -24,7 +24,7 @@
   --m-border-soft: #f0ebe0;
   --m-input-border: #d8d3c8;
 
-  --m-font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --m-font-serif: var(--font-playfair), "Playfair Display", Georgia, serif;
   --m-font-sans: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
 
   font-family: var(--m-font-sans);
@@ -52,22 +52,27 @@
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--m-sage-light);
   padding: 0 2rem;
-  height: 60px;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
 }
 .m-nav-brand {
   font-family: var(--m-font-serif);
-  font-size: 1.2rem;
+  font-size: 1.6rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  color: var(--m-warm-dark);
+  line-height: 1;
+}
+.m-nav-brand .m-brand-name {
   color: var(--m-warm-dark);
 }
-.m-nav-brand em {
+.m-nav-brand .m-brand-suffix {
   color: var(--m-sage);
-  font-style: italic;
-  font-weight: 400;
+  margin-left: 0.1rem;
 }
 .m-nav-step {
   font-size: 0.85rem;
@@ -77,7 +82,7 @@
 }
 
 .mindfulness-app main {
-  padding-top: 60px;
+  padding-top: 68px;
   min-height: 100vh;
 }
 
@@ -515,6 +520,56 @@
   font-size: 1.02rem;
   color: var(--m-warm-mid);
   line-height: 1.75;
+}
+
+/* TRANSITION (entre questionários) -------------------------------- */
+.m-transition {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 5rem 2rem 4rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.m-transition-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--m-sage-pale);
+  border: 2px solid var(--m-sage);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.75rem;
+}
+.m-transition-icon svg {
+  width: 28px;
+  height: 28px;
+  color: var(--m-sage);
+}
+.m-transition-step {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--m-sage);
+  margin-bottom: 0.85rem;
+  font-weight: 600;
+}
+.m-transition-title {
+  font-family: var(--m-font-serif);
+  font-size: 2.15rem;
+  font-weight: 400;
+  line-height: 1.2;
+  margin-bottom: 1.25rem;
+  color: var(--m-warm-dark);
+}
+.m-transition-text {
+  font-size: 1.02rem;
+  color: var(--m-warm-mid);
+  line-height: 1.75;
+  margin-bottom: 2.5rem;
+  max-width: 480px;
 }
 
 /* ERROR BANNER ----------------------------------------------------- */
@@ -986,9 +1041,13 @@
 
 /* RESPONSIVE ------------------------------------------------------- */
 @media (max-width: 600px) {
-  .m-nav { padding: 0 1.25rem; }
+  .m-nav { padding: 0 1.1rem; height: 60px; gap: 0.5rem; }
+  .mindfulness-app main { padding-top: 60px; }
+  .m-nav-brand { font-size: 1.25rem; }
+  .m-nav-step { font-size: 0.78rem; }
   .m-section { padding: 3rem 1.25rem 5rem; }
   .m-welcome { padding: 4rem 1.25rem 3rem; }
+  .m-transition { padding: 4rem 1.25rem 3rem; }
   .m-welcome-cards { grid-template-columns: 1fr; }
   .m-scale { gap: 0.35rem; }
   .m-scale-btn { font-size: 1.05rem; padding: 0.75rem 0.2rem; }

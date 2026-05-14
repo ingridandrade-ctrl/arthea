@@ -8,7 +8,7 @@ import {
   DASS_SCALE,
 } from "@/lib/mindfulness/questions";
 
-type Step = "welcome" | "personal" | "ffmq" | "dass" | "done";
+type Step = "welcome" | "personal" | "ffmq" | "transition" | "dass" | "done";
 
 type Personal = {
   nome: string;
@@ -56,6 +56,8 @@ export default function CollectionFlow() {
       ? "Dados pessoais"
       : step === "ffmq"
       ? "Questionário 1 de 2"
+      : step === "transition"
+      ? "Próximo questionário"
       : step === "dass"
       ? "Questionário 2 de 2"
       : "Finalizado";
@@ -64,7 +66,8 @@ export default function CollectionFlow() {
     <>
       <nav className="m-nav">
         <div className="m-nav-brand">
-          Iasmim <em>Sasseron</em>
+          <span className="m-brand-name">Iasmim Sasseron</span>
+          <span className="m-brand-suffix"> — Mindfulness</span>
         </div>
         <div className="m-nav-step">{stepLabel}</div>
       </nav>
@@ -142,7 +145,7 @@ export default function CollectionFlow() {
                   const data = await res.json().catch(() => ({}));
                   throw new Error(data?.error || "Não foi possível salvar as respostas.");
                 }
-                setStep("dass");
+                setStep("transition");
                 window.scrollTo(0, 0);
               } catch (e) {
                 setSubmitError(e instanceof Error ? e.message : "Erro inesperado.");
@@ -151,6 +154,9 @@ export default function CollectionFlow() {
               }
             }}
           />
+        )}
+        {step === "transition" && (
+          <TransitionView onContinue={() => { setStep("dass"); window.scrollTo(0, 0); }} />
         )}
         {step === "dass" && (
           <QuestionFlow
@@ -481,8 +487,8 @@ function QuestionFlow({
     kind === "ffmq" ? "Como você se percebe?" : "Como você se sentiu na última semana?";
   const instruction =
     kind === "ffmq"
-      ? "Avalie cada afirmação de acordo com o que considera geralmente verdadeiro para você. Não há resposta certa ou errada — apenas sua experiência real."
-      : "Leia cada afirmação e indique o quanto ela se aplicou a você durante a última semana. Não há resposta certa ou errada.";
+      ? "Avalie cada afirmação de acordo com o que considera geralmente verdadeiro para você. Não há resposta certa ou errada — apenas sua experiência real. Assim que você clicar na resposta, a próxima pergunta aparecerá automaticamente; não é necessário clicar no botão próxima."
+      : "Leia cada afirmação e indique o quanto ela se aplicou a você durante a última semana. Não há resposta certa ou errada. Assim que você clicar na resposta, a próxima pergunta aparecerá automaticamente; não é necessário clicar no botão próxima.";
 
   function selectAnswer(val: number) {
     const newAnswers = { ...answers, [cursor + 1]: val };
@@ -596,9 +602,38 @@ function DoneView({ firstName }: { firstName: string }) {
       <h2 className="m-complete-title">Respostas registradas</h2>
       <p className="m-complete-text">
         Obrigada{firstName ? `, ${firstName}` : ""}. Suas respostas aos dois questionários foram salvas
-        com segurança. A Iasmim usará essas informações para o desenho das aulas que serão construídas a
-        partir do grupo. Você já pode fechar esta página.
+        com segurança. Eu usarei essas informações para estruturar as aulas da forma que melhor atenda
+        às necessidades do grupo. Você já pode fechar esta página.
       </p>
     </div>
+  );
+}
+
+function TransitionView({ onContinue }: { onContinue: () => void }) {
+  return (
+    <section className="m-transition">
+      <div className="m-transition-icon">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <div className="m-transition-step">Primeiro de dois finalizado</div>
+      <h2 className="m-transition-title">Muito bem.</h2>
+      <p className="m-transition-text">
+        Você finalizou o primeiro questionário. Quando estiver pronta(o), clique em começar para
+        responder ao segundo.
+      </p>
+      <button className="m-btn-cta" type="button" onClick={onContinue}>
+        Começar →
+      </button>
+    </section>
   );
 }
