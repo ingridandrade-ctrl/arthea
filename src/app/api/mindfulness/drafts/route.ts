@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MindfulnessInstrument } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import {
-  scoreFFMQ,
-  scoreDASS,
-  validateFFMQAnswers,
-  validateDASSAnswers,
-} from "@/lib/mindfulness/scoring";
 
 type Body = {
   participantId?: string;
@@ -23,7 +17,6 @@ export async function POST(req: NextRequest) {
   }
 
   const { participantId, instrument, answers } = body;
-
   if (!participantId || typeof participantId !== "string") {
     return NextResponse.json({ error: "participantId ausente." }, { status: 400 });
   }
@@ -34,11 +27,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "answers ausente." }, { status: 400 });
   }
 
-  // Normaliza chaves string → number
+  // Normaliza e filtra: aceita respostas parciais, mas valida cada uma.
   const normalized: Record<number, number> = {};
+  const min = instrument === "FFMQ" ? 1 : 0;
+  const max = instrument === "FFMQ" ? 5 : 3;
   for (const [k, v] of Object.entries(answers)) {
     const idx = parseInt(k, 10);
-    if (!Number.isInteger(idx) || typeof v !== "number") continue;
+    if (!Number.isInteger(idx) || idx < 1) continue;
+    if (typeof v !== "number" || !Number.isInteger(v)) continue;
+    if (v < min || v > max) continue;
     normalized[idx] = v;
   }
 
@@ -50,45 +47,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Participante não encontrada." }, { status: 404 });
   }
 
-  let scores: Record<string, number>;
-  if (instrument === "FFMQ") {
-    const v = validateFFMQAnswers(normalized);
-    if (!v.ok) return NextResponse.json({ error: v.error }, { status: 400 });
-    scores = scoreFFMQ(normalized);
-  } else {
-    const v = validateDASSAnswers(normalized);
-    if (!v.ok) return NextResponse.json({ error: v.error }, { status: 400 });
-    scores = scoreDASS(normalized);
-  }
-
-  // Salva a resposta definitiva e remove o rascunho correspondente
-  // (se houver) — não faz sentido manter ambos.
-  await prisma.$transaction([
-    prisma.mindfulnessResponse.upsert({
-      where: {
-        participantId_instrument: {
-          participantId,
-          instrument: instrument as MindfulnessInstrument,
-        },
-      },
-      create: {
-        participantId,
-        instrument: instrument as MindfulnessInstrument,
-        answers: normalized,
-        scores,
-      },
-      update: {
-        answers: normalized,
-        scores,
-      },
-    }),
-    prisma.mindfulnessDraft.deleteMany({
-      where: {
+  await prisma.mindfulnessDraft.upsert({
+    where: {
+      participantId_instrument: {
         participantId,
         instrument: instrument as MindfulnessInstrument,
       },
-    }),
-  ]);
+    },
+    create: {
+      participantId,
+      instrument: instrument as MindfulnessInstrument,
+      answers: normalized,
+    },
+    update: {
+      answers: normalized,
+    },
+  });
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  return NextResponse.json({ ok: true });
 }
