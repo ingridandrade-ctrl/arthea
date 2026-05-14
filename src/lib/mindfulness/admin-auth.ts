@@ -58,12 +58,28 @@ export function setAdminCookie(): void {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    path: "/mindfulness",
+    path: "/",
     maxAge: MAX_AGE_SECONDS,
+  });
+  // Limpa qualquer cookie antigo gravado em /mindfulness por versões
+  // anteriores — senão fica duplicado e o navegador pode mandar o errado.
+  cookies().set({
+    name: COOKIE_NAME,
+    value: "",
+    httpOnly: true,
+    path: "/mindfulness",
+    maxAge: 0,
   });
 }
 
 export function clearAdminCookie(): void {
+  cookies().set({
+    name: COOKIE_NAME,
+    value: "",
+    httpOnly: true,
+    path: "/",
+    maxAge: 0,
+  });
   cookies().set({
     name: COOKIE_NAME,
     value: "",

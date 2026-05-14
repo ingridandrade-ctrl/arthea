@@ -174,6 +174,11 @@ function ParticipantCard({ p }: { p: ParticipantSummary }) {
     setDeleting(true);
     try {
       const res = await fetch(`/api/mindfulness/participants/${p.id}`, { method: "DELETE" });
+      if (res.status === 401) {
+        alert("Sua sessão precisa ser renovada. Vou te levar pra fazer login novamente.");
+        router.push("/mindfulness/painel/login");
+        return;
+      }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.error || "Não foi possível excluir.");
