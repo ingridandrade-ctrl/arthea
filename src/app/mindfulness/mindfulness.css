@@ -531,7 +531,8 @@
 .m-complete-farewell {
   font-family: var(--m-font-serif);
   font-style: italic;
-  font-size: 1.6rem;
+  font-weight: 700;
+  font-size: 1.65rem;
   color: var(--m-sage);
   margin-top: 1.75rem;
 }
