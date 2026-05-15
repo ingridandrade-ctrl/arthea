@@ -128,6 +128,5 @@ export const COMO_CONHECEU = [
   "Instagram",
   "Indicação de alguém",
   "Google",
-  "Anúncio",
   "Outro",
 ] as const;

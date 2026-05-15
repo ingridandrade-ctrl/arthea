@@ -48,6 +48,12 @@
 /*  Temas                                                          */
 /* ============================================================== */
 
+.brescancin-light,
+.brescancin-dark {
+  display: flex;
+  flex-direction: column;
+}
+
 .brescancin-light {
   --bc-bg: #faf7f2;
   --bc-surface: #f4efe7;
@@ -230,23 +236,24 @@
 
 .brescancin-hero-title {
   font-family: var(--font-display), serif;
-  font-size: 42px;
+  font-size: 32px;
   font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
   color: var(--bc-text);
-  margin: 0;
+  margin: 0 auto;
+  max-width: 620px;
 }
 
 @media (min-width: 768px) {
   .brescancin-hero-title {
-    font-size: 64px;
+    font-size: 42px;
   }
 }
 
 @media (min-width: 1024px) {
   .brescancin-hero-title {
-    font-size: 72px;
+    font-size: 48px;
   }
 }
 
@@ -833,6 +840,53 @@
 .brescancin-password-toggle:hover {
   color: var(--bc-text);
   background: rgba(228, 194, 129, 0.08);
+}
+
+/* ============================================================== */
+/*  Footer                                                         */
+/* ============================================================== */
+
+.brescancin-footer {
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+  padding: 40px 24px 32px;
+  text-align: center;
+  border-top: 1px solid var(--bc-border);
+}
+
+.brescancin-footer-rule {
+  width: 32px;
+  height: 1px;
+  background: var(--bc-accent);
+  margin: 0 auto 20px;
+}
+
+.brescancin-footer-brand {
+  font-family: var(--font-display), serif;
+  font-size: 15px;
+  font-style: italic;
+  color: var(--bc-accent);
+  margin: 0 0 6px;
+  letter-spacing: 0.005em;
+}
+
+.brescancin-footer-tagline {
+  font-family: var(--font-body), sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--bc-text-muted);
+  margin: 0 0 16px;
+}
+
+.brescancin-footer-meta {
+  font-family: var(--font-body), sans-serif;
+  font-size: 11px;
+  color: var(--bc-text-muted);
+  margin: 0;
+  letter-spacing: 0.02em;
 }
 
 /* ============================================================== */
