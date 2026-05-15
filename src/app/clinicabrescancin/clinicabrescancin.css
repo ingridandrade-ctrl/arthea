@@ -1,17 +1,17 @@
 /* =========================================================================
  * Clínica Brescancin — formulário pré-consulta
  *
- * Arquitetura de temas:
- *   - .brescancin-app (layout): só tipografia/reset, sem cor.
- *   - .brescancin-light (page-level): tema editorial claro pro paciente.
- *   - .brescancin-dark  (page-level): tema navy refinado pro /admin.
+ * Tema:
+ *   - .brescancin-light → fundo creme com cards brancos (etapas do form)
+ *   - .brescancin-dark  → degradê navy com dourado (welcome, done e admin)
  *
- * Todos os componentes consomem variáveis (--bc-*) e cada wrapper de
- * página decide o tema. Trocar entre claro e escuro é só trocar a classe.
+ * Tipografia:
+ *   - Display: Playfair Display (títulos, momentos editoriais)
+ *   - Body:    Inter (campos, opções, copy curta) — alta legibilidade
  * ========================================================================= */
 
 .brescancin-app {
-  font-family: var(--font-body), "DM Sans", system-ui, sans-serif;
+  font-family: var(--font-body), "Inter", system-ui, -apple-system, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -32,7 +32,7 @@
   font-weight: 400;
   margin: 0;
   color: var(--bc-text);
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
 }
 
 .brescancin-app a {
@@ -45,7 +45,7 @@
 }
 
 /* ============================================================== */
-/*  TEMAS                                                          */
+/*  Temas                                                          */
 /* ============================================================== */
 
 .brescancin-light {
@@ -53,40 +53,59 @@
   --bc-surface: #f4efe7;
   --bc-card: #ffffff;
   --bc-text: #1a2940;
-  --bc-text-secondary: #5a6b85;
-  --bc-text-muted: #8b97a8;
+  --bc-text-secondary: #4a5a75;
+  --bc-text-muted: #8896a8;
   --bc-accent: #b8945c;
   --bc-accent-strong: #8b6f3f;
   --bc-border: rgba(26, 41, 64, 0.08);
-  --bc-border-strong: rgba(26, 41, 64, 0.18);
+  --bc-border-strong: rgba(26, 41, 64, 0.16);
   --bc-border-accent: rgba(184, 148, 92, 0.45);
   --bc-error: #b8483d;
   --bc-input-bg: #ffffff;
-  --bc-input-border: rgba(26, 41, 64, 0.14);
-  --bc-input-border-hover: rgba(26, 41, 64, 0.3);
+  --bc-input-border: rgba(26, 41, 64, 0.16);
+  --bc-input-border-hover: rgba(26, 41, 64, 0.32);
   --bc-shadow-card: 0 1px 2px rgba(26, 41, 64, 0.03),
-    0 8px 28px rgba(26, 41, 64, 0.05);
+    0 12px 36px rgba(26, 41, 64, 0.06);
   --bc-overlay: rgba(26, 41, 64, 0.45);
   --bc-track: rgba(26, 41, 64, 0.08);
-  --bc-radio-empty: rgba(26, 41, 64, 0.22);
+  --bc-radio-empty: rgba(26, 41, 64, 0.28);
 
   background: var(--bc-bg);
   color: var(--bc-text);
   min-height: 100vh;
 }
 
+/* Textura discreta no claro pra dar profundidade premium */
+.brescancin-light::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+      ellipse at top left,
+      rgba(184, 148, 92, 0.06) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at bottom right,
+      rgba(26, 41, 64, 0.04) 0%,
+      transparent 50%
+    );
+  z-index: 0;
+}
+
 .brescancin-dark {
-  --bc-bg: #1b3a6b;
+  --bc-bg: #0f2447;
   --bc-surface: #162e58;
   --bc-card: #1e4080;
   --bc-text: #ffffff;
-  --bc-text-secondary: #cbd5e1;
-  --bc-text-muted: #94a3b8;
-  --bc-accent: #d4b377;
-  --bc-accent-strong: #c9a96e;
-  --bc-border: rgba(212, 179, 119, 0.22);
-  --bc-border-strong: rgba(212, 179, 119, 0.5);
-  --bc-border-accent: rgba(212, 179, 119, 0.6);
+  --bc-text-secondary: #d0d9e8;
+  --bc-text-muted: #93a3bd;
+  --bc-accent: #e4c281;
+  --bc-accent-strong: #d4b377;
+  --bc-border: rgba(228, 194, 129, 0.22);
+  --bc-border-strong: rgba(228, 194, 129, 0.5);
+  --bc-border-accent: rgba(228, 194, 129, 0.6);
   --bc-error: #f87171;
   --bc-input-bg: rgba(255, 255, 255, 0.06);
   --bc-input-border: rgba(255, 255, 255, 0.18);
@@ -96,17 +115,44 @@
   --bc-track: rgba(255, 255, 255, 0.1);
   --bc-radio-empty: rgba(255, 255, 255, 0.4);
 
-  background: linear-gradient(180deg, #1b3a6b 0%, #162e58 100%);
+  background: radial-gradient(
+      ellipse at top,
+      #1b3a6b 0%,
+      #0f2447 60%,
+      #081832 100%
+    ),
+    #0f2447;
   color: var(--bc-text);
   min-height: 100vh;
+  position: relative;
+}
+
+/* Brilho dourado suave no topo do tema dark */
+.brescancin-dark::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(228, 194, 129, 0.08) 0%,
+    transparent 60%
+  );
+  z-index: 0;
 }
 
 /* ============================================================== */
-/*  Paciente                                                       */
+/*  Container                                                      */
 /* ============================================================== */
 
 .brescancin-container {
-  max-width: 680px;
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
   margin: 0 auto;
   padding: 48px 24px 56px;
 }
@@ -117,23 +163,152 @@
   }
 }
 
-/* Marca: pequena, tracked, gold, sobre divisor fino */
+/* ============================================================== */
+/*  Welcome / Done — tela cheia premium                            */
+/* ============================================================== */
+
+.brescancin-hero {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .brescancin-hero {
+    padding: 80px 40px;
+  }
+}
+
+.brescancin-hero-inner {
+  max-width: 640px;
+  width: 100%;
+}
+
+.brescancin-hero-eyebrow {
+  font-family: var(--font-body), sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--bc-accent);
+  margin: 0 0 32px;
+}
+
+.brescancin-hero-rule {
+  width: 56px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--bc-accent) 50%,
+    transparent 100%
+  );
+  margin: 0 auto 40px;
+}
+
+.brescancin-hero-tagline {
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--bc-accent);
+  margin: 0 0 16px;
+  letter-spacing: 0.005em;
+}
+
+@media (min-width: 768px) {
+  .brescancin-hero-tagline {
+    font-size: 22px;
+  }
+}
+
+.brescancin-hero-title {
+  font-family: var(--font-display), serif;
+  font-size: 42px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--bc-text);
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .brescancin-hero-title {
+    font-size: 64px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .brescancin-hero-title {
+    font-size: 72px;
+  }
+}
+
+.brescancin-hero-title em {
+  font-style: italic;
+  color: var(--bc-accent);
+  font-weight: 400;
+}
+
+.brescancin-hero-body {
+  color: var(--bc-text-secondary);
+  font-size: 17px;
+  line-height: 1.7;
+  margin: 32px auto 0;
+  max-width: 520px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-hero-body {
+    font-size: 18px;
+  }
+}
+
+.brescancin-hero-actions {
+  margin-top: 48px;
+  display: flex;
+  justify-content: center;
+}
+
+.brescancin-hero-check {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 32px;
+  border-radius: 50%;
+  background: rgba(228, 194, 129, 0.12);
+  border: 1px solid rgba(228, 194, 129, 0.3);
+  color: var(--bc-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================== */
+/*  Etapas (light) — header da página                              */
+/* ============================================================== */
+
 .brescancin-brand {
   font-family: var(--font-body), sans-serif;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--bc-accent-strong);
   text-align: center;
-  margin: 0 0 8px;
+  margin: 0 0 12px;
 }
 
 .brescancin-rule {
   width: 40px;
   height: 1px;
   background: var(--bc-accent);
-  margin: 0 auto 40px;
+  margin: 0 auto 48px;
 }
 
 @media (min-width: 768px) {
@@ -142,114 +317,78 @@
   }
 }
 
-/* ─── Card ─── */
+/* ============================================================== */
+/*  Card de etapa — bordas arredondadas e respiro                  */
+/* ============================================================== */
+
 .brescancin-card {
   background: var(--bc-card);
   border: 1px solid var(--bc-border);
-  border-radius: 4px;
-  padding: 32px 24px;
+  border-radius: 20px;
+  padding: 36px 24px;
   box-shadow: var(--bc-shadow-card);
 }
 
 @media (min-width: 768px) {
   .brescancin-card {
     padding: 56px;
-  }
-}
-
-/* ─── Tipografia editorial ─── */
-.brescancin-title {
-  font-family: var(--font-display), serif;
-  font-size: 34px;
-  font-weight: 400;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  color: var(--bc-text);
-}
-
-@media (min-width: 768px) {
-  .brescancin-title {
-    font-size: 48px;
-  }
-}
-
-.brescancin-subtitle {
-  font-family: var(--font-display), serif;
-  font-style: italic;
-  color: var(--bc-accent-strong);
-  font-size: 18px;
-  margin: 16px 0 0;
-  letter-spacing: 0.005em;
-}
-
-@media (min-width: 768px) {
-  .brescancin-subtitle {
-    font-size: 21px;
-  }
-}
-
-.brescancin-body {
-  color: var(--bc-text-secondary);
-  font-size: 16px;
-  line-height: 1.7;
-  margin: 24px 0 0;
-}
-
-@media (min-width: 768px) {
-  .brescancin-body {
-    font-size: 17px;
+    border-radius: 24px;
   }
 }
 
 .brescancin-step-title {
   font-family: var(--font-display), serif;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 400;
   line-height: 1.2;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
   color: var(--bc-text);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 @media (min-width: 768px) {
   .brescancin-step-title {
-    font-size: 30px;
+    font-size: 34px;
   }
 }
 
 .brescancin-step-intro {
   color: var(--bc-text-secondary);
-  font-size: 15px;
-  line-height: 1.6;
-  margin-bottom: 32px;
+  font-size: 16px;
+  line-height: 1.65;
+  margin-bottom: 40px;
 }
 
-/* ─── Botões ─── */
+/* ============================================================== */
+/*  Botões                                                         */
+/* ============================================================== */
+
 .brescancin-btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: 52px;
-  padding: 14px 32px;
+  gap: 12px;
+  min-height: 56px;
+  padding: 16px 36px;
   border: none;
   background: var(--bc-text);
   color: var(--bc-bg);
   font-family: var(--font-body), sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  border-radius: 2px;
+  border-radius: 999px;
   cursor: pointer;
   text-decoration: none;
   transition: background-color 200ms ease, color 200ms ease,
-    transform 160ms ease;
+    transform 160ms ease, box-shadow 200ms ease;
 }
 
 .brescancin-btn-primary:hover:not(:disabled) {
   background: var(--bc-accent-strong);
   color: #ffffff;
+  box-shadow: 0 8px 24px rgba(184, 148, 92, 0.3);
 }
 
 .brescancin-btn-primary:active:not(:disabled) {
@@ -261,14 +400,16 @@
   cursor: not-allowed;
 }
 
+/* No dark, botão sólido dourado contrasta com navy */
 .brescancin-dark .brescancin-btn-primary {
   background: var(--bc-accent);
-  color: #1a2940;
+  color: #0f2447;
 }
 
 .brescancin-dark .brescancin-btn-primary:hover:not(:disabled) {
   background: #ffffff;
-  color: #1a2940;
+  color: #0f2447;
+  box-shadow: 0 8px 32px rgba(228, 194, 129, 0.3);
 }
 
 .brescancin-btn-ghost {
@@ -276,9 +417,9 @@
   border: none;
   color: var(--bc-text-secondary);
   font-family: var(--font-body), sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   cursor: pointer;
   padding: 12px 4px;
   min-height: 44px;
@@ -294,21 +435,30 @@
   cursor: not-allowed;
 }
 
-/* ─── Campos ─── */
+/* ============================================================== */
+/*  Campos — pergunta destacada                                    */
+/* ============================================================== */
+
 .brescancin-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 28px;
+  gap: 10px;
+  margin-bottom: 36px;
 }
 
 .brescancin-label {
   font-family: var(--font-body), sans-serif;
-  font-size: 13px;
+  font-size: 16px;
   color: var(--bc-text);
-  font-weight: 500;
-  letter-spacing: 0.005em;
+  font-weight: 600;
+  letter-spacing: -0.005em;
   line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+  .brescancin-label {
+    font-size: 17px;
+  }
 }
 
 .brescancin-label-required::after {
@@ -317,9 +467,10 @@
 }
 
 .brescancin-help {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--bc-text-muted);
-  margin-top: -2px;
+  margin-top: -4px;
+  line-height: 1.5;
 }
 
 .brescancin-input,
@@ -327,13 +478,14 @@
 .brescancin-textarea {
   width: 100%;
   background: var(--bc-input-bg);
-  border: 1px solid var(--bc-input-border);
+  border: 1.5px solid var(--bc-input-border);
   color: var(--bc-text);
   font-family: var(--font-body), sans-serif;
   font-size: 16px;
-  border-radius: 2px;
-  padding: 14px 16px;
-  min-height: 52px;
+  font-weight: 400;
+  border-radius: 12px;
+  padding: 16px 18px;
+  min-height: 56px;
   transition: border-color 180ms ease, background-color 180ms ease,
     box-shadow 180ms ease;
 }
@@ -349,13 +501,13 @@
 .brescancin-textarea:focus {
   border-color: var(--bc-accent);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(184, 148, 92, 0.12);
+  box-shadow: 0 0 0 4px rgba(184, 148, 92, 0.14);
 }
 
 .brescancin-dark .brescancin-input:focus,
 .brescancin-dark .brescancin-select:focus,
 .brescancin-dark .brescancin-textarea:focus {
-  box-shadow: 0 0 0 3px rgba(212, 179, 119, 0.15);
+  box-shadow: 0 0 0 4px rgba(228, 194, 129, 0.18);
 }
 
 .brescancin-input::placeholder,
@@ -365,21 +517,21 @@
 }
 
 .brescancin-textarea {
-  min-height: 112px;
+  min-height: 120px;
   resize: vertical;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .brescancin-select {
   appearance: none;
   background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23B8945C' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 18px center;
-  padding-right: 44px;
+  background-position: right 20px center;
+  padding-right: 48px;
 }
 
 .brescancin-dark .brescancin-select {
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23D4B377' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23E4C281' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
 .brescancin-select option {
@@ -395,12 +547,15 @@
   color-scheme: dark;
 }
 
-/* ─── Radio + Checkbox ─── */
+/* ============================================================== */
+/*  Radio + Checkbox — pílulas arredondadas                        */
+/* ============================================================== */
+
 .brescancin-radio-group,
 .brescancin-checkbox-group {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
 }
 
 .brescancin-radio,
@@ -408,13 +563,49 @@
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  padding: 12px 0;
-  min-height: 48px;
+  padding: 14px 18px;
+  min-height: 52px;
   cursor: pointer;
   font-family: var(--font-body), sans-serif;
   font-size: 16px;
+  font-weight: 400;
   color: var(--bc-text);
   line-height: 1.4;
+  border: 1.5px solid var(--bc-border);
+  border-radius: 14px;
+  background: var(--bc-card);
+  transition: border-color 160ms ease, background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.brescancin-dark .brescancin-radio,
+.brescancin-dark .brescancin-checkbox {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.brescancin-radio:hover,
+.brescancin-checkbox:hover {
+  border-color: var(--bc-border-accent);
+  background: rgba(184, 148, 92, 0.04);
+}
+
+.brescancin-dark .brescancin-radio:hover,
+.brescancin-dark .brescancin-checkbox:hover {
+  background: rgba(228, 194, 129, 0.06);
+  border-color: rgba(228, 194, 129, 0.35);
+}
+
+.brescancin-radio:has(input:checked),
+.brescancin-checkbox:has(input:checked) {
+  border-color: var(--bc-accent);
+  background: rgba(184, 148, 92, 0.06);
+}
+
+.brescancin-dark .brescancin-radio:has(input:checked),
+.brescancin-dark .brescancin-checkbox:has(input:checked) {
+  background: rgba(228, 194, 129, 0.1);
+  border-color: var(--bc-accent);
 }
 
 .brescancin-radio input,
@@ -422,9 +613,9 @@
   appearance: none;
   -webkit-appearance: none;
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  margin: 2px 0 0;
+  width: 22px;
+  height: 22px;
+  margin: 1px 0 0;
   background: transparent;
   border: 1.5px solid var(--bc-radio-empty);
   cursor: pointer;
@@ -437,7 +628,7 @@
 }
 
 .brescancin-checkbox input {
-  border-radius: 2px;
+  border-radius: 6px;
 }
 
 .brescancin-radio input:checked {
@@ -460,10 +651,10 @@
 .brescancin-checkbox input:checked::after {
   content: "";
   position: absolute;
-  left: 5px;
-  top: 1px;
+  left: 6px;
+  top: 2px;
   width: 6px;
-  height: 11px;
+  height: 12px;
   border: solid #ffffff;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
@@ -483,12 +674,7 @@
 }
 
 .brescancin-dark .brescancin-checkbox input:checked::after {
-  border-color: #1a2940;
-}
-
-.brescancin-radio:hover input:not(:checked),
-.brescancin-checkbox:hover input:not(:checked) {
-  border-color: var(--bc-border-accent);
+  border-color: #0f2447;
 }
 
 .brescancin-radio input:focus-visible,
@@ -497,44 +683,46 @@
   outline-offset: 3px;
 }
 
-/* ─── Erros ─── */
+/* ============================================================== */
+/*  Erros, progresso e transições                                  */
+/* ============================================================== */
+
 .brescancin-error {
   color: var(--bc-error);
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   margin-top: 4px;
-  letter-spacing: 0.005em;
 }
 
-/* ─── Progress ─── */
 .brescancin-progress {
-  height: 2px;
+  height: 3px;
   background: var(--bc-track);
-  border-radius: 99px;
+  border-radius: 999px;
   overflow: hidden;
   margin-bottom: 16px;
 }
 
 .brescancin-progress-fill {
   height: 100%;
-  background: var(--bc-accent);
-  border-radius: 99px;
+  background: linear-gradient(90deg, var(--bc-accent-strong), var(--bc-accent));
+  border-radius: 999px;
   transition: width 360ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .brescancin-progress-label {
   font-family: var(--font-body), sans-serif;
   font-size: 11px;
-  letter-spacing: 0.18em;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--bc-text-muted);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-/* ─── Transição ─── */
 @keyframes brescancin-fade {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -543,54 +731,41 @@
 }
 
 .brescancin-step {
-  animation: brescancin-fade 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: brescancin-fade 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ─── Ações ─── */
 .brescancin-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 40px;
-}
-
-/* ─── Confirmação ─── */
-.brescancin-check {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 28px;
-  border-radius: 50%;
-  background: rgba(184, 148, 92, 0.1);
-  color: var(--bc-accent-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.brescancin-dark .brescancin-check {
-  background: rgba(212, 179, 119, 0.15);
-  color: var(--bc-accent);
+  margin-top: 48px;
 }
 
 /* ─── Sub-campo condicional ─── */
 .brescancin-subfield {
-  margin-top: -8px;
-  margin-bottom: 28px;
-  padding-left: 20px;
-  border-left: 1px solid var(--bc-border-accent);
+  margin-top: -12px;
+  margin-bottom: 36px;
+  padding: 24px;
+  background: rgba(184, 148, 92, 0.04);
+  border-left: 2px solid var(--bc-accent);
+  border-radius: 0 12px 12px 0;
+}
+
+.brescancin-subfield .brescancin-field:last-child {
+  margin-bottom: 0;
 }
 
 /* ─── Bloco interno (Cabelo / Sobrancelhas) ─── */
 .brescancin-block-title {
   font-family: var(--font-body), sans-serif;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--bc-accent-strong);
-  margin: 16px 0 20px;
-  padding-top: 24px;
+  margin: 24px 0 24px;
+  padding-top: 32px;
   border-top: 1px solid var(--bc-border);
 }
 
@@ -606,7 +781,7 @@
 }
 
 .brescancin-password-wrap .brescancin-input {
-  padding-right: 96px;
+  padding-right: 100px;
 }
 
 .brescancin-password-toggle {
@@ -619,16 +794,18 @@
   color: var(--bc-accent);
   font-family: var(--font-body), sans-serif;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 10px 14px;
   min-height: 36px;
+  border-radius: 999px;
 }
 
 .brescancin-password-toggle:hover {
   color: var(--bc-text);
+  background: rgba(228, 194, 129, 0.08);
 }
 
 /* ============================================================== */
@@ -636,6 +813,8 @@
 /* ============================================================== */
 
 .brescancin-admin {
+  position: relative;
+  z-index: 1;
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 24px 64px;
@@ -660,10 +839,10 @@
 
 .brescancin-admin-brand {
   font-family: var(--font-display), serif;
-  font-size: 24px;
+  font-size: 26px;
   color: var(--bc-text);
   margin: 0;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
 }
 
 .brescancin-admin-count {
@@ -694,7 +873,7 @@
 .brescancin-admin-table-wrap {
   background: var(--bc-card);
   border: 1px solid var(--bc-border);
-  border-radius: 4px;
+  border-radius: 16px;
   overflow: hidden;
 }
 
@@ -716,7 +895,7 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--bc-text-muted);
-  font-weight: 500;
+  font-weight: 600;
   background: rgba(0, 0, 0, 0.12);
 }
 
@@ -748,7 +927,7 @@
   text-align: right;
   color: var(--bc-accent);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -775,7 +954,7 @@
   z-index: 51;
   display: flex;
   flex-direction: column;
-  animation: brescancin-slide-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: brescancin-slide-in 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes brescancin-slide-in {
@@ -799,9 +978,9 @@
 
 .brescancin-drawer-name {
   font-family: var(--font-display), serif;
-  font-size: 24px;
+  font-size: 26px;
   color: var(--bc-text);
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
 }
 
 .brescancin-drawer-meta {
@@ -846,7 +1025,7 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--bc-text-muted);
-  font-weight: 500;
+  font-weight: 600;
   padding-top: 2px;
 }
 

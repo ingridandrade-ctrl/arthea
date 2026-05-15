@@ -1132,23 +1132,34 @@ export default function FormFlow() {
 
   if (step === "welcome") {
     return (
-      <section className="brescancin-card brescancin-step">
-        <h2 className="brescancin-title">Antes da sua consulta</h2>
-        <p className="brescancin-subtitle">Essas informações são sigilosas.</p>
-        <p className="brescancin-body">
-          Preenchendo com atenção, o Dr. Samuel e a Alana chegam preparados para
-          o seu caso. Leva menos de 5 minutos.
-        </p>
-        <div className="brescancin-actions" style={{ justifyContent: "flex-end" }}>
-          <button
-            type="button"
-            className="brescancin-btn-primary"
-            onClick={() => setStep("step1")}
-          >
-            Começar →
-          </button>
+      <div className="brescancin-dark">
+        <div className="brescancin-hero">
+          <div className="brescancin-hero-inner brescancin-step">
+            <p className="brescancin-hero-eyebrow">Clínica Brescancin</p>
+            <div className="brescancin-hero-rule" aria-hidden />
+            <p className="brescancin-hero-tagline">
+              Excelência em Restauração Capilar
+            </p>
+            <h1 className="brescancin-hero-title">
+              Bem-vindo ao seu <em>pré-atendimento</em>
+            </h1>
+            <p className="brescancin-hero-body">
+              Antes da sua consulta, o Dr. Samuel e a Alana querem chegar
+              preparados pra cuidar de você com toda atenção. Suas respostas
+              são sigilosas e o preenchimento leva menos de 5 minutos.
+            </p>
+            <div className="brescancin-hero-actions">
+              <button
+                type="button"
+                className="brescancin-btn-primary"
+                onClick={() => setStep("step1")}
+              >
+                Começar agora
+              </button>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
     );
   }
 
@@ -1158,29 +1169,44 @@ export default function FormFlow() {
       answers.nomeCompleto.trim().split(/\s+/)[0] ||
       "";
     return (
-      <section className="brescancin-card brescancin-step" style={{ textAlign: "center" }}>
-        <div className="brescancin-check" aria-hidden>
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M20 6L9 17l-5-5" />
-          </svg>
+      <div className="brescancin-dark">
+        <div className="brescancin-hero">
+          <div className="brescancin-hero-inner brescancin-step">
+            <div className="brescancin-hero-check" aria-hidden>
+              <svg
+                width="36"
+                height="36"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            </div>
+            <p className="brescancin-hero-tagline">
+              Recebemos com cuidado{greetingName ? `, ${greetingName}` : ""}
+            </p>
+            <h1 className="brescancin-hero-title">
+              Até <em>breve</em>
+            </h1>
+            <p className="brescancin-hero-body">
+              O Dr. Samuel e a Alana já podem se preparar com toda atenção
+              para a sua consulta.
+            </p>
+            <div
+              className="brescancin-hero-rule"
+              aria-hidden
+              style={{ marginTop: 48, marginBottom: 20 }}
+            />
+            <p className="brescancin-hero-eyebrow" style={{ margin: 0 }}>
+              Excelência em Restauração Capilar
+            </p>
+          </div>
         </div>
-        <h2 className="brescancin-title">
-          Recebemos{greetingName ? `, ${greetingName}` : ""}.
-        </h2>
-        <p className="brescancin-body">
-          O Dr. Samuel e a Alana já podem chegar preparados para a sua consulta.
-          Até breve.
-        </p>
-      </section>
+      </div>
     );
   }
 
@@ -1190,49 +1216,59 @@ export default function FormFlow() {
   const stepProps: StepProps = { answers, errors, update };
 
   return (
-    <div className="brescancin-step" key={step}>
-      <div className="brescancin-progress-label">Etapa {idx + 1} de {FORM_STEPS.length}</div>
-      <div className="brescancin-progress" aria-hidden>
-        <div
-          className="brescancin-progress-fill"
-          style={{ width: `${((idx + 1) / FORM_STEPS.length) * 100}%` }}
-        />
-      </div>
-      <section className="brescancin-card">
-        <h2 className="brescancin-step-title">{header.title}</h2>
-        {header.intro && <p className="brescancin-step-intro">{header.intro}</p>}
-        {step === "step1" && <Step1Fields {...stepProps} />}
-        {step === "step2" && <Step2Fields {...stepProps} />}
-        {step === "step3" && <Step3Fields {...stepProps} />}
-        {step === "step4" && <Step4Fields {...stepProps} />}
-        {step === "step5" && <Step5Fields {...stepProps} />}
-      </section>
-      {submitError && (
-        <p
-          className="brescancin-error"
-          style={{ textAlign: "center", marginTop: 16, fontSize: 14 }}
-          role="alert"
-        >
-          {submitError}
-        </p>
-      )}
-      <div className="brescancin-actions">
-        <button
-          type="button"
-          className="brescancin-btn-ghost"
-          onClick={goBack}
-          disabled={isSubmitting}
-        >
-          ← Voltar
-        </button>
-        <button
-          type="button"
-          className="brescancin-btn-primary"
-          onClick={goNext}
-          disabled={isSubmitting}
-        >
-          {isLast ? (isSubmitting ? "Enviando..." : "Enviar") : "Próximo →"}
-        </button>
+    <div className="brescancin-light">
+      <div className="brescancin-container">
+        <p className="brescancin-brand">Clínica Brescancin · Restauração Capilar</p>
+        <div className="brescancin-rule" aria-hidden />
+        <div className="brescancin-step" key={step}>
+          <div className="brescancin-progress-label">
+            Etapa {idx + 1} de {FORM_STEPS.length}
+          </div>
+          <div className="brescancin-progress" aria-hidden>
+            <div
+              className="brescancin-progress-fill"
+              style={{ width: `${((idx + 1) / FORM_STEPS.length) * 100}%` }}
+            />
+          </div>
+          <section className="brescancin-card">
+            <h2 className="brescancin-step-title">{header.title}</h2>
+            {header.intro && (
+              <p className="brescancin-step-intro">{header.intro}</p>
+            )}
+            {step === "step1" && <Step1Fields {...stepProps} />}
+            {step === "step2" && <Step2Fields {...stepProps} />}
+            {step === "step3" && <Step3Fields {...stepProps} />}
+            {step === "step4" && <Step4Fields {...stepProps} />}
+            {step === "step5" && <Step5Fields {...stepProps} />}
+          </section>
+          {submitError && (
+            <p
+              className="brescancin-error"
+              style={{ textAlign: "center", marginTop: 16, fontSize: 14 }}
+              role="alert"
+            >
+              {submitError}
+            </p>
+          )}
+          <div className="brescancin-actions">
+            <button
+              type="button"
+              className="brescancin-btn-ghost"
+              onClick={goBack}
+              disabled={isSubmitting}
+            >
+              ← Voltar
+            </button>
+            <button
+              type="button"
+              className="brescancin-btn-primary"
+              onClick={goNext}
+              disabled={isSubmitting}
+            >
+              {isLast ? (isSubmitting ? "Enviando..." : "Enviar") : "Próximo →"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
