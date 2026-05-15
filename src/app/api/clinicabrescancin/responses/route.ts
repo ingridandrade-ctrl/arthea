@@ -86,7 +86,6 @@ export async function POST(req: Request) {
   }
 
   const profissao = toStr(b.profissao).trim();
-  if (!profissao) return err("Conte qual é sua profissão.");
 
   const cidade = toStr(b.cidade).trim();
   if (!cidade) return err("Em que cidade você mora?");
