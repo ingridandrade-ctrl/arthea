@@ -1141,12 +1141,20 @@ export default function FormFlow() {
               Excelência em Restauração Capilar
             </p>
             <h1 className="brescancin-hero-title">
-              Bem-vindo ao seu <em>pré-atendimento</em>
+              Bem-vindo(a)
             </h1>
             <p className="brescancin-hero-body">
-              Antes da sua consulta, o Dr. Samuel e a Alana querem chegar
-              preparados pra cuidar de você com toda atenção. Suas respostas
-              são sigilosas e o preenchimento leva menos de 5 minutos.
+              Olá, se você chegou até aqui é porque tem uma consulta agendada
+              conosco. Nós queremos cuidar de você com toda atenção, por isso
+              preparamos este formulário pré-consulta para já te conhecer
+              melhor.
+            </p>
+            <p
+              className="brescancin-hero-body"
+              style={{ marginTop: 20 }}
+            >
+              Suas respostas são sigilosas e o preenchimento leva menos de
+              5 minutos. Estamos felizes em te receber na Clínica Brescancin.
             </p>
             <div className="brescancin-hero-actions">
               <button
