@@ -1175,15 +1175,18 @@ export default function FormFlow() {
                 <path d="M20 6L9 17l-5-5" />
               </svg>
             </div>
-            <p className="brescancin-hero-tagline">
-              Recebemos com cuidado{greetingName ? `, ${greetingName}` : ""}
-            </p>
             <h1 className="brescancin-hero-title">
-              Até <em>breve</em>
+              Recebemos seu formulário
+              {greetingName ? (
+                <>
+                  , <em>{greetingName}</em>
+                </>
+              ) : null}
+              .
             </h1>
             <p className="brescancin-hero-body">
-              O Dr. Samuel e a Alana já podem se preparar com toda atenção
-              para a sua consulta.
+              Vamos preparar tudo com muito carinho para receber você,
+              te vemos em consulta!
             </p>
             <div
               className="brescancin-hero-rule"
