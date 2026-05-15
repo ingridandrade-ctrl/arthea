@@ -1205,10 +1205,10 @@ export default function FormFlow() {
         <div className="brescancin-hero">
           <div className="brescancin-hero-inner brescancin-step">
             <p className="brescancin-hero-eyebrow">Clínica Brescancin</p>
-            <div className="brescancin-hero-rule" aria-hidden />
             <p className="brescancin-hero-tagline">
               Excelência em Restauração Capilar
             </p>
+            <div className="brescancin-hero-rule" aria-hidden />
             <h1 className="brescancin-hero-title">
               Bem-vindo(a) ao
               <br />
@@ -1225,9 +1225,7 @@ export default function FormFlow() {
                 preenchimento leva <strong>menos de 5 minutos</strong>.
               </p>
               <p className="brescancin-hero-body brescancin-hero-body-finale">
-                Estamos felizes em te receber
-                <br />
-                na Clínica Brescancin.
+                Estamos felizes em te receber.
               </p>
             </div>
             <div className="brescancin-hero-actions">
