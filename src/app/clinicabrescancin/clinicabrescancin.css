@@ -780,8 +780,73 @@
   }
 }
 
+@keyframes brescancin-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .brescancin-step {
   animation: brescancin-fade 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Hero: filhos entram em cascata, criando uma abertura tipográfica */
+.brescancin-hero-inner.brescancin-step {
+  animation: none;
+}
+
+.brescancin-hero-inner > * {
+  opacity: 0;
+  animation: brescancin-rise 720ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.brescancin-hero-inner > *:nth-child(1) {
+  animation-delay: 80ms;
+}
+.brescancin-hero-inner > *:nth-child(2) {
+  animation-delay: 180ms;
+}
+.brescancin-hero-inner > *:nth-child(3) {
+  animation-delay: 280ms;
+}
+.brescancin-hero-inner > *:nth-child(4) {
+  animation-delay: 400ms;
+}
+.brescancin-hero-inner > *:nth-child(5) {
+  animation-delay: 540ms;
+}
+.brescancin-hero-inner > *:nth-child(6) {
+  animation-delay: 680ms;
+}
+
+/* Brand + linha decorativa do topo das etapas também entram suaves */
+.brescancin-brand,
+.brescancin-container > .brescancin-rule {
+  animation: brescancin-rise 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.brescancin-brand {
+  animation-delay: 60ms;
+}
+
+.brescancin-container > .brescancin-rule {
+  animation-delay: 160ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brescancin-step,
+  .brescancin-hero-inner > *,
+  .brescancin-brand,
+  .brescancin-container > .brescancin-rule {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .brescancin-actions {
@@ -901,8 +966,28 @@
   font-family: var(--font-body), sans-serif;
   font-size: 11px;
   color: var(--bc-text-muted);
+  margin: 0 0 12px;
+  letter-spacing: 0.02em;
+}
+
+.brescancin-footer-credit {
+  font-family: var(--font-body), sans-serif;
+  font-size: 11px;
+  color: var(--bc-text-muted);
   margin: 0;
   letter-spacing: 0.02em;
+}
+
+.brescancin-footer-credit a {
+  color: var(--bc-accent-strong);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.brescancin-footer-credit a:hover {
+  color: var(--bc-accent);
+  border-bottom-color: var(--bc-accent);
 }
 
 /* ============================================================== */

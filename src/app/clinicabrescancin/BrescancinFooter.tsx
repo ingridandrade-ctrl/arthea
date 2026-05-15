@@ -9,6 +9,16 @@ export default function BrescancinFooter() {
       <p className="brescancin-footer-meta">
         © {new Date().getFullYear()} · Todos os direitos reservados
       </p>
+      <p className="brescancin-footer-credit">
+        Feito por{" "}
+        <a
+          href="https://wa.me/5519992002917"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Agência Arthea
+        </a>
+      </p>
     </footer>
   );
 }
