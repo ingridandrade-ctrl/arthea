@@ -9,6 +9,31 @@ const nextConfig = {
       bodySizeLimit: "2mb",
     },
   },
+  async rewrites() {
+    // Subdomínio mindfulness.arthea.com.br serve o app /mindfulness na raiz.
+    // O usuário acessa mindfulness.arthea.com.br/painel e o Next.js, por
+    // baixo, renderiza /mindfulness/painel. Rotas /api/* passam direto —
+    // a app já chama /api/mindfulness/* com path absoluto.
+    return {
+      beforeFiles: [
+        {
+          source: "/",
+          has: [{ type: "host", value: "mindfulness.arthea.com.br" }],
+          destination: "/mindfulness",
+        },
+        {
+          source: "/painel",
+          has: [{ type: "host", value: "mindfulness.arthea.com.br" }],
+          destination: "/mindfulness/painel",
+        },
+        {
+          source: "/painel/:path*",
+          has: [{ type: "host", value: "mindfulness.arthea.com.br" }],
+          destination: "/mindfulness/painel/:path*",
+        },
+      ],
+    };
+  },
   async redirects() {
     return [
       // Reorganização do painel da agência (mai/2026) — mantém URLs antigas funcionando
