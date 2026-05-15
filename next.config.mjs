@@ -9,6 +9,31 @@ const nextConfig = {
       bodySizeLimit: "2mb",
     },
   },
+  async rewrites() {
+    // Subdomínio consulta.clinicabrescancin.com.br serve o app
+    // /clinicabrescancin na raiz. O paciente acessa o domínio direto e
+    // o admin entra em /admin — internamente vira /clinicabrescancin/admin.
+    // /api/* passa direto: a app já chama /api/clinicabrescancin/* absoluto.
+    return {
+      beforeFiles: [
+        {
+          source: "/",
+          has: [{ type: "host", value: "consulta.clinicabrescancin.com.br" }],
+          destination: "/clinicabrescancin",
+        },
+        {
+          source: "/admin",
+          has: [{ type: "host", value: "consulta.clinicabrescancin.com.br" }],
+          destination: "/clinicabrescancin/admin",
+        },
+        {
+          source: "/admin/:path*",
+          has: [{ type: "host", value: "consulta.clinicabrescancin.com.br" }],
+          destination: "/clinicabrescancin/admin/:path*",
+        },
+      ],
+    };
+  },
   async redirects() {
     return [
       // Reorganização do painel da agência (mai/2026) — mantém URLs antigas funcionando

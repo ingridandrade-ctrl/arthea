@@ -30,6 +30,11 @@ function isClientHost(host: string | null) {
   return host.startsWith("clientes.") || host.startsWith("portal.");
 }
 
+function isBrescancinHost(host: string | null) {
+  if (!host) return false;
+  return host.startsWith("consulta.");
+}
+
 function isPublicPath(pathname: string) {
   return pathname === "/login" || pathname.startsWith("/api/auth");
 }
@@ -41,10 +46,17 @@ function isPortalPath(pathname: string) {
 
 export default withAuth(
   function middleware(req) {
+    const host = req.headers.get("host");
+
+    // ── Subdomínio clínica Brescancin — formulário pré-consulta,
+    // totalmente isolado do CRM/portal e com auth próprio no /admin.
+    if (isBrescancinHost(host)) {
+      return NextResponse.next();
+    }
+
     const token = req.nextauth.token as any;
     const pathname = req.nextUrl.pathname;
     const role = token?.role;
-    const host = req.headers.get("host");
     const onClientHost = isClientHost(host);
 
     // ── Subdomínio do cliente (clientes.arthea.com.br) ──
@@ -79,6 +91,9 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const pathname = req.nextUrl.pathname;
+        const host = req.headers.get("host");
+        // Subdomínio brescancin não exige sessão NextAuth.
+        if (isBrescancinHost(host)) return true;
         if (isPublicPath(pathname)) return true;
         return !!token;
       },
