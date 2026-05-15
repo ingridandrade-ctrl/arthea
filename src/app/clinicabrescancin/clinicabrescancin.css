@@ -424,3 +424,242 @@
 .brescancin-app a {
   color: var(--bc-accent);
 }
+
+/* ─── Toggle mostrar/ocultar senha (login do admin) ─── */
+.brescancin-password-wrap {
+  position: relative;
+}
+
+.brescancin-password-wrap .brescancin-input {
+  padding-right: 88px;
+}
+
+.brescancin-password-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--bc-accent);
+  font-family: var(--font-body), sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 8px 10px;
+  min-height: 36px;
+}
+
+.brescancin-password-toggle:hover {
+  color: var(--bc-text-primary);
+}
+
+/* ─── Painel admin ─── */
+.brescancin-admin {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-admin {
+    padding: 48px 32px;
+  }
+}
+
+.brescancin-admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.brescancin-admin-count {
+  margin: 6px 0 0;
+  color: var(--bc-text-secondary);
+  font-size: 13px;
+}
+
+.brescancin-admin-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.brescancin-admin-actions a.brescancin-btn-primary {
+  text-decoration: none;
+}
+
+.brescancin-admin-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.brescancin-admin-table-wrap {
+  background: var(--bc-bg-card);
+  border: 1px solid var(--bc-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.brescancin-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body), sans-serif;
+}
+
+.brescancin-admin-table th,
+.brescancin-admin-table td {
+  text-align: left;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--bc-border);
+}
+
+.brescancin-admin-table th {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bc-text-secondary);
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.brescancin-admin-table tbody tr {
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.brescancin-admin-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.brescancin-admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.brescancin-admin-table td {
+  font-size: 14px;
+  color: var(--bc-text-primary);
+}
+
+.brescancin-admin-sub {
+  font-size: 12px;
+  color: var(--bc-text-secondary);
+  margin-top: 2px;
+}
+
+.brescancin-admin-chevron {
+  text-align: right;
+  color: var(--bc-accent);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ─── Drawer ─── */
+.brescancin-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 50;
+  animation: brescancin-fade 180ms ease;
+}
+
+.brescancin-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 560px;
+  background: var(--bc-bg-surface);
+  border-left: 1px solid var(--bc-border);
+  z-index: 51;
+  display: flex;
+  flex-direction: column;
+  animation: brescancin-slide-in 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes brescancin-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.brescancin-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--bc-border);
+  flex-shrink: 0;
+}
+
+.brescancin-drawer-name {
+  font-family: var(--font-display), serif;
+  font-size: 20px;
+  color: var(--bc-text-primary);
+}
+
+.brescancin-drawer-meta {
+  font-size: 12px;
+  color: var(--bc-text-secondary);
+  margin-top: 4px;
+}
+
+.brescancin-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 32px;
+}
+
+.brescancin-drawer-section {
+  margin-bottom: 24px;
+}
+
+.brescancin-drawer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+.brescancin-drawer-item {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+}
+
+@media (min-width: 480px) {
+  .brescancin-drawer-item {
+    grid-template-columns: 200px 1fr;
+    gap: 16px;
+  }
+}
+
+.brescancin-drawer-item dt {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bc-text-secondary);
+  font-weight: 500;
+}
+
+.brescancin-drawer-item dd {
+  margin: 0;
+  font-size: 14px;
+  color: var(--bc-text-primary);
+  line-height: 1.5;
+  word-break: break-word;
+}
