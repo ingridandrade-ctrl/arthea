@@ -306,6 +306,27 @@ function validateForStep(step: Step, a: Answers): Errors {
 
 // ─── Field components ──────────────────────────────────────────────
 
+// Suavemente desliza pra próxima pergunta depois de selecionar uma resposta.
+function scrollToNextField(currentField: HTMLElement | null) {
+  if (!currentField) return;
+  setTimeout(() => {
+    let cursor = currentField.nextElementSibling;
+    while (cursor) {
+      if (
+        cursor instanceof HTMLElement &&
+        (cursor.classList.contains("brescancin-field") ||
+          cursor.classList.contains("brescancin-subfield") ||
+          cursor.classList.contains("brescancin-block-title"))
+      ) {
+        cursor.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      cursor = cursor.nextElementSibling;
+    }
+  }, 220);
+}
+
+
 type FieldTextProps = {
   label: string;
   required?: boolean;
@@ -403,15 +424,20 @@ function FieldSelect({
   placeholder = "Selecione",
   error,
 }: FieldSelectProps) {
+  const fieldRef = useRef<HTMLDivElement>(null);
   return (
-    <div className="brescancin-field">
+    <div className="brescancin-field" ref={fieldRef}>
       <label className={`brescancin-label${required ? " brescancin-label-required" : ""}`}>
         {label}
       </label>
       <select
         className="brescancin-select"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          const v = e.target.value;
+          onChange(v);
+          if (v && v !== value) scrollToNextField(fieldRef.current);
+        }}
       >
         <option value="">{placeholder}</option>
         {options.map((opt) => (
@@ -436,8 +462,9 @@ type FieldRadioProps = {
 };
 
 function FieldRadio({ label, required, value, onChange, options, helper, error }: FieldRadioProps) {
+  const fieldRef = useRef<HTMLDivElement>(null);
   return (
-    <div className="brescancin-field">
+    <div className="brescancin-field" ref={fieldRef}>
       <span className={`brescancin-label${required ? " brescancin-label-required" : ""}`}>
         {label}
       </span>
@@ -448,7 +475,11 @@ function FieldRadio({ label, required, value, onChange, options, helper, error }
             <input
               type="radio"
               checked={value === opt}
-              onChange={() => onChange(opt)}
+              onChange={() => {
+                const wasUnchanged = value === opt;
+                onChange(opt);
+                if (!wasUnchanged) scrollToNextField(fieldRef.current);
+              }}
             />
             <span>{opt}</span>
           </label>
@@ -1205,10 +1236,10 @@ export default function FormFlow() {
         <div className="brescancin-hero">
           <div className="brescancin-hero-inner brescancin-step">
             <p className="brescancin-hero-eyebrow">Clínica Brescancin</p>
-            <div className="brescancin-hero-rule" aria-hidden />
             <p className="brescancin-hero-tagline">
               Excelência em Restauração Capilar
             </p>
+            <div className="brescancin-hero-rule" aria-hidden />
             <h1 className="brescancin-hero-title">
               Bem-vindo(a) ao
               <br />
@@ -1225,9 +1256,7 @@ export default function FormFlow() {
                 preenchimento leva <strong>menos de 5 minutos</strong>.
               </p>
               <p className="brescancin-hero-body brescancin-hero-body-finale">
-                Estamos felizes em te receber
-                <br />
-                na Clínica Brescancin.
+                Estamos felizes em te receber.
               </p>
             </div>
             <div className="brescancin-hero-actions">
@@ -1281,14 +1310,6 @@ export default function FormFlow() {
             <p className="brescancin-hero-body">
               Vamos preparar tudo com muito carinho para receber você,
               te vemos em consulta!
-            </p>
-            <div
-              className="brescancin-hero-rule"
-              aria-hidden
-              style={{ marginTop: 48, marginBottom: 20 }}
-            />
-            <p className="brescancin-hero-eyebrow" style={{ margin: 0 }}>
-              Excelência em Restauração Capilar
             </p>
           </div>
         </div>

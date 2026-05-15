@@ -167,7 +167,7 @@
   z-index: 1;
   max-width: 720px;
   margin: 0 auto;
-  padding: 32px 14px 48px;
+  padding: 32px 8px 48px;
 }
 
 @media (min-width: 768px) {
@@ -203,16 +203,42 @@
   width: 100%;
 }
 
+/* Brand serif — Clínica Brescancin */
 .brescancin-hero-eyebrow {
-  font-family: var(--font-body), sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: -0.005em;
   color: var(--bc-accent);
-  margin: 0 0 32px;
+  margin: 0 0 12px;
 }
 
+@media (min-width: 768px) {
+  .brescancin-hero-eyebrow {
+    font-size: 32px;
+  }
+}
+
+/* Tagline — sans-serif uppercase tracked */
+.brescancin-hero-tagline {
+  font-family: var(--font-body), sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  color: var(--bc-text-secondary);
+  margin: 0 0 28px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-hero-tagline {
+    font-size: 12px;
+    margin-bottom: 32px;
+  }
+}
+
+/* Risca divisória — agora entre tagline e título */
 .brescancin-hero-rule {
   width: 56px;
   height: 1px;
@@ -222,30 +248,14 @@
     var(--bc-accent) 50%,
     transparent 100%
   );
-  margin: 0 auto 40px;
-}
-
-.brescancin-hero-tagline {
-  font-family: var(--font-display), serif;
-  font-style: italic;
-  font-size: 18px;
-  font-weight: 400;
-  color: var(--bc-accent);
-  margin: 0 0 16px;
-  letter-spacing: 0.005em;
-}
-
-@media (min-width: 768px) {
-  .brescancin-hero-tagline {
-    font-size: 22px;
-  }
+  margin: 0 auto 36px;
 }
 
 .brescancin-hero-title {
   font-family: var(--font-display), serif;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 400;
-  line-height: 1.15;
+  line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--bc-text);
   margin: 0 auto;
@@ -254,13 +264,27 @@
 
 @media (min-width: 768px) {
   .brescancin-hero-title {
-    font-size: 42px;
+    font-size: 38px;
   }
 }
 
 @media (min-width: 1024px) {
   .brescancin-hero-title {
-    font-size: 48px;
+    font-size: 44px;
+  }
+}
+
+/* Gap entre título e corpo único (caso do done) */
+.brescancin-hero-title + .brescancin-hero-body {
+  margin-top: 28px;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 768px) {
+  .brescancin-hero-title + .brescancin-hero-body {
+    margin-top: 36px;
   }
 }
 
@@ -272,15 +296,15 @@
 
 .brescancin-hero-body {
   color: var(--bc-text-secondary);
-  font-size: 17px;
-  line-height: 1.75;
+  font-size: 15px;
+  line-height: 1.7;
   margin: 0;
 }
 
 @media (min-width: 768px) {
   .brescancin-hero-body {
-    font-size: 18px;
-    line-height: 1.8;
+    font-size: 16px;
+    line-height: 1.75;
   }
 }
 
@@ -375,7 +399,7 @@
   background: var(--bc-card);
   border: 1px solid var(--bc-border);
   border-radius: 20px;
-  padding: 32px 20px;
+  padding: 32px 18px;
   box-shadow: var(--bc-shadow-card);
 }
 
@@ -399,19 +423,19 @@
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--bc-text);
-  margin-bottom: 32px;
+  margin-bottom: 44px;
 }
 
 @media (min-width: 768px) {
   .brescancin-step-title {
     font-size: 34px;
-    margin-bottom: 36px;
+    margin-bottom: 48px;
   }
 }
 
 /* Quando vem intro logo abaixo, encosta o título nela */
 .brescancin-step-title:has(+ .brescancin-step-intro) {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .brescancin-step-intro {
@@ -520,7 +544,7 @@
 
 .brescancin-label {
   font-family: var(--font-body), sans-serif;
-  font-size: 16px;
+  font-size: 17px;
   color: var(--bc-text);
   font-weight: 600;
   letter-spacing: -0.005em;
@@ -529,7 +553,7 @@
 
 @media (min-width: 768px) {
   .brescancin-label {
-    font-size: 17px;
+    font-size: 18px;
   }
 }
 
@@ -899,15 +923,23 @@
 
 /* ─── Bloco interno (Cabelo / Sobrancelhas) ─── */
 .brescancin-block-title {
-  font-family: var(--font-body), sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.005em;
   color: var(--bc-accent-strong);
-  margin: 24px 0 24px;
+  margin: 32px 0 32px;
   padding-top: 32px;
   border-top: 1px solid var(--bc-border);
+}
+
+@media (min-width: 768px) {
+  .brescancin-block-title {
+    font-size: 26px;
+    margin: 40px 0 36px;
+    padding-top: 40px;
+  }
 }
 
 .brescancin-block-title:first-child {
@@ -957,7 +989,7 @@
   position: relative;
   z-index: 1;
   margin-top: auto;
-  padding: 40px 24px 32px;
+  padding: 32px 24px 24px;
   text-align: center;
   border-top: 1px solid var(--bc-border);
 }
@@ -966,7 +998,7 @@
   width: 32px;
   height: 1px;
   background: var(--bc-accent);
-  margin: 0 auto 20px;
+  margin: 0 auto 14px;
 }
 
 .brescancin-footer-brand {
@@ -974,26 +1006,25 @@
   font-size: 15px;
   font-style: italic;
   color: var(--bc-accent);
-  margin: 0 0 6px;
+  margin: 0 0 2px;
   letter-spacing: 0.005em;
 }
 
 .brescancin-footer-tagline {
   font-family: var(--font-body), sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   color: var(--bc-text-muted);
-  margin: 0 0 16px;
+  margin: 0 0 10px;
 }
 
 .brescancin-footer-meta {
   font-family: var(--font-body), sans-serif;
   font-size: 11px;
   color: var(--bc-text-muted);
-  margin: 0 0 12px;
-  letter-spacing: 0.02em;
+  margin: 0 0 4px;
+  letter-spacing: 0.01em;
 }
 
 .brescancin-footer-credit {
@@ -1001,7 +1032,7 @@
   font-size: 11px;
   color: var(--bc-text-muted);
   margin: 0;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
 .brescancin-footer-credit a {
