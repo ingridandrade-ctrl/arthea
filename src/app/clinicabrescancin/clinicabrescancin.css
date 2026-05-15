@@ -1,0 +1,665 @@
+/* =========================================================================
+ * Clínica Brescancin — formulário pré-consulta
+ * Estilos escopados sob .brescancin-app — não usar Tailwind aqui.
+ * ========================================================================= */
+
+.brescancin-app {
+  /* Tokens de cor */
+  --bc-bg-primary: #1b3a6b;
+  --bc-bg-card: #1e4080;
+  --bc-bg-surface: #162e58;
+  --bc-accent: #c9a96e;
+  --bc-text-primary: #ffffff;
+  --bc-text-secondary: #cbd5e1;
+  --bc-border: rgba(201, 169, 110, 0.25);
+  --bc-border-hover: rgba(201, 169, 110, 0.6);
+  --bc-error: #f87171;
+
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--bc-bg-primary) 0%, var(--bc-bg-surface) 100%);
+  color: var(--bc-text-primary);
+  font-family: var(--font-body), "DM Sans", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.brescancin-app *,
+.brescancin-app *::before,
+.brescancin-app *::after {
+  box-sizing: border-box;
+}
+
+.brescancin-app h1,
+.brescancin-app h2,
+.brescancin-app h3 {
+  font-family: var(--font-display), "Playfair Display", serif;
+  font-weight: 500;
+  margin: 0;
+  color: var(--bc-text-primary);
+}
+
+/* Layout container */
+.brescancin-container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-container {
+    padding: 56px 24px 64px;
+  }
+}
+
+/* Linha de marca */
+.brescancin-brand {
+  font-family: var(--font-display), serif;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+/* Card */
+.brescancin-card {
+  background: var(--bc-bg-card);
+  border: 1px solid var(--bc-border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-card {
+    padding: 32px;
+  }
+}
+
+/* Tipografia */
+.brescancin-title {
+  font-family: var(--font-display), serif;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+@media (min-width: 768px) {
+  .brescancin-title {
+    font-size: 34px;
+  }
+}
+
+.brescancin-subtitle {
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  color: var(--bc-accent);
+  font-size: 16px;
+  margin-top: 12px;
+}
+
+.brescancin-body {
+  color: var(--bc-text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-top: 16px;
+}
+
+/* Botões */
+.brescancin-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 12px 24px;
+  border: 1.5px solid var(--bc-accent);
+  background: transparent;
+  color: var(--bc-accent);
+  font-family: var(--font-body), sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.brescancin-btn-primary:hover:not(:disabled) {
+  background: var(--bc-accent);
+  color: var(--bc-bg-primary);
+}
+
+.brescancin-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.brescancin-btn-ghost {
+  background: transparent;
+  border: none;
+  color: var(--bc-text-secondary);
+  font-family: var(--font-body), sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 12px 8px;
+  min-height: 44px;
+  transition: color 180ms ease;
+}
+
+.brescancin-btn-ghost:hover {
+  color: var(--bc-accent);
+}
+
+/* Campos de formulário */
+.brescancin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.brescancin-label {
+  font-family: var(--font-body), sans-serif;
+  font-size: 14px;
+  color: var(--bc-text-primary);
+  font-weight: 500;
+}
+
+.brescancin-label-required::after {
+  content: " *";
+  color: var(--bc-accent);
+}
+
+.brescancin-help {
+  font-size: 13px;
+  color: var(--bc-text-secondary);
+}
+
+.brescancin-input,
+.brescancin-select,
+.brescancin-textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--bc-text-primary);
+  font-family: var(--font-body), sans-serif;
+  font-size: 15px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  min-height: 44px;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.brescancin-input:focus,
+.brescancin-select:focus,
+.brescancin-textarea:focus {
+  border-color: var(--bc-accent);
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.brescancin-input::placeholder,
+.brescancin-textarea::placeholder {
+  color: rgba(203, 213, 225, 0.5);
+}
+
+.brescancin-textarea {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.brescancin-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23C9A96E' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}
+
+.brescancin-select option {
+  background: var(--bc-bg-card);
+  color: var(--bc-text-primary);
+}
+
+.brescancin-input[type="date"] {
+  color-scheme: dark;
+}
+
+/* Radio + Checkbox customizados (sem nativos) */
+.brescancin-radio-group,
+.brescancin-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brescancin-radio,
+.brescancin-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 4px;
+  min-height: 44px;
+  cursor: pointer;
+  font-family: var(--font-body), sans-serif;
+  font-size: 15px;
+  color: var(--bc-text-primary);
+  line-height: 1.4;
+}
+
+.brescancin-radio input,
+.brescancin-checkbox input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+  position: relative;
+}
+
+.brescancin-radio input {
+  border-radius: 50%;
+}
+
+.brescancin-checkbox input {
+  border-radius: 4px;
+}
+
+.brescancin-radio input:checked {
+  border-color: var(--bc-accent);
+}
+
+.brescancin-radio input:checked::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  background: var(--bc-accent);
+  border-radius: 50%;
+}
+
+.brescancin-checkbox input:checked {
+  border-color: var(--bc-accent);
+  background: var(--bc-accent);
+}
+
+.brescancin-checkbox input:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 6px;
+  height: 11px;
+  border: solid var(--bc-bg-primary);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.brescancin-radio:hover input:not(:checked),
+.brescancin-checkbox:hover input:not(:checked) {
+  border-color: var(--bc-border-hover);
+}
+
+.brescancin-radio input:focus-visible,
+.brescancin-checkbox input:focus-visible {
+  outline: 2px solid var(--bc-accent);
+  outline-offset: 2px;
+}
+
+/* Erros */
+.brescancin-error {
+  color: var(--bc-error);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* Barra de progresso */
+.brescancin-progress {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.brescancin-progress-fill {
+  height: 100%;
+  background: var(--bc-accent);
+  border-radius: 99px;
+  transition: width 320ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.brescancin-progress-label {
+  font-family: var(--font-body), sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bc-text-secondary);
+  margin-bottom: 8px;
+}
+
+/* Transição entre etapas */
+@keyframes brescancin-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.brescancin-step {
+  animation: brescancin-fade 200ms ease;
+}
+
+.brescancin-step-title {
+  font-family: var(--font-display), serif;
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.brescancin-step-intro {
+  color: var(--bc-text-secondary);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+/* Subtítulo de bloco dentro de uma etapa (ex: "Cabelo", "Sobrancelhas") */
+.brescancin-block-title {
+  font-family: var(--font-display), serif;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bc-accent);
+  margin: 8px 0 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--bc-border);
+}
+
+.brescancin-block-title:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* Rodapé com botões de navegação */
+.brescancin-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+/* Tela de confirmação */
+.brescancin-check {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--bc-accent);
+  color: var(--bc-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sub-campo condicional (ex: "Se Sim, qual?") */
+.brescancin-subfield {
+  margin-top: -8px;
+  margin-left: 16px;
+  padding-left: 16px;
+  border-left: 1px solid var(--bc-border);
+  margin-bottom: 20px;
+}
+
+.brescancin-app a {
+  color: var(--bc-accent);
+}
+
+/* ─── Toggle mostrar/ocultar senha (login do admin) ─── */
+.brescancin-password-wrap {
+  position: relative;
+}
+
+.brescancin-password-wrap .brescancin-input {
+  padding-right: 88px;
+}
+
+.brescancin-password-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--bc-accent);
+  font-family: var(--font-body), sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 8px 10px;
+  min-height: 36px;
+}
+
+.brescancin-password-toggle:hover {
+  color: var(--bc-text-primary);
+}
+
+/* ─── Painel admin ─── */
+.brescancin-admin {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-admin {
+    padding: 48px 32px;
+  }
+}
+
+.brescancin-admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.brescancin-admin-count {
+  margin: 6px 0 0;
+  color: var(--bc-text-secondary);
+  font-size: 13px;
+}
+
+.brescancin-admin-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.brescancin-admin-actions a.brescancin-btn-primary {
+  text-decoration: none;
+}
+
+.brescancin-admin-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.brescancin-admin-table-wrap {
+  background: var(--bc-bg-card);
+  border: 1px solid var(--bc-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.brescancin-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body), sans-serif;
+}
+
+.brescancin-admin-table th,
+.brescancin-admin-table td {
+  text-align: left;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--bc-border);
+}
+
+.brescancin-admin-table th {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bc-text-secondary);
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.brescancin-admin-table tbody tr {
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.brescancin-admin-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.brescancin-admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.brescancin-admin-table td {
+  font-size: 14px;
+  color: var(--bc-text-primary);
+}
+
+.brescancin-admin-sub {
+  font-size: 12px;
+  color: var(--bc-text-secondary);
+  margin-top: 2px;
+}
+
+.brescancin-admin-chevron {
+  text-align: right;
+  color: var(--bc-accent);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ─── Drawer ─── */
+.brescancin-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 50;
+  animation: brescancin-fade 180ms ease;
+}
+
+.brescancin-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 560px;
+  background: var(--bc-bg-surface);
+  border-left: 1px solid var(--bc-border);
+  z-index: 51;
+  display: flex;
+  flex-direction: column;
+  animation: brescancin-slide-in 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes brescancin-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.brescancin-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--bc-border);
+  flex-shrink: 0;
+}
+
+.brescancin-drawer-name {
+  font-family: var(--font-display), serif;
+  font-size: 20px;
+  color: var(--bc-text-primary);
+}
+
+.brescancin-drawer-meta {
+  font-size: 12px;
+  color: var(--bc-text-secondary);
+  margin-top: 4px;
+}
+
+.brescancin-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px 32px;
+}
+
+.brescancin-drawer-section {
+  margin-bottom: 24px;
+}
+
+.brescancin-drawer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+.brescancin-drawer-item {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+}
+
+@media (min-width: 480px) {
+  .brescancin-drawer-item {
+    grid-template-columns: 200px 1fr;
+    gap: 16px;
+  }
+}
+
+.brescancin-drawer-item dt {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bc-text-secondary);
+  font-weight: 500;
+}
+
+.brescancin-drawer-item dd {
+  margin: 0;
+  font-size: 14px;
+  color: var(--bc-text-primary);
+  line-height: 1.5;
+  word-break: break-word;
+}
