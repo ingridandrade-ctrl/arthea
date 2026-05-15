@@ -39,7 +39,7 @@ export const DOENCAS_EXCLUSIVA = "Nenhuma das anteriores";
 
 export const SAUDE_MAE = [
   "Saudável",
-  "Falecida",
+  "Já faleceu",
   "Hipertensa",
   "Diabética",
   "Obesa",
@@ -50,7 +50,7 @@ export const SAUDE_MAE = [
 
 export const SAUDE_PAI = [
   "Saudável",
-  "Falecido",
+  "Já faleceu",
   "Hipertenso",
   "Diabético",
   "Obeso",
@@ -58,6 +58,11 @@ export const SAUDE_PAI = [
   "Problema de Tireoide",
   "Histórico de Câncer de Próstata",
 ] as const;
+
+// "Saudável" exclui o resto — quem é saudável não tem condições listadas.
+// "Já faleceu" não é exclusivo: pode (e deve) ser combinado com as condições
+// que ele(a) tinha em vida.
+export const SAUDE_PAIS_EXCLUSIVA = "Saudável";
 
 export const FREQUENCIA_ALCOOL = [
   "Não costumo",
@@ -89,6 +94,8 @@ export const QUEIXA_CAPILAR = [
 ] as const;
 // Opção exclusiva — marcar "Nada no momento" zera as outras.
 export const QUEIXA_CAPILAR_EXCLUSIVA = "Nada no momento";
+// Sub-pergunta sobre tipo de queda só faz sentido quando há queda.
+export const QUEIXA_CAPILAR_QUEDA = "Queda intensa";
 
 export const TIPO_QUEDA = ["De repente", "Foi gradual", "Não sei dizer"] as const;
 
