@@ -1116,16 +1116,14 @@ export default function FormFlow() {
               Excelência em Restauração Capilar
             </p>
             <h1 className="brescancin-hero-title">
-              Bem-vindo(a) ao seu <em>Pré-Atendimento</em>
+              Bem-vindo(a) ao
+              <br />
+              seu <em>Pré-Atendimento</em>.
             </h1>
             <div className="brescancin-hero-body-group">
               <p className="brescancin-hero-body">
-                Olá, se você chegou até aqui é porque tem uma consulta
-                agendada conosco.
-              </p>
-              <p className="brescancin-hero-body">
                 Nós queremos cuidar de você com toda atenção, por isso
-                preparamos este formulário pré-consulta para já te conhecer
+                preparamos este formulário pré-consulta para te conhecer
                 melhor.
               </p>
               <p className="brescancin-hero-body">
@@ -1133,7 +1131,9 @@ export default function FormFlow() {
                 preenchimento leva <strong>menos de 5 minutos</strong>.
               </p>
               <p className="brescancin-hero-body brescancin-hero-body-finale">
-                Estamos felizes em te receber na Clínica Brescancin.
+                Estamos felizes em te receber
+                <br />
+                na Clínica Brescancin.
               </p>
             </div>
             <div className="brescancin-hero-actions">
