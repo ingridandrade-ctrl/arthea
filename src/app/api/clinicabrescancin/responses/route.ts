@@ -21,6 +21,16 @@ const FREQUENCIA_ALCOOL = [
 ];
 const QUALIDADE_SONO = ["Menos de 5h", "Entre 5h e 6h", "Entre 7h e 8h", "Mais de 8h"];
 const NIVEL_ESTRESSE = ["Baixo", "Moderado", "Alto", "Muito alto"];
+const DIETA = [
+  "Não tenho uma dieta específica",
+  "Baixo teor de gordura",
+  "Sem glúten",
+  "Sem laticínios",
+  "Baixo carboidrato",
+  "Alta proteína",
+  "Diabético",
+  "Outra",
+];
 
 function err(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -176,6 +186,26 @@ export async function POST(req: Request) {
     return err("Selecione o nível de estresse.");
   }
 
+  const dieta = toStr(b.dieta);
+  if (!DIETA.includes(dieta)) {
+    return err("Selecione uma opção de dieta.");
+  }
+  if (dieta === "Outra" && !toStr(b.dietaOutra).trim()) {
+    return err("Conte qual é a sua dieta.");
+  }
+
+  const tomaLeite = toStr(b.tomaLeite);
+  if (!SIM_NAO.includes(tomaLeite as (typeof SIM_NAO)[number])) {
+    return err("Informe se toma leite todos os dias.");
+  }
+
+  const comeCastanhasAmendoas = toStr(b.comeCastanhasAmendoas);
+  if (
+    !SIM_NAO.includes(comeCastanhasAmendoas as (typeof SIM_NAO)[number])
+  ) {
+    return err("Informe se costuma comer castanhas ou amêndoas.");
+  }
+
   // ─── Etapa 5 — obrigatórios ───
   const principalIncomodo = toStr(b.principalIncomodo).trim();
   if (!principalIncomodo) return err("Conte o que mais te incomoda hoje.");
@@ -214,6 +244,10 @@ export async function POST(req: Request) {
     qualAtividadeFisica: toStr(b.qualAtividadeFisica).trim(),
     qualidadeSono,
     nivelEstresse,
+    dieta,
+    dietaOutra: toStr(b.dietaOutra).trim(),
+    tomaLeite,
+    comeCastanhasAmendoas,
     // Etapa 4
     queixaCapilar: toStrArray(b.queixaCapilar),
     tempoQueixa: toStr(b.tempoQueixa).trim(),
