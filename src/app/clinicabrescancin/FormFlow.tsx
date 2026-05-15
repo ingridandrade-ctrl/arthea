@@ -27,11 +27,41 @@ import {
 
 type Step = "welcome" | "step1" | "step2" | "step3" | "step4" | "step5" | "done";
 
+// ─── Data de nascimento (input texto com máscara DD/MM/AAAA) ──────
+function applyDateMask(input: string): string {
+  const digits = input.replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
+
+function parseBrDateToIso(br: string): string | null {
+  const m = br.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  const [, dd, mm, yyyy] = m;
+  const day = Number(dd);
+  const month = Number(mm);
+  const year = Number(yyyy);
+  if (month < 1 || month > 12) return null;
+  if (day < 1 || day > 31) return null;
+  if (year < 1900 || year > new Date().getFullYear()) return null;
+  // Confere data real (ex: 31/02 não existe)
+  const d = new Date(Date.UTC(year, month - 1, day));
+  if (
+    d.getUTCFullYear() !== year ||
+    d.getUTCMonth() !== month - 1 ||
+    d.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 type Answers = {
   // Etapa 1
   nomeCompleto: string;
   apelido: string;
-  dataNascimento: string; // ISO YYYY-MM-DD
+  dataNascimento: string; // formato BR DD/MM/AAAA enquanto preenche
   genero: string;
   estadoCivil: string;
   profissao: string;
@@ -183,7 +213,11 @@ function isValidEmail(v: string): boolean {
 function validateStep1(a: Answers): Errors {
   const e: Errors = {};
   if (!a.nomeCompleto.trim()) e.nomeCompleto = "Preencha seu nome completo.";
-  if (!a.dataNascimento) e.dataNascimento = "Selecione sua data de nascimento.";
+  if (!a.dataNascimento.trim()) {
+    e.dataNascimento = "Informe sua data de nascimento.";
+  } else if (!parseBrDateToIso(a.dataNascimento)) {
+    e.dataNascimento = "Use o formato DD/MM/AAAA.";
+  }
   if (!a.genero) e.genero = "Selecione uma opção.";
   if (!a.cidade.trim()) e.cidade = "Em que cidade você mora?";
   if (!a.telefone.trim()) e.telefone = "Informe um telefone para contato.";
@@ -514,9 +548,10 @@ function Step1Fields({ answers, errors, update }: StepProps) {
       <FieldText
         label="Data de nascimento"
         required
-        type="date"
+        inputMode="numeric"
+        placeholder="DD/MM/AAAA"
         value={answers.dataNascimento}
-        onChange={(v) => update("dataNascimento", v)}
+        onChange={(v) => update("dataNascimento", applyDateMask(v))}
         error={errors.dataNascimento}
       />
       <FieldRadio
@@ -1108,10 +1143,15 @@ export default function FormFlow() {
     setSubmitError(null);
     setIsSubmitting(true);
     try {
+      const isoBirthdate = parseBrDateToIso(answers.dataNascimento);
+      const payload = {
+        ...answers,
+        dataNascimento: isoBirthdate ?? answers.dataNascimento,
+      };
       const res = await fetch("/api/clinicabrescancin/responses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answers),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
