@@ -1,27 +1,21 @@
 /* =========================================================================
  * Clínica Brescancin — formulário pré-consulta
- * Estilos escopados sob .brescancin-app — não usar Tailwind aqui.
+ *
+ * Arquitetura de temas:
+ *   - .brescancin-app (layout): só tipografia/reset, sem cor.
+ *   - .brescancin-light (page-level): tema editorial claro pro paciente.
+ *   - .brescancin-dark  (page-level): tema navy refinado pro /admin.
+ *
+ * Todos os componentes consomem variáveis (--bc-*) e cada wrapper de
+ * página decide o tema. Trocar entre claro e escuro é só trocar a classe.
  * ========================================================================= */
 
 .brescancin-app {
-  /* Tokens de cor */
-  --bc-bg-primary: #1b3a6b;
-  --bc-bg-card: #1e4080;
-  --bc-bg-surface: #162e58;
-  --bc-accent: #c9a96e;
-  --bc-text-primary: #ffffff;
-  --bc-text-secondary: #cbd5e1;
-  --bc-border: rgba(201, 169, 110, 0.25);
-  --bc-border-hover: rgba(201, 169, 110, 0.6);
-  --bc-error: #f87171;
-
-  min-height: 100vh;
-  background: linear-gradient(180deg, var(--bc-bg-primary) 0%, var(--bc-bg-surface) 100%);
-  color: var(--bc-text-primary);
   font-family: var(--font-body), "DM Sans", system-ui, sans-serif;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .brescancin-app *,
@@ -32,107 +26,249 @@
 
 .brescancin-app h1,
 .brescancin-app h2,
-.brescancin-app h3 {
-  font-family: var(--font-display), "Playfair Display", serif;
-  font-weight: 500;
+.brescancin-app h3,
+.brescancin-app h4 {
+  font-family: var(--font-display), "Playfair Display", "Times New Roman", serif;
+  font-weight: 400;
   margin: 0;
-  color: var(--bc-text-primary);
+  color: var(--bc-text);
+  letter-spacing: -0.005em;
 }
 
-/* Layout container */
+.brescancin-app a {
+  color: var(--bc-accent-strong);
+  text-decoration: none;
+}
+
+.brescancin-app a:hover {
+  color: var(--bc-accent);
+}
+
+/* ============================================================== */
+/*  TEMAS                                                          */
+/* ============================================================== */
+
+.brescancin-light {
+  --bc-bg: #faf7f2;
+  --bc-surface: #f4efe7;
+  --bc-card: #ffffff;
+  --bc-text: #1a2940;
+  --bc-text-secondary: #5a6b85;
+  --bc-text-muted: #8b97a8;
+  --bc-accent: #b8945c;
+  --bc-accent-strong: #8b6f3f;
+  --bc-border: rgba(26, 41, 64, 0.08);
+  --bc-border-strong: rgba(26, 41, 64, 0.18);
+  --bc-border-accent: rgba(184, 148, 92, 0.45);
+  --bc-error: #b8483d;
+  --bc-input-bg: #ffffff;
+  --bc-input-border: rgba(26, 41, 64, 0.14);
+  --bc-input-border-hover: rgba(26, 41, 64, 0.3);
+  --bc-shadow-card: 0 1px 2px rgba(26, 41, 64, 0.03),
+    0 8px 28px rgba(26, 41, 64, 0.05);
+  --bc-overlay: rgba(26, 41, 64, 0.45);
+  --bc-track: rgba(26, 41, 64, 0.08);
+  --bc-radio-empty: rgba(26, 41, 64, 0.22);
+
+  background: var(--bc-bg);
+  color: var(--bc-text);
+  min-height: 100vh;
+}
+
+.brescancin-dark {
+  --bc-bg: #1b3a6b;
+  --bc-surface: #162e58;
+  --bc-card: #1e4080;
+  --bc-text: #ffffff;
+  --bc-text-secondary: #cbd5e1;
+  --bc-text-muted: #94a3b8;
+  --bc-accent: #d4b377;
+  --bc-accent-strong: #c9a96e;
+  --bc-border: rgba(212, 179, 119, 0.22);
+  --bc-border-strong: rgba(212, 179, 119, 0.5);
+  --bc-border-accent: rgba(212, 179, 119, 0.6);
+  --bc-error: #f87171;
+  --bc-input-bg: rgba(255, 255, 255, 0.06);
+  --bc-input-border: rgba(255, 255, 255, 0.18);
+  --bc-input-border-hover: rgba(255, 255, 255, 0.3);
+  --bc-shadow-card: none;
+  --bc-overlay: rgba(0, 0, 0, 0.55);
+  --bc-track: rgba(255, 255, 255, 0.1);
+  --bc-radio-empty: rgba(255, 255, 255, 0.4);
+
+  background: linear-gradient(180deg, #1b3a6b 0%, #162e58 100%);
+  color: var(--bc-text);
+  min-height: 100vh;
+}
+
+/* ============================================================== */
+/*  Paciente                                                       */
+/* ============================================================== */
+
 .brescancin-container {
-  max-width: 640px;
+  max-width: 680px;
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: 48px 24px 56px;
 }
 
 @media (min-width: 768px) {
   .brescancin-container {
-    padding: 56px 24px 64px;
+    padding: 80px 32px 80px;
   }
 }
 
-/* Linha de marca */
+/* Marca: pequena, tracked, gold, sobre divisor fino */
 .brescancin-brand {
-  font-family: var(--font-display), serif;
-  font-size: 22px;
-  letter-spacing: 0.02em;
+  font-family: var(--font-body), sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--bc-accent-strong);
   text-align: center;
-  margin-bottom: 32px;
+  margin: 0 0 8px;
 }
 
-/* Card */
+.brescancin-rule {
+  width: 40px;
+  height: 1px;
+  background: var(--bc-accent);
+  margin: 0 auto 40px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-rule {
+    margin-bottom: 56px;
+  }
+}
+
+/* ─── Card ─── */
 .brescancin-card {
-  background: var(--bc-bg-card);
+  background: var(--bc-card);
   border: 1px solid var(--bc-border);
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: 4px;
+  padding: 32px 24px;
+  box-shadow: var(--bc-shadow-card);
 }
 
 @media (min-width: 768px) {
   .brescancin-card {
-    padding: 32px;
+    padding: 56px;
   }
 }
 
-/* Tipografia */
+/* ─── Tipografia editorial ─── */
 .brescancin-title {
   font-family: var(--font-display), serif;
-  font-size: 28px;
-  font-weight: 500;
-  line-height: 1.25;
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--bc-text);
 }
 
 @media (min-width: 768px) {
   .brescancin-title {
-    font-size: 34px;
+    font-size: 48px;
   }
 }
 
 .brescancin-subtitle {
   font-family: var(--font-display), serif;
   font-style: italic;
-  color: var(--bc-accent);
-  font-size: 16px;
-  margin-top: 12px;
+  color: var(--bc-accent-strong);
+  font-size: 18px;
+  margin: 16px 0 0;
+  letter-spacing: 0.005em;
+}
+
+@media (min-width: 768px) {
+  .brescancin-subtitle {
+    font-size: 21px;
+  }
 }
 
 .brescancin-body {
   color: var(--bc-text-secondary);
-  font-size: 15px;
-  line-height: 1.6;
-  margin-top: 16px;
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 24px 0 0;
 }
 
-/* Botões */
+@media (min-width: 768px) {
+  .brescancin-body {
+    font-size: 17px;
+  }
+}
+
+.brescancin-step-title {
+  font-family: var(--font-display), serif;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  color: var(--bc-text);
+  margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-step-title {
+    font-size: 30px;
+  }
+}
+
+.brescancin-step-intro {
+  color: var(--bc-text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+/* ─── Botões ─── */
 .brescancin-btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 12px 24px;
-  border: 1.5px solid var(--bc-accent);
-  background: transparent;
-  color: var(--bc-accent);
+  gap: 10px;
+  min-height: 52px;
+  padding: 14px 32px;
+  border: none;
+  background: var(--bc-text);
+  color: var(--bc-bg);
   font-family: var(--font-body), sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  border-radius: 4px;
+  border-radius: 2px;
   cursor: pointer;
-  transition: background-color 180ms ease, color 180ms ease;
+  text-decoration: none;
+  transition: background-color 200ms ease, color 200ms ease,
+    transform 160ms ease;
 }
 
 .brescancin-btn-primary:hover:not(:disabled) {
-  background: var(--bc-accent);
-  color: var(--bc-bg-primary);
+  background: var(--bc-accent-strong);
+  color: #ffffff;
+}
+
+.brescancin-btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .brescancin-btn-primary:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
+}
+
+.brescancin-dark .brescancin-btn-primary {
+  background: var(--bc-accent);
+  color: #1a2940;
+}
+
+.brescancin-dark .brescancin-btn-primary:hover:not(:disabled) {
+  background: #ffffff;
+  color: #1a2940;
 }
 
 .brescancin-btn-ghost {
@@ -140,55 +276,72 @@
   border: none;
   color: var(--bc-text-secondary);
   font-family: var(--font-body), sans-serif;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  padding: 12px 8px;
+  padding: 12px 4px;
   min-height: 44px;
   transition: color 180ms ease;
 }
 
-.brescancin-btn-ghost:hover {
-  color: var(--bc-accent);
+.brescancin-btn-ghost:hover:not(:disabled) {
+  color: var(--bc-accent-strong);
 }
 
-/* Campos de formulário */
+.brescancin-btn-ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─── Campos ─── */
 .brescancin-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
 }
 
 .brescancin-label {
   font-family: var(--font-body), sans-serif;
-  font-size: 14px;
-  color: var(--bc-text-primary);
+  font-size: 13px;
+  color: var(--bc-text);
   font-weight: 500;
+  letter-spacing: 0.005em;
+  line-height: 1.4;
 }
 
 .brescancin-label-required::after {
   content: " *";
-  color: var(--bc-accent);
+  color: var(--bc-accent-strong);
 }
 
 .brescancin-help {
   font-size: 13px;
-  color: var(--bc-text-secondary);
+  color: var(--bc-text-muted);
+  margin-top: -2px;
 }
 
 .brescancin-input,
 .brescancin-select,
 .brescancin-textarea {
   width: 100%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--bc-text-primary);
+  background: var(--bc-input-bg);
+  border: 1px solid var(--bc-input-border);
+  color: var(--bc-text);
   font-family: var(--font-body), sans-serif;
-  font-size: 15px;
-  border-radius: 8px;
-  padding: 12px 14px;
-  min-height: 44px;
-  transition: border-color 180ms ease, background-color 180ms ease;
+  font-size: 16px;
+  border-radius: 2px;
+  padding: 14px 16px;
+  min-height: 52px;
+  transition: border-color 180ms ease, background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.brescancin-input:hover,
+.brescancin-select:hover,
+.brescancin-textarea:hover {
+  border-color: var(--bc-input-border-hover);
 }
 
 .brescancin-input:focus,
@@ -196,56 +349,71 @@
 .brescancin-textarea:focus {
   border-color: var(--bc-accent);
   outline: none;
-  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(184, 148, 92, 0.12);
+}
+
+.brescancin-dark .brescancin-input:focus,
+.brescancin-dark .brescancin-select:focus,
+.brescancin-dark .brescancin-textarea:focus {
+  box-shadow: 0 0 0 3px rgba(212, 179, 119, 0.15);
 }
 
 .brescancin-input::placeholder,
 .brescancin-textarea::placeholder {
-  color: rgba(203, 213, 225, 0.5);
+  color: var(--bc-text-muted);
+  opacity: 0.7;
 }
 
 .brescancin-textarea {
-  min-height: 96px;
+  min-height: 112px;
   resize: vertical;
   line-height: 1.5;
 }
 
 .brescancin-select {
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23C9A96E' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23B8945C' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 14px center;
-  padding-right: 40px;
+  background-position: right 18px center;
+  padding-right: 44px;
+}
+
+.brescancin-dark .brescancin-select {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23D4B377' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
 .brescancin-select option {
-  background: var(--bc-bg-card);
-  color: var(--bc-text-primary);
+  background: var(--bc-card);
+  color: var(--bc-text);
 }
 
 .brescancin-input[type="date"] {
+  color-scheme: light;
+}
+
+.brescancin-dark .brescancin-input[type="date"] {
   color-scheme: dark;
 }
 
-/* Radio + Checkbox customizados (sem nativos) */
+/* ─── Radio + Checkbox ─── */
 .brescancin-radio-group,
 .brescancin-checkbox-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .brescancin-radio,
 .brescancin-checkbox {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 10px 4px;
-  min-height: 44px;
+  gap: 14px;
+  padding: 12px 0;
+  min-height: 48px;
   cursor: pointer;
   font-family: var(--font-body), sans-serif;
-  font-size: 15px;
-  color: var(--bc-text-primary);
+  font-size: 16px;
+  color: var(--bc-text);
   line-height: 1.4;
 }
 
@@ -258,7 +426,7 @@
   height: 20px;
   margin: 2px 0 0;
   background: transparent;
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border: 1.5px solid var(--bc-radio-empty);
   cursor: pointer;
   transition: border-color 160ms ease, background-color 160ms ease;
   position: relative;
@@ -269,24 +437,24 @@
 }
 
 .brescancin-checkbox input {
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 .brescancin-radio input:checked {
-  border-color: var(--bc-accent);
+  border-color: var(--bc-accent-strong);
 }
 
 .brescancin-radio input:checked::after {
   content: "";
   position: absolute;
   inset: 3px;
-  background: var(--bc-accent);
+  background: var(--bc-accent-strong);
   border-radius: 50%;
 }
 
 .brescancin-checkbox input:checked {
-  border-color: var(--bc-accent);
-  background: var(--bc-accent);
+  border-color: var(--bc-accent-strong);
+  background: var(--bc-accent-strong);
 }
 
 .brescancin-checkbox input:checked::after {
@@ -296,91 +464,133 @@
   top: 1px;
   width: 6px;
   height: 11px;
-  border: solid var(--bc-bg-primary);
+  border: solid #ffffff;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
 
+.brescancin-dark .brescancin-radio input:checked,
+.brescancin-dark .brescancin-checkbox input:checked {
+  border-color: var(--bc-accent);
+}
+
+.brescancin-dark .brescancin-radio input:checked::after {
+  background: var(--bc-accent);
+}
+
+.brescancin-dark .brescancin-checkbox input:checked {
+  background: var(--bc-accent);
+}
+
+.brescancin-dark .brescancin-checkbox input:checked::after {
+  border-color: #1a2940;
+}
+
 .brescancin-radio:hover input:not(:checked),
 .brescancin-checkbox:hover input:not(:checked) {
-  border-color: var(--bc-border-hover);
+  border-color: var(--bc-border-accent);
 }
 
 .brescancin-radio input:focus-visible,
 .brescancin-checkbox input:focus-visible {
   outline: 2px solid var(--bc-accent);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
-/* Erros */
+/* ─── Erros ─── */
 .brescancin-error {
   color: var(--bc-error);
   font-size: 12px;
-  margin-top: 2px;
+  margin-top: 4px;
+  letter-spacing: 0.005em;
 }
 
-/* Barra de progresso */
+/* ─── Progress ─── */
 .brescancin-progress {
-  height: 3px;
-  background: rgba(255, 255, 255, 0.1);
+  height: 2px;
+  background: var(--bc-track);
   border-radius: 99px;
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .brescancin-progress-fill {
   height: 100%;
   background: var(--bc-accent);
   border-radius: 99px;
-  transition: width 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 360ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .brescancin-progress-label {
   font-family: var(--font-body), sans-serif;
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--bc-text-secondary);
-  margin-bottom: 8px;
+  color: var(--bc-text-muted);
+  margin-bottom: 10px;
 }
 
-/* Transição entre etapas */
+/* ─── Transição ─── */
 @keyframes brescancin-fade {
   from {
     opacity: 0;
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .brescancin-step {
-  animation: brescancin-fade 200ms ease;
+  animation: brescancin-fade 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.brescancin-step-title {
-  font-family: var(--font-display), serif;
-  font-size: 24px;
-  font-weight: 500;
-  margin-bottom: 8px;
+/* ─── Ações ─── */
+.brescancin-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 40px;
 }
 
-.brescancin-step-intro {
-  color: var(--bc-text-secondary);
-  font-size: 14px;
-  margin-bottom: 24px;
+/* ─── Confirmação ─── */
+.brescancin-check {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 28px;
+  border-radius: 50%;
+  background: rgba(184, 148, 92, 0.1);
+  color: var(--bc-accent-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Subtítulo de bloco dentro de uma etapa (ex: "Cabelo", "Sobrancelhas") */
-.brescancin-block-title {
-  font-family: var(--font-display), serif;
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.brescancin-dark .brescancin-check {
+  background: rgba(212, 179, 119, 0.15);
   color: var(--bc-accent);
-  margin: 8px 0 16px;
-  padding-top: 16px;
+}
+
+/* ─── Sub-campo condicional ─── */
+.brescancin-subfield {
+  margin-top: -8px;
+  margin-bottom: 28px;
+  padding-left: 20px;
+  border-left: 1px solid var(--bc-border-accent);
+}
+
+/* ─── Bloco interno (Cabelo / Sobrancelhas) ─── */
+.brescancin-block-title {
+  font-family: var(--font-body), sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--bc-accent-strong);
+  margin: 16px 0 20px;
+  padding-top: 24px;
   border-top: 1px solid var(--bc-border);
 }
 
@@ -390,53 +600,18 @@
   border-top: none;
 }
 
-/* Rodapé com botões de navegação */
-.brescancin-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 32px;
-}
-
-/* Tela de confirmação */
-.brescancin-check {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 24px;
-  border-radius: 50%;
-  border: 1.5px solid var(--bc-accent);
-  color: var(--bc-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Sub-campo condicional (ex: "Se Sim, qual?") */
-.brescancin-subfield {
-  margin-top: -8px;
-  margin-left: 16px;
-  padding-left: 16px;
-  border-left: 1px solid var(--bc-border);
-  margin-bottom: 20px;
-}
-
-.brescancin-app a {
-  color: var(--bc-accent);
-}
-
-/* ─── Toggle mostrar/ocultar senha (login do admin) ─── */
+/* ─── Toggle de senha ─── */
 .brescancin-password-wrap {
   position: relative;
 }
 
 .brescancin-password-wrap .brescancin-input {
-  padding-right: 88px;
+  padding-right: 96px;
 }
 
 .brescancin-password-toggle {
   position: absolute;
-  right: 6px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
@@ -445,43 +620,57 @@
   font-family: var(--font-body), sans-serif;
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
-  padding: 8px 10px;
+  padding: 8px 12px;
   min-height: 36px;
 }
 
 .brescancin-password-toggle:hover {
-  color: var(--bc-text-primary);
+  color: var(--bc-text);
 }
 
-/* ─── Painel admin ─── */
+/* ============================================================== */
+/*  Painel admin                                                   */
+/* ============================================================== */
+
 .brescancin-admin {
-  max-width: 1120px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: 40px 24px 64px;
 }
 
 @media (min-width: 768px) {
   .brescancin-admin {
-    padding: 48px 32px;
+    padding: 64px 40px;
   }
 }
 
 .brescancin-admin-header {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
+  gap: 24px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--bc-border);
+}
+
+.brescancin-admin-brand {
+  font-family: var(--font-display), serif;
+  font-size: 24px;
+  color: var(--bc-text);
+  margin: 0;
+  letter-spacing: -0.005em;
 }
 
 .brescancin-admin-count {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   color: var(--bc-text-secondary);
   font-size: 13px;
+  letter-spacing: 0.01em;
 }
 
 .brescancin-admin-actions {
@@ -497,15 +686,15 @@
 
 .brescancin-admin-filters {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .brescancin-admin-table-wrap {
-  background: var(--bc-bg-card);
+  background: var(--bc-card);
   border: 1px solid var(--bc-border);
-  border-radius: 12px;
+  border-radius: 4px;
   overflow: hidden;
 }
 
@@ -518,17 +707,17 @@
 .brescancin-admin-table th,
 .brescancin-admin-table td {
   text-align: left;
-  padding: 14px 20px;
+  padding: 18px 24px;
   border-bottom: 1px solid var(--bc-border);
 }
 
 .brescancin-admin-table th {
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--bc-text-secondary);
+  color: var(--bc-text-muted);
   font-weight: 500;
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.12);
 }
 
 .brescancin-admin-table tbody tr {
@@ -545,21 +734,23 @@
 }
 
 .brescancin-admin-table td {
-  font-size: 14px;
-  color: var(--bc-text-primary);
+  font-size: 15px;
+  color: var(--bc-text);
 }
 
 .brescancin-admin-sub {
   font-size: 12px;
   color: var(--bc-text-secondary);
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .brescancin-admin-chevron {
   text-align: right;
   color: var(--bc-accent);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -567,9 +758,9 @@
 .brescancin-drawer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--bc-overlay);
   z-index: 50;
-  animation: brescancin-fade 180ms ease;
+  animation: brescancin-fade 200ms ease;
 }
 
 .brescancin-drawer {
@@ -578,13 +769,13 @@
   right: 0;
   bottom: 0;
   width: 100%;
-  max-width: 560px;
-  background: var(--bc-bg-surface);
+  max-width: 600px;
+  background: var(--bc-surface);
   border-left: 1px solid var(--bc-border);
   z-index: 51;
   display: flex;
   flex-direction: column;
-  animation: brescancin-slide-in 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  animation: brescancin-slide-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes brescancin-slide-in {
@@ -598,68 +789,71 @@
 
 .brescancin-drawer-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  padding: 20px 24px;
+  gap: 16px;
+  padding: 28px 32px 20px;
   border-bottom: 1px solid var(--bc-border);
   flex-shrink: 0;
 }
 
 .brescancin-drawer-name {
   font-family: var(--font-display), serif;
-  font-size: 20px;
-  color: var(--bc-text-primary);
+  font-size: 24px;
+  color: var(--bc-text);
+  letter-spacing: -0.005em;
 }
 
 .brescancin-drawer-meta {
   font-size: 12px;
-  color: var(--bc-text-secondary);
-  margin-top: 4px;
+  color: var(--bc-text-muted);
+  margin-top: 6px;
+  letter-spacing: 0.04em;
 }
 
 .brescancin-drawer-body {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 24px 32px;
+  padding: 24px 32px 40px;
 }
 
 .brescancin-drawer-section {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .brescancin-drawer-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   margin: 0;
 }
 
 .brescancin-drawer-item {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2px;
+  gap: 4px;
 }
 
 @media (min-width: 480px) {
   .brescancin-drawer-item {
     grid-template-columns: 200px 1fr;
-    gap: 16px;
+    gap: 20px;
   }
 }
 
 .brescancin-drawer-item dt {
-  font-size: 12px;
-  letter-spacing: 0.04em;
+  font-size: 11px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--bc-text-secondary);
+  color: var(--bc-text-muted);
   font-weight: 500;
+  padding-top: 2px;
 }
 
 .brescancin-drawer-item dd {
   margin: 0;
-  font-size: 14px;
-  color: var(--bc-text-primary);
-  line-height: 1.5;
+  font-size: 15px;
+  color: var(--bc-text);
+  line-height: 1.55;
   word-break: break-word;
 }

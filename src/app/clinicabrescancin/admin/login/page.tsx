@@ -39,11 +39,14 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="brescancin-container" style={{ maxWidth: 420 }}>
-      <h1 className="brescancin-brand">Clínica Brescancin</h1>
+    <div className="brescancin-container" style={{ maxWidth: 440 }}>
+      <p className="brescancin-brand">Clínica Brescancin · Painel</p>
+      <div className="brescancin-rule" aria-hidden />
       <section className="brescancin-card brescancin-step">
-        <h2 className="brescancin-step-title">Painel</h2>
-        <p className="brescancin-step-intro">Acesso restrito.</p>
+        <h2 className="brescancin-step-title">Acesso restrito</h2>
+        <p className="brescancin-step-intro">
+          Painel do Dr. Samuel e da Alana.
+        </p>
         <form onSubmit={onSubmit}>
           <div className="brescancin-field">
             <label htmlFor="senha-admin" className="brescancin-label brescancin-label-required">
