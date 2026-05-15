@@ -1056,9 +1056,8 @@ function Step3Fields({ answers, errors, update }: StepProps) {
 const STEP_HEADERS: Record<Step, { title: string; intro: string }> = {
   welcome: { title: "", intro: "" },
   step1: {
-    title: "Conta sobre você",
-    intro:
-      "Algumas informações pra começarmos com cuidado — leva um minutinho.",
+    title: "Sobre você",
+    intro: "",
   },
   step2: {
     title: "Como anda sua saúde",
@@ -1266,7 +1265,7 @@ export default function FormFlow() {
   return (
     <div className="brescancin-light">
       <div className="brescancin-container">
-        <p className="brescancin-brand">Clínica Brescancin · Restauração Capilar</p>
+        <p className="brescancin-brand">Clínica Brescancin</p>
         <div className="brescancin-rule" aria-hidden />
         <div className="brescancin-step" key={step}>
           <div className="brescancin-progress-label">
