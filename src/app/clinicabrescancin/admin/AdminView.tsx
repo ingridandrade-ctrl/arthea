@@ -36,7 +36,7 @@ const SECTIONS: Section[] = [
       { key: "estadoCivil", label: "Estado civil" },
       { key: "profissao", label: "Profissão" },
       { key: "temFilhos", label: "Tem filhos", type: "bool" },
-      { key: "pretendeFilhos", label: "Pretende ter filhos", type: "bool" },
+      { key: "pretendeFilhos", label: "Pretende ter filhos no próximo ano", type: "bool" },
       { key: "cidade", label: "Cidade" },
       { key: "telefone", label: "Telefone" },
       { key: "email", label: "E-mail" },
