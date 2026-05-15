@@ -94,6 +94,8 @@ export const QUEIXA_CAPILAR = [
 ] as const;
 // Opção exclusiva — marcar "Nada no momento" zera as outras.
 export const QUEIXA_CAPILAR_EXCLUSIVA = "Nada no momento";
+// Sub-pergunta sobre tipo de queda só faz sentido quando há queda.
+export const QUEIXA_CAPILAR_QUEDA = "Queda intensa";
 
 export const TIPO_QUEDA = ["De repente", "Foi gradual", "Não sei dizer"] as const;
 

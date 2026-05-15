@@ -15,6 +15,7 @@ import {
   QUALIDADE_SONO,
   QUEIXA_CAPILAR,
   QUEIXA_CAPILAR_EXCLUSIVA,
+  QUEIXA_CAPILAR_QUEDA,
   QUEIXA_SOBRANCELHA,
   SAUDE_MAE,
   SAUDE_PAI,
@@ -788,6 +789,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
   const queixaCapilarAtiva =
     answers.queixaCapilar.length > 0 &&
     !answers.queixaCapilar.includes(QUEIXA_CAPILAR_EXCLUSIVA);
+  const temQueda = answers.queixaCapilar.includes(QUEIXA_CAPILAR_QUEDA);
 
   return (
     <>
@@ -801,6 +803,8 @@ function Step4Fields({ answers, errors, update }: StepProps) {
           if (!ativa) {
             update("tempoQueixa", "");
             update("tipoQueda", "");
+          } else if (!v.includes(QUEIXA_CAPILAR_QUEDA)) {
+            update("tipoQueda", "");
           }
         }}
         options={QUEIXA_CAPILAR}
@@ -810,19 +814,21 @@ function Step4Fields({ answers, errors, update }: StepProps) {
       {queixaCapilarAtiva && (
         <div className="brescancin-subfield">
           <FieldText
-            label="Há quanto tempo notou isso?"
+            label="Há quanto tempo você notou isso?"
             value={answers.tempoQueixa}
             onChange={(v) => update("tempoQueixa", v)}
             placeholder="Ex: Há uns 8 meses, desde o início do ano..."
             error={errors.tempoQueixa}
           />
-          <FieldRadio
-            label="A queda começou de repente ou foi gradual?"
-            value={answers.tipoQueda}
-            onChange={(v) => update("tipoQueda", v)}
-            options={TIPO_QUEDA}
-            error={errors.tipoQueda}
-          />
+          {temQueda && (
+            <FieldRadio
+              label="A queda começou de repente ou foi gradual?"
+              value={answers.tipoQueda}
+              onChange={(v) => update("tipoQueda", v)}
+              options={TIPO_QUEDA}
+              error={errors.tipoQueda}
+            />
+          )}
         </div>
       )}
       <FieldCheckbox
