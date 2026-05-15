@@ -1091,7 +1091,7 @@ export default function FormFlow() {
       skipScrollOnMount.current = false;
       return;
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "auto" });
   }, [step]);
 
   const update = <K extends keyof Answers>(field: K, value: Answers[K]) => {
