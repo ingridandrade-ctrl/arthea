@@ -18,6 +18,7 @@ import {
   QUEIXA_SOBRANCELHA,
   SAUDE_MAE,
   SAUDE_PAI,
+  SAUDE_PAIS_EXCLUSIVA,
   SIM_NAO,
   SIM_NAO_NAOSEI,
   TIPO_QUEDA,
@@ -585,17 +586,21 @@ function Step2Fields({ answers, errors, update }: StepProps) {
         error={errors.doencasDiagnosticadas}
       />
       <FieldCheckbox
-        label="Como anda a saúde da sua mãe?"
+        label="Análise sobre a saúde da sua mãe"
+        helper="Marque tudo que se aplica. Se já faleceu, marque também as condições que ela tinha em vida."
         values={answers.saudeMae}
         onChange={(v) => update("saudeMae", v)}
         options={SAUDE_MAE}
+        exclusive={SAUDE_PAIS_EXCLUSIVA}
         error={errors.saudeMae}
       />
       <FieldCheckbox
-        label="Como anda a saúde do seu pai?"
+        label="Análise sobre a saúde do seu pai"
+        helper="Marque tudo que se aplica. Se já faleceu, marque também as condições que ele tinha em vida."
         values={answers.saudePai}
         onChange={(v) => update("saudePai", v)}
         options={SAUDE_PAI}
+        exclusive={SAUDE_PAIS_EXCLUSIVA}
         error={errors.saudePai}
       />
       <FieldRadio

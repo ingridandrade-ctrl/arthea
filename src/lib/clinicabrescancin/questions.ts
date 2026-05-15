@@ -39,7 +39,7 @@ export const DOENCAS_EXCLUSIVA = "Nenhuma das anteriores";
 
 export const SAUDE_MAE = [
   "Saudável",
-  "Falecida",
+  "Já faleceu",
   "Hipertensa",
   "Diabética",
   "Obesa",
@@ -50,7 +50,7 @@ export const SAUDE_MAE = [
 
 export const SAUDE_PAI = [
   "Saudável",
-  "Falecido",
+  "Já faleceu",
   "Hipertenso",
   "Diabético",
   "Obeso",
@@ -58,6 +58,11 @@ export const SAUDE_PAI = [
   "Problema de Tireoide",
   "Histórico de Câncer de Próstata",
 ] as const;
+
+// "Saudável" exclui o resto — quem é saudável não tem condições listadas.
+// "Já faleceu" não é exclusivo: pode (e deve) ser combinado com as condições
+// que ele(a) tinha em vida.
+export const SAUDE_PAIS_EXCLUSIVA = "Saudável";
 
 export const FREQUENCIA_ALCOOL = [
   "Não costumo",
