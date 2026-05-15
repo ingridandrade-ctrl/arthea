@@ -30,6 +30,11 @@ function isClientHost(host: string | null) {
   return host.startsWith("clientes.") || host.startsWith("portal.");
 }
 
+function isMindfulnessHost(host: string | null) {
+  if (!host) return false;
+  return host.startsWith("mindfulness.");
+}
+
 function isBrescancinHost(host: string | null) {
   if (!host) return false;
   return host.startsWith("consulta.");
@@ -47,6 +52,12 @@ function isPortalPath(pathname: string) {
 export default withAuth(
   function middleware(req) {
     const host = req.headers.get("host");
+
+    // ── Subdomínio mindfulness — projeto Iasmim, totalmente isolado.
+    // Não passa pela lógica de auth/redirect do CRM/portal.
+    if (isMindfulnessHost(host)) {
+      return NextResponse.next();
+    }
 
     // ── Subdomínio clínica Brescancin — formulário pré-consulta,
     // totalmente isolado do CRM/portal e com auth próprio no /admin.
@@ -92,7 +103,9 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const pathname = req.nextUrl.pathname;
         const host = req.headers.get("host");
-        // Subdomínio brescancin não exige sessão NextAuth.
+        // Subdomínio mindfulness não exige sessão NextAuth.
+        if (isMindfulnessHost(host)) return true;
+        // Subdomínio brescancin tem auth próprio (cookie HMAC) no /admin.
         if (isBrescancinHost(host)) return true;
         if (isPublicPath(pathname)) return true;
         return !!token;

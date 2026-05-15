@@ -10,12 +10,30 @@ const nextConfig = {
     },
   },
   async rewrites() {
+    // Subdomínio mindfulness.arthea.com.br serve o app /mindfulness na raiz.
+    // O usuário acessa mindfulness.arthea.com.br/painel e o Next.js, por
+    // baixo, renderiza /mindfulness/painel. Rotas /api/* passam direto —
+    // a app já chama /api/mindfulness/* com path absoluto.
+    //
     // Subdomínio consulta.clinicabrescancin.com.br serve o app
-    // /clinicabrescancin na raiz. O paciente acessa o domínio direto e
-    // o admin entra em /admin — internamente vira /clinicabrescancin/admin.
-    // /api/* passa direto: a app já chama /api/clinicabrescancin/* absoluto.
+    // /clinicabrescancin na raiz. /admin entra em /clinicabrescancin/admin.
     return {
       beforeFiles: [
+        {
+          source: "/",
+          has: [{ type: "host", value: "mindfulness.arthea.com.br" }],
+          destination: "/mindfulness",
+        },
+        {
+          source: "/painel",
+          has: [{ type: "host", value: "mindfulness.arthea.com.br" }],
+          destination: "/mindfulness/painel",
+        },
+        {
+          source: "/painel/:path*",
+          has: [{ type: "host", value: "mindfulness.arthea.com.br" }],
+          destination: "/mindfulness/painel/:path*",
+        },
         {
           source: "/",
           has: [{ type: "host", value: "consulta.clinicabrescancin.com.br" }],

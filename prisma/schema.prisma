@@ -950,6 +950,63 @@ model MetaLeadAdsForm {
 }
 
 // =========================================================================
+// MINDFULNESS — Projeto de supervisão da Iasmim Sasseron
+// Coleta pública via /mindfulness, análise em /mindfulness/painel (com senha).
+// Totalmente isolado do CRM/portal da agência.
+// =========================================================================
+
+enum MindfulnessInstrument {
+  FFMQ
+  DASS21
+}
+
+model MindfulnessParticipant {
+  id              String                @id @default(cuid())
+  nome            String
+  email           String                @unique
+  telefone        String?
+  profissao       String?
+  idade           Int
+  escolaridade    String?
+  estadoCivil     String?
+  meditacaoPrevia Boolean               @default(false)
+  qualMeditacao   String?
+  tempoMeditacao  String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  responses       MindfulnessResponse[]
+  drafts          MindfulnessDraft[]
+
+  @@index([createdAt])
+}
+
+model MindfulnessResponse {
+  id            String                 @id @default(cuid())
+  participantId String
+  participant   MindfulnessParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  instrument    MindfulnessInstrument
+  answers       Json
+  scores        Json
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@unique([participantId, instrument])
+  @@index([instrument])
+}
+
+model MindfulnessDraft {
+  id            String                 @id @default(cuid())
+  participantId String
+  participant   MindfulnessParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  instrument    MindfulnessInstrument
+  answers       Json
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@unique([participantId, instrument])
+}
+
+// =========================================================================
 // CLÍNICA BRESCANCIN — Formulário pré-consulta
 // Coleta pública em consulta.clinicabrescancin.com.br
 // Painel /admin protegido por senha simples (HMAC cookie).
