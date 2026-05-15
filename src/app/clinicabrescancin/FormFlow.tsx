@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import BrescancinFooter from "./BrescancinFooter";
 import {
   COMO_CONHECEU,
   DOENCAS_DIAGNOSTICADAS,
@@ -15,14 +16,12 @@ import {
   QUALIDADE_SONO,
   QUEIXA_CAPILAR,
   QUEIXA_CAPILAR_EXCLUSIVA,
-  QUEIXA_CAPILAR_QUEDA,
   QUEIXA_SOBRANCELHA,
   SAUDE_MAE,
   SAUDE_PAI,
   SAUDE_PAIS_EXCLUSIVA,
   SIM_NAO,
   SIM_NAO_NAOSEI,
-  TIPO_QUEDA,
 } from "@/lib/clinicabrescancin/questions";
 
 type Step = "welcome" | "step1" | "step2" | "step3" | "step4" | "step5" | "done";
@@ -177,7 +176,6 @@ function validateStep1(a: Answers): Errors {
   if (!a.nomeCompleto.trim()) e.nomeCompleto = "Preencha seu nome completo.";
   if (!a.dataNascimento) e.dataNascimento = "Selecione sua data de nascimento.";
   if (!a.genero) e.genero = "Selecione uma opção.";
-  if (!a.profissao.trim()) e.profissao = "Conte qual é sua profissão.";
   if (!a.cidade.trim()) e.cidade = "Em que cidade você mora?";
   if (!a.telefone.trim()) e.telefone = "Informe um telefone para contato.";
   else if (!isValidPhone(a.telefone)) e.telefone = "Telefone incompleto.";
@@ -305,15 +303,25 @@ type FieldTextareaProps = {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  helper?: string;
   error?: string;
 };
 
-function FieldTextarea({ label, required, value, onChange, placeholder, error }: FieldTextareaProps) {
+function FieldTextarea({
+  label,
+  required,
+  value,
+  onChange,
+  placeholder,
+  helper,
+  error,
+}: FieldTextareaProps) {
   return (
     <div className="brescancin-field">
       <label className={`brescancin-label${required ? " brescancin-label-required" : ""}`}>
         {label}
       </label>
+      {helper && <span className="brescancin-help">{helper}</span>}
       <textarea
         className="brescancin-textarea"
         value={value}
@@ -511,7 +519,6 @@ function Step1Fields({ answers, errors, update }: StepProps) {
       />
       <FieldText
         label="Profissão"
-        required
         value={answers.profissao}
         onChange={(v) => update("profissao", v)}
         error={errors.profissao}
@@ -786,51 +793,17 @@ function Step2Fields({ answers, errors, update }: StepProps) {
 }
 
 function Step4Fields({ answers, errors, update }: StepProps) {
-  const queixaCapilarAtiva =
-    answers.queixaCapilar.length > 0 &&
-    !answers.queixaCapilar.includes(QUEIXA_CAPILAR_EXCLUSIVA);
-  const temQueda = answers.queixaCapilar.includes(QUEIXA_CAPILAR_QUEDA);
-
   return (
     <>
       <h3 className="brescancin-block-title">Cabelo</h3>
       <FieldCheckbox
-        label="Qual é sua queixa em relação ao cabelo?"
+        label="O que você tem notado no seu cabelo?"
         values={answers.queixaCapilar}
-        onChange={(v) => {
-          update("queixaCapilar", v);
-          const ativa = v.length > 0 && !v.includes(QUEIXA_CAPILAR_EXCLUSIVA);
-          if (!ativa) {
-            update("tempoQueixa", "");
-            update("tipoQueda", "");
-          } else if (!v.includes(QUEIXA_CAPILAR_QUEDA)) {
-            update("tipoQueda", "");
-          }
-        }}
+        onChange={(v) => update("queixaCapilar", v)}
         options={QUEIXA_CAPILAR}
         exclusive={QUEIXA_CAPILAR_EXCLUSIVA}
         error={errors.queixaCapilar}
       />
-      {queixaCapilarAtiva && (
-        <div className="brescancin-subfield">
-          <FieldText
-            label="Há quanto tempo você notou isso?"
-            value={answers.tempoQueixa}
-            onChange={(v) => update("tempoQueixa", v)}
-            placeholder="Ex: Há uns 8 meses, desde o início do ano..."
-            error={errors.tempoQueixa}
-          />
-          {temQueda && (
-            <FieldRadio
-              label="A queda começou de repente ou foi gradual?"
-              value={answers.tipoQueda}
-              onChange={(v) => update("tipoQueda", v)}
-              options={TIPO_QUEDA}
-              error={errors.tipoQueda}
-            />
-          )}
-        </div>
-      )}
       <FieldCheckbox
         label="Algum desses eventos coincidiu com o início da queixa?"
         values={answers.eventosAssociados}
@@ -951,11 +924,12 @@ function Step5Fields({ answers, errors, update }: StepProps) {
   return (
     <>
       <FieldTextarea
-        label="O que mais te incomoda hoje?"
+        label="Conta o que te trouxe à Clínica Brescancin"
         required
+        helper="Pode ser direto — o que você espera resolver na consulta."
         value={answers.principalIncomodo}
         onChange={(v) => update("principalIncomodo", v)}
-        placeholder="Pode ser direto. Nenhuma resposta é errada."
+        placeholder="Ex: queda há alguns meses, gostaria de entender o motivo..."
         error={errors.principalIncomodo}
       />
       <FieldTextarea
@@ -1027,8 +1001,9 @@ function Step3Fields({ answers, errors, update }: StepProps) {
 const STEP_HEADERS: Record<Step, { title: string; intro: string }> = {
   welcome: { title: "", intro: "" },
   step1: {
-    title: "Vamos começar pelo básico",
-    intro: "Suas informações de identificação e contato.",
+    title: "Conta sobre você",
+    intro:
+      "Algumas informações pra começarmos com cuidado — leva um minutinho.",
   },
   step2: {
     title: "Como anda sua saúde",
@@ -1172,6 +1147,7 @@ export default function FormFlow() {
             </div>
           </div>
         </div>
+        <BrescancinFooter />
       </div>
     );
   }
@@ -1219,6 +1195,7 @@ export default function FormFlow() {
             </p>
           </div>
         </div>
+        <BrescancinFooter />
       </div>
     );
   }
@@ -1283,6 +1260,7 @@ export default function FormFlow() {
           </div>
         </div>
       </div>
+      <BrescancinFooter />
     </div>
   );
 }
