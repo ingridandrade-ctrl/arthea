@@ -122,6 +122,14 @@ export default function PainelView({ data }: { data: PainelData }) {
               <span className="m-painel-stat">
                 {total} {total === 1 ? "participante" : "participantes"} · {completos} completas
               </span>
+              <a
+                className="m-btn-export"
+                href="/api/mindfulness/export"
+                download
+                title="Baixar planilha Excel com todos os dados"
+              >
+                Exportar Excel
+              </a>
               <button className="m-btn-logout" type="button" onClick={logout}>
                 Sair
               </button>
