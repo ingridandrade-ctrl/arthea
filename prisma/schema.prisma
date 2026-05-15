@@ -948,3 +948,34 @@ model MetaLeadAdsForm {
 
   @@unique([adAccountId, formId])
 }
+
+// =========================================================================
+// CLÍNICA BRESCANCIN — Formulário pré-consulta
+// Coleta pública em consulta.clinicabrescancin.com.br
+// Painel /admin protegido por senha simples (HMAC cookie).
+// Totalmente isolado do CRM/portal da agência.
+// =========================================================================
+
+model BrescancinResponse {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Etapa 1 — Identificação (colunas)
+  nomeCompleto   String
+  apelido        String?
+  dataNascimento DateTime
+  genero         String
+  estadoCivil    String?
+  profissao      String
+  temFilhos      Boolean?
+  pretendeFilhos Boolean?
+  cidade         String
+  telefone       String
+  email          String
+  instagram      String?
+
+  // Etapas 2–5 (saúde, estilo de vida, cabelo, sobrancelhas, fechamento)
+  answers Json
+
+  @@index([createdAt])
+}
