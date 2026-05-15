@@ -63,6 +63,29 @@ export function ffmqMax(facet: FFMQFacet): number {
   return FFMQ_FACETS[facet].length * 5;
 }
 
+/**
+ * Médias por faceta em duas amostras de referência publicadas em
+ * Baer, R. A., Smith, G. T., Lykins, E., Button, D., Krietemeyer, J.,
+ * Sauer, S., … Williams, J. M. G. (2008). Construct Validity of the
+ * Five Facet Mindfulness Questionnaire in Meditating and Nonmeditating
+ * Samples. Assessment, 15(3), 329–342. Tabela 4.
+ *
+ * São usadas APENAS para contextualizar visualmente a leitura — não
+ * afetam o cálculo dos scores nem as faixas oficiais usadas pelos
+ * instrumentos. Os dados brutos das respostas continuam disponíveis
+ * item a item na aba "Respostas detalhadas".
+ *
+ *   • "nao_meditantes": amostra comunitária geral (n=259).
+ *   • "meditantes":     amostra de praticantes regulares (n=174).
+ */
+export const FFMQ_NORMS: Record<FFMQFacet, { nao_meditantes: number; meditantes: number }> = {
+  observe:   { nao_meditantes: 24.32, meditantes: 31.96 },
+  describe:  { nao_meditantes: 24.63, meditantes: 31.84 },
+  act_aware: { nao_meditantes: 24.57, meditantes: 28.08 },
+  nonjudge:  { nao_meditantes: 23.85, meditantes: 32.44 },
+  nonreact:  { nao_meditantes: 19.53, meditantes: 25.70 },
+};
+
 export type FFMQScores = Record<FFMQFacet, number> & { total: number };
 
 export function scoreFFMQ(answers: Record<number, number>): FFMQScores {

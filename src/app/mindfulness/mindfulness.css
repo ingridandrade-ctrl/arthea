@@ -1038,13 +1038,84 @@
   height: 8px;
   background: var(--m-sage-pale);
   border-radius: 4px;
-  overflow: hidden;
+  position: relative;
 }
 .m-bar-fill {
   height: 100%;
   border-radius: 4px;
   background: var(--m-sage);
   transition: width 0.8s ease;
+}
+/* Marcadores de referência (médias de Baer 2008) sobrepostos à barra.
+   Não interferem nos dados — são pistas visuais. */
+.m-bar-ref {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  border-radius: 1px;
+  pointer-events: auto;
+  cursor: help;
+}
+.m-bar-ref-nm {
+  background: var(--m-warm-soft);
+  width: 2px;
+}
+.m-bar-ref-m {
+  background: var(--m-warning);
+  width: 3px;
+}
+
+/* Legenda das referências */
+.m-norm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  align-items: center;
+  margin: 0.4rem 0 0.85rem;
+  padding: 0.55rem 0.85rem;
+  background: var(--m-cream);
+  border-radius: 6px;
+  border: 1px solid var(--m-border-soft);
+}
+.m-norm-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--m-warm-mid);
+  font-weight: 500;
+}
+.m-norm-legend-bar {
+  display: inline-block;
+  width: 22px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--m-sage);
+}
+.m-norm-legend-marker {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  border-radius: 1px;
+}
+.m-norm-legend-marker-nm {
+  background: var(--m-warm-soft);
+  width: 2px;
+}
+.m-norm-legend-marker-m {
+  background: var(--m-warning);
+  width: 3px;
+}
+.m-norm-source {
+  margin-top: 0.85rem;
+  font-size: 0.75rem;
+  color: var(--m-warm-soft);
+  line-height: 1.55;
+  font-style: italic;
+}
+.m-norm-source em {
+  font-style: italic;
 }
 .m-bar-val {
   font-size: 0.85rem;
