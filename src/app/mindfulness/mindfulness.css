@@ -740,6 +740,31 @@
   border-color: var(--m-danger);
   color: var(--m-danger);
 }
+.m-btn-export {
+  background: var(--m-sage);
+  color: white;
+  text-decoration: none;
+  border: 1px solid var(--m-sage);
+  padding: 0.45rem 0.95rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-family: var(--m-font-sans);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.m-btn-export:hover {
+  background: var(--m-accent);
+  border-color: var(--m-accent);
+}
+.m-btn-export::before {
+  content: "↓";
+  font-size: 0.95rem;
+  line-height: 1;
+}
 
 /* Login */
 .m-login {
