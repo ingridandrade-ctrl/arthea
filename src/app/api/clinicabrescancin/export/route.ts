@@ -56,6 +56,14 @@ const SECTIONS: Section[] = [
       { key: "qualAtividadeFisica", label: "Qual atividade e frequência" },
       { key: "qualidadeSono", label: "Qualidade do sono" },
       { key: "nivelEstresse", label: "Nível de estresse" },
+      { key: "dieta", label: "Dieta" },
+      { key: "dietaOutra", label: "Qual dieta (outra)" },
+      { key: "tomaLeite", label: "Toma leite todos os dias", type: "bool" },
+      {
+        key: "comeCastanhasAmendoas",
+        label: "Come castanhas/amêndoas",
+        type: "bool",
+      },
     ],
   },
   {

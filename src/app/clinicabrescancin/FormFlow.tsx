@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import BrescancinFooter from "./BrescancinFooter";
 import {
   COMO_CONHECEU,
+  DIETA,
   DOENCAS_DIAGNOSTICADAS,
   DOENCAS_EXCLUSIVA,
   ESTADO_CIVIL,
@@ -67,6 +68,10 @@ type Answers = {
   qualAtividadeFisica: string;
   qualidadeSono: string;
   nivelEstresse: string;
+  dieta: string;
+  dietaOutra: string;
+  tomaLeite: string;
+  comeCastanhasAmendoas: string;
   // Etapa 4 — Cabelo
   queixaCapilar: string[];
   tempoQueixa: string;
@@ -129,6 +134,10 @@ const INITIAL_ANSWERS: Answers = {
   qualAtividadeFisica: "",
   qualidadeSono: "",
   nivelEstresse: "",
+  dieta: "",
+  dietaOutra: "",
+  tomaLeite: "",
+  comeCastanhasAmendoas: "",
   queixaCapilar: [],
   tempoQueixa: "",
   tipoQueda: "",
@@ -225,6 +234,14 @@ function validateStep3(a: Answers): Errors {
   }
   if (!a.qualidadeSono) e.qualidadeSono = "Selecione uma opção.";
   if (!a.nivelEstresse) e.nivelEstresse = "Selecione uma opção.";
+  if (!a.dieta) e.dieta = "Selecione uma opção.";
+  if (a.dieta === "Outra" && !a.dietaOutra.trim()) {
+    e.dietaOutra = "Conte qual dieta.";
+  }
+  if (!a.tomaLeite) e.tomaLeite = "Selecione uma opção.";
+  if (!a.comeCastanhasAmendoas) {
+    e.comeCastanhasAmendoas = "Selecione uma opção.";
+  }
   return e;
 }
 
@@ -991,6 +1008,44 @@ function Step3Fields({ answers, errors, update }: StepProps) {
         onChange={(v) => update("nivelEstresse", v)}
         options={NIVEL_ESTRESSE}
         error={errors.nivelEstresse}
+      />
+      <FieldRadio
+        label="Você faz alguma dieta?"
+        required
+        value={answers.dieta}
+        onChange={(v) => {
+          update("dieta", v);
+          if (v !== "Outra") update("dietaOutra", "");
+        }}
+        options={DIETA}
+        error={errors.dieta}
+      />
+      {answers.dieta === "Outra" && (
+        <div className="brescancin-subfield">
+          <FieldText
+            label="Qual dieta?"
+            required
+            value={answers.dietaOutra}
+            onChange={(v) => update("dietaOutra", v)}
+            error={errors.dietaOutra}
+          />
+        </div>
+      )}
+      <FieldRadio
+        label="Você toma leite todos os dias?"
+        required
+        value={answers.tomaLeite}
+        onChange={(v) => update("tomaLeite", v)}
+        options={SIM_NAO}
+        error={errors.tomaLeite}
+      />
+      <FieldRadio
+        label="Você costuma comer muita castanha ou amêndoas?"
+        required
+        value={answers.comeCastanhasAmendoas}
+        onChange={(v) => update("comeCastanhasAmendoas", v)}
+        options={SIM_NAO}
+        error={errors.comeCastanhasAmendoas}
       />
     </>
   );

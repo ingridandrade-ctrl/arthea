@@ -82,6 +82,19 @@ export const QUALIDADE_SONO = [
 
 export const NIVEL_ESTRESSE = ["Baixo", "Moderado", "Alto", "Muito alto"] as const;
 
+// Etapa 3 — Nutrição
+export const DIETA = [
+  "Não tenho uma dieta específica",
+  "Baixo teor de gordura",
+  "Sem glúten",
+  "Sem laticínios",
+  "Baixo carboidrato",
+  "Alta proteína",
+  "Diabético",
+  "Outra",
+] as const;
+export const DIETA_OUTRA = "Outra";
+
 // Etapa 4 — Cabelo
 export const QUEIXA_CAPILAR = [
   "Queda intensa",
