@@ -5,14 +5,21 @@ import {
   DOENCAS_DIAGNOSTICADAS,
   DOENCAS_EXCLUSIVA,
   ESTADO_CIVIL,
+  EVENTOS_ASSOCIADOS,
+  EVENTOS_ASSOCIADOS_EXCLUSIVA,
+  EXAMES_SANGUINEOS_RECENTES,
   FREQUENCIA_ALCOOL,
   GENERO,
   NIVEL_ESTRESSE,
   QUALIDADE_SONO,
+  QUEIXA_CAPILAR,
+  QUEIXA_CAPILAR_EXCLUSIVA,
+  QUEIXA_SOBRANCELHA,
   SAUDE_MAE,
   SAUDE_PAI,
   SIM_NAO,
   SIM_NAO_NAOSEI,
+  TIPO_QUEDA,
 } from "@/lib/clinicabrescancin/questions";
 
 type Step = "welcome" | "step1" | "step2" | "step3" | "step4" | "step5" | "done";
@@ -58,6 +65,22 @@ type Answers = {
   qualAtividadeFisica: string;
   qualidadeSono: string;
   nivelEstresse: string;
+  // Etapa 4 — Cabelo
+  queixaCapilar: string[];
+  tempoQueixa: string;
+  tipoQueda: string;
+  eventosAssociados: string[];
+  historicoFamiliarQueda: string;
+  quemHistorico: string;
+  tratamentosAnteriores: string;
+  usouMinoxidilFinasterida: string;
+  quaisTempoUso: string;
+  examesSanguineRecentes: string;
+  // Etapa 4 — Sobrancelhas
+  temQueixaSobrancelha: string;
+  queixaSobrancelha: string[];
+  procedimentoSobrancelhaAnterior: string;
+  qualProcedimento: string;
 };
 
 type Errors = Partial<Record<keyof Answers, string>>;
@@ -100,6 +123,20 @@ const INITIAL_ANSWERS: Answers = {
   qualAtividadeFisica: "",
   qualidadeSono: "",
   nivelEstresse: "",
+  queixaCapilar: [],
+  tempoQueixa: "",
+  tipoQueda: "",
+  eventosAssociados: [],
+  historicoFamiliarQueda: "",
+  quemHistorico: "",
+  tratamentosAnteriores: "",
+  usouMinoxidilFinasterida: "",
+  quaisTempoUso: "",
+  examesSanguineRecentes: "",
+  temQueixaSobrancelha: "",
+  queixaSobrancelha: [],
+  procedimentoSobrancelhaAnterior: "",
+  qualProcedimento: "",
 };
 
 const FORM_STEPS: Step[] = ["step1", "step2", "step3", "step4", "step5"];
@@ -183,10 +220,16 @@ function validateStep3(a: Answers): Errors {
   return e;
 }
 
+function validateStep4(_: Answers): Errors {
+  // Etapa 4 não tem campos obrigatórios — todas as perguntas são opcionais.
+  return {};
+}
+
 function validateForStep(step: Step, a: Answers): Errors {
   if (step === "step1") return validateStep1(a);
   if (step === "step2") return validateStep2(a);
   if (step === "step3") return validateStep3(a);
+  if (step === "step4") return validateStep4(a);
   return {};
 }
 
@@ -716,6 +759,163 @@ function Step2Fields({ answers, errors, update }: StepProps) {
   );
 }
 
+function Step4Fields({ answers, errors, update }: StepProps) {
+  const queixaCapilarAtiva =
+    answers.queixaCapilar.length > 0 &&
+    !answers.queixaCapilar.includes(QUEIXA_CAPILAR_EXCLUSIVA);
+
+  return (
+    <>
+      <h3 className="brescancin-block-title">Cabelo</h3>
+      <FieldCheckbox
+        label="Qual é sua queixa em relação ao cabelo?"
+        values={answers.queixaCapilar}
+        onChange={(v) => {
+          update("queixaCapilar", v);
+          const ativa = v.length > 0 && !v.includes(QUEIXA_CAPILAR_EXCLUSIVA);
+          if (!ativa) {
+            update("tempoQueixa", "");
+            update("tipoQueda", "");
+          }
+        }}
+        options={QUEIXA_CAPILAR}
+        exclusive={QUEIXA_CAPILAR_EXCLUSIVA}
+        error={errors.queixaCapilar}
+      />
+      {queixaCapilarAtiva && (
+        <div className="brescancin-subfield">
+          <FieldText
+            label="Há quanto tempo notou isso?"
+            value={answers.tempoQueixa}
+            onChange={(v) => update("tempoQueixa", v)}
+            placeholder="Ex: Há uns 8 meses, desde o início do ano..."
+            error={errors.tempoQueixa}
+          />
+          <FieldRadio
+            label="A queda começou de repente ou foi gradual?"
+            value={answers.tipoQueda}
+            onChange={(v) => update("tipoQueda", v)}
+            options={TIPO_QUEDA}
+            error={errors.tipoQueda}
+          />
+        </div>
+      )}
+      <FieldCheckbox
+        label="Algum desses eventos coincidiu com o início da queixa?"
+        values={answers.eventosAssociados}
+        onChange={(v) => update("eventosAssociados", v)}
+        options={EVENTOS_ASSOCIADOS}
+        exclusive={EVENTOS_ASSOCIADOS_EXCLUSIVA}
+        error={errors.eventosAssociados}
+      />
+      <FieldRadio
+        label="Há histórico de queda de cabelo na família?"
+        value={answers.historicoFamiliarQueda}
+        onChange={(v) => {
+          update("historicoFamiliarQueda", v);
+          if (v !== "Sim") update("quemHistorico", "");
+        }}
+        options={SIM_NAO_NAOSEI}
+        error={errors.historicoFamiliarQueda}
+      />
+      {answers.historicoFamiliarQueda === "Sim" && (
+        <div className="brescancin-subfield">
+          <FieldText
+            label="Por parte de quem?"
+            value={answers.quemHistorico}
+            onChange={(v) => update("quemHistorico", v)}
+            placeholder="Mãe, pai, avós..."
+            error={errors.quemHistorico}
+          />
+        </div>
+      )}
+      <FieldTextarea
+        label="Já fez algum tratamento para o cabelo?"
+        value={answers.tratamentosAnteriores}
+        onChange={(v) => update("tratamentosAnteriores", v)}
+        placeholder={
+          "Ex: Minoxidil por conta própria, biotina, shampoos específicos... Se não tentou nada, escreva não."
+        }
+        error={errors.tratamentosAnteriores}
+      />
+      <FieldRadio
+        label="Já usou Minoxidil ou Finasterida?"
+        value={answers.usouMinoxidilFinasterida}
+        onChange={(v) => {
+          update("usouMinoxidilFinasterida", v);
+          if (v !== "Sim") update("quaisTempoUso", "");
+        }}
+        options={SIM_NAO}
+        error={errors.usouMinoxidilFinasterida}
+      />
+      {answers.usouMinoxidilFinasterida === "Sim" && (
+        <div className="brescancin-subfield">
+          <FieldTextarea
+            label="Qual(is) e por quanto tempo?"
+            value={answers.quaisTempoUso}
+            onChange={(v) => update("quaisTempoUso", v)}
+            error={errors.quaisTempoUso}
+          />
+        </div>
+      )}
+      <FieldRadio
+        label="Fez exames de sangue recentes?"
+        value={answers.examesSanguineRecentes}
+        onChange={(v) => update("examesSanguineRecentes", v)}
+        options={EXAMES_SANGUINEOS_RECENTES}
+        error={errors.examesSanguineRecentes}
+      />
+
+      <h3 className="brescancin-block-title">Sobrancelhas</h3>
+      <FieldRadio
+        label="Tem alguma queixa em relação às sobrancelhas?"
+        value={answers.temQueixaSobrancelha}
+        onChange={(v) => {
+          update("temQueixaSobrancelha", v);
+          if (v !== "Sim") {
+            update("queixaSobrancelha", []);
+            update("procedimentoSobrancelhaAnterior", "");
+            update("qualProcedimento", "");
+          }
+        }}
+        options={SIM_NAO}
+        error={errors.temQueixaSobrancelha}
+      />
+      {answers.temQueixaSobrancelha === "Sim" && (
+        <div className="brescancin-subfield">
+          <FieldCheckbox
+            label="Qual é a queixa?"
+            values={answers.queixaSobrancelha}
+            onChange={(v) => update("queixaSobrancelha", v)}
+            options={QUEIXA_SOBRANCELHA}
+            error={errors.queixaSobrancelha}
+          />
+          <FieldRadio
+            label="Já fez algum procedimento nas sobrancelhas?"
+            value={answers.procedimentoSobrancelhaAnterior}
+            onChange={(v) => {
+              update("procedimentoSobrancelhaAnterior", v);
+              if (v !== "Sim") update("qualProcedimento", "");
+            }}
+            options={SIM_NAO}
+            error={errors.procedimentoSobrancelhaAnterior}
+          />
+          {answers.procedimentoSobrancelhaAnterior === "Sim" && (
+            <div className="brescancin-subfield">
+              <FieldTextarea
+                label="Qual e quando? Ainda está visível?"
+                value={answers.qualProcedimento}
+                onChange={(v) => update("qualProcedimento", v)}
+                error={errors.qualProcedimento}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
 function Step3Fields({ answers, errors, update }: StepProps) {
   return (
     <>
@@ -777,7 +977,10 @@ const STEP_HEADERS: Record<Step, { title: string; intro: string }> = {
     title: "Seu dia a dia",
     intro: "Algumas perguntas rápidas sobre estilo de vida.",
   },
-  step4: { title: "Cabelo e sobrancelhas", intro: "" },
+  step4: {
+    title: "Cabelo e sobrancelhas",
+    intro: "Conte das suas queixas — pode pular o que não se aplica.",
+  },
   step5: { title: "Para fechar", intro: "" },
   done: { title: "", intro: "" },
 };
@@ -884,7 +1087,8 @@ export default function FormFlow() {
         {step === "step1" && <Step1Fields {...stepProps} />}
         {step === "step2" && <Step2Fields {...stepProps} />}
         {step === "step3" && <Step3Fields {...stepProps} />}
-        {(step === "step4" || step === "step5") && (
+        {step === "step4" && <Step4Fields {...stepProps} />}
+        {step === "step5" && (
           <p className="brescancin-body">
             Esta etapa será implementada em breve.
           </p>

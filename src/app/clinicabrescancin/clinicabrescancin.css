@@ -371,6 +371,25 @@
   margin-bottom: 24px;
 }
 
+/* Subtítulo de bloco dentro de uma etapa (ex: "Cabelo", "Sobrancelhas") */
+.brescancin-block-title {
+  font-family: var(--font-display), serif;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bc-accent);
+  margin: 8px 0 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--bc-border);
+}
+
+.brescancin-block-title:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
 /* Rodapé com botões de navegação */
 .brescancin-actions {
   display: flex;

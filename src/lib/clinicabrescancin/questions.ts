@@ -76,3 +76,42 @@ export const QUALIDADE_SONO = [
 ] as const;
 
 export const NIVEL_ESTRESSE = ["Baixo", "Moderado", "Alto", "Muito alto"] as const;
+
+// Etapa 4 — Cabelo
+export const QUEIXA_CAPILAR = [
+  "Queda intensa",
+  "Fios afinando",
+  "Falhas no couro cabeludo",
+  "Caspa persistente",
+  "Oleosidade excessiva",
+  "Coceira ou irritação",
+  "Nada no momento",
+] as const;
+// Opção exclusiva — marcar "Nada no momento" zera as outras.
+export const QUEIXA_CAPILAR_EXCLUSIVA = "Nada no momento";
+
+export const TIPO_QUEDA = ["De repente", "Foi gradual", "Não sei dizer"] as const;
+
+export const EVENTOS_ASSOCIADOS = [
+  "Parto ou amamentação",
+  "Estresse intenso",
+  "Mudança hormonal (anticoncepcional, menopausa)",
+  "Doença ou cirurgia recente",
+  "Emagrecimento rápido",
+  "Nenhum dos anteriores",
+] as const;
+export const EVENTOS_ASSOCIADOS_EXCLUSIVA = "Nenhum dos anteriores";
+
+export const EXAMES_SANGUINEOS_RECENTES = [
+  "Sim, tenho os resultados",
+  "Fiz mas não lembro",
+  "Não fiz",
+] as const;
+
+// Etapa 4 — Sobrancelhas
+export const QUEIXA_SOBRANCELHA = [
+  "Muito falha ou quase sem fios",
+  "Falha só no início ou na cauda",
+  "Assimétrica",
+  "Fios finos e esparsos",
+] as const;
