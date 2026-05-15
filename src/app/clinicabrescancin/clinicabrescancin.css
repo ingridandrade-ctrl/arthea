@@ -407,9 +407,9 @@
 }
 
 .brescancin-dark .brescancin-btn-primary:hover:not(:disabled) {
-  background: #ffffff;
+  background: #f0d49a;
   color: #0f2447;
-  box-shadow: 0 8px 32px rgba(228, 194, 129, 0.3);
+  box-shadow: 0 12px 36px rgba(228, 194, 129, 0.45);
 }
 
 .brescancin-btn-ghost {
