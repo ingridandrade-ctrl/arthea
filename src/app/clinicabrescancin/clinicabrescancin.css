@@ -431,14 +431,18 @@
   border-radius: 999px;
   cursor: pointer;
   text-decoration: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: background-color 200ms ease, color 200ms ease,
     transform 160ms ease, box-shadow 200ms ease;
 }
 
-.brescancin-btn-primary:hover:not(:disabled) {
-  background: var(--bc-accent-strong);
-  color: #ffffff;
-  box-shadow: 0 8px 24px rgba(184, 148, 92, 0.3);
+@media (hover: hover) {
+  .brescancin-btn-primary:hover:not(:disabled) {
+    background: var(--bc-accent-strong);
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(184, 148, 92, 0.3);
+  }
 }
 
 .brescancin-btn-primary:active:not(:disabled) {
@@ -456,10 +460,12 @@
   color: #0f2447;
 }
 
-.brescancin-dark .brescancin-btn-primary:hover:not(:disabled) {
-  background: #f0d49a;
-  color: #0f2447;
-  box-shadow: 0 12px 36px rgba(228, 194, 129, 0.45);
+@media (hover: hover) {
+  .brescancin-dark .brescancin-btn-primary:hover:not(:disabled) {
+    background: #f0d49a;
+    color: #0f2447;
+    box-shadow: 0 12px 36px rgba(228, 194, 129, 0.45);
+  }
 }
 
 .brescancin-btn-ghost {
@@ -473,11 +479,15 @@
   cursor: pointer;
   padding: 12px 4px;
   min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: color 180ms ease;
 }
 
-.brescancin-btn-ghost:hover:not(:disabled) {
-  color: var(--bc-accent-strong);
+@media (hover: hover) {
+  .brescancin-btn-ghost:hover:not(:disabled) {
+    color: var(--bc-accent-strong);
+  }
 }
 
 .brescancin-btn-ghost:disabled {
@@ -624,6 +634,8 @@
   border: 1.5px solid var(--bc-border);
   border-radius: 14px;
   background: var(--bc-card);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: border-color 160ms ease, background-color 160ms ease,
     box-shadow 160ms ease;
 }
@@ -634,16 +646,18 @@
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-.brescancin-radio:hover,
-.brescancin-checkbox:hover {
-  border-color: var(--bc-border-accent);
-  background: rgba(184, 148, 92, 0.04);
-}
+@media (hover: hover) {
+  .brescancin-radio:hover,
+  .brescancin-checkbox:hover {
+    border-color: var(--bc-border-accent);
+    background: rgba(184, 148, 92, 0.04);
+  }
 
-.brescancin-dark .brescancin-radio:hover,
-.brescancin-dark .brescancin-checkbox:hover {
-  background: rgba(228, 194, 129, 0.06);
-  border-color: rgba(228, 194, 129, 0.35);
+  .brescancin-dark .brescancin-radio:hover,
+  .brescancin-dark .brescancin-checkbox:hover {
+    background: rgba(228, 194, 129, 0.06);
+    border-color: rgba(228, 194, 129, 0.35);
+  }
 }
 
 .brescancin-radio:has(input:checked),
@@ -802,26 +816,26 @@
 
 .brescancin-hero-inner > * {
   opacity: 0;
-  animation: brescancin-rise 720ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: brescancin-rise 380ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .brescancin-hero-inner > *:nth-child(1) {
-  animation-delay: 80ms;
+  animation-delay: 0ms;
 }
 .brescancin-hero-inner > *:nth-child(2) {
-  animation-delay: 180ms;
+  animation-delay: 60ms;
 }
 .brescancin-hero-inner > *:nth-child(3) {
-  animation-delay: 280ms;
+  animation-delay: 120ms;
 }
 .brescancin-hero-inner > *:nth-child(4) {
-  animation-delay: 400ms;
+  animation-delay: 180ms;
 }
 .brescancin-hero-inner > *:nth-child(5) {
-  animation-delay: 540ms;
+  animation-delay: 240ms;
 }
 .brescancin-hero-inner > *:nth-child(6) {
-  animation-delay: 680ms;
+  animation-delay: 300ms;
 }
 
 /* Brand + linha decorativa do topo das etapas também entram suaves */
