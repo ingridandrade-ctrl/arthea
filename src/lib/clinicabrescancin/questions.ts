@@ -115,3 +115,12 @@ export const QUEIXA_SOBRANCELHA = [
   "Assimétrica",
   "Fios finos e esparsos",
 ] as const;
+
+// Etapa 5 — Fechamento
+export const COMO_CONHECEU = [
+  "Instagram",
+  "Indicação de alguém",
+  "Google",
+  "Anúncio",
+  "Outro",
+] as const;

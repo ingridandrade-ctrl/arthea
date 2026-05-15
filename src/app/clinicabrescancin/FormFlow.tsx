@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  COMO_CONHECEU,
   DOENCAS_DIAGNOSTICADAS,
   DOENCAS_EXCLUSIVA,
   ESTADO_CIVIL,
@@ -81,6 +82,10 @@ type Answers = {
   queixaSobrancelha: string[];
   procedimentoSobrancelhaAnterior: string;
   qualProcedimento: string;
+  // Etapa 5 — Fechamento
+  principalIncomodo: string;
+  duvidaConsulta: string;
+  comoConheceu: string[];
 };
 
 type Errors = Partial<Record<keyof Answers, string>>;
@@ -137,6 +142,9 @@ const INITIAL_ANSWERS: Answers = {
   queixaSobrancelha: [],
   procedimentoSobrancelhaAnterior: "",
   qualProcedimento: "",
+  principalIncomodo: "",
+  duvidaConsulta: "",
+  comoConheceu: [],
 };
 
 const FORM_STEPS: Step[] = ["step1", "step2", "step3", "step4", "step5"];
@@ -225,11 +233,23 @@ function validateStep4(_: Answers): Errors {
   return {};
 }
 
+function validateStep5(a: Answers): Errors {
+  const e: Errors = {};
+  if (!a.principalIncomodo.trim()) {
+    e.principalIncomodo = "Conte rapidinho — pode ser direto.";
+  }
+  if (a.comoConheceu.length === 0) {
+    e.comoConheceu = "Selecione ao menos uma opção.";
+  }
+  return e;
+}
+
 function validateForStep(step: Step, a: Answers): Errors {
   if (step === "step1") return validateStep1(a);
   if (step === "step2") return validateStep2(a);
   if (step === "step3") return validateStep3(a);
   if (step === "step4") return validateStep4(a);
+  if (step === "step5") return validateStep5(a);
   return {};
 }
 
@@ -916,6 +936,36 @@ function Step4Fields({ answers, errors, update }: StepProps) {
   );
 }
 
+function Step5Fields({ answers, errors, update }: StepProps) {
+  return (
+    <>
+      <FieldTextarea
+        label="O que mais te incomoda hoje?"
+        required
+        value={answers.principalIncomodo}
+        onChange={(v) => update("principalIncomodo", v)}
+        placeholder="Pode ser direto. Nenhuma resposta é errada."
+        error={errors.principalIncomodo}
+      />
+      <FieldTextarea
+        label="Tem alguma dúvida específica para trazer na consulta?"
+        value={answers.duvidaConsulta}
+        onChange={(v) => update("duvidaConsulta", v)}
+        placeholder="Se tiver alguma dúvida específica para trazer na consulta, escreva aqui."
+        error={errors.duvidaConsulta}
+      />
+      <FieldCheckbox
+        label="Como você conheceu a Clínica Brescancin?"
+        required
+        values={answers.comoConheceu}
+        onChange={(v) => update("comoConheceu", v)}
+        options={COMO_CONHECEU}
+        error={errors.comoConheceu}
+      />
+    </>
+  );
+}
+
 function Step3Fields({ answers, errors, update }: StepProps) {
   return (
     <>
@@ -981,7 +1031,10 @@ const STEP_HEADERS: Record<Step, { title: string; intro: string }> = {
     title: "Cabelo e sobrancelhas",
     intro: "Conte das suas queixas — pode pular o que não se aplica.",
   },
-  step5: { title: "Para fechar", intro: "" },
+  step5: {
+    title: "Para fechar",
+    intro: "Últimas perguntas pra entender o que te trouxe até aqui.",
+  },
   done: { title: "", intro: "" },
 };
 
@@ -989,6 +1042,8 @@ export default function FormFlow() {
   const [step, setStep] = useState<Step>("welcome");
   const [answers, setAnswers] = useState<Answers>(INITIAL_ANSWERS);
   const [errors, setErrors] = useState<Errors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const skipScrollOnMount = useRef(true);
 
   useEffect(() => {
@@ -1009,7 +1064,33 @@ export default function FormFlow() {
     });
   };
 
+  const submit = async () => {
+    setSubmitError(null);
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/clinicabrescancin/responses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(answers),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSubmitError(
+          (data && typeof data.error === "string" && data.error) ||
+            "Não conseguimos enviar agora. Tente novamente em instantes.",
+        );
+        return;
+      }
+      setStep("done");
+    } catch {
+      setSubmitError("Sem conexão. Confira sua internet e tente novamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const goNext = () => {
+    if (isSubmitting) return;
     const stepErrors = validateForStep(step, answers);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
@@ -1017,17 +1098,20 @@ export default function FormFlow() {
     }
     setErrors({});
     const idx = FORM_STEPS.indexOf(step as (typeof FORM_STEPS)[number]);
+    if (idx === FORM_STEPS.length - 1) {
+      submit();
+      return;
+    }
     if (idx >= 0 && idx < FORM_STEPS.length - 1) {
       setStep(FORM_STEPS[idx + 1]);
-    } else if (idx === FORM_STEPS.length - 1) {
-      // step5 → done (submit virá no Step 7/8 de implementação)
-      setStep("done");
     }
   };
 
   const goBack = () => {
+    if (isSubmitting) return;
     const idx = FORM_STEPS.indexOf(step as (typeof FORM_STEPS)[number]);
     setErrors({});
+    setSubmitError(null);
     if (idx === 0) {
       setStep("welcome");
     } else if (idx > 0) {
@@ -1058,10 +1142,32 @@ export default function FormFlow() {
   }
 
   if (step === "done") {
+    const greetingName =
+      answers.apelido.trim() ||
+      answers.nomeCompleto.trim().split(/\s+/)[0] ||
+      "";
     return (
-      <section className="brescancin-card brescancin-step">
-        <p className="brescancin-body" style={{ textAlign: "center" }}>
-          Tela de confirmação será implementada na próxima etapa.
+      <section className="brescancin-card brescancin-step" style={{ textAlign: "center" }}>
+        <div className="brescancin-check" aria-hidden>
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+        </div>
+        <h2 className="brescancin-title">
+          Recebemos{greetingName ? `, ${greetingName}` : ""}.
+        </h2>
+        <p className="brescancin-body">
+          O Dr. Samuel e a Alana já podem chegar preparados para a sua consulta.
+          Até breve.
         </p>
       </section>
     );
@@ -1088,18 +1194,33 @@ export default function FormFlow() {
         {step === "step2" && <Step2Fields {...stepProps} />}
         {step === "step3" && <Step3Fields {...stepProps} />}
         {step === "step4" && <Step4Fields {...stepProps} />}
-        {step === "step5" && (
-          <p className="brescancin-body">
-            Esta etapa será implementada em breve.
-          </p>
-        )}
+        {step === "step5" && <Step5Fields {...stepProps} />}
       </section>
+      {submitError && (
+        <p
+          className="brescancin-error"
+          style={{ textAlign: "center", marginTop: 16, fontSize: 14 }}
+          role="alert"
+        >
+          {submitError}
+        </p>
+      )}
       <div className="brescancin-actions">
-        <button type="button" className="brescancin-btn-ghost" onClick={goBack}>
+        <button
+          type="button"
+          className="brescancin-btn-ghost"
+          onClick={goBack}
+          disabled={isSubmitting}
+        >
           ← Voltar
         </button>
-        <button type="button" className="brescancin-btn-primary" onClick={goNext}>
-          {isLast ? "Enviar" : "Próximo →"}
+        <button
+          type="button"
+          className="brescancin-btn-primary"
+          onClick={goNext}
+          disabled={isSubmitting}
+        >
+          {isLast ? (isSubmitting ? "Enviando..." : "Enviar") : "Próximo →"}
         </button>
       </div>
     </div>
