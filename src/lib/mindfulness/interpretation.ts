@@ -33,6 +33,23 @@ export function interpretFFMQ(scores: FFMQScores, nome: string): string {
   if (low.length === 0 && high.length === 0) {
     parts.push(`${fn} apresenta perfil equilibrado, com pontuações dentro da média em todas as cinco facetas.`);
   }
+
+  // Padrão "Observar elevado sem suporte regulatório": atenção aguçada
+  // sem Não Julgar e/ou Não Reagir tende, em quem ainda não tem prática
+  // contemplativa instalada, a se associar a maior reatividade emocional
+  // (Baer et al., 2008). Apenas comentário interpretativo — não altera
+  // scores nem faixas.
+  if (ffmqBand("observe", scores.observe) === "acima") {
+    const semSuporte: string[] = [];
+    if (ffmqBand("nonjudge", scores.nonjudge) === "abaixo") semSuporte.push("Não Julgar");
+    if (ffmqBand("nonreact", scores.nonreact) === "abaixo") semSuporte.push("Não Reagir");
+    if (semSuporte.length > 0) {
+      parts.push(
+        `Ponto de atenção: a pontuação elevada em Observar acompanhada de pontuação abaixo da média em ${listToBR(semSuporte)} sugere atenção aguçada sem suporte regulatório — padrão associado, em quem ainda não tem prática contemplativa consolidada, a maior reatividade emocional (Baer et al., 2008).`,
+      );
+    }
+  }
+
   return parts.join(" ");
 }
 

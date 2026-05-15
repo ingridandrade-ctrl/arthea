@@ -17,6 +17,7 @@ import {
   DASS_LABELS,
   FFMQ_FACETS,
   FFMQ_REVERSED,
+  FFMQ_NORMS,
   DASS_SUBSCALES,
   type FFMQFacet,
   type FFMQScores,
@@ -313,22 +314,54 @@ function FFMQSection({ ffmq }: { ffmq: NonNullable<ParticipantSummary["ffmq"]> }
           );
         })}
       </div>
+      <div className="m-norm-legend" aria-label="Legenda das referências">
+        <span className="m-norm-legend-item">
+          <span className="m-norm-legend-bar m-norm-legend-fill" /> Pontuação da participante
+        </span>
+        <span className="m-norm-legend-item">
+          <span className="m-norm-legend-marker m-norm-legend-marker-nm" /> Média não-meditantes
+        </span>
+        <span className="m-norm-legend-item">
+          <span className="m-norm-legend-marker m-norm-legend-marker-m" /> Média meditantes regulares
+        </span>
+      </div>
       <div className="m-bars">
         {FACETS.map((f) => {
-          const pct = Math.round((ffmq.scores[f] / ffmq.maxes[f]) * 100);
+          const max = ffmq.maxes[f];
+          const pct = Math.round((ffmq.scores[f] / max) * 100);
+          const refNm = (FFMQ_NORMS[f].nao_meditantes / max) * 100;
+          const refMed = (FFMQ_NORMS[f].meditantes / max) * 100;
           return (
             <div key={f} className="m-bar-row">
               <div className="m-bar-label">{FFMQ_LABELS[f]}</div>
               <div className="m-bar-track">
                 <div className="m-bar-fill" style={{ width: `${pct}%` }} />
+                <span
+                  className="m-bar-ref m-bar-ref-nm"
+                  style={{ left: `${refNm}%` }}
+                  title={`Média de não-meditantes: ${FFMQ_NORMS[f].nao_meditantes}`}
+                  aria-hidden="true"
+                />
+                <span
+                  className="m-bar-ref m-bar-ref-m"
+                  style={{ left: `${refMed}%` }}
+                  title={`Média de meditantes regulares: ${FFMQ_NORMS[f].meditantes}`}
+                  aria-hidden="true"
+                />
               </div>
               <div className="m-bar-val">
-                {ffmq.scores[f]}/{ffmq.maxes[f]}
+                {ffmq.scores[f]}/{max}
               </div>
             </div>
           );
         })}
       </div>
+      <p className="m-norm-source">
+        Referências de média: Baer et al. (2008), <em>Construct Validity of the Five Facet
+        Mindfulness Questionnaire in Meditating and Nonmeditating Samples</em>, Tab. 4. As pontuações
+        e faixas oficiais do FFMQ permanecem inalteradas — os marcadores servem só para contextualizar
+        a leitura.
+      </p>
     </div>
   );
 }
