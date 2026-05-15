@@ -18,7 +18,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Avaliação de Atenção Plena e Saúde Mental · Iasmim Sasseron",
+  title: "Questionários sobre Habilidades de Mindfulness (Atenção Plena) e Saúde Mental",
   description:
     "Projeto de supervisão da formação em Mindfulness — coleta de dois questionários validados.",
   robots: { index: false, follow: false },
