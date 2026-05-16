@@ -106,8 +106,7 @@ type Answers = {
   queixaCapilar: string[];
   fezTratamentoCapilar: string;
   tempoQueixa: string;
-  fotoTopo: string;
-  fotosLaterais: string[];
+  fotosCabelo: string[];
   tipoQueda: string;
   eventosAssociados: string[];
   historicoFamiliarQueda: string;
@@ -174,8 +173,7 @@ const INITIAL_ANSWERS: Answers = {
   queixaCapilar: [],
   fezTratamentoCapilar: "",
   tempoQueixa: "",
-  fotoTopo: "",
-  fotosLaterais: [],
+  fotosCabelo: [],
   tipoQueda: "",
   eventosAssociados: [],
   historicoFamiliarQueda: "",
@@ -1128,16 +1126,14 @@ function Step4Fields({ answers, errors, update }: StepProps) {
         error={errors.examesSanguineRecentes}
       />
       <FieldPhotos
-        label="Foto do topo da cabeça (opcional)"
-        helper="Se você puder, tira uma foto de cima pra baixo mostrando o couro cabeludo — ajuda muito a Alana a se preparar. Pode ser pelo celular, com boa luz natural."
-        values={answers.fotoTopo ? [answers.fotoTopo] : []}
-        onChange={(urls) => update("fotoTopo", urls[0] ?? "")}
-      />
-      <FieldPhotos
-        label="Fotos das laterais e nuca (opcional)"
-        helper="Direita, esquerda, atrás — as que conseguir. Pede pra alguém te ajudar se precisar."
-        values={answers.fotosLaterais}
-        onChange={(urls) => update("fotosLaterais", urls)}
+        label="Fotos do seu cabelo"
+        helper={
+          "Se você conseguir, tire algumas fotos do seu cabelo e insira abaixo.\n" +
+          "Recomendamos foto do topo da cabeça (vista de cima) e das laterais. Pode ser feita com celular, mas procure um ambiente claro.\n" +
+          "Peça ajuda para alguém se for necessário."
+        }
+        values={answers.fotosCabelo}
+        onChange={(urls) => update("fotosCabelo", urls)}
         multiple
       />
 
@@ -1327,7 +1323,7 @@ const STEP_HEADERS: Record<Step, { title: string; intro: string }> = {
   },
   step4: {
     title: "Cabelo e sobrancelhas",
-    intro: "Conte das suas queixas — pode pular o que não se aplica.",
+    intro: "Queremos saber como anda a saúde dos seus fios.",
   },
   step5: {
     title: "Para fechar",

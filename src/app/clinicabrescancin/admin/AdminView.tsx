@@ -107,8 +107,7 @@ const SECTIONS: Section[] = [
       { key: "usouMinoxidilFinasterida", label: "Usou Minoxidil/Finasterida" },
       { key: "quaisTempoUso", label: "Qual(is) e tempo de uso", type: "longtext" },
       { key: "examesSanguineRecentes", label: "Exames de sangue recentes" },
-      { key: "fotoTopo", label: "Foto do topo", type: "photo" },
-      { key: "fotosLaterais", label: "Fotos laterais/nuca", type: "photos" },
+      { key: "fotosCabelo", label: "Fotos do cabelo", type: "photos" },
     ],
   },
   {
