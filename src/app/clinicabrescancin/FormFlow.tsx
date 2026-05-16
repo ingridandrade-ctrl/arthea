@@ -232,6 +232,12 @@ function validateStep2(a: Answers): Errors {
   if (a.doencasDiagnosticadas.length === 0) {
     e.doencasDiagnosticadas = "Selecione ao menos uma opção (ou \"Nenhuma\").";
   }
+  if (a.saudeMae.length === 0) {
+    e.saudeMae = "Selecione ao menos uma opção.";
+  }
+  if (a.saudePai.length === 0) {
+    e.saudePai = "Selecione ao menos uma opção.";
+  }
   if (!a.usaMedicamentos) e.usaMedicamentos = "Selecione uma opção.";
   if (a.usaMedicamentos === "Sim" && !a.quaisMedicamentos.trim()) {
     e.quaisMedicamentos = "Conte qual(is) e para que usa.";
@@ -240,6 +246,11 @@ function validateStep2(a: Answers): Errors {
   if (a.usaSuplementos === "Sim" && !a.quaisSuplementos.trim()) {
     e.quaisSuplementos = "Conte qual(is) suplemento(s).";
   }
+  if (!a.usaEsteroides) e.usaEsteroides = "Selecione uma opção.";
+  if (!a.usaTestosterona) e.usaTestosterona = "Selecione uma opção.";
+  if (!a.usaMedSonoAnsiedade) {
+    e.usaMedSonoAnsiedade = "Selecione uma opção.";
+  }
   if (a.usaMedSonoAnsiedade === "Sim" && !a.quaisMedSonoAnsiedade.trim()) {
     e.quaisMedSonoAnsiedade = "Conte qual(is).";
   }
@@ -247,9 +258,13 @@ function validateStep2(a: Answers): Errors {
   if (a.alergiaMedicamento === "Sim" && !a.qualAlergia.trim()) {
     e.qualAlergia = "Conte qual.";
   }
+  if (!a.alergiaAmbiental) e.alergiaAmbiental = "Selecione uma opção.";
   if (!a.fezCirurgia) e.fezCirurgia = "Selecione uma opção.";
   if (a.fezCirurgia === "Sim" && !a.qualCirurgia.trim()) {
     e.qualCirurgia = "Conte qual e quando aproximadamente.";
+  }
+  if (!a.hospitalizadoUltimoAno) {
+    e.hospitalizadoUltimoAno = "Selecione uma opção.";
   }
   if (!a.teveCovidDengue) e.teveCovidDengue = "Selecione uma opção.";
   if (a.teveCovidDengue === "Sim" && !a.qualCovidDengue.trim()) {
@@ -279,15 +294,63 @@ function validateStep3(a: Answers): Errors {
   return e;
 }
 
-function validateStep4(_: Answers): Errors {
-  // Etapa 4 não tem campos obrigatórios — todas as perguntas são opcionais.
-  return {};
+function validateStep4(a: Answers): Errors {
+  const e: Errors = {};
+  // Cabelo
+  if (a.queixaCapilar.length === 0) {
+    e.queixaCapilar = "Selecione ao menos uma opção.";
+  }
+  if (a.eventosAssociados.length === 0) {
+    e.eventosAssociados = "Selecione ao menos uma opção.";
+  }
+  if (!a.historicoFamiliarQueda) {
+    e.historicoFamiliarQueda = "Selecione uma opção.";
+  }
+  if (a.historicoFamiliarQueda === "Sim" && !a.quemHistorico.trim()) {
+    e.quemHistorico = "Conte por parte de quem.";
+  }
+  if (!a.tratamentosAnteriores.trim()) {
+    e.tratamentosAnteriores =
+      "Conte o que já tentou — se não tentou nada, escreva 'não'.";
+  }
+  if (!a.usouMinoxidilFinasterida) {
+    e.usouMinoxidilFinasterida = "Selecione uma opção.";
+  }
+  if (a.usouMinoxidilFinasterida === "Sim" && !a.quaisTempoUso.trim()) {
+    e.quaisTempoUso = "Conte qual(is) e por quanto tempo.";
+  }
+  if (!a.examesSanguineRecentes) {
+    e.examesSanguineRecentes = "Selecione uma opção.";
+  }
+  // Sobrancelhas
+  if (!a.temQueixaSobrancelha) {
+    e.temQueixaSobrancelha = "Selecione uma opção.";
+  }
+  if (a.temQueixaSobrancelha === "Sim") {
+    if (a.queixaSobrancelha.length === 0) {
+      e.queixaSobrancelha = "Selecione ao menos uma opção.";
+    }
+    if (!a.procedimentoSobrancelhaAnterior) {
+      e.procedimentoSobrancelhaAnterior = "Selecione uma opção.";
+    }
+    if (
+      a.procedimentoSobrancelhaAnterior === "Sim" &&
+      !a.qualProcedimento.trim()
+    ) {
+      e.qualProcedimento = "Conte qual procedimento e quando.";
+    }
+  }
+  return e;
 }
 
 function validateStep5(a: Answers): Errors {
   const e: Errors = {};
   if (!a.principalIncomodo.trim()) {
     e.principalIncomodo = "Conte rapidinho — pode ser direto.";
+  }
+  if (!a.duvidaConsulta.trim()) {
+    e.duvidaConsulta =
+      "Se não tiver nenhuma dúvida específica, escreva 'não'.";
   }
   if (a.comoConheceu.length === 0) {
     e.comoConheceu = "Selecione ao menos uma opção.";
@@ -305,27 +368,6 @@ function validateForStep(step: Step, a: Answers): Errors {
 }
 
 // ─── Field components ──────────────────────────────────────────────
-
-// Suavemente desliza pra próxima pergunta depois de selecionar uma resposta.
-function scrollToNextField(currentField: HTMLElement | null) {
-  if (!currentField) return;
-  setTimeout(() => {
-    let cursor = currentField.nextElementSibling;
-    while (cursor) {
-      if (
-        cursor instanceof HTMLElement &&
-        (cursor.classList.contains("brescancin-field") ||
-          cursor.classList.contains("brescancin-subfield") ||
-          cursor.classList.contains("brescancin-block-title"))
-      ) {
-        cursor.scrollIntoView({ behavior: "smooth", block: "center" });
-        return;
-      }
-      cursor = cursor.nextElementSibling;
-    }
-  }, 220);
-}
-
 
 type FieldTextProps = {
   label: string;
@@ -424,20 +466,15 @@ function FieldSelect({
   placeholder = "Selecione",
   error,
 }: FieldSelectProps) {
-  const fieldRef = useRef<HTMLDivElement>(null);
   return (
-    <div className="brescancin-field" ref={fieldRef}>
+    <div className="brescancin-field">
       <label className={`brescancin-label${required ? " brescancin-label-required" : ""}`}>
         {label}
       </label>
       <select
         className="brescancin-select"
         value={value}
-        onChange={(e) => {
-          const v = e.target.value;
-          onChange(v);
-          if (v && v !== value) scrollToNextField(fieldRef.current);
-        }}
+        onChange={(e) => onChange(e.target.value)}
       >
         <option value="">{placeholder}</option>
         {options.map((opt) => (
@@ -462,9 +499,8 @@ type FieldRadioProps = {
 };
 
 function FieldRadio({ label, required, value, onChange, options, helper, error }: FieldRadioProps) {
-  const fieldRef = useRef<HTMLDivElement>(null);
   return (
-    <div className="brescancin-field" ref={fieldRef}>
+    <div className="brescancin-field">
       <span className={`brescancin-label${required ? " brescancin-label-required" : ""}`}>
         {label}
       </span>
@@ -475,11 +511,7 @@ function FieldRadio({ label, required, value, onChange, options, helper, error }
             <input
               type="radio"
               checked={value === opt}
-              onChange={() => {
-                const wasUnchanged = value === opt;
-                onChange(opt);
-                if (!wasUnchanged) scrollToNextField(fieldRef.current);
-              }}
+              onChange={() => onChange(opt)}
             />
             <span>{opt}</span>
           </label>
@@ -678,6 +710,7 @@ function Step2Fields({ answers, errors, update }: StepProps) {
       />
       <FieldCheckbox
         label="Análise sobre a saúde da sua mãe"
+        required
         helper="Marque tudo que se aplica. Se já faleceu, marque também as condições que ela tinha em vida."
         values={answers.saudeMae}
         onChange={(v) => update("saudeMae", v)}
@@ -687,6 +720,7 @@ function Step2Fields({ answers, errors, update }: StepProps) {
       />
       <FieldCheckbox
         label="Análise sobre a saúde do seu pai"
+        required
         helper="Marque tudo que se aplica. Se já faleceu, marque também as condições que ele tinha em vida."
         values={answers.saudePai}
         onChange={(v) => update("saudePai", v)}
@@ -741,6 +775,7 @@ function Step2Fields({ answers, errors, update }: StepProps) {
       )}
       <FieldRadio
         label="Faz uso de esteroides anabolizantes?"
+        required
         value={answers.usaEsteroides}
         onChange={(v) => update("usaEsteroides", v)}
         options={SIM_NAO}
@@ -748,6 +783,7 @@ function Step2Fields({ answers, errors, update }: StepProps) {
       />
       <FieldRadio
         label="Faz uso de testosterona?"
+        required
         value={answers.usaTestosterona}
         onChange={(v) => update("usaTestosterona", v)}
         options={SIM_NAO}
@@ -755,6 +791,7 @@ function Step2Fields({ answers, errors, update }: StepProps) {
       />
       <FieldRadio
         label="Faz uso de medicamento para sono ou ansiedade?"
+        required
         value={answers.usaMedSonoAnsiedade}
         onChange={(v) => {
           update("usaMedSonoAnsiedade", v);
@@ -798,6 +835,7 @@ function Step2Fields({ answers, errors, update }: StepProps) {
       )}
       <FieldRadio
         label="Tem alergia ambiental?"
+        required
         helper="Pelo, ácaros, camarão, frutos do mar."
         value={answers.alergiaAmbiental}
         onChange={(v) => update("alergiaAmbiental", v)}
@@ -828,6 +866,7 @@ function Step2Fields({ answers, errors, update }: StepProps) {
       )}
       <FieldRadio
         label="Ficou hospitalizado(a) no último ano?"
+        required
         value={answers.hospitalizadoUltimoAno}
         onChange={(v) => update("hospitalizadoUltimoAno", v)}
         options={SIM_NAO}
@@ -881,6 +920,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
       <h3 className="brescancin-block-title">Cabelo</h3>
       <FieldCheckbox
         label="O que você tem notado no seu cabelo?"
+        required
         values={answers.queixaCapilar}
         onChange={(v) => update("queixaCapilar", v)}
         options={QUEIXA_CAPILAR}
@@ -889,6 +929,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
       />
       <FieldCheckbox
         label="Algum desses eventos coincidiu com o início da queixa?"
+        required
         values={answers.eventosAssociados}
         onChange={(v) => update("eventosAssociados", v)}
         options={EVENTOS_ASSOCIADOS}
@@ -897,6 +938,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
       />
       <FieldRadio
         label="Há histórico de queda de cabelo na família?"
+        required
         value={answers.historicoFamiliarQueda}
         onChange={(v) => {
           update("historicoFamiliarQueda", v);
@@ -909,6 +951,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
         <div className="brescancin-subfield">
           <FieldText
             label="Por parte de quem?"
+            required
             value={answers.quemHistorico}
             onChange={(v) => update("quemHistorico", v)}
             placeholder="Mãe, pai, avós..."
@@ -918,6 +961,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
       )}
       <FieldTextarea
         label="Já fez algum tratamento para o cabelo?"
+        required
         value={answers.tratamentosAnteriores}
         onChange={(v) => update("tratamentosAnteriores", v)}
         placeholder={
@@ -927,6 +971,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
       />
       <FieldRadio
         label="Já usou Minoxidil ou Finasterida?"
+        required
         value={answers.usouMinoxidilFinasterida}
         onChange={(v) => {
           update("usouMinoxidilFinasterida", v);
@@ -939,6 +984,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
         <div className="brescancin-subfield">
           <FieldTextarea
             label="Qual(is) e por quanto tempo?"
+            required
             value={answers.quaisTempoUso}
             onChange={(v) => update("quaisTempoUso", v)}
             error={errors.quaisTempoUso}
@@ -947,6 +993,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
       )}
       <FieldRadio
         label="Fez exames de sangue recentes?"
+        required
         value={answers.examesSanguineRecentes}
         onChange={(v) => update("examesSanguineRecentes", v)}
         options={EXAMES_SANGUINEOS_RECENTES}
@@ -956,6 +1003,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
       <h3 className="brescancin-block-title">Sobrancelhas</h3>
       <FieldRadio
         label="Tem alguma queixa em relação às sobrancelhas?"
+        required
         value={answers.temQueixaSobrancelha}
         onChange={(v) => {
           update("temQueixaSobrancelha", v);
@@ -972,6 +1020,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
         <div className="brescancin-subfield">
           <FieldCheckbox
             label="Qual é a queixa?"
+            required
             values={answers.queixaSobrancelha}
             onChange={(v) => update("queixaSobrancelha", v)}
             options={QUEIXA_SOBRANCELHA}
@@ -979,6 +1028,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
           />
           <FieldRadio
             label="Já fez algum procedimento nas sobrancelhas?"
+            required
             value={answers.procedimentoSobrancelhaAnterior}
             onChange={(v) => {
               update("procedimentoSobrancelhaAnterior", v);
@@ -991,6 +1041,7 @@ function Step4Fields({ answers, errors, update }: StepProps) {
             <div className="brescancin-subfield">
               <FieldTextarea
                 label="Qual e quando? Ainda está visível?"
+                required
                 value={answers.qualProcedimento}
                 onChange={(v) => update("qualProcedimento", v)}
                 error={errors.qualProcedimento}
@@ -1017,9 +1068,10 @@ function Step5Fields({ answers, errors, update }: StepProps) {
       />
       <FieldTextarea
         label="Tem alguma dúvida específica para trazer na consulta?"
+        required
         value={answers.duvidaConsulta}
         onChange={(v) => update("duvidaConsulta", v)}
-        placeholder="Se tiver alguma dúvida específica para trazer na consulta, escreva aqui."
+        placeholder="Se não tiver nenhuma dúvida específica, escreva 'não'."
         error={errors.duvidaConsulta}
       />
       <FieldCheckbox

@@ -108,6 +108,16 @@ export async function POST(req: Request) {
     return err("Selecione ao menos uma opção na lista de doenças.");
   }
 
+  const saudeMae = toStrArray(b.saudeMae);
+  if (saudeMae.length === 0) {
+    return err("Selecione ao menos uma opção sobre a saúde da sua mãe.");
+  }
+
+  const saudePai = toStrArray(b.saudePai);
+  if (saudePai.length === 0) {
+    return err("Selecione ao menos uma opção sobre a saúde do seu pai.");
+  }
+
   const usaMedicamentos = toStr(b.usaMedicamentos);
   if (!SIM_NAO.includes(usaMedicamentos as (typeof SIM_NAO)[number])) {
     return err("Informe se faz uso contínuo de medicamento.");
@@ -124,7 +134,20 @@ export async function POST(req: Request) {
     return err("Conte qual(is) suplemento(s).");
   }
 
+  const usaEsteroides = toStr(b.usaEsteroides);
+  if (!SIM_NAO.includes(usaEsteroides as (typeof SIM_NAO)[number])) {
+    return err("Informe se faz uso de esteroides anabolizantes.");
+  }
+
+  const usaTestosterona = toStr(b.usaTestosterona);
+  if (!SIM_NAO.includes(usaTestosterona as (typeof SIM_NAO)[number])) {
+    return err("Informe se faz uso de testosterona.");
+  }
+
   const usaMedSonoAnsiedade = toStr(b.usaMedSonoAnsiedade);
+  if (!SIM_NAO.includes(usaMedSonoAnsiedade as (typeof SIM_NAO)[number])) {
+    return err("Informe se usa medicamento para sono ou ansiedade.");
+  }
   if (
     usaMedSonoAnsiedade === "Sim" &&
     !toStr(b.quaisMedSonoAnsiedade).trim()
@@ -140,12 +163,24 @@ export async function POST(req: Request) {
     return err("Conte qual medicamento causa alergia.");
   }
 
+  const alergiaAmbiental = toStr(b.alergiaAmbiental);
+  if (!SIM_NAO.includes(alergiaAmbiental as (typeof SIM_NAO)[number])) {
+    return err("Informe se tem alergia ambiental.");
+  }
+
   const fezCirurgia = toStr(b.fezCirurgia);
   if (!SIM_NAO.includes(fezCirurgia as (typeof SIM_NAO)[number])) {
     return err("Informe se já fez cirurgia.");
   }
   if (fezCirurgia === "Sim" && !toStr(b.qualCirurgia).trim()) {
     return err("Conte qual cirurgia e quando.");
+  }
+
+  const hospitalizadoUltimoAno = toStr(b.hospitalizadoUltimoAno);
+  if (
+    !SIM_NAO.includes(hospitalizadoUltimoAno as (typeof SIM_NAO)[number])
+  ) {
+    return err("Informe se ficou hospitalizado(a) no último ano.");
   }
 
   const teveCovidDengue = toStr(b.teveCovidDengue);
@@ -205,35 +240,115 @@ export async function POST(req: Request) {
     return err("Informe se costuma comer castanhas ou amêndoas.");
   }
 
+  // ─── Etapa 4 — obrigatórios ───
+  const queixaCapilar = toStrArray(b.queixaCapilar);
+  if (queixaCapilar.length === 0) {
+    return err("Selecione ao menos uma queixa em relação ao cabelo.");
+  }
+
+  const eventosAssociados = toStrArray(b.eventosAssociados);
+  if (eventosAssociados.length === 0) {
+    return err("Selecione ao menos uma opção sobre eventos associados.");
+  }
+
+  const historicoFamiliarQueda = toStr(b.historicoFamiliarQueda);
+  if (
+    !SIM_NAO_NAOSEI.includes(
+      historicoFamiliarQueda as (typeof SIM_NAO_NAOSEI)[number],
+    )
+  ) {
+    return err("Informe se há histórico familiar de queda.");
+  }
+  if (historicoFamiliarQueda === "Sim" && !toStr(b.quemHistorico).trim()) {
+    return err("Conte por parte de quem é o histórico familiar.");
+  }
+
+  const tratamentosAnteriores = toStr(b.tratamentosAnteriores).trim();
+  if (!tratamentosAnteriores) {
+    return err("Conte se já fez algum tratamento para o cabelo.");
+  }
+
+  const usouMinoxidilFinasterida = toStr(b.usouMinoxidilFinasterida);
+  if (
+    !SIM_NAO.includes(usouMinoxidilFinasterida as (typeof SIM_NAO)[number])
+  ) {
+    return err("Informe se já usou Minoxidil ou Finasterida.");
+  }
+  if (
+    usouMinoxidilFinasterida === "Sim" &&
+    !toStr(b.quaisTempoUso).trim()
+  ) {
+    return err("Conte qual(is) usou e por quanto tempo.");
+  }
+
+  const examesSanguineRecentes = toStr(b.examesSanguineRecentes);
+  if (!examesSanguineRecentes) {
+    return err("Informe sobre exames de sangue recentes.");
+  }
+
+  const temQueixaSobrancelha = toStr(b.temQueixaSobrancelha);
+  if (!SIM_NAO.includes(temQueixaSobrancelha as (typeof SIM_NAO)[number])) {
+    return err("Informe se tem queixa em relação às sobrancelhas.");
+  }
+  const queixaSobrancelha = toStrArray(b.queixaSobrancelha);
+  const procedimentoSobrancelhaAnterior = toStr(
+    b.procedimentoSobrancelhaAnterior,
+  );
+  if (temQueixaSobrancelha === "Sim") {
+    if (queixaSobrancelha.length === 0) {
+      return err("Selecione ao menos uma queixa de sobrancelha.");
+    }
+    if (
+      !SIM_NAO.includes(
+        procedimentoSobrancelhaAnterior as (typeof SIM_NAO)[number],
+      )
+    ) {
+      return err("Informe se já fez procedimento nas sobrancelhas.");
+    }
+    if (
+      procedimentoSobrancelhaAnterior === "Sim" &&
+      !toStr(b.qualProcedimento).trim()
+    ) {
+      return err("Conte qual procedimento foi feito e quando.");
+    }
+  }
+
   // ─── Etapa 5 — obrigatórios ───
   const principalIncomodo = toStr(b.principalIncomodo).trim();
   if (!principalIncomodo) return err("Conte o que mais te incomoda hoje.");
+
+  const duvidaConsulta = toStr(b.duvidaConsulta).trim();
+  if (!duvidaConsulta) {
+    return err(
+      "Se não tem dúvidas específicas, escreva 'não' no campo de dúvidas.",
+    );
+  }
 
   const comoConheceu = toStrArray(b.comoConheceu);
   if (comoConheceu.length === 0) {
     return err("Conte como você conheceu a clínica.");
   }
 
-  // ─── Coleta dos demais campos (todos opcionais) ───
+  // ─── Coleta dos demais campos pro JSON ───
   const answersJson: Prisma.InputJsonObject = {
     // Etapa 2
     doencasDiagnosticadas,
-    saudeMae: toStrArray(b.saudeMae),
-    saudePai: toStrArray(b.saudePai),
+    saudeMae,
+    saudePai,
     usaMedicamentos,
     quaisMedicamentos: toStr(b.quaisMedicamentos).trim(),
     usaSuplementos,
     quaisSuplementos: toStr(b.quaisSuplementos).trim(),
-    usaEsteroides: toStr(b.usaEsteroides),
-    usaTestosterona: toStr(b.usaTestosterona),
+    usaEsteroides,
+    usaTestosterona,
     usaMedSonoAnsiedade,
     quaisMedSonoAnsiedade: toStr(b.quaisMedSonoAnsiedade).trim(),
     alergiaMedicamento,
     qualAlergia: toStr(b.qualAlergia).trim(),
-    alergiaAmbiental: toStr(b.alergiaAmbiental),
+    alergiaAmbiental,
     fezCirurgia,
     qualCirurgia: toStr(b.qualCirurgia).trim(),
-    hospitalizadoUltimoAno: toStr(b.hospitalizadoUltimoAno),
+    hospitalizadoUltimoAno,
     teveCovidDengue,
     qualCovidDengue: toStr(b.qualCovidDengue).trim(),
     fuma,
@@ -248,23 +363,23 @@ export async function POST(req: Request) {
     tomaLeite,
     comeCastanhasAmendoas,
     // Etapa 4
-    queixaCapilar: toStrArray(b.queixaCapilar),
+    queixaCapilar,
     tempoQueixa: toStr(b.tempoQueixa).trim(),
     tipoQueda: toStr(b.tipoQueda),
-    eventosAssociados: toStrArray(b.eventosAssociados),
-    historicoFamiliarQueda: toStr(b.historicoFamiliarQueda),
+    eventosAssociados,
+    historicoFamiliarQueda,
     quemHistorico: toStr(b.quemHistorico).trim(),
-    tratamentosAnteriores: toStr(b.tratamentosAnteriores).trim(),
-    usouMinoxidilFinasterida: toStr(b.usouMinoxidilFinasterida),
+    tratamentosAnteriores,
+    usouMinoxidilFinasterida,
     quaisTempoUso: toStr(b.quaisTempoUso).trim(),
-    examesSanguineRecentes: toStr(b.examesSanguineRecentes),
-    temQueixaSobrancelha: toStr(b.temQueixaSobrancelha),
-    queixaSobrancelha: toStrArray(b.queixaSobrancelha),
-    procedimentoSobrancelhaAnterior: toStr(b.procedimentoSobrancelhaAnterior),
+    examesSanguineRecentes,
+    temQueixaSobrancelha,
+    queixaSobrancelha,
+    procedimentoSobrancelhaAnterior,
     qualProcedimento: toStr(b.qualProcedimento).trim(),
     // Etapa 5
     principalIncomodo,
-    duvidaConsulta: toStr(b.duvidaConsulta).trim(),
+    duvidaConsulta,
     comoConheceu,
   };
 
