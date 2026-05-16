@@ -1223,7 +1223,7 @@
   text-transform: uppercase;
   color: var(--bc-text-muted);
   font-weight: 600;
-  background: rgba(0, 0, 0, 0.12);
+  background: var(--bc-surface);
 }
 
 .brescancin-admin-table tbody tr {
@@ -1231,8 +1231,10 @@
   transition: background-color 140ms ease;
 }
 
-.brescancin-admin-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.04);
+@media (hover: hover) {
+  .brescancin-admin-table tbody tr:hover {
+    background: rgba(184, 148, 92, 0.06);
+  }
 }
 
 .brescancin-admin-table tbody tr:last-child td {
@@ -1251,13 +1253,50 @@
 }
 
 .brescancin-admin-chevron {
-  text-align: right;
-  color: var(--bc-accent);
+  color: var(--bc-accent-strong);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.brescancin-admin-row-actions {
+  text-align: right;
+  white-space: nowrap;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.brescancin-admin-delete {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--bc-border);
+  background: var(--bc-bg);
+  color: var(--bc-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.brescancin-admin-delete:hover:not(:disabled) {
+  border-color: var(--bc-error);
+  color: var(--bc-error);
+  background: rgba(184, 72, 61, 0.06);
+}
+
+.brescancin-admin-delete:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ─── Drawer ─── */
@@ -1362,4 +1401,401 @@
   color: var(--bc-text);
   line-height: 1.55;
   word-break: break-word;
+}
+
+/* ============================================================== */
+/*  Botão danger (excluir paciente)                                */
+/* ============================================================== */
+
+.brescancin-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 16px 28px;
+  border: 1.5px solid rgba(184, 72, 61, 0.3);
+  background: transparent;
+  color: var(--bc-error);
+  font-family: var(--font-body), sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+@media (hover: hover) {
+  .brescancin-btn-danger:hover:not(:disabled) {
+    background: rgba(184, 72, 61, 0.08);
+    border-color: var(--bc-error);
+  }
+}
+
+.brescancin-btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================== */
+/*  Página do paciente                                             */
+/* ============================================================== */
+
+.brescancin-patient {
+  position: relative;
+  z-index: 1;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-patient {
+    padding: 40px 32px 80px;
+  }
+}
+
+.brescancin-patient-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.brescancin-patient-back {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.brescancin-patient-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.brescancin-patient-header {
+  background: var(--bc-card);
+  border: 1px solid var(--bc-border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  box-shadow: var(--bc-shadow-card);
+  margin-bottom: 32px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-patient-header {
+    padding: 36px 40px;
+  }
+}
+
+.brescancin-patient-eyebrow {
+  font-family: var(--font-body), sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--bc-accent-strong);
+  margin: 0 0 12px;
+}
+
+.brescancin-patient-name {
+  font-family: var(--font-display), serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--bc-text);
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .brescancin-patient-name {
+    font-size: 36px;
+  }
+}
+
+.brescancin-patient-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--bc-text-secondary);
+  margin-top: 14px;
+}
+
+.brescancin-patient-received {
+  font-size: 12px;
+  color: var(--bc-text-muted);
+  letter-spacing: 0.04em;
+  margin: 16px 0 0;
+}
+
+.brescancin-patient-section {
+  background: var(--bc-card);
+  border: 1px solid var(--bc-border);
+  border-radius: 16px;
+  padding: 24px 22px;
+  box-shadow: var(--bc-shadow-card);
+  margin-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-patient-section {
+    padding: 32px 36px;
+    margin-bottom: 24px;
+  }
+}
+
+.brescancin-patient-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--bc-border);
+}
+
+.brescancin-patient-section-head h2 {
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--bc-accent-strong);
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .brescancin-patient-section-head h2 {
+    font-size: 24px;
+  }
+}
+
+.brescancin-patient-saved {
+  font-size: 12px;
+  color: var(--bc-text-muted);
+  letter-spacing: 0.04em;
+}
+
+.brescancin-patient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0;
+}
+
+.brescancin-patient-item {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
+@media (min-width: 600px) {
+  .brescancin-patient-item {
+    grid-template-columns: 220px 1fr;
+    gap: 24px;
+    align-items: baseline;
+  }
+}
+
+.brescancin-patient-item dt {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bc-text-muted);
+  font-weight: 600;
+}
+
+.brescancin-patient-item dd {
+  margin: 0;
+  font-size: 15px;
+  color: var(--bc-text);
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.brescancin-patient-notes {
+  width: 100%;
+  min-height: 140px;
+}
+
+.brescancin-patient-notes-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.brescancin-patient-photo {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+  border: 1px solid var(--bc-border);
+}
+
+.brescancin-patient-photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ============================================================== */
+/*  Print (PDF do paciente)                                        */
+/* ============================================================== */
+
+.brescancin-print {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 32px 60px;
+  background: #ffffff;
+  color: #1a2940;
+  font-family: var(--font-body), "Inter", sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.brescancin-print-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #b8945c;
+  margin-bottom: 24px;
+}
+
+.brescancin-print-brand {
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-size: 22px;
+  color: #b8945c;
+  margin: 0;
+}
+
+.brescancin-print-tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #5a6b85;
+  margin: 4px 0 0;
+}
+
+.brescancin-print-meta {
+  font-size: 11px;
+  color: #5a6b85;
+  text-align: right;
+}
+
+.brescancin-print-title {
+  font-family: var(--font-display), serif;
+  font-size: 28px;
+  font-weight: 400;
+  margin: 0;
+  color: #1a2940;
+}
+
+.brescancin-print-subtitle {
+  font-size: 12px;
+  color: #5a6b85;
+  margin: 4px 0 28px;
+}
+
+.brescancin-print-section {
+  margin-bottom: 24px;
+  break-inside: avoid;
+}
+
+.brescancin-print-section h2 {
+  font-family: var(--font-display), serif;
+  font-style: italic;
+  font-size: 16px;
+  color: #8b6f3f;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(26, 41, 64, 0.12);
+}
+
+.brescancin-print-notes p {
+  background: rgba(184, 148, 92, 0.06);
+  padding: 14px 18px;
+  border-left: 3px solid #b8945c;
+  border-radius: 0 6px 6px 0;
+  margin: 0;
+}
+
+.brescancin-print-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 24px;
+  margin: 0;
+}
+
+.brescancin-print-item {
+  break-inside: avoid;
+}
+
+.brescancin-print-item dt {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8896a8;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
+.brescancin-print-item dd {
+  margin: 0;
+  font-size: 12px;
+  color: #1a2940;
+  line-height: 1.5;
+}
+
+.brescancin-print-item .brescancin-patient-photo {
+  width: 80px;
+  height: 80px;
+}
+
+.brescancin-print-item .brescancin-patient-photo-grid {
+  gap: 6px;
+}
+
+.brescancin-print-footer {
+  margin-top: 32px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(26, 41, 64, 0.1);
+  font-size: 10px;
+  color: #8896a8;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+
+/* Esconde tudo que não for print quando estiver imprimindo */
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+  .brescancin-app,
+  .brescancin-light,
+  .brescancin-dark {
+    background: #ffffff !important;
+  }
+  .brescancin-footer {
+    display: none !important;
+  }
+  .brescancin-print {
+    padding: 0;
+    max-width: none;
+  }
+  a[href]::after {
+    content: "";
+  }
 }
