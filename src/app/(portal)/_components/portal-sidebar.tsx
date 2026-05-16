@@ -9,6 +9,7 @@ import {
   ListChecks,
   KeyRound,
   BookmarkCheck,
+  Film,
   UserCircle,
   LogOut,
   Menu,
@@ -49,11 +50,13 @@ export function PortalSidebar({
   logoUrl,
   userName,
   engagements,
+  scenesEnabled,
 }: {
   accent: string;
   logoUrl: string | null;
   userName: string;
   engagements: EngagementSummary[];
+  scenesEnabled?: boolean;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -180,6 +183,15 @@ export function PortalSidebar({
                 active={isUnderPath(`${base}/referencias`)}
                 indent
               />
+              {scenesEnabled && (
+                <SidebarItem
+                  href={`${base}/acervo`}
+                  label="Acervo de cenas"
+                  icon={Film}
+                  active={isUnderPath(`${base}/acervo`)}
+                  indent
+                />
+              )}
             </div>
           );
         })}

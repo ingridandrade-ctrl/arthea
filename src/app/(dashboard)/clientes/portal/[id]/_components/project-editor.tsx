@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { FileUploadField } from "./file-upload-field";
+import { AcervoTab } from "./acervo-tab";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Em preparação" },
@@ -50,7 +51,7 @@ const REF_TYPE_OPTIONS = [
   { value: "miro", label: "Miro" },
 ];
 
-const TABS = [
+const BASE_TABS = [
   { key: "geral", label: "Geral" },
   { key: "entregaveis", label: "Entregáveis" },
   { key: "acessos", label: "Acessos" },
@@ -82,10 +83,14 @@ function useToast() {
 
 export function ProjectEditor({ project }: { project: any }) {
   const [tab, setTab] = useState("geral");
+  const scenesEnabled = !!project.client?.scenesEnabled;
+  const tabs = scenesEnabled
+    ? [...BASE_TABS, { key: "acervo", label: "Acervo de cenas" }]
+    : BASE_TABS;
   return (
     <div>
       <div className="border-b border-border mb-6 flex gap-1 overflow-x-auto">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
@@ -111,6 +116,9 @@ export function ProjectEditor({ project }: { project: any }) {
       {tab === "referencias" && <ReferenciasTab project={project} />}
       {tab === "resumo" && <ResumoTab project={project} />}
       {tab === "interno" && <InternoTab project={project} />}
+      {tab === "acervo" && scenesEnabled && (
+        <AcervoTab clientId={project.client.id} scenes={project.scenes || []} />
+      )}
     </div>
   );
 }
@@ -256,21 +264,23 @@ function ClientAccountSection({
   client,
 }: {
   projectId: string;
-  client: { id: string; name: string; email: string };
+  client: { id: string; name: string; email: string; scenesEnabled?: boolean };
 }) {
   const router = useRouter();
   const toast = useToast();
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [scenesEnabled, setScenesEnabled] = useState(!!client.scenesEnabled);
 
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
     const fd = new FormData(e.currentTarget);
     const password = (fd.get("password") as string) || "";
-    const body: Record<string, string> = {
+    const body: Record<string, unknown> = {
       name: (fd.get("name") as string) || "",
       email: (fd.get("email") as string) || "",
+      scenesEnabled,
     };
     if (password) body.password = password;
 
@@ -340,6 +350,28 @@ function ClientAccountSection({
           </button>
         </div>
       </Field>
+
+      <div className="pt-4 border-t border-border space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Módulos extras
+        </p>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={scenesEnabled}
+            onChange={(e) => setScenesEnabled(e.target.checked)}
+            className="mt-0.5"
+          />
+          <div>
+            <p className="text-sm font-medium">Acervo de cenas</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Banco de cenas de filmes/séries por tema clínico. Quando ligado, o cliente vê
+              "Acervo de cenas" na sidebar do portal e você ganha uma aba "Acervo" aqui pra
+              gerenciar.
+            </p>
+          </div>
+        </label>
+      </div>
 
       <div className="flex items-center justify-end pt-4 border-t border-border">
         <button

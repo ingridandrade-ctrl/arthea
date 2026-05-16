@@ -19,7 +19,7 @@ export default async function PortalClienteDetail({
   const project = await prisma.clientEngagement.findUnique({
     where: { id: params.id },
     include: {
-      client: { select: { id: true, name: true, email: true } },
+      client: { select: { id: true, name: true, email: true, scenesEnabled: true } },
       deliverables: {
         orderBy: [{ phase: "asc" }, { order: "asc" }],
       },
@@ -34,7 +34,17 @@ export default async function PortalClienteDetail({
   const dossier = await prisma.clientDossier.findUnique({
     where: { clientId: project.clientId },
   });
-  const projectWithDossier = { ...project, dossier };
+
+  // Cenas (só se módulo está ligado pro cliente)
+  const scenes = project.client.scenesEnabled
+    ? await prisma.scene.findMany({
+        where: { clientId: project.clientId },
+        orderBy: [{ theme: "asc" }, { order: "asc" }],
+        include: { _count: { select: { comments: true } } },
+      })
+    : [];
+
+  const projectWithExtras = { ...project, dossier, scenes };
 
   return (
     <div className="space-y-6">
@@ -59,7 +69,7 @@ export default async function PortalClienteDetail({
       </div>
 
       <ProjectEditor
-        project={JSON.parse(JSON.stringify(projectWithDossier))}
+        project={JSON.parse(JSON.stringify(projectWithExtras))}
       />
     </div>
   );

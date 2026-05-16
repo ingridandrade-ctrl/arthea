@@ -16,7 +16,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (!engagement) return NextResponse.json({ error: "Engagement não encontrado" }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
-  const { name, email, password } = body as { name?: string; email?: string; password?: string };
+  const { name, email, password, scenesEnabled } = body as {
+    name?: string;
+    email?: string;
+    password?: string;
+    scenesEnabled?: boolean;
+  };
 
   const data: Record<string, unknown> = {};
   if (typeof name === "string" && name.trim()) data.name = name.trim();
@@ -35,6 +40,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
     data.password = await bcryptjs.hash(password, 10);
   }
+  if (typeof scenesEnabled === "boolean") {
+    data.scenesEnabled = scenesEnabled;
+  }
 
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: "Nada para atualizar" }, { status: 400 });
@@ -43,7 +51,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const user = await prisma.user.update({
     where: { id: engagement.clientId },
     data,
-    select: { id: true, name: true, email: true },
+    select: { id: true, name: true, email: true, scenesEnabled: true },
   });
   return NextResponse.json(user);
 }
