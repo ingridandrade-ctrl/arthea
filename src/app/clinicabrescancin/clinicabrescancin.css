@@ -167,7 +167,7 @@
   z-index: 1;
   max-width: 720px;
   margin: 0 auto;
-  padding: 24px 0 40px;
+  padding: 24px 6px 40px;
 }
 
 @media (min-width: 480px) {
@@ -404,11 +404,12 @@
 .brescancin-card {
   background: var(--bc-card);
   border: 1px solid var(--bc-border);
-  border-radius: 0;
-  padding: 48px 20px;
+  border-radius: 14px;
+  padding: 44px 20px;
   box-shadow: var(--bc-shadow-card);
   margin: 0;
   width: 100%;
+  box-sizing: border-box;
 }
 
 @media (min-width: 480px) {
@@ -807,13 +808,7 @@
   background: var(--bc-track);
   border-radius: 999px;
   overflow: hidden;
-  margin: 0 16px 16px;
-}
-
-@media (min-width: 480px) {
-  .brescancin-progress {
-    margin: 0 0 16px;
-  }
+  margin: 0 0 16px;
 }
 
 .brescancin-progress-fill {
@@ -830,13 +825,7 @@
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--bc-text-muted);
-  margin: 0 16px 12px;
-}
-
-@media (min-width: 480px) {
-  .brescancin-progress-label {
-    margin: 0 0 12px;
-  }
+  margin: 0 0 12px;
 }
 
 @keyframes brescancin-fade {
@@ -924,13 +913,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin: 48px 16px 0;
-}
-
-@media (min-width: 480px) {
-  .brescancin-actions {
-    margin: 48px 0 0;
-  }
+  margin-top: 48px;
 }
 
 /* ─── Sub-campo condicional ─── */
