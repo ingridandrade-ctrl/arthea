@@ -104,6 +104,7 @@ type Answers = {
   comeCastanhasAmendoas: string;
   // Etapa 4 — Cabelo
   queixaCapilar: string[];
+  fezTratamentoCapilar: string;
   tempoQueixa: string;
   tipoQueda: string;
   eventosAssociados: string[];
@@ -169,6 +170,7 @@ const INITIAL_ANSWERS: Answers = {
   tomaLeite: "",
   comeCastanhasAmendoas: "",
   queixaCapilar: [],
+  fezTratamentoCapilar: "",
   tempoQueixa: "",
   tipoQueda: "",
   eventosAssociados: [],
@@ -309,9 +311,14 @@ function validateStep4(a: Answers): Errors {
   if (a.historicoFamiliarQueda === "Sim" && !a.quemHistorico.trim()) {
     e.quemHistorico = "Conte por parte de quem.";
   }
-  if (!a.tratamentosAnteriores.trim()) {
-    e.tratamentosAnteriores =
-      "Conte o que já tentou — se não tentou nada, escreva 'não'.";
+  if (!a.fezTratamentoCapilar) {
+    e.fezTratamentoCapilar = "Selecione uma opção.";
+  }
+  if (
+    a.fezTratamentoCapilar === "Sim" &&
+    !a.tratamentosAnteriores.trim()
+  ) {
+    e.tratamentosAnteriores = "Conte qual(is) tratamento(s).";
   }
   if (!a.usouMinoxidilFinasterida) {
     e.usouMinoxidilFinasterida = "Selecione uma opção.";
@@ -347,10 +354,6 @@ function validateStep5(a: Answers): Errors {
   const e: Errors = {};
   if (!a.principalIncomodo.trim()) {
     e.principalIncomodo = "Conte rapidinho — pode ser direto.";
-  }
-  if (!a.duvidaConsulta.trim()) {
-    e.duvidaConsulta =
-      "Se não tiver nenhuma dúvida específica, escreva 'não'.";
   }
   if (a.comoConheceu.length === 0) {
     e.comoConheceu = "Selecione ao menos uma opção.";
@@ -959,16 +962,29 @@ function Step4Fields({ answers, errors, update }: StepProps) {
           />
         </div>
       )}
-      <FieldTextarea
+      <FieldRadio
         label="Já fez algum tratamento para o cabelo?"
         required
-        value={answers.tratamentosAnteriores}
-        onChange={(v) => update("tratamentosAnteriores", v)}
-        placeholder={
-          "Ex: Minoxidil por conta própria, biotina, shampoos específicos... Se não tentou nada, escreva não."
-        }
-        error={errors.tratamentosAnteriores}
+        value={answers.fezTratamentoCapilar}
+        onChange={(v) => {
+          update("fezTratamentoCapilar", v);
+          if (v !== "Sim") update("tratamentosAnteriores", "");
+        }}
+        options={SIM_NAO}
+        error={errors.fezTratamentoCapilar}
       />
+      {answers.fezTratamentoCapilar === "Sim" && (
+        <div className="brescancin-subfield">
+          <FieldTextarea
+            label="Qual(is) tratamento(s)?"
+            required
+            value={answers.tratamentosAnteriores}
+            onChange={(v) => update("tratamentosAnteriores", v)}
+            placeholder="Ex: Minoxidil por conta própria, biotina, shampoos específicos..."
+            error={errors.tratamentosAnteriores}
+          />
+        </div>
+      )}
       <FieldRadio
         label="Já usou Minoxidil ou Finasterida?"
         required
@@ -1068,10 +1084,9 @@ function Step5Fields({ answers, errors, update }: StepProps) {
       />
       <FieldTextarea
         label="Tem alguma dúvida específica para trazer na consulta?"
-        required
         value={answers.duvidaConsulta}
         onChange={(v) => update("duvidaConsulta", v)}
-        placeholder="Se não tiver nenhuma dúvida específica, escreva 'não'."
+        placeholder="Opcional — se tiver alguma dúvida específica, escreva aqui."
         error={errors.duvidaConsulta}
       />
       <FieldCheckbox
@@ -1257,6 +1272,14 @@ export default function FormFlow() {
     const stepErrors = validateForStep(step, answers);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
+      // Sobe a tela pra primeira pergunta com erro
+      requestAnimationFrame(() => {
+        const firstError = document.querySelector(".brescancin-error");
+        const field = firstError?.closest(".brescancin-field");
+        if (field instanceof HTMLElement) {
+          field.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
       return;
     }
     setErrors({});

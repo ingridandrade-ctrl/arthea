@@ -263,9 +263,15 @@ export async function POST(req: Request) {
     return err("Conte por parte de quem é o histórico familiar.");
   }
 
+  const fezTratamentoCapilar = toStr(b.fezTratamentoCapilar);
+  if (
+    !SIM_NAO.includes(fezTratamentoCapilar as (typeof SIM_NAO)[number])
+  ) {
+    return err("Informe se já fez algum tratamento para o cabelo.");
+  }
   const tratamentosAnteriores = toStr(b.tratamentosAnteriores).trim();
-  if (!tratamentosAnteriores) {
-    return err("Conte se já fez algum tratamento para o cabelo.");
+  if (fezTratamentoCapilar === "Sim" && !tratamentosAnteriores) {
+    return err("Conte qual(is) tratamento(s) foi feito.");
   }
 
   const usouMinoxidilFinasterida = toStr(b.usouMinoxidilFinasterida);
@@ -318,11 +324,6 @@ export async function POST(req: Request) {
   if (!principalIncomodo) return err("Conte o que mais te incomoda hoje.");
 
   const duvidaConsulta = toStr(b.duvidaConsulta).trim();
-  if (!duvidaConsulta) {
-    return err(
-      "Se não tem dúvidas específicas, escreva 'não' no campo de dúvidas.",
-    );
-  }
 
   const comoConheceu = toStrArray(b.comoConheceu);
   if (comoConheceu.length === 0) {
@@ -369,6 +370,7 @@ export async function POST(req: Request) {
     eventosAssociados,
     historicoFamiliarQueda,
     quemHistorico: toStr(b.quemHistorico).trim(),
+    fezTratamentoCapilar,
     tratamentosAnteriores,
     usouMinoxidilFinasterida,
     quaisTempoUso: toStr(b.quaisTempoUso).trim(),
