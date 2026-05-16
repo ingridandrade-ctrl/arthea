@@ -167,7 +167,13 @@
   z-index: 1;
   max-width: 720px;
   margin: 0 auto;
-  padding: 28px 16px 40px;
+  padding: 24px 0 40px;
+}
+
+@media (min-width: 480px) {
+  .brescancin-container {
+    padding: 32px 16px 48px;
+  }
 }
 
 @media (min-width: 768px) {
@@ -398,29 +404,24 @@
 .brescancin-card {
   background: var(--bc-card);
   border: 1px solid var(--bc-border);
-  border-radius: 12px !important;
-  padding: 48px 18px !important;
+  border-radius: 0;
+  padding: 48px 20px;
   box-shadow: var(--bc-shadow-card);
-  /* No mobile o card vai pra borda do viewport */
-  margin-left: -16px !important;
-  margin-right: -16px !important;
-  width: calc(100% + 32px) !important;
+  margin: 0;
+  width: 100%;
 }
 
 @media (min-width: 480px) {
   .brescancin-card {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    width: auto !important;
-    padding: 44px 32px !important;
-    border-radius: 20px !important;
+    padding: 44px 32px;
+    border-radius: 20px;
   }
 }
 
 @media (min-width: 768px) {
   .brescancin-card {
-    padding: 56px !important;
-    border-radius: 24px !important;
+    padding: 56px;
+    border-radius: 24px;
   }
 }
 
@@ -431,19 +432,18 @@
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--bc-text);
-  margin-bottom: 64px !important;
+  margin-bottom: 12px;
 }
 
 @media (min-width: 768px) {
   .brescancin-step-title {
     font-size: 34px;
-    margin-bottom: 56px !important;
   }
 }
 
-/* Quando vem intro logo abaixo, encosta o título nela */
-.brescancin-step-title:has(+ .brescancin-step-intro) {
-  margin-bottom: 12px !important;
+/* Quando não tem intro logo abaixo, dá respiro grande até o primeiro campo */
+.brescancin-step-title--solo {
+  margin-bottom: 56px;
 }
 
 .brescancin-step-intro {
@@ -807,7 +807,13 @@
   background: var(--bc-track);
   border-radius: 999px;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin: 0 16px 16px;
+}
+
+@media (min-width: 480px) {
+  .brescancin-progress {
+    margin: 0 0 16px;
+  }
 }
 
 .brescancin-progress-fill {
@@ -824,7 +830,13 @@
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--bc-text-muted);
-  margin-bottom: 12px;
+  margin: 0 16px 12px;
+}
+
+@media (min-width: 480px) {
+  .brescancin-progress-label {
+    margin: 0 0 12px;
+  }
 }
 
 @keyframes brescancin-fade {
@@ -912,7 +924,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 48px;
+  margin: 48px 16px 0;
+}
+
+@media (min-width: 480px) {
+  .brescancin-actions {
+    margin: 48px 0 0;
+  }
 }
 
 /* ─── Sub-campo condicional ─── */

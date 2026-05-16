@@ -1391,7 +1391,13 @@ export default function FormFlow() {
             />
           </div>
           <section className="brescancin-card">
-            <h2 className="brescancin-step-title">{header.title}</h2>
+            <h2
+              className={`brescancin-step-title${
+                header.intro ? "" : " brescancin-step-title--solo"
+              }`}
+            >
+              {header.title}
+            </h2>
             {header.intro && (
               <p className="brescancin-step-intro">{header.intro}</p>
             )}
