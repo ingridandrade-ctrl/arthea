@@ -8,8 +8,44 @@ import {
   getRawValue,
   renderValue,
   computeAge,
+  type FieldDef,
   type ResponseRow,
 } from "../../_sections";
+
+function PrintFieldBlock({
+  field,
+  row,
+  depth = 0,
+}: {
+  field: FieldDef;
+  row: ResponseRow;
+  depth?: number;
+}) {
+  return (
+    <div
+      className={
+        depth === 0
+          ? "brescancin-print-item"
+          : "brescancin-print-item brescancin-print-item-sub"
+      }
+    >
+      <dt>{field.label}</dt>
+      <dd>{renderValue(getRawValue(row, field.key), field.type)}</dd>
+      {field.followups && field.followups.length > 0 && (
+        <div className="brescancin-print-followups">
+          {field.followups.map((sub) => (
+            <PrintFieldBlock
+              key={sub.key}
+              field={sub}
+              row={row}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function PrintView({ row }: { row: ResponseRow }) {
   useEffect(() => {
@@ -60,10 +96,7 @@ export default function PrintView({ row }: { row: ResponseRow }) {
           <h2>{section.title}</h2>
           <dl className="brescancin-print-list">
             {section.fields.map((f) => (
-              <div key={f.key} className="brescancin-print-item">
-                <dt>{f.label}</dt>
-                <dd>{renderValue(getRawValue(row, f.key), f.type)}</dd>
-              </div>
+              <PrintFieldBlock key={f.key} field={f} row={row} />
             ))}
           </dl>
         </section>
