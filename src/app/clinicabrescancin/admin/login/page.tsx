@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
       <section className="brescancin-card brescancin-step">
         <h2 className="brescancin-step-title">Acesso restrito</h2>
         <p className="brescancin-step-intro">
-          Painel do Dr. Samuel e da Alana.
+          Painel do Dr. Samuel e da Alana. (Uso exclusivo da equipe Brescancin)
         </p>
         <form onSubmit={onSubmit}>
           <div className="brescancin-field">
