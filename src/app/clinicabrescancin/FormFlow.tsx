@@ -106,6 +106,8 @@ type Answers = {
   queixaCapilar: string[];
   fezTratamentoCapilar: string;
   tempoQueixa: string;
+  fotoTopo: string;
+  fotosLaterais: string[];
   tipoQueda: string;
   eventosAssociados: string[];
   historicoFamiliarQueda: string;
@@ -172,6 +174,8 @@ const INITIAL_ANSWERS: Answers = {
   queixaCapilar: [],
   fezTratamentoCapilar: "",
   tempoQueixa: "",
+  fotoTopo: "",
+  fotosLaterais: [],
   tipoQueda: "",
   eventosAssociados: [],
   historicoFamiliarQueda: "",
@@ -582,6 +586,114 @@ function FieldCheckbox({
         ))}
       </div>
       {error && <span className="brescancin-error">{error}</span>}
+    </div>
+  );
+}
+
+// ─── Foto upload (Vercel Blob) ─────────────────────────────────────
+
+type FieldPhotosProps = {
+  label: string;
+  helper?: string;
+  values: string[];
+  onChange: (urls: string[]) => void;
+  multiple?: boolean;
+};
+
+function FieldPhotos({
+  label,
+  helper,
+  values,
+  onChange,
+  multiple,
+}: FieldPhotosProps) {
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const toUpload = multiple ? Array.from(files) : [files[0]];
+      const uploadedUrls: string[] = [];
+      for (const file of toUpload) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/clinicabrescancin/upload", {
+          method: "POST",
+          body: fd,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.url) {
+          setUploadError(data?.error || "Falha ao enviar a foto.");
+          break;
+        }
+        uploadedUrls.push(data.url);
+      }
+      if (uploadedUrls.length > 0) {
+        onChange(multiple ? [...values, ...uploadedUrls] : uploadedUrls);
+      }
+    } catch {
+      setUploadError("Sem conexão. Tente novamente.");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  const removeAt = (idx: number) => {
+    const next = values.filter((_, i) => i !== idx);
+    onChange(next);
+  };
+
+  return (
+    <div className="brescancin-field">
+      <span className="brescancin-label">{label}</span>
+      {helper && <span className="brescancin-help">{helper}</span>}
+      {values.length > 0 && (
+        <div className="brescancin-photos">
+          {values.map((url, i) => (
+            <div key={url} className="brescancin-photo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt={`Foto ${i + 1}`} />
+              <button
+                type="button"
+                className="brescancin-photo-remove"
+                onClick={() => removeAt(i)}
+                aria-label="Remover foto"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {(multiple || values.length === 0) && (
+        <label className="brescancin-photo-add">
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            multiple={multiple}
+            disabled={uploading}
+            onChange={(e) => handleFiles(e.target.files)}
+            style={{ display: "none" }}
+          />
+          <span>
+            {uploading
+              ? "Enviando..."
+              : values.length === 0
+                ? "Tirar ou escolher foto"
+                : "Adicionar mais"}
+          </span>
+        </label>
+      )}
+      {uploadError && (
+        <span className="brescancin-error">{uploadError}</span>
+      )}
     </div>
   );
 }
@@ -1014,6 +1126,19 @@ function Step4Fields({ answers, errors, update }: StepProps) {
         onChange={(v) => update("examesSanguineRecentes", v)}
         options={EXAMES_SANGUINEOS_RECENTES}
         error={errors.examesSanguineRecentes}
+      />
+      <FieldPhotos
+        label="Foto do topo da cabeça (opcional)"
+        helper="Se você puder, tira uma foto de cima pra baixo mostrando o couro cabeludo — ajuda muito a Alana a se preparar. Pode ser pelo celular, com boa luz natural."
+        values={answers.fotoTopo ? [answers.fotoTopo] : []}
+        onChange={(urls) => update("fotoTopo", urls[0] ?? "")}
+      />
+      <FieldPhotos
+        label="Fotos das laterais e nuca (opcional)"
+        helper="Direita, esquerda, atrás — as que conseguir. Pede pra alguém te ajudar se precisar."
+        values={answers.fotosLaterais}
+        onChange={(urls) => update("fotosLaterais", urls)}
+        multiple
       />
 
       <h3 className="brescancin-block-title">Sobrancelhas</h3>

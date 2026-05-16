@@ -375,6 +375,8 @@ export async function POST(req: Request) {
     usouMinoxidilFinasterida,
     quaisTempoUso: toStr(b.quaisTempoUso).trim(),
     examesSanguineRecentes,
+    fotoTopo: toStr(b.fotoTopo).trim(),
+    fotosLaterais: toStrArray(b.fotosLaterais),
     temQueixaSobrancelha,
     queixaSobrancelha,
     procedimentoSobrancelhaAnterior,

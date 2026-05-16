@@ -21,7 +21,14 @@ export type ResponseRow = {
   answers: Record<string, unknown>;
 };
 
-type FieldType = "text" | "list" | "bool" | "date" | "longtext";
+type FieldType =
+  | "text"
+  | "list"
+  | "bool"
+  | "date"
+  | "longtext"
+  | "photo"
+  | "photos";
 type FieldDef = { key: string; label: string; type?: FieldType };
 type Section = { title: string; fields: FieldDef[] };
 
@@ -100,6 +107,8 @@ const SECTIONS: Section[] = [
       { key: "usouMinoxidilFinasterida", label: "Usou Minoxidil/Finasterida" },
       { key: "quaisTempoUso", label: "Qual(is) e tempo de uso", type: "longtext" },
       { key: "examesSanguineRecentes", label: "Exames de sangue recentes" },
+      { key: "fotoTopo", label: "Foto do topo", type: "photo" },
+      { key: "fotosLaterais", label: "Fotos laterais/nuca", type: "photos" },
     ],
   },
   {
@@ -149,6 +158,61 @@ function formatValue(value: unknown, type?: FieldType): string {
     return value.trim() === "" ? "Não informado" : value;
   }
   return String(value);
+}
+
+function renderValue(value: unknown, type?: FieldType): React.ReactNode {
+  if (type === "photo") {
+    if (typeof value !== "string" || !value.trim()) return "Não informado";
+    return (
+      <a href={value} target="_blank" rel="noopener noreferrer">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={value}
+          alt="Foto"
+          style={{
+            width: 88,
+            height: 88,
+            objectFit: "cover",
+            borderRadius: 8,
+            display: "block",
+            border: "1px solid rgba(212,179,119,0.3)",
+          }}
+        />
+      </a>
+    );
+  }
+  if (type === "photos") {
+    if (!Array.isArray(value) || value.length === 0) return "Não informado";
+    return (
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        {value
+          .filter((u): u is string => typeof u === "string" && !!u.trim())
+          .map((url) => (
+            <a
+              key={url}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={url}
+                alt="Foto"
+                style={{
+                  width: 72,
+                  height: 72,
+                  objectFit: "cover",
+                  borderRadius: 8,
+                  display: "block",
+                  border: "1px solid rgba(212,179,119,0.3)",
+                }}
+              />
+            </a>
+          ))}
+      </div>
+    );
+  }
+  return formatValue(value, type);
 }
 
 function formatDateTime(iso: string): string {
@@ -349,7 +413,7 @@ export default function AdminView({ rows }: { rows: ResponseRow[] }) {
                     {section.fields.map((f) => (
                       <div key={f.key} className="brescancin-drawer-item">
                         <dt>{f.label}</dt>
-                        <dd>{formatValue(getRawValue(openRow, f.key), f.type)}</dd>
+                        <dd>{renderValue(getRawValue(openRow, f.key), f.type)}</dd>
                       </div>
                     ))}
                   </dl>
