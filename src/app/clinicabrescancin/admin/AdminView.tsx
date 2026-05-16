@@ -2,7 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatDateTime, type ResponseRow } from "./_sections";
+import {
+  formatConsultaDate,
+  formatDateTime,
+  getDataConsulta,
+  type ResponseRow,
+} from "./_sections";
 
 export type { ResponseRow };
 
@@ -85,7 +90,8 @@ export default function AdminView({ rows }: { rows: ResponseRow[] }) {
     <div className="brescancin-admin">
       <header className="brescancin-admin-header">
         <div>
-          <h1 className="brescancin-admin-brand">Clínica Brescancin</h1>
+          <p className="brescancin-admin-eyebrow">Clínica Brescancin</p>
+          <h1 className="brescancin-admin-title">Painel de Pacientes</h1>
           <p className="brescancin-admin-count">
             {rows.length} {rows.length === 1 ? "resposta" : "respostas"} no total
             {filtered.length !== rows.length
@@ -166,36 +172,53 @@ export default function AdminView({ rows }: { rows: ResponseRow[] }) {
               <tr>
                 <th>Nome</th>
                 <th>Cidade</th>
+                <th>Data da consulta</th>
                 <th>Data de envio</th>
                 <th aria-label="Ações"></th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((r) => (
-                <tr key={r.id} onClick={() => openPatient(r)}>
-                  <td>
-                    <div>{r.nomeCompleto}</div>
-                    {r.apelido && (
-                      <div className="brescancin-admin-sub">{r.apelido}</div>
-                    )}
-                  </td>
-                  <td>{r.cidade}</td>
-                  <td>{formatDateTime(r.createdAt)}</td>
-                  <td className="brescancin-admin-row-actions">
-                    <button
-                      type="button"
-                      className="brescancin-admin-delete"
-                      onClick={(e) => handleDelete(e, r)}
-                      disabled={deletingId === r.id}
-                      aria-label={`Excluir ${r.nomeCompleto}`}
-                      title="Excluir"
-                    >
-                      ✕
-                    </button>
-                    <span className="brescancin-admin-chevron">Abrir →</span>
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((r) => {
+                const dataConsulta = getDataConsulta(r);
+                return (
+                  <tr key={r.id} onClick={() => openPatient(r)}>
+                    <td>
+                      <div>{r.nomeCompleto}</div>
+                      {r.apelido && (
+                        <div className="brescancin-admin-sub">{r.apelido}</div>
+                      )}
+                    </td>
+                    <td>{r.cidade}</td>
+                    <td>
+                      {dataConsulta ? (
+                        <span className="brescancin-admin-tag">
+                          {formatConsultaDate(dataConsulta)}
+                        </span>
+                      ) : (
+                        <span className="brescancin-admin-sub">
+                          A agendar
+                        </span>
+                      )}
+                    </td>
+                    <td>{formatDateTime(r.createdAt)}</td>
+                    <td className="brescancin-admin-row-actions">
+                      <button
+                        type="button"
+                        className="brescancin-admin-delete"
+                        onClick={(e) => handleDelete(e, r)}
+                        disabled={deletingId === r.id}
+                        aria-label={`Excluir ${r.nomeCompleto}`}
+                        title="Excluir"
+                      >
+                        ✕
+                      </button>
+                      <span className="brescancin-admin-chevron">
+                        Abrir →
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

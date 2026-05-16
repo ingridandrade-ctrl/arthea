@@ -1164,16 +1164,39 @@
   border-bottom: 1px solid var(--bc-border);
 }
 
-.brescancin-admin-brand {
+.brescancin-admin-eyebrow {
   font-family: var(--font-display), serif;
-  font-size: 26px;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--bc-accent);
+  margin: 0 0 4px;
+  letter-spacing: 0.005em;
+}
+
+@media (min-width: 768px) {
+  .brescancin-admin-eyebrow {
+    font-size: 18px;
+  }
+}
+
+.brescancin-admin-title {
+  font-family: var(--font-display), serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.1;
   color: var(--bc-text);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+}
+
+@media (min-width: 768px) {
+  .brescancin-admin-title {
+    font-size: 44px;
+  }
 }
 
 .brescancin-admin-count {
-  margin: 8px 0 0;
+  margin: 12px 0 0;
   color: var(--bc-text-secondary);
   font-size: 13px;
   letter-spacing: 0.01em;
@@ -1198,10 +1221,62 @@
 }
 
 .brescancin-admin-table-wrap {
-  background: var(--bc-card);
-  border: 1px solid var(--bc-border);
-  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 24px 64px rgba(0, 0, 0, 0.18);
+}
+
+/* Versão mobile da tabela: vira lista de cards */
+@media (max-width: 720px) {
+  .brescancin-admin-table thead {
+    display: none;
+  }
+  .brescancin-admin-table,
+  .brescancin-admin-table tbody,
+  .brescancin-admin-table tr,
+  .brescancin-admin-table td {
+    display: block;
+    width: 100%;
+  }
+  .brescancin-admin-table tbody tr {
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid rgba(26, 41, 64, 0.08);
+  }
+  .brescancin-admin-table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .brescancin-admin-table td {
+    padding: 4px 0;
+    border-bottom: none;
+  }
+  .brescancin-admin-table td:first-child {
+    font-size: 17px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .brescancin-admin-table td:nth-child(2)::before {
+    content: "Cidade · ";
+    color: #8896a8;
+    font-size: 12px;
+  }
+  .brescancin-admin-table td:nth-child(3)::before {
+    content: "Consulta · ";
+    color: #8896a8;
+    font-size: 12px;
+  }
+  .brescancin-admin-table td:nth-child(4)::before {
+    content: "Recebido · ";
+    color: #8896a8;
+    font-size: 12px;
+  }
+  .brescancin-admin-table .brescancin-admin-row-actions {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(26, 41, 64, 0.08);
+    justify-content: space-between;
+  }
 }
 
 .brescancin-admin-table {
@@ -1213,17 +1288,18 @@
 .brescancin-admin-table th,
 .brescancin-admin-table td {
   text-align: left;
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--bc-border);
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(26, 41, 64, 0.06);
 }
 
 .brescancin-admin-table th {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--bc-text-muted);
+  color: #8896a8;
   font-weight: 600;
-  background: var(--bc-surface);
+  background: #f7f4ee;
+  border-bottom: 1px solid rgba(26, 41, 64, 0.08);
 }
 
 .brescancin-admin-table tbody tr {
@@ -1233,7 +1309,7 @@
 
 @media (hover: hover) {
   .brescancin-admin-table tbody tr:hover {
-    background: rgba(184, 148, 92, 0.06);
+    background: rgba(184, 148, 92, 0.08);
   }
 }
 
@@ -1243,17 +1319,29 @@
 
 .brescancin-admin-table td {
   font-size: 15px;
-  color: var(--bc-text);
+  color: #1a2940;
 }
 
 .brescancin-admin-sub {
   font-size: 12px;
-  color: var(--bc-text-secondary);
+  color: #5a6b85;
   margin-top: 4px;
 }
 
+.brescancin-admin-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+  background: rgba(184, 148, 92, 0.16);
+  color: #8b6f3f;
+  white-space: nowrap;
+}
+
 .brescancin-admin-chevron {
-  color: var(--bc-accent-strong);
+  color: #8b6f3f;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -1271,12 +1359,12 @@
 }
 
 .brescancin-admin-delete {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  border: 1px solid var(--bc-border);
-  background: var(--bc-bg);
-  color: var(--bc-text-muted);
+  border: 1px solid rgba(26, 41, 64, 0.14);
+  background: #ffffff;
+  color: #8896a8;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -1289,8 +1377,8 @@
 }
 
 .brescancin-admin-delete:hover:not(:disabled) {
-  border-color: var(--bc-error);
-  color: var(--bc-error);
+  border-color: #b8483d;
+  color: #b8483d;
   background: rgba(184, 72, 61, 0.06);
 }
 
@@ -1480,17 +1568,17 @@
 }
 
 .brescancin-patient-header {
-  background: var(--bc-card);
-  border: 1px solid var(--bc-border);
-  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
   padding: 28px 24px;
-  box-shadow: var(--bc-shadow-card);
-  margin-bottom: 32px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 24px 56px rgba(0, 0, 0, 0.18);
+  margin-bottom: 28px;
 }
 
 @media (min-width: 768px) {
   .brescancin-patient-header {
-    padding: 36px 40px;
+    padding: 40px 44px;
   }
 }
 
@@ -1500,7 +1588,7 @@
   font-weight: 600;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: var(--bc-accent-strong);
+  color: #8b6f3f;
   margin: 0 0 12px;
 }
 
@@ -1510,13 +1598,13 @@
   font-weight: 400;
   line-height: 1.15;
   letter-spacing: -0.01em;
-  color: var(--bc-text);
+  color: #1a2940;
   margin: 0;
 }
 
 @media (min-width: 768px) {
   .brescancin-patient-name {
-    font-size: 36px;
+    font-size: 38px;
   }
 }
 
@@ -1525,29 +1613,72 @@
   flex-wrap: wrap;
   gap: 8px;
   font-size: 14px;
-  color: var(--bc-text-secondary);
+  color: #4a5a75;
   margin-top: 14px;
 }
 
 .brescancin-patient-received {
   font-size: 12px;
-  color: var(--bc-text-muted);
+  color: #8896a8;
   letter-spacing: 0.04em;
   margin: 16px 0 0;
 }
 
+.brescancin-patient-consulta {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(26, 41, 64, 0.08);
+}
+
+.brescancin-patient-consulta-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8896a8;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.brescancin-patient-consulta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.brescancin-patient-consulta-row .brescancin-input {
+  flex: 1 1 200px;
+  min-width: 0;
+  background: #f7f4ee;
+  color: #1a2940;
+  border-color: rgba(26, 41, 64, 0.14);
+}
+
+.brescancin-patient-consulta-save {
+  min-height: auto;
+  padding: 12px 24px;
+}
+
+.brescancin-patient-consulta-hint {
+  font-size: 12px;
+  color: #8b6f3f;
+  margin: 10px 0 0;
+  font-style: italic;
+}
+
 .brescancin-patient-section {
-  background: var(--bc-card);
-  border: 1px solid var(--bc-border);
-  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
   padding: 24px 22px;
-  box-shadow: var(--bc-shadow-card);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 24px 56px rgba(0, 0, 0, 0.14);
   margin-bottom: 20px;
 }
 
 @media (min-width: 768px) {
   .brescancin-patient-section {
-    padding: 32px 36px;
+    padding: 36px 44px;
     margin-bottom: 24px;
   }
 }
@@ -1557,9 +1688,9 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--bc-border);
+  border-bottom: 1px solid rgba(26, 41, 64, 0.08);
 }
 
 .brescancin-patient-section-head h2 {
@@ -1567,23 +1698,24 @@
   font-style: italic;
   font-size: 22px;
   font-weight: 400;
-  color: var(--bc-accent-strong);
+  color: #8b6f3f;
   letter-spacing: -0.005em;
   margin: 0;
 }
 
 @media (min-width: 768px) {
   .brescancin-patient-section-head h2 {
-    font-size: 24px;
+    font-size: 26px;
   }
 }
 
 .brescancin-patient-saved {
   font-size: 12px;
-  color: var(--bc-text-muted);
+  color: #8896a8;
   letter-spacing: 0.04em;
 }
 
+/* Pergunta em cima, resposta embaixo — sempre vertical pra facilitar leitura */
 .brescancin-patient-list {
   display: flex;
   flex-direction: column;
@@ -1591,17 +1723,26 @@
   margin: 0;
 }
 
-.brescancin-patient-item {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 4px;
+@media (min-width: 768px) {
+  .brescancin-patient-list {
+    gap: 22px;
+  }
 }
 
-@media (min-width: 600px) {
+.brescancin-patient-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  background: #faf7f2;
+  border-radius: 14px;
+  border: 1px solid rgba(26, 41, 64, 0.04);
+}
+
+@media (min-width: 768px) {
   .brescancin-patient-item {
-    grid-template-columns: 220px 1fr;
-    gap: 24px;
-    align-items: baseline;
+    padding: 16px 20px;
+    gap: 8px;
   }
 }
 
@@ -1609,36 +1750,49 @@
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--bc-text-muted);
+  color: #8896a8;
   font-weight: 600;
 }
 
 .brescancin-patient-item dd {
   margin: 0;
-  font-size: 15px;
-  color: var(--bc-text);
+  font-size: 16px;
+  color: #1a2940;
   line-height: 1.55;
   word-break: break-word;
+  font-weight: 500;
+}
+
+.brescancin-patient-notes-section {
+  margin-top: 8px;
 }
 
 .brescancin-patient-notes {
   width: 100%;
-  min-height: 140px;
+  min-height: 160px;
+  background: #faf7f2 !important;
+  color: #1a2940 !important;
+  border-color: rgba(26, 41, 64, 0.14) !important;
+  border-radius: 14px !important;
+}
+
+.brescancin-patient-notes::placeholder {
+  color: #8896a8 !important;
 }
 
 .brescancin-patient-notes-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
 .brescancin-patient-photo {
-  width: 100px;
-  height: 100px;
+  width: 110px;
+  height: 110px;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 14px;
   display: block;
-  border: 1px solid var(--bc-border);
+  border: 1px solid rgba(26, 41, 64, 0.1);
 }
 
 .brescancin-patient-photo-grid {
