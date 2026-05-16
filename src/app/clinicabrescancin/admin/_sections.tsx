@@ -9,7 +9,12 @@ export type FieldType =
   | "photo"
   | "photos";
 
-export type FieldDef = { key: string; label: string; type?: FieldType };
+export type FieldDef = {
+  key: string;
+  label: string;
+  type?: FieldType;
+  followups?: FieldDef[];
+};
 export type Section = { title: string; fields: FieldDef[] };
 
 export type ResponseRow = {
@@ -40,11 +45,17 @@ export const SECTIONS: Section[] = [
       { key: "genero", label: "Gênero" },
       { key: "estadoCivil", label: "Estado civil" },
       { key: "profissao", label: "Profissão" },
-      { key: "temFilhos", label: "Tem filhos", type: "bool" },
       {
-        key: "pretendeFilhos",
-        label: "Pretende ter filhos no próximo ano",
+        key: "temFilhos",
+        label: "Tem filhos",
         type: "bool",
+        followups: [
+          {
+            key: "pretendeFilhos",
+            label: "Pretende ter filhos no próximo ano",
+            type: "bool",
+          },
+        ],
       },
       { key: "cidade", label: "Cidade" },
       { key: "telefone", label: "Telefone" },
@@ -62,37 +73,60 @@ export const SECTIONS: Section[] = [
       },
       { key: "saudeMae", label: "Saúde da mãe", type: "list" },
       { key: "saudePai", label: "Saúde do pai", type: "list" },
-      { key: "usaMedicamentos", label: "Usa medicamento contínuo" },
       {
-        key: "quaisMedicamentos",
-        label: "Qual(is) medicamento(s)",
-        type: "longtext",
+        key: "usaMedicamentos",
+        label: "Usa medicamento contínuo",
+        followups: [
+          {
+            key: "quaisMedicamentos",
+            label: "Qual(is) medicamento(s)",
+            type: "longtext",
+          },
+        ],
       },
-      { key: "usaSuplementos", label: "Usa suplementos" },
       {
-        key: "quaisSuplementos",
-        label: "Qual(is) suplemento(s)",
-        type: "longtext",
+        key: "usaSuplementos",
+        label: "Usa suplementos",
+        followups: [
+          {
+            key: "quaisSuplementos",
+            label: "Qual(is) suplemento(s)",
+            type: "longtext",
+          },
+        ],
       },
       { key: "usaEsteroides", label: "Usa esteroides anabolizantes" },
       { key: "usaTestosterona", label: "Usa testosterona" },
       {
         key: "usaMedSonoAnsiedade",
         label: "Usa medicamento para sono/ansiedade",
+        followups: [
+          {
+            key: "quaisMedSonoAnsiedade",
+            label: "Qual(is) sono/ansiedade",
+            type: "longtext",
+          },
+        ],
       },
       {
-        key: "quaisMedSonoAnsiedade",
-        label: "Qual(is) sono/ansiedade",
-        type: "longtext",
+        key: "alergiaMedicamento",
+        label: "Alergia a medicamento",
+        followups: [{ key: "qualAlergia", label: "Qual alergia" }],
       },
-      { key: "alergiaMedicamento", label: "Alergia a medicamento" },
-      { key: "qualAlergia", label: "Qual alergia" },
       { key: "alergiaAmbiental", label: "Alergia ambiental" },
-      { key: "fezCirurgia", label: "Já fez cirurgia" },
-      { key: "qualCirurgia", label: "Qual cirurgia", type: "longtext" },
+      {
+        key: "fezCirurgia",
+        label: "Já fez cirurgia",
+        followups: [
+          { key: "qualCirurgia", label: "Qual cirurgia", type: "longtext" },
+        ],
+      },
       { key: "hospitalizadoUltimoAno", label: "Hospitalizado no último ano" },
-      { key: "teveCovidDengue", label: "Teve Covid ou Dengue" },
-      { key: "qualCovidDengue", label: "Qual e quando" },
+      {
+        key: "teveCovidDengue",
+        label: "Teve Covid ou Dengue",
+        followups: [{ key: "qualCovidDengue", label: "Qual e quando" }],
+      },
       { key: "fuma", label: "Fuma" },
       { key: "frequenciaAlcool", label: "Frequência de álcool" },
     ],
@@ -100,16 +134,24 @@ export const SECTIONS: Section[] = [
   {
     title: "Estilo de vida",
     fields: [
-      { key: "atividadeFisica", label: "Pratica atividade física" },
       {
-        key: "qualAtividadeFisica",
-        label: "Qual e frequência",
-        type: "longtext",
+        key: "atividadeFisica",
+        label: "Pratica atividade física",
+        followups: [
+          {
+            key: "qualAtividadeFisica",
+            label: "Qual e frequência",
+            type: "longtext",
+          },
+        ],
       },
       { key: "qualidadeSono", label: "Qualidade do sono" },
       { key: "nivelEstresse", label: "Nível de estresse" },
-      { key: "dieta", label: "Dieta" },
-      { key: "dietaOutra", label: "Qual dieta (outra)" },
+      {
+        key: "dieta",
+        label: "Dieta",
+        followups: [{ key: "dietaOutra", label: "Qual dieta (outra)" }],
+      },
       { key: "tomaLeite", label: "Toma leite todos os dias", type: "bool" },
       {
         key: "comeCastanhasAmendoas",
@@ -125,23 +167,33 @@ export const SECTIONS: Section[] = [
       { key: "tempoQueixa", label: "Tempo da queixa" },
       { key: "tipoQueda", label: "Tipo de queda" },
       { key: "eventosAssociados", label: "Eventos associados", type: "list" },
-      { key: "historicoFamiliarQueda", label: "Histórico familiar" },
-      { key: "quemHistorico", label: "Por parte de quem" },
+      {
+        key: "historicoFamiliarQueda",
+        label: "Histórico familiar",
+        followups: [{ key: "quemHistorico", label: "Por parte de quem" }],
+      },
       {
         key: "fezTratamentoCapilar",
         label: "Já fez tratamento para o cabelo",
         type: "bool",
+        followups: [
+          {
+            key: "tratamentosAnteriores",
+            label: "Qual(is) tratamento(s)",
+            type: "longtext",
+          },
+        ],
       },
       {
-        key: "tratamentosAnteriores",
-        label: "Qual(is) tratamento(s)",
-        type: "longtext",
-      },
-      { key: "usouMinoxidilFinasterida", label: "Usou Minoxidil/Finasterida" },
-      {
-        key: "quaisTempoUso",
-        label: "Qual(is) e tempo de uso",
-        type: "longtext",
+        key: "usouMinoxidilFinasterida",
+        label: "Usou Minoxidil/Finasterida",
+        followups: [
+          {
+            key: "quaisTempoUso",
+            label: "Qual(is) e tempo de uso",
+            type: "longtext",
+          },
+        ],
       },
       { key: "examesSanguineRecentes", label: "Exames de sangue recentes" },
       { key: "fotosCabelo", label: "Fotos do cabelo", type: "photos" },
@@ -150,13 +202,24 @@ export const SECTIONS: Section[] = [
   {
     title: "Sobrancelhas",
     fields: [
-      { key: "temQueixaSobrancelha", label: "Tem queixa em sobrancelha" },
-      { key: "queixaSobrancelha", label: "Queixa específica", type: "list" },
       {
-        key: "procedimentoSobrancelhaAnterior",
-        label: "Procedimento anterior",
+        key: "temQueixaSobrancelha",
+        label: "Tem queixa em sobrancelha",
+        followups: [
+          { key: "queixaSobrancelha", label: "Queixa específica", type: "list" },
+          {
+            key: "procedimentoSobrancelhaAnterior",
+            label: "Procedimento anterior",
+            followups: [
+              {
+                key: "qualProcedimento",
+                label: "Qual e quando",
+                type: "longtext",
+              },
+            ],
+          },
+        ],
       },
-      { key: "qualProcedimento", label: "Qual e quando", type: "longtext" },
     ],
   },
   {

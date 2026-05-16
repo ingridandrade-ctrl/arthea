@@ -753,14 +753,11 @@ function Step1Fields({ answers, errors, update }: StepProps) {
       <FieldRadio
         label="Tem filhos?"
         value={answers.temFilhos}
-        onChange={(v) => {
-          update("temFilhos", v);
-          if (v === "Sim") update("pretendeFilhos", "");
-        }}
+        onChange={(v) => update("temFilhos", v)}
         options={SIM_NAO}
         error={errors.temFilhos}
       />
-      {answers.temFilhos === "Não" && (
+      {(answers.temFilhos === "Sim" || answers.temFilhos === "Não") && (
         <div className="brescancin-subfield">
           <FieldRadio
             label="Pretende ter filhos no próximo ano?"

@@ -1271,10 +1271,12 @@
     color: #8896a8;
     font-size: 12px;
   }
-  .brescancin-admin-table .brescancin-admin-row-actions {
+  .brescancin-admin-table .brescancin-admin-actions-cell {
     margin-top: 10px;
     padding-top: 10px;
     border-top: 1px dashed rgba(26, 41, 64, 0.08);
+  }
+  .brescancin-admin-table .brescancin-admin-row-actions {
     justify-content: space-between;
   }
 }
@@ -1349,9 +1351,12 @@
   white-space: nowrap;
 }
 
-.brescancin-admin-row-actions {
+.brescancin-admin-actions-cell {
   text-align: right;
   white-space: nowrap;
+}
+
+.brescancin-admin-row-actions {
   display: flex;
   gap: 12px;
   align-items: center;
@@ -1746,6 +1751,55 @@
   }
 }
 
+.brescancin-patient-item-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (min-width: 768px) {
+  .brescancin-patient-item-row {
+    gap: 8px;
+  }
+}
+
+.brescancin-patient-followups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 14px;
+  padding-left: 16px;
+  border-top: 1px dashed rgba(26, 41, 64, 0.12);
+  border-left: 2px solid rgba(184, 148, 92, 0.4);
+}
+
+@media (min-width: 768px) {
+  .brescancin-patient-followups {
+    padding-left: 20px;
+    margin-top: 14px;
+  }
+}
+
+.brescancin-patient-item-sub {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.brescancin-patient-item-sub dt {
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: 13px;
+  color: #5a6b85;
+  font-weight: 500;
+}
+
+.brescancin-patient-item-sub dd {
+  font-size: 15px;
+  font-weight: 400;
+}
+
 .brescancin-patient-item dt {
   font-size: 11px;
   letter-spacing: 0.14em;
@@ -1895,6 +1949,10 @@
 
 .brescancin-print-item {
   break-inside: avoid;
+  background: #f9f5ee;
+  border-left: 3px solid rgba(184, 148, 92, 0.35);
+  border-radius: 6px;
+  padding: 8px 10px;
 }
 
 .brescancin-print-item dt {
@@ -1911,6 +1969,38 @@
   font-size: 12px;
   color: #1a2940;
   line-height: 1.5;
+  font-weight: 500;
+}
+
+.brescancin-print-followups {
+  margin-top: 8px;
+  padding-top: 6px;
+  padding-left: 10px;
+  border-top: 1px dashed rgba(26, 41, 64, 0.14);
+  border-left: 2px solid rgba(184, 148, 92, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.brescancin-print-item-sub {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.brescancin-print-item-sub dt {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 10.5px;
+  color: #5a6b85;
+  font-weight: 500;
+}
+
+.brescancin-print-item-sub dd {
+  font-size: 11.5px;
+  font-weight: 400;
 }
 
 .brescancin-print-item .brescancin-patient-photo {
