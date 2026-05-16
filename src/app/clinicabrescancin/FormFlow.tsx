@@ -674,7 +674,6 @@ function FieldPhotos({
             ref={inputRef}
             type="file"
             accept="image/*"
-            capture="environment"
             multiple={multiple}
             disabled={uploading}
             onChange={(e) => handleFiles(e.target.files)}
@@ -684,7 +683,7 @@ function FieldPhotos({
             {uploading
               ? "Enviando..."
               : values.length === 0
-                ? "Tirar ou escolher foto"
+                ? "Escolher foto da galeria"
                 : "Adicionar mais"}
           </span>
         </label>
