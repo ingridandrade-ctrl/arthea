@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import {
   SECTIONS,
+  formatConsultaDate,
   formatDateTime,
   getRawValue,
   renderValue,
@@ -12,7 +13,6 @@ import {
 
 export default function PrintView({ row }: { row: ResponseRow }) {
   useEffect(() => {
-    // Pequeno delay pra browser renderizar fotos antes de imprimir
     const t = setTimeout(() => window.print(), 600);
     return () => clearTimeout(t);
   }, []);
@@ -21,6 +21,10 @@ export default function PrintView({ row }: { row: ResponseRow }) {
     typeof row.answers.adminNotes === "string"
       ? (row.answers.adminNotes as string).trim()
       : "";
+  const dataConsulta =
+    typeof row.answers.dataConsulta === "string"
+      ? (row.answers.dataConsulta as string)
+      : null;
   const age = computeAge(row.dataNascimento);
 
   return (
@@ -28,12 +32,19 @@ export default function PrintView({ row }: { row: ResponseRow }) {
       <header className="brescancin-print-header">
         <div>
           <p className="brescancin-print-brand">Clínica Brescancin</p>
-          <p className="brescancin-print-tag">Excelência em Restauração Capilar</p>
+          <p className="brescancin-print-tag">
+            Excelência em Restauração Capilar
+          </p>
         </div>
         <div className="brescancin-print-meta">
           <p>
             <strong>Recebido em:</strong> {formatDateTime(row.createdAt)}
           </p>
+          {dataConsulta && (
+            <p>
+              <strong>Consulta:</strong> {formatConsultaDate(dataConsulta)}
+            </p>
+          )}
         </div>
       </header>
 
@@ -43,13 +54,6 @@ export default function PrintView({ row }: { row: ResponseRow }) {
         {age != null ? `${age} anos · ` : ""}
         {row.cidade} · {row.telefone}
       </p>
-
-      {notes && (
-        <section className="brescancin-print-section brescancin-print-notes">
-          <h2>Observações da equipe</h2>
-          <p style={{ whiteSpace: "pre-wrap" }}>{notes}</p>
-        </section>
-      )}
 
       {SECTIONS.map((section) => (
         <section key={section.title} className="brescancin-print-section">
@@ -64,6 +68,13 @@ export default function PrintView({ row }: { row: ResponseRow }) {
           </dl>
         </section>
       ))}
+
+      {notes && (
+        <section className="brescancin-print-section brescancin-print-notes">
+          <h2>Observações da equipe</h2>
+          <p style={{ whiteSpace: "pre-wrap" }}>{notes}</p>
+        </section>
+      )}
 
       <footer className="brescancin-print-footer">
         Ficha gerada em {new Date().toLocaleString("pt-BR")}

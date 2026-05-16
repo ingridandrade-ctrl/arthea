@@ -6,7 +6,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="brescancin-light">
+    <div className="brescancin-dark brescancin-admin-shell">
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {children}
       </div>

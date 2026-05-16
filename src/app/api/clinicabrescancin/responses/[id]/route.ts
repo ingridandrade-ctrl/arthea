@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isBrescancinAdminAuthenticated } from "@/lib/clinicabrescancin/admin-auth";
 
@@ -39,10 +40,38 @@ export async function PATCH(
     return NextResponse.json({ error: "Requisição inválida." }, { status: 400 });
   }
 
-  const { notes } = body as { notes?: unknown };
-  if (typeof notes !== "string") {
+  const { notes, dataConsulta } = body as {
+    notes?: unknown;
+    dataConsulta?: unknown;
+  };
+
+  const patch: Record<string, unknown> = {};
+  if (notes !== undefined) {
+    if (typeof notes !== "string") {
+      return NextResponse.json(
+        { error: "Campo notes inválido." },
+        { status: 400 },
+      );
+    }
+    patch.adminNotes = notes.trim();
+  }
+  if (dataConsulta !== undefined) {
+    if (dataConsulta !== null && typeof dataConsulta !== "string") {
+      return NextResponse.json(
+        { error: "Campo dataConsulta inválido." },
+        { status: 400 },
+      );
+    }
+    if (typeof dataConsulta === "string" && dataConsulta.trim() === "") {
+      patch.dataConsulta = null;
+    } else {
+      patch.dataConsulta = dataConsulta;
+    }
+  }
+
+  if (Object.keys(patch).length === 0) {
     return NextResponse.json(
-      { error: "Campo notes ausente ou inválido." },
+      { error: "Nada para atualizar." },
       { status: 400 },
     );
   }
@@ -64,11 +93,11 @@ export async function PATCH(
         : {};
     const updated = {
       ...existingAnswers,
-      adminNotes: notes.trim(),
+      ...patch,
     };
     await prisma.brescancinResponse.update({
       where: { id: params.id },
-      data: { answers: updated },
+      data: { answers: updated as Prisma.InputJsonValue },
     });
     return NextResponse.json({ ok: true });
   } catch {
