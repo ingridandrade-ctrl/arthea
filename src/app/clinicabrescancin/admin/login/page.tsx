@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
+  const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -12,20 +13,20 @@ export default function AdminLoginPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!senha || isSubmitting) return;
+    if (!email || !senha || isSubmitting) return;
     setError(null);
     setIsSubmitting(true);
     try {
       const res = await fetch("/api/clinicabrescancin/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ senha }),
+        body: JSON.stringify({ email, senha }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(
           (data && typeof data.error === "string" && data.error) ||
-            "Senha incorreta.",
+            "Email ou senha incorretos.",
         );
         return;
       }
@@ -49,7 +50,28 @@ export default function AdminLoginPage() {
         </p>
         <form onSubmit={onSubmit}>
           <div className="brescancin-field">
-            <label htmlFor="senha-admin" className="brescancin-label brescancin-label-required">
+            <label
+              htmlFor="email-admin"
+              className="brescancin-label brescancin-label-required"
+            >
+              Email
+            </label>
+            <input
+              id="email-admin"
+              className="brescancin-input"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoFocus
+              placeholder="seu@email.com"
+            />
+          </div>
+          <div className="brescancin-field">
+            <label
+              htmlFor="senha-admin"
+              className="brescancin-label brescancin-label-required"
+            >
               Senha
             </label>
             <div className="brescancin-password-wrap">
@@ -60,7 +82,6 @@ export default function AdminLoginPage() {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 autoComplete="current-password"
-                autoFocus
               />
               <button
                 type="button"
@@ -73,11 +94,14 @@ export default function AdminLoginPage() {
             </div>
             {error && <span className="brescancin-error">{error}</span>}
           </div>
-          <div className="brescancin-actions" style={{ justifyContent: "flex-end" }}>
+          <div
+            className="brescancin-actions"
+            style={{ justifyContent: "flex-end" }}
+          >
             <button
               type="submit"
               className="brescancin-btn-primary"
-              disabled={isSubmitting || !senha}
+              disabled={isSubmitting || !email || !senha}
             >
               {isSubmitting ? "Entrando..." : "Entrar"}
             </button>

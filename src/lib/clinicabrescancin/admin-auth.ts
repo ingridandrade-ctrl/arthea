@@ -2,14 +2,17 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
 /**
- * Autenticação simples por senha pro painel /clinicabrescancin/admin.
+ * Autenticação por email + senha pro painel /clinicabrescancin/admin.
  *
  * Fluxo:
- *   1. Usuário envia senha em POST /api/clinicabrescancin/admin/login.
- *   2. Servidor compara com BRESCANCIN_ADMIN_PASSWORD via timingSafeEqual.
+ *   1. Usuário envia email + senha em POST /api/clinicabrescancin/admin/login.
+ *   2. Servidor compara com BRESCANCIN_ADMIN_EMAIL + BRESCANCIN_ADMIN_PASSWORD
+ *      via timingSafeEqual. Email default: brescancintc@gmail.com.
  *   3. Se bater, seta cookie httpOnly com token assinado por HMAC usando
  *      NEXTAUTH_SECRET. Sem o secret, ninguém forja o cookie.
  */
+
+const DEFAULT_ADMIN_EMAIL = "brescancintc@gmail.com";
 
 const COOKIE_NAME = "brescancin_admin_v1";
 const TOKEN_PAYLOAD = "ok";
@@ -44,13 +47,26 @@ function verifyToken(token: string | undefined): boolean {
   return timingSafeEqual(a, b);
 }
 
-export function checkPassword(input: string): boolean {
-  const expected = process.env.BRESCANCIN_ADMIN_PASSWORD;
-  if (!expected) return false;
-  const a = Buffer.from(input);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
+function safeEqualString(a: string, b: string): boolean {
+  const ba = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ba.length !== bb.length) return false;
+  return timingSafeEqual(ba, bb);
+}
+
+export function checkCredentials(email: string, password: string): boolean {
+  const expectedPassword = process.env.BRESCANCIN_ADMIN_PASSWORD;
+  if (!expectedPassword) return false;
+  const expectedEmail = (
+    process.env.BRESCANCIN_ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL
+  )
+    .trim()
+    .toLowerCase();
+  const inputEmail = email.trim().toLowerCase();
+  return (
+    safeEqualString(inputEmail, expectedEmail) &&
+    safeEqualString(password, expectedPassword)
+  );
 }
 
 export function setAdminCookie(): void {
