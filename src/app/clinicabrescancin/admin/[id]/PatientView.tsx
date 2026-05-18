@@ -10,8 +10,46 @@ import {
   getRawValue,
   renderValue,
   computeAge,
+  type FieldDef,
   type ResponseRow,
 } from "../_sections";
+
+function FieldBlock({
+  field,
+  row,
+  depth = 0,
+}: {
+  field: FieldDef;
+  row: ResponseRow;
+  depth?: number;
+}) {
+  return (
+    <div
+      className={
+        depth === 0
+          ? "brescancin-patient-item"
+          : "brescancin-patient-item brescancin-patient-item-sub"
+      }
+    >
+      <div className="brescancin-patient-item-row">
+        <dt>{field.label}</dt>
+        <dd>{renderValue(getRawValue(row, field.key), field.type)}</dd>
+      </div>
+      {field.followups && field.followups.length > 0 && (
+        <div className="brescancin-patient-followups">
+          {field.followups.map((sub) => (
+            <FieldBlock
+              key={sub.key}
+              field={sub}
+              row={row}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function PatientView({ row }: { row: ResponseRow }) {
   const router = useRouter();
@@ -212,10 +250,7 @@ export default function PatientView({ row }: { row: ResponseRow }) {
           </div>
           <dl className="brescancin-patient-list">
             {section.fields.map((f) => (
-              <div key={f.key} className="brescancin-patient-item">
-                <dt>{f.label}</dt>
-                <dd>{renderValue(getRawValue(row, f.key), f.type)}</dd>
-              </div>
+              <FieldBlock key={f.key} field={f} row={row} />
             ))}
           </dl>
         </section>

@@ -201,20 +201,22 @@ export default function AdminView({ rows }: { rows: ResponseRow[] }) {
                       )}
                     </td>
                     <td>{formatDateTime(r.createdAt)}</td>
-                    <td className="brescancin-admin-row-actions">
-                      <button
-                        type="button"
-                        className="brescancin-admin-delete"
-                        onClick={(e) => handleDelete(e, r)}
-                        disabled={deletingId === r.id}
-                        aria-label={`Excluir ${r.nomeCompleto}`}
-                        title="Excluir"
-                      >
-                        ✕
-                      </button>
-                      <span className="brescancin-admin-chevron">
-                        Abrir →
-                      </span>
+                    <td className="brescancin-admin-actions-cell">
+                      <div className="brescancin-admin-row-actions">
+                        <button
+                          type="button"
+                          className="brescancin-admin-delete"
+                          onClick={(e) => handleDelete(e, r)}
+                          disabled={deletingId === r.id}
+                          aria-label={`Excluir ${r.nomeCompleto}`}
+                          title="Excluir"
+                        >
+                          ✕
+                        </button>
+                        <span className="brescancin-admin-chevron">
+                          Abrir →
+                        </span>
+                      </div>
                     </td>
                   </tr>
                 );
