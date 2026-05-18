@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
-const GENERO = ["Feminino", "Masculino"] as const;
+const GENERO = [
+  "Feminino",
+  "Masculino",
+  "Neutro / Prefiro não informar",
+] as const;
 const SIM_NAO = ["Sim", "Não"] as const;
 const SIM_NAO_NAOSEI = ["Sim", "Não", "Não sei"] as const;
 const ESTADO_CIVIL = [

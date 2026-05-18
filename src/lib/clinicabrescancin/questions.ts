@@ -7,7 +7,11 @@ export const SIM_NAO = ["Sim", "Não"] as const;
 export const SIM_NAO_NAOSEI = ["Sim", "Não", "Não sei"] as const;
 
 // Etapa 1
-export const GENERO = ["Feminino", "Masculino"] as const;
+export const GENERO = [
+  "Feminino",
+  "Masculino",
+  "Neutro / Prefiro não informar",
+] as const;
 
 export const ESTADO_CIVIL = [
   "Solteiro(a)",
