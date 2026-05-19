@@ -1597,7 +1597,7 @@
   margin: 0 0 12px;
 }
 
-.brescancin-patient-name {
+.brescancin-app .brescancin-patient-name {
   font-family: var(--font-display), serif;
   font-size: 28px;
   font-weight: 400;
@@ -1608,7 +1608,7 @@
 }
 
 @media (min-width: 768px) {
-  .brescancin-patient-name {
+  .brescancin-app .brescancin-patient-name {
     font-size: 38px;
   }
 }
