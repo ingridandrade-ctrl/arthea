@@ -1126,7 +1126,8 @@ function Step4Fields({ answers, errors, update }: StepProps) {
         helper={
           "Se você conseguir, tire algumas fotos do seu cabelo e insira abaixo.\n" +
           "Recomendamos foto do topo da cabeça (vista de cima) e das laterais. Pode ser feita com celular, mas procure um ambiente claro.\n" +
-          "Peça ajuda para alguém se for necessário."
+          "Peça ajuda para alguém se for necessário.\n\n" +
+          "As imagens são vistas exclusivamente pelo Dr. Samuel e pela Dra. Alana."
         }
         values={answers.fotosCabelo}
         onChange={(urls) => update("fotosCabelo", urls)}
