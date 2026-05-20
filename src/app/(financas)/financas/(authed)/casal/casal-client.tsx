@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Trash2, ArrowRight, Users, Scale, HandCoins, TrendingDown, BarChart3 } from "lucide-react";
+import { Plus, Trash2, ArrowRight, Users, Scale, HandCoins, TrendingDown, BarChart3, Receipt } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
 import { formatCurrency } from "@/lib/utils";
@@ -20,6 +20,16 @@ type Settlement = {
   periodEnd: string | null;
 };
 
+type Contribution = {
+  id: string;
+  date: string;
+  description: string;
+  totalAmount: number;
+  contributionAmount: number;
+  kind: "couple" | "direct";
+  category: { id: string; name: string; color: string } | null;
+};
+
 type Balance = {
   netBalance: number;
   whoOwes: "PARTNER_A" | "PARTNER_B" | null;
@@ -31,6 +41,10 @@ type Balance = {
     bPaidForA: number;
     settlementsAtoB: number;
     settlementsBtoA: number;
+  };
+  contributions: {
+    aOwesB: Contribution[];
+    bOwesA: Contribution[];
   };
 };
 
@@ -290,6 +304,30 @@ export function CasalClient() {
             </div>
           </div>
 
+          {balance && (balance.contributions.aOwesB.length > 0 || balance.contributions.bOwesA.length > 0) && (
+            <div className="bg-card border border-border rounded-xl overflow-hidden mb-4">
+              <div className="p-4 border-b border-border flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Origem dos repasses</h2>
+                <span className="text-xs text-muted-foreground ml-auto">
+                  Despesas que cada um pagou e ainda precisa receber de volta
+                </span>
+              </div>
+              <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
+                <ContributionList
+                  title={`${ownerName("PARTNER_A")} → ${ownerName("PARTNER_B")}`}
+                  subtitle={`Coisas que ${ownerName("PARTNER_B")} pagou e ${ownerName("PARTNER_A")} deve devolver`}
+                  items={balance.contributions.aOwesB}
+                />
+                <ContributionList
+                  title={`${ownerName("PARTNER_B")} → ${ownerName("PARTNER_A")}`}
+                  subtitle={`Coisas que ${ownerName("PARTNER_A")} pagou e ${ownerName("PARTNER_B")} deve devolver`}
+                  items={balance.contributions.bOwesA}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="p-4 border-b border-border flex items-center gap-2">
               <Users className="w-4 h-4 text-muted-foreground" />
@@ -348,6 +386,65 @@ export function CasalClient() {
             load();
           }}
         />
+      )}
+    </div>
+  );
+}
+
+function ContributionList({
+  title,
+  subtitle,
+  items,
+}: {
+  title: string;
+  subtitle: string;
+  items: Contribution[];
+}) {
+  const total = items.reduce((s, i) => s + i.contributionAmount, 0);
+  return (
+    <div className="p-4">
+      <div className="mb-3">
+        <div className="flex items-baseline justify-between">
+          <h3 className="text-sm font-semibold">{title}</h3>
+          <span className="text-sm font-semibold tabular-nums">{formatCurrency(total)}</span>
+        </div>
+        <p className="text-[11px] text-muted-foreground">{subtitle}</p>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-xs text-muted-foreground italic">Nenhuma despesa nessa direção.</p>
+      ) : (
+        <ul className="space-y-2 max-h-72 overflow-y-auto pr-1">
+          {items.map((c) => (
+            <li key={c.id} className="text-xs border border-border rounded-md p-2">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="font-medium truncate">{c.description}</span>
+                <span className="tabular-nums whitespace-nowrap">
+                  {formatCurrency(c.contributionAmount)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground mt-1">
+                <span>{new Date(c.date).toLocaleDateString("pt-BR")}</span>
+                {c.category && (
+                  <span className="inline-flex items-center gap-1">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: c.category.color }}
+                    />
+                    {c.category.name}
+                  </span>
+                )}
+                {c.kind === "couple" && c.totalAmount !== c.contributionAmount && (
+                  <span className="text-[10px] italic">
+                    (parte do casal de {formatCurrency(c.totalAmount)})
+                  </span>
+                )}
+                {c.kind === "direct" && (
+                  <span className="text-[10px] italic">(pagou pelo outro)</span>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

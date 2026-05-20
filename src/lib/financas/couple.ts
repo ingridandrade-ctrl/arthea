@@ -1,7 +1,16 @@
 import { prisma } from "@/lib/prisma";
 
+export type Contribution = {
+  id: string;
+  date: Date;
+  description: string;
+  totalAmount: number;
+  contributionAmount: number;
+  kind: "couple" | "direct";
+  category: { id: string; name: string; color: string } | null;
+};
+
 export type CoupleBalance = {
-  // Saldo do ponto de vista de A: positivo = B deve A; negativo = A deve B
   netBalance: number;
   whoOwes: "PARTNER_A" | "PARTNER_B" | null;
   amount: number;
@@ -12,6 +21,10 @@ export type CoupleBalance = {
     bPaidForA: number;
     settlementsAtoB: number;
     settlementsBtoA: number;
+  };
+  contributions: {
+    aOwesB: Contribution[];
+    bOwesA: Contribution[];
   };
 };
 
@@ -29,7 +42,17 @@ export async function computeCoupleBalance(
 
   const transactions = await prisma.finTransaction.findMany({
     where: txWhere,
-    select: { amount: true, owner: true, paidByOwner: true, splitRatio: true },
+    select: {
+      id: true,
+      amount: true,
+      owner: true,
+      paidByOwner: true,
+      splitRatio: true,
+      date: true,
+      description: true,
+      category: { select: { id: true, name: true, color: true } },
+    },
+    orderBy: { date: "desc" },
   });
 
   const details = {
@@ -40,6 +63,9 @@ export async function computeCoupleBalance(
     settlementsAtoB: 0,
     settlementsBtoA: 0,
   };
+
+  const contribAOwesB: Contribution[] = [];
+  const contribBOwesA: Contribution[] = [];
 
   let balance = 0;
   for (const tx of transactions) {
@@ -52,17 +78,53 @@ export async function computeCoupleBalance(
         const credit = (1 - r) * tx.amount;
         balance += credit;
         details.aPaidForCouple += credit;
+        contribBOwesA.push({
+          id: tx.id,
+          date: tx.date,
+          description: tx.description,
+          totalAmount: tx.amount,
+          contributionAmount: credit,
+          kind: "couple",
+          category: tx.category,
+        });
       } else {
         const credit = r * tx.amount;
         balance -= credit;
         details.bPaidForCouple += credit;
+        contribAOwesB.push({
+          id: tx.id,
+          date: tx.date,
+          description: tx.description,
+          totalAmount: tx.amount,
+          contributionAmount: credit,
+          kind: "couple",
+          category: tx.category,
+        });
       }
     } else if (tx.owner === "PARTNER_A" && paidBy === "PARTNER_B") {
       balance -= tx.amount;
       details.bPaidForA += tx.amount;
+      contribAOwesB.push({
+        id: tx.id,
+        date: tx.date,
+        description: tx.description,
+        totalAmount: tx.amount,
+        contributionAmount: tx.amount,
+        kind: "direct",
+        category: tx.category,
+      });
     } else if (tx.owner === "PARTNER_B" && paidBy === "PARTNER_A") {
       balance += tx.amount;
       details.aPaidForB += tx.amount;
+      contribBOwesA.push({
+        id: tx.id,
+        date: tx.date,
+        description: tx.description,
+        totalAmount: tx.amount,
+        contributionAmount: tx.amount,
+        kind: "direct",
+        category: tx.category,
+      });
     }
   }
 
@@ -90,5 +152,11 @@ export async function computeCoupleBalance(
   const whoOwes =
     Math.abs(balance) < 0.005 ? null : balance > 0 ? "PARTNER_B" : "PARTNER_A";
 
-  return { netBalance: balance, whoOwes, amount, details };
+  return {
+    netBalance: balance,
+    whoOwes,
+    amount,
+    details,
+    contributions: { aOwesB: contribAOwesB, bOwesA: contribBOwesA },
+  };
 }
