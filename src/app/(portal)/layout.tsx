@@ -5,7 +5,17 @@ import { prisma } from "@/lib/prisma";
 import { PortalSidebar } from "./_components/portal-sidebar";
 
 export const metadata = {
-  title: "Portal Arthea",
+  title: "Portal do cliente",
+  description:
+    "Seu projeto com a Arthea — entregáveis, acessos e tudo o que importa em um só lugar.",
+  openGraph: {
+    title: "Portal Arthea",
+    description:
+      "Seu projeto com a Arthea — entregáveis, acessos e tudo o que importa em um só lugar.",
+    siteName: "Arthea",
+    locale: "pt_BR",
+    type: "website",
+  },
 };
 
 export default async function PortalLayout({
