@@ -95,12 +95,63 @@ const PAID_TRAFFIC_PHASE_1: TemplateDeliverable[] = [
   },
 ];
 
+// ─── Tráfego Pago — Fase 2: Execução & Estratégia ───
+// "Até 10 dias úteis após Fase 1" — setup técnico + materiais estratégicos
+// pro cliente revisar antes da ativação.
+const PAID_TRAFFIC_PHASE_2: TemplateDeliverable[] = [
+  {
+    order: 1,
+    phase: 2,
+    title: "Setup de rastreamento completo",
+    description:
+      "Instalação e validação do Pixel Meta, API de Conversões, GTM e GA4 — pra cada clique ser rastreado, atribuído e otimizado pelo algoritmo.",
+    category: "TRACKING",
+    kind: "TASK",
+  },
+  {
+    order: 2,
+    phase: 2,
+    title: "Estruturação de públicos",
+    description:
+      "Configuração das audiências na Meta: públicos frios (prospecção), quentes (engajamento recente) e remarketing (visitantes/compradores).",
+    category: "CAMPAIGN_SETUP",
+    kind: "TASK",
+  },
+  {
+    order: 3,
+    phase: 2,
+    title: "Entregável: Direcionamento criativo e copy",
+    description:
+      "Briefing criativo com referências visuais e sugestões de copy pra anúncios. Você revisa antes da equipe produzir as peças.",
+    category: "CREATIVE",
+    kind: "DOCUMENT",
+  },
+  {
+    order: 4,
+    phase: 2,
+    title: "Entregável: Estratégia de campanhas",
+    description:
+      "Plano completo: objetivos, orçamento, formatos, jornada do cliente e os critérios de sucesso. Aprovação antes do go-live.",
+    category: "CAMPAIGN_SETUP",
+    kind: "DOCUMENT",
+  },
+  {
+    order: 5,
+    phase: 2,
+    title: "Ativação das primeiras campanhas",
+    description:
+      "Subida das campanhas na Meta com tudo aprovado. A partir daqui as métricas começam a aparecer no seu dashboard de Tráfego.",
+    category: "CAMPAIGN_SETUP",
+    kind: "TASK",
+  },
+];
+
 const PAID_TRAFFIC_TEMPLATE: EngagementTemplate = {
   label: "Tráfego Pago",
   description:
-    "Modelo padrão Arthea pra frente de tráfego pago (Fase 1 — Imersão & Estrutura). Próximas fases serão definidas em ondas futuras.",
+    "Modelo padrão Arthea pra frente de tráfego pago (Fases 1 e 2). Fase 3 (Crescimento contínuo) entra em onda futura quando modelarmos rituais recorrentes.",
   totalPhases: 3,
-  deliverables: [...PAID_TRAFFIC_PHASE_1],
+  deliverables: [...PAID_TRAFFIC_PHASE_1, ...PAID_TRAFFIC_PHASE_2],
 };
 
 export const ENGAGEMENT_TEMPLATES: Partial<Record<EngagementType, EngagementTemplate>> = {

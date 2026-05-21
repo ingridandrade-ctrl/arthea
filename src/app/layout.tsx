@@ -3,8 +3,18 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Arthea CRM",
-  description: "CRM completo para agência de marketing digital",
+  title: {
+    default: "Arthea — agência de marketing digital",
+    template: "%s · Arthea",
+  },
+  description: "Onde a estratégia da sua marca acontece.",
+  openGraph: {
+    title: "Arthea",
+    description: "Onde a estratégia da sua marca acontece.",
+    siteName: "Arthea",
+    locale: "pt_BR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
