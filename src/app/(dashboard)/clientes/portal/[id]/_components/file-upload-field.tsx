@@ -9,12 +9,14 @@ export function FileUploadField({
   accept = ".pdf,image/*",
   hint,
   name,
+  onChange,
 }: {
   label: string;
   initialUrl?: string | null;
   accept?: string;
   hint?: string;
   name: string;
+  onChange?: (url: string | null, filename: string | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState<string | null>(initialUrl || null);
@@ -40,6 +42,7 @@ export function FileUploadField({
       } else {
         setUrl(data.url);
         setFilename(data.name);
+        onChange?.(data.url, data.name);
       }
     } finally {
       setUploading(false);
@@ -51,6 +54,7 @@ export function FileUploadField({
     setFilename(null);
     setError("");
     if (inputRef.current) inputRef.current.value = "";
+    onChange?.(null, null);
   }
 
   const isImage = url && /\.(png|jpe?g|webp|gif|svg)$/i.test(url);

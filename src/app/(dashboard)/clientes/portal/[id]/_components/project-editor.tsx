@@ -1280,6 +1280,12 @@ function InternoTab({ project }: { project: any }) {
   const initial = (project.internalData || {}) as Record<string, any>;
 
   const [contractUrl, setContractUrl] = useState<string | null>(initial.contractUrl || null);
+  const [contractFileUrl, setContractFileUrl] = useState<string | null>(
+    initial.contractFileUrl || null,
+  );
+  const [contractFileName, setContractFileName] = useState<string | null>(
+    initial.contractFileName || null,
+  );
   const [contractStartDate, setContractStartDate] = useState(initial.contractStartDate || "");
   const [contractEndDate, setContractEndDate] = useState(initial.contractEndDate || "");
   const [contractValue, setContractValue] = useState(
@@ -1297,6 +1303,8 @@ function InternoTab({ project }: { project: any }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contractUrl: contractUrl || null,
+        contractFileUrl: contractFileUrl || null,
+        contractFileName: contractFileName || null,
         contractStartDate: contractStartDate || null,
         contractEndDate: contractEndDate || null,
         contractValue: contractValue === "" ? null : Number(contractValue),
@@ -1333,10 +1341,11 @@ function InternoTab({ project }: { project: any }) {
             Contrato
           </p>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Link pro contrato (Drive, Dropbox, etc.) e janela vigente.
+            Cole o link (Drive, Dropbox, etc.) <strong>ou</strong> envie o arquivo direto.
+            Pode usar os dois.
           </p>
         </div>
-        <Field label="URL do contrato">
+        <Field label="URL do contrato (link externo)">
           <input
             value={contractUrl ?? ""}
             onChange={(e) => setContractUrl(e.target.value || null)}
@@ -1344,6 +1353,17 @@ function InternoTab({ project }: { project: any }) {
             className={input}
           />
         </Field>
+        <FileUploadField
+          label="Arquivo do contrato (PDF ou imagem)"
+          name="contractFile"
+          accept=".pdf,image/*"
+          hint="Até 10 MB. Fica salvo nos servidores da Arthea."
+          initialUrl={contractFileUrl}
+          onChange={(url, fname) => {
+            setContractFileUrl(url);
+            setContractFileName(fname);
+          }}
+        />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Início do contrato">
             <input
