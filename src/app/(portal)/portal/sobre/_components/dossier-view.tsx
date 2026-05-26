@@ -600,38 +600,87 @@ function BrandIdentityView({ data }: { data: BrandIdentity }) {
           <Empty />
         )}
       </SubBlock>
-      <SubBlock label="Logos" isLast>
-        {data.logos && data.logos.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {data.logos.map((l, i) => (
-              <a
-                key={i}
-                href={l.url}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "10px 12px",
-                  borderRadius: 8,
-                  border: "0.5px solid rgba(13,74,74,0.05)",
-                  background: "white",
-                  textDecoration: "none",
-                  color: "inherit",
-                  fontSize: 14,
-                }}
-              >
-                <FileText size={16} color="var(--accent)" strokeWidth={1.6} />
-                <span>{l.name}</span>
-              </a>
-            ))}
-          </div>
-        ) : (
-          <Empty />
-        )}
+      <SubBlock label="Logos">
+        <FileLinkList items={(data.logos || []).map((l) => ({ name: l.name, url: l.url }))} />
+      </SubBlock>
+      <SubBlock label="Fontes">
+        <FileLinkList
+          items={(data.fonts || []).map((f) => ({
+            name: f.name,
+            url: f.url,
+            sublabel: f.usage,
+          }))}
+        />
+      </SubBlock>
+      <SubBlock label="Documentos da marca" isLast>
+        <FileLinkList
+          items={(data.manuals || []).map((m) => ({ name: m.name, url: m.url }))}
+        />
       </SubBlock>
     </>
+  );
+}
+
+function FileLinkList({
+  items,
+}: {
+  items: { name: string; url: string; sublabel?: string | null }[];
+}) {
+  if (!items.length) return <Empty />;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      {items.map((item, i) => {
+        const content = (
+          <>
+            <FileText size={16} color="var(--accent)" strokeWidth={1.6} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.3 }}>{item.name || "—"}</div>
+              {item.sublabel && (
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "#8B867B",
+                    marginTop: 2,
+                    fontFamily: "ui-monospace, 'JetBrains Mono', Menlo, monospace",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  {item.sublabel}
+                </div>
+              )}
+            </div>
+          </>
+        );
+        const baseStyle: React.CSSProperties = {
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "10px 12px",
+          borderRadius: 8,
+          border: "0.5px solid rgba(13,74,74,0.05)",
+          background: "white",
+          textDecoration: "none",
+          color: "inherit",
+          fontSize: 14,
+        };
+        return item.url ? (
+          <a
+            key={i}
+            href={item.url}
+            target="_blank"
+            rel="noreferrer"
+            style={baseStyle}
+          >
+            {content}
+          </a>
+        ) : (
+          <div key={i} style={{ ...baseStyle, opacity: 0.7 }}>
+            {content}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

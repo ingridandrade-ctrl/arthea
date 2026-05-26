@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, MapPin, MessageSquare, Star, Sparkles, ExternalLink } from "lucide-react";
 import type { ClientEngagement, ClientDeliverable } from "@prisma/client";
+import { greetingPtBr } from "@/lib/time";
 
 type Project = ClientEngagement & { deliverables: ClientDeliverable[] };
 
@@ -23,12 +24,7 @@ export function GmbDashboard({
   const postsApproved = posts.filter((d) => d.status === "APPROVED").length;
   const reviewsHandled = reviews.filter((d) => d.status === "APPROVED").length;
 
-  const greeting = (() => {
-    const h = new Date().getHours();
-    if (h < 12) return "Bom dia";
-    if (h < 18) return "Boa tarde";
-    return "Boa noite";
-  })();
+  const greeting = greetingPtBr();
 
   return (
     <div className="portal-fade-in" style={{ display: "flex", flexDirection: "column", gap: 36 }}>
