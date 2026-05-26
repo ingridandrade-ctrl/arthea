@@ -9,6 +9,7 @@ import type {
   BrandIdentity,
   Performance,
 } from "@/lib/dossier";
+import { channelHref } from "@/lib/dossier";
 import { FileText } from "lucide-react";
 
 type SectionMeta = {
@@ -390,24 +391,57 @@ function ContactsView({ data }: { data: Contact[] }) {
                 <div style={{ fontSize: 13, color: "#8B867B", marginTop: 1 }}>{c.role}</div>
               )}
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {(c.channels || []).map((ch) => (
-                <span
-                  key={ch}
-                  style={{
-                    padding: "4px 8px",
-                    background: "var(--accent-soft)",
-                    color: "var(--accent-deep)",
-                    borderRadius: 6,
-                    fontSize: 12,
-                    fontFamily: "ui-monospace, 'JetBrains Mono', Menlo, monospace",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  {ch}
-                </span>
-              ))}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              {(c.channels || []).map((ch) => {
+                const href = channelHref(ch);
+                const chipStyle: React.CSSProperties = {
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "4px 10px",
+                  background: "var(--accent-soft)",
+                  color: "var(--accent-deep)",
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontFamily: "ui-monospace, 'JetBrains Mono', Menlo, monospace",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                  textDecoration: "none",
+                  border: "0.5px solid rgba(29,112,112,0.18)",
+                };
+                const label = (
+                  <>
+                    <span style={{ fontWeight: 600 }}>{ch.kind}</span>
+                    {ch.value && (
+                      <span
+                        style={{
+                          textTransform: "none",
+                          letterSpacing: "0",
+                          color: "#4A4A4A",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {ch.value}
+                      </span>
+                    )}
+                  </>
+                );
+                return href ? (
+                  <a
+                    key={ch.kind}
+                    href={href}
+                    target={ch.kind === "email" || ch.kind === "telefone" ? undefined : "_blank"}
+                    rel="noreferrer"
+                    style={chipStyle}
+                  >
+                    {label}
+                  </a>
+                ) : (
+                  <span key={ch.kind} style={{ ...chipStyle, cursor: "default", opacity: 0.7 }}>
+                    {label}
+                  </span>
+                );
+              })}
             </div>
           </div>
         ))}

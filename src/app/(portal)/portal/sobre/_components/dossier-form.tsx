@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Plus, Trash2, Save, X, Check } from "lucide-react";
-import type { Dossier, Contact, PaletteColor } from "@/lib/dossier";
+import type { Dossier, Contact, ContactChannel, ContactChannelKind, PaletteColor } from "@/lib/dossier";
 import { SECTIONS } from "@/lib/dossier";
 
 export function DossierForm({ initialData }: { initialData: Dossier }) {
@@ -601,7 +601,12 @@ function MarketForm({
 
 // ─── 05 Contacts ─────────────────────────────────────────────────
 
-const CHANNEL_OPTIONS = ["whatsapp", "email", "telefone", "instagram"];
+const CHANNEL_OPTIONS: { kind: ContactChannelKind; label: string; placeholder: string }[] = [
+  { kind: "whatsapp", label: "whatsapp", placeholder: "+55 11 9 8765-4321" },
+  { kind: "email", label: "email", placeholder: "nome@empresa.com" },
+  { kind: "telefone", label: "telefone", placeholder: "+55 11 3456-7890" },
+  { kind: "instagram", label: "instagram", placeholder: "@usuario" },
+];
 
 function ContactsForm({
   value,
@@ -616,11 +621,17 @@ function ContactsForm({
   function removeAt(i: number) {
     onChange(value.filter((_, idx) => idx !== i));
   }
-  function toggleChannel(i: number, channel: string) {
+  function toggleChannel(i: number, kind: ContactChannelKind) {
     const current = value[i].channels || [];
-    const next = current.includes(channel)
-      ? current.filter((c) => c !== channel)
-      : [...current, channel];
+    const exists = current.some((c) => c.kind === kind);
+    const next = exists
+      ? current.filter((c) => c.kind !== kind)
+      : [...current, { kind, value: null }];
+    updateAt(i, { channels: next });
+  }
+  function setChannelValue(i: number, kind: ContactChannelKind, raw: string) {
+    const current = value[i].channels || [];
+    const next = current.map((c) => (c.kind === kind ? { ...c, value: raw || null } : c));
     updateAt(i, { channels: next });
   }
   return (
@@ -666,12 +677,12 @@ function ContactsForm({
               </button>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {CHANNEL_OPTIONS.map((ch) => {
-                const on = (c.channels || []).includes(ch);
+              {CHANNEL_OPTIONS.map((opt) => {
+                const on = (c.channels || []).some((ch) => ch.kind === opt.kind);
                 return (
                   <button
-                    key={ch}
-                    onClick={() => toggleChannel(i, ch)}
+                    key={opt.kind}
+                    onClick={() => toggleChannel(i, opt.kind)}
                     style={{
                       padding: "4px 10px",
                       borderRadius: 999,
@@ -685,11 +696,42 @@ function ContactsForm({
                       border: `0.5px solid ${on ? "rgba(29,112,112,0.30)" : "rgba(13,74,74,0.15)"}`,
                     }}
                   >
-                    {ch}
+                    {opt.label}
                   </button>
                 );
               })}
             </div>
+            {(c.channels || []).length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {(c.channels || []).map((ch) => {
+                  const opt = CHANNEL_OPTIONS.find((o) => o.kind === ch.kind);
+                  return (
+                    <div
+                      key={ch.kind}
+                      style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: 8, alignItems: "center" }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontFamily: "ui-monospace, 'JetBrains Mono', Menlo, monospace",
+                          color: "#8B867B",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.06em",
+                        }}
+                      >
+                        {opt?.label || ch.kind}
+                      </span>
+                      <input
+                        value={ch.value || ""}
+                        onChange={(e) => setChannelValue(i, ch.kind, e.target.value)}
+                        placeholder={opt?.placeholder || ""}
+                        style={{ ...inputStyle, fontSize: 13 }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         ))}
       </div>
