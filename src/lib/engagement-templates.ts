@@ -163,3 +163,18 @@ export const ENGAGEMENT_TEMPLATES: Partial<Record<EngagementType, EngagementTemp
 export function getTemplate(type: EngagementType): EngagementTemplate | null {
   return ENGAGEMENT_TEMPLATES[type] ?? null;
 }
+
+// Retorna as fases que o template define, com nome derivado da convenção
+// PHASE_NAMES_BY_TYPE (em deliverable-status). Útil pra UI montar menu de
+// "Aplicar só a Fase X".
+export function templatePhases(type: EngagementType): { phase: number; count: number }[] {
+  const t = ENGAGEMENT_TEMPLATES[type];
+  if (!t) return [];
+  const counts = new Map<number, number>();
+  for (const d of t.deliverables) {
+    counts.set(d.phase, (counts.get(d.phase) || 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([phase, count]) => ({ phase, count }));
+}

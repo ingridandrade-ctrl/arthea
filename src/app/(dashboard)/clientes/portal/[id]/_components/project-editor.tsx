@@ -19,6 +19,7 @@ import {
 import { Modal } from "@/components/ui/modal";
 import { FileUploadField } from "./file-upload-field";
 import { AcervoTab } from "./acervo-tab";
+import { ApplyTemplateMenu } from "./apply-template-menu";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Em preparação" },
@@ -403,12 +404,15 @@ function EntregaveisTab({ project }: { project: any }) {
     router.refresh();
   }
 
-  async function applyTemplate() {
-    const hasItems = project.deliverables.length > 0;
-    if (hasItems) {
+  async function applyTemplate(phase: number | null) {
+    const scopeCount = phase
+      ? project.deliverables.filter((d: any) => d.phase === phase).length
+      : project.deliverables.length;
+    const scopeLabel = phase ? `a Fase ${phase}` : "essa frente";
+    if (scopeCount > 0) {
       if (
         !confirm(
-          `Essa frente já tem ${project.deliverables.length} entregáveis. Aplicar o template vai ADICIONAR os entregáveis padrão por cima (não substitui). Continuar?`,
+          `${scopeLabel} já tem ${scopeCount} entregáveis. Vai ADICIONAR os padrão por cima (não substitui). Continuar?`,
         )
       )
         return;
@@ -417,12 +421,13 @@ function EntregaveisTab({ project }: { project: any }) {
     const res = await fetch(`/api/admin/client-projects/${project.id}/apply-template`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ force: hasItems }),
+      body: JSON.stringify({ force: scopeCount > 0, phase: phase ?? undefined }),
     });
     setApplyingTemplate(false);
     if (res.ok) {
       const data = await res.json();
-      toast.show(`Template "${data.template}" aplicado · ${data.created} entregáveis criados`);
+      const label = phase ? `Fase ${phase}` : data.template;
+      toast.show(`${label} aplicada · ${data.created} entregáveis criados`);
       router.refresh();
     } else {
       const data = await res.json().catch(() => ({}));
@@ -476,15 +481,11 @@ function EntregaveisTab({ project }: { project: any }) {
           {project.deliverables.length} entregáveis. Mude o status pelo dropdown e a ordem com as setas.
         </p>
         <div className="flex items-center gap-2">
-          <button
-            onClick={applyTemplate}
-            disabled={applyingTemplate}
-            className="px-3.5 py-1.5 border border-border rounded-lg text-sm font-medium inline-flex items-center gap-1.5 hover:bg-muted transition disabled:opacity-60"
-            title="Cria os entregáveis padrão Arthea pro tipo dessa frente"
-          >
-            <Sparkles className="w-4 h-4" />
-            {applyingTemplate ? "Aplicando…" : "Aplicar template"}
-          </button>
+          <ApplyTemplateMenu
+            engagementType={project.type}
+            applying={applyingTemplate}
+            onApply={applyTemplate}
+          />
           <button
             onClick={() => setShowAdd(true)}
             className="px-3.5 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium inline-flex items-center gap-1.5 hover:opacity-90 transition"
