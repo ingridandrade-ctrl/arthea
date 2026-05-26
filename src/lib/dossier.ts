@@ -108,9 +108,17 @@ export type Archive = {
 
 export type PaletteColor = { name: string; hex: string };
 export type LogoFile = { name: string; url: string };
+export type BrandFont = {
+  name: string;
+  usage: string | null; // ex: "Títulos", "Corpo", "Destaque"
+  url: string;
+};
+export type BrandManual = { name: string; url: string };
 export type BrandIdentity = {
   palette: PaletteColor[];
   logos: LogoFile[];
+  fonts: BrandFont[];
+  manuals: BrandManual[];
 };
 
 export type Performance = {
@@ -161,7 +169,7 @@ export const DOSSIER_DEFAULTS: Dossier = {
     deliveryDate: null,
   },
   archive: { meetingTranscripts: [], relevantFiles: [], adScripts: [] },
-  brandIdentity: { palette: [], logos: [] },
+  brandIdentity: { palette: [], logos: [], fonts: [], manuals: [] },
   performance: {
     cpaTarget: null,
     minRoas: null,

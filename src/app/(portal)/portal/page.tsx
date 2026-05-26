@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { greetingPtBr } from "@/lib/time";
 import Link from "next/link";
 import { ArrowRight, Briefcase, Megaphone, Globe, MapPin, FileText } from "lucide-react";
 
@@ -40,12 +41,7 @@ export default async function PortalHub() {
     redirect(`/portal/${engagements[0].slug}`);
   }
 
-  const greeting = (() => {
-    const h = new Date().getHours();
-    if (h < 12) return "Bom dia";
-    if (h < 18) return "Boa tarde";
-    return "Boa noite";
-  })();
+  const greeting = greetingPtBr();
 
   return (
     <div className="portal-fade-in" style={{ display: "flex", flexDirection: "column", gap: 36 }}>

@@ -5,6 +5,7 @@ import type { ClientEngagement, ClientDeliverable } from "@prisma/client";
 import { PHASE_NAMES, phaseNamesFor } from "../../../_components/deliverable-status";
 import { CircularProgress } from "../../../_components/circular-progress";
 import { PhaseTimeline } from "../../../_components/phase-timeline";
+import { greetingPtBr } from "@/lib/time";
 
 type Project = ClientEngagement & { deliverables: ClientDeliverable[] };
 
@@ -71,12 +72,7 @@ export async function StrategyDashboard({
     ) ||
     project.deliverables.find((d) => d.status !== "APPROVED");
 
-  const greeting = (() => {
-    const h = new Date().getHours();
-    if (h < 12) return "Bom dia";
-    if (h < 18) return "Boa tarde";
-    return "Boa noite";
-  })();
+  const greeting = greetingPtBr();
   const firstName = (userName || "").split(" ")[0];
 
   return (

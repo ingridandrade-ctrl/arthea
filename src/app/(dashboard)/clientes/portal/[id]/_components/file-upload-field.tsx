@@ -10,6 +10,7 @@ export function FileUploadField({
   hint,
   name,
   onChange,
+  uploadUrl = "/api/admin/upload",
 }: {
   label: string;
   initialUrl?: string | null;
@@ -17,6 +18,7 @@ export function FileUploadField({
   hint?: string;
   name: string;
   onChange?: (url: string | null, filename: string | null) => void;
+  uploadUrl?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState<string | null>(initialUrl || null);
@@ -32,7 +34,7 @@ export function FileUploadField({
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/admin/upload", {
+      const res = await fetch(uploadUrl, {
         method: "POST",
         body: fd,
       });
