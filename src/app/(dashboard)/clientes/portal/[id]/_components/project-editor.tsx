@@ -20,6 +20,7 @@ import { Modal } from "@/components/ui/modal";
 import { FileUploadField } from "./file-upload-field";
 import { AcervoTab } from "./acervo-tab";
 import { ApplyTemplateMenu } from "./apply-template-menu";
+import { EmbedPreviewModal } from "./embed-preview-modal";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Em preparação" },
@@ -611,6 +612,9 @@ function DeliverableForm({
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [embedValue, setEmbedValue] = useState<string>(editing?.documentEmbed || "");
+  const [docUrlValue, setDocUrlValue] = useState<string | null>(editing?.documentUrl || null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -710,12 +714,29 @@ function DeliverableForm({
           accept=".pdf,image/*"
           hint="Até 10 MB. Aparece no portal do cliente como botão 'Abrir documento' ou preview."
           initialUrl={editing?.documentUrl}
+          onChange={(u) => setDocUrlValue(u)}
         />
-        <Field label="Conteúdo HTML embed (opcional, aparece dentro do portal)">
+        <Field
+          label={
+            <div className="flex items-center justify-between gap-2">
+              <span>Conteúdo HTML embed (opcional, aparece dentro do portal)</span>
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                disabled={!embedValue.trim() && !docUrlValue}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border text-[11px] font-medium hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Ver como o cliente vai enxergar"
+              >
+                <Eye className="w-3 h-3" /> Pré-visualizar
+              </button>
+            </div>
+          }
+        >
           <textarea
             name="documentEmbed"
             rows={6}
-            defaultValue={editing?.documentEmbed || ""}
+            value={embedValue}
+            onChange={(e) => setEmbedValue(e.target.value)}
             placeholder="<p>Texto, imagens, links...</p>"
             className={input}
           />
@@ -723,6 +744,13 @@ function DeliverableForm({
             Cole apenas o conteúdo do documento (parágrafos, imagens, listas). Não cole URLs do portal nem HTML de páginas inteiras — vai criar um loop visual.
           </p>
         </Field>
+        {previewOpen && (
+          <EmbedPreviewModal
+            url={docUrlValue}
+            embed={embedValue.trim() ? embedValue : null}
+            onClose={() => setPreviewOpen(false)}
+          />
+        )}
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -1443,10 +1471,16 @@ function InternoTab({ project }: { project: any }) {
 const input =
   "w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1 text-muted-foreground">{label}</label>
+      <div className="block text-xs font-medium mb-1 text-muted-foreground">{label}</div>
       {children}
     </div>
   );
