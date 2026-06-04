@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
-import { ensureInvoice } from "@/lib/financas/credit-cards";
+import { ensureInvoice, ensureInvoiceForMonth } from "@/lib/financas/credit-cards";
 import { parseLocalDate } from "@/lib/financas/dates";
-import { addMonths, installmentGroupId, parseInstallment } from "@/lib/financas/installments";
+import { installmentGroupId, parseInstallment } from "@/lib/financas/installments";
 
 const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
 
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   try {
     const household = await requireHousehold();
     const body = await req.json().catch(() => ({}));
-    const { accountId, rows } = body ?? {};
+    const { accountId, rows, invoiceYear, invoiceMonth } = body ?? {};
 
     if (typeof accountId !== "string" || !accountId) {
       return NextResponse.json({ error: "Cartão é obrigatório" }, { status: 400 });
@@ -31,6 +31,12 @@ export async function POST(req: Request) {
     if (rows.length > 500) {
       return NextResponse.json({ error: "Máximo 500 linhas por importação" }, { status: 400 });
     }
+
+    const hasFixedInvoice =
+      typeof invoiceYear === "number" &&
+      typeof invoiceMonth === "number" &&
+      invoiceMonth >= 0 &&
+      invoiceMonth <= 11;
 
     const account = await prisma.finAccount.findFirst({
       where: { id: accountId, householdId: household.id, type: "CREDIT_CARD" },
@@ -63,13 +69,16 @@ export async function POST(req: Request) {
         : [];
     const validCatIds = new Set(cats.map((c) => c.id));
 
+    const fixedInvoice = hasFixedInvoice
+      ? await ensureInvoiceForMonth(household.id, account, invoiceYear, invoiceMonth)
+      : null;
+
     const result = await prisma.$transaction(async (tx) => {
       const createdIds: string[] = [];
-      let projectedCreated = 0;
 
       for (const r of validRows) {
         const date = parseLocalDate(r.date);
-        const inv = await ensureInvoice(household.id, account, date);
+        const inv = fixedInvoice ?? (await ensureInvoice(household.id, account, date));
         const owner = VALID_OWNERS.includes(r.owner as string)
           ? (r.owner as "PARTNER_A" | "PARTNER_B" | "COUPLE")
           : "COUPLE";
@@ -83,27 +92,26 @@ export async function POST(req: Request) {
         const parc = parseInstallment(r.description);
         const trimmedDesc = r.description.trim();
 
+        const baseData = {
+          householdId: household.id,
+          type: "EXPENSE" as const,
+          amount: r.amount,
+          date,
+          description: trimmedDesc,
+          owner,
+          paidByOwner,
+          accountId: account.id,
+          categoryId,
+          invoiceId: inv?.id ?? null,
+        };
+
         if (!parc) {
-          const created = await tx.finTransaction.create({
-            data: {
-              householdId: household.id,
-              type: "EXPENSE",
-              amount: r.amount,
-              date,
-              description: trimmedDesc,
-              owner,
-              paidByOwner,
-              accountId: account.id,
-              categoryId,
-              invoiceId: inv?.id ?? null,
-            },
-          });
+          const created = await tx.finTransaction.create({ data: baseData });
           createdIds.push(created.id);
           continue;
         }
 
         const groupId = installmentGroupId(account.id, parc.baseDescription, parc.total);
-
         const existing = await tx.finTransaction.findFirst({
           where: {
             householdId: household.id,
@@ -115,32 +123,13 @@ export async function POST(req: Request) {
         if (existing) {
           const updated = await tx.finTransaction.update({
             where: { id: existing.id },
-            data: {
-              amount: r.amount,
-              date,
-              description: trimmedDesc,
-              owner,
-              paidByOwner,
-              accountId: account.id,
-              categoryId,
-              invoiceId: inv?.id ?? null,
-              installmentProjected: false,
-            },
+            data: { ...baseData, installmentProjected: false },
           });
           createdIds.push(updated.id);
         } else {
           const created = await tx.finTransaction.create({
             data: {
-              householdId: household.id,
-              type: "EXPENSE",
-              amount: r.amount,
-              date,
-              description: trimmedDesc,
-              owner,
-              paidByOwner,
-              accountId: account.id,
-              categoryId,
-              invoiceId: inv?.id ?? null,
+              ...baseData,
               installmentGroupId: groupId,
               installmentIndex: parc.index,
               installmentTotal: parc.total,
@@ -149,48 +138,11 @@ export async function POST(req: Request) {
           });
           createdIds.push(created.id);
         }
-
-        for (let idx = parc.index + 1; idx <= parc.total; idx++) {
-          const futureExisting = await tx.finTransaction.findFirst({
-            where: {
-              householdId: household.id,
-              installmentGroupId: groupId,
-              installmentIndex: idx,
-            },
-          });
-          if (futureExisting) continue;
-
-          const futureDate = addMonths(date, idx - parc.index);
-          const futureInv = await ensureInvoice(household.id, account, futureDate);
-          await tx.finTransaction.create({
-            data: {
-              householdId: household.id,
-              type: "EXPENSE",
-              amount: r.amount,
-              date: futureDate,
-              description: trimmedDesc,
-              owner,
-              paidByOwner,
-              accountId: account.id,
-              categoryId,
-              invoiceId: futureInv?.id ?? null,
-              installmentGroupId: groupId,
-              installmentIndex: idx,
-              installmentTotal: parc.total,
-              installmentProjected: true,
-              paid: false,
-            },
-          });
-          projectedCreated += 1;
-        }
       }
-      return { createdIds, projectedCreated };
+      return { createdIds };
     });
 
-    return NextResponse.json({
-      created: result.createdIds.length,
-      projected: result.projectedCreated,
-    });
+    return NextResponse.json({ created: result.createdIds.length });
   } catch (e: any) {
     if (e instanceof HouseholdAuthError) {
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
