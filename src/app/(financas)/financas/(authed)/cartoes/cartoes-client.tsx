@@ -97,7 +97,40 @@ export function CartoesClient() {
   const [editingCard, setEditingCard] = useState<Account | null>(null);
   const [editingTx, setEditingTx] = useState<InvoiceTx | null>(null);
   const [bulkDateInvoice, setBulkDateInvoice] = useState<Invoice | null>(null);
+  const [selectedTxIds, setSelectedTxIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+
+  function toggleSelect(id: string) {
+    setSelectedTxIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function selectAll(ids: string[]) {
+    setSelectedTxIds((prev) => {
+      const next = new Set(prev);
+      const allSelected = ids.every((id) => next.has(id));
+      if (allSelected) ids.forEach((id) => next.delete(id));
+      else ids.forEach((id) => next.add(id));
+      return next;
+    });
+  }
+  async function bulkDeleteSelected() {
+    const ids = Array.from(selectedTxIds);
+    if (ids.length === 0) return;
+    if (!confirm(`Excluir ${ids.length} compra${ids.length === 1 ? "" : "s"} selecionada${ids.length === 1 ? "" : "s"}?`)) return;
+    const res = await fetch("/api/financas/transactions/bulk-delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    });
+    if (res.ok) {
+      setSelectedTxIds(new Set());
+      load();
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -122,6 +155,25 @@ export function CartoesClient() {
   }, []);
 
   const visible = selected ? invoices.filter((i) => i.accountId === selected) : [];
+  const projectedCount = invoices.reduce(
+    (s, inv) => s + inv.transactions.filter((t) => t.installmentProjected).length,
+    0
+  );
+
+  async function cleanupProjected() {
+    if (
+      !confirm(
+        `Excluir todas as ${projectedCount} parcelas projetadas?\n\nElas voltam a existir só quando você importar a fatura do mês delas.`
+      )
+    )
+      return;
+    const res = await fetch("/api/financas/transactions/cleanup-projected", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    if (res.ok) load();
+  }
 
   return (
     <div>
@@ -130,7 +182,17 @@ export function CartoesClient() {
           title="Cartões de Crédito"
           description="Acompanhe faturas, marque como paga e veja as compras de cada mês."
         />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {projectedCount > 0 && (
+            <button
+              onClick={cleanupProjected}
+              title="Apaga todas as parcelas projetadas que ainda não chegaram"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-warning/40 text-warning hover:bg-warning/10 text-sm font-medium"
+            >
+              <Trash2 className="w-4 h-4" />
+              Limpar {projectedCount} parcela{projectedCount === 1 ? "" : "s"} projetada{projectedCount === 1 ? "" : "s"}
+            </button>
+          )}
           <button
             onClick={() => setCreating(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border hover:bg-muted text-sm font-medium"
@@ -262,11 +324,37 @@ export function CartoesClient() {
                         </div>
                       </div>
                     </div>
-                    {inv.transactions.length > 0 && (
+                    {inv.transactions.length > 0 && (() => {
+                      const invTxIds = inv.transactions.map((t) => t.id);
+                      const selectedHere = invTxIds.filter((id) => selectedTxIds.has(id));
+                      const allSelected = invTxIds.length > 0 && selectedHere.length === invTxIds.length;
+                      return (
                       <div className="border-t border-border">
+                        {selectedHere.length > 0 && (
+                          <div className="bg-destructive/5 border-b border-border px-4 py-2 flex items-center justify-between text-xs">
+                            <span>
+                              <strong>{selectedHere.length}</strong> de {invTxIds.length} selecionada{selectedHere.length === 1 ? "" : "s"}
+                            </span>
+                            <button
+                              onClick={bulkDeleteSelected}
+                              className="flex items-center gap-1 px-3 py-1 rounded text-destructive hover:bg-destructive/10 font-medium"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              Excluir selecionadas
+                            </button>
+                          </div>
+                        )}
                         <table className="w-full text-sm">
                           <thead className="bg-muted/30 text-muted-foreground text-left">
                             <tr>
+                              <th className="px-2 py-2 font-medium w-8">
+                                <input
+                                  type="checkbox"
+                                  checked={allSelected}
+                                  onChange={() => selectAll(invTxIds)}
+                                  className="cursor-pointer"
+                                />
+                              </th>
                               <th className="px-4 py-2 font-medium">Data</th>
                               <th className="px-4 py-2 font-medium">Descrição</th>
                               <th className="px-4 py-2 font-medium">Categoria</th>
@@ -281,10 +369,18 @@ export function CartoesClient() {
                                 key={t.id}
                                 className={`border-t border-border hover:bg-muted/30 cursor-pointer ${
                                   t.installmentProjected ? "text-muted-foreground italic" : ""
-                                }`}
+                                } ${selectedTxIds.has(t.id) ? "bg-primary/5" : ""}`}
                                 onClick={() => setEditingTx(t)}
                                 title={t.installmentProjected ? "Parcela projetada — vai ser confirmada quando você importar a fatura desse mês" : undefined}
                               >
+                                <td className="px-2 py-2 w-8" onClick={(e) => e.stopPropagation()}>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedTxIds.has(t.id)}
+                                    onChange={() => toggleSelect(t.id)}
+                                    className="cursor-pointer"
+                                  />
+                                </td>
                                 <td className="px-4 py-2 text-muted-foreground">
                                   {new Date(t.date).toLocaleDateString("pt-BR")}
                                 </td>
@@ -328,7 +424,8 @@ export function CartoesClient() {
                           </tbody>
                         </table>
                       </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 );
               })}
@@ -822,6 +919,12 @@ function ImportInvoiceModal({
   const [categories, setCategories] = useState<Category[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const today = new Date();
+  const [invoiceMonth, setInvoiceMonth] = useState<string>(
+    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`
+  );
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
 
   const partnerA = settings?.partnerAName || "Pessoa A";
   const partnerB = settings?.partnerBName || "Pessoa B";
@@ -904,10 +1007,17 @@ function ImportInvoiceModal({
       setBusy(false);
       return;
     }
+    let invoiceYear: number | undefined;
+    let invoiceMonthNum: number | undefined;
+    const m = invoiceMonth.match(/^(\d{4})-(\d{2})$/);
+    if (m) {
+      invoiceYear = parseInt(m[1], 10);
+      invoiceMonthNum = parseInt(m[2], 10) - 1;
+    }
     const res = await fetch("/api/financas/import/commit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accountId, rows: toSend }),
+      body: JSON.stringify({ accountId, rows: toSend, invoiceYear, invoiceMonth: invoiceMonthNum }),
     });
     const data = await res.json().catch(() => ({}));
     setBusy(false);
@@ -920,6 +1030,20 @@ function ImportInvoiceModal({
 
   function updateRow(i: number, patch: Partial<ParsedRow>) {
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  }
+
+  const visibleRowsWithIdx = rows
+    .map((row, i) => ({ row, i }))
+    .filter(({ row }) => {
+      if (filterFrom && row.date < filterFrom) return false;
+      if (filterTo && row.date > filterTo) return false;
+      return true;
+    });
+  const visibleRows = visibleRowsWithIdx.map((x) => x.row);
+
+  function bulkSetExcluded(excluded: boolean) {
+    const visibleIdx = new Set(visibleRowsWithIdx.map((x) => x.i));
+    setRows((rs) => rs.map((r, i) => (visibleIdx.has(i) ? { ...r, excluded } : r)));
   }
 
   const total = rows.filter((r) => !r.excluded).reduce((s, r) => s + r.amount, 0);
@@ -1085,19 +1209,78 @@ function ImportInvoiceModal({
             em <strong>"Confirmar e criar X lançamentos"</strong> no fim da página para
             <strong> salvar</strong>. Se fechar agora, nada é salvo.
           </div>
+
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <div>
+              <label className="block text-xs font-medium mb-1">Mês desta fatura</label>
+              <input
+                type="month"
+                value={invoiceMonth}
+                onChange={(e) => setInvoiceMonth(e.target.value)}
+                className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-sm"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Tudo cai no vencimento desse mês, independente da data da compra.
+              </p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Filtro: data de</label>
+              <input
+                type="date"
+                value={filterFrom}
+                onChange={(e) => setFilterFrom(e.target.value)}
+                className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Filtro: data até</label>
+              <input
+                type="date"
+                value={filterTo}
+                onChange={(e) => setFilterTo(e.target.value)}
+                className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-sm"
+              />
+            </div>
+          </div>
+
           <div className="flex items-center justify-between flex-wrap gap-2">
             <p className="text-sm">
               <strong>{includedCount}</strong> de <strong>{rows.length}</strong> compras
               selecionadas — total{" "}
               <strong className="tabular-nums">{formatCurrency(total)}</strong>
+              {(filterFrom || filterTo) && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  ({visibleRows.length} visíveis com o filtro)
+                </span>
+              )}
             </p>
-            <button
-              type="button"
-              onClick={() => setStep("paste")}
-              className="text-xs text-muted-foreground hover:underline"
-            >
-              ← Voltar e colar de novo
-            </button>
+            <div className="flex items-center gap-2">
+              {(filterFrom || filterTo) && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => bulkSetExcluded(true)}
+                    className="text-xs px-2 py-1 rounded border border-border hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    Excluir todas visíveis
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => bulkSetExcluded(false)}
+                    className="text-xs px-2 py-1 rounded border border-border hover:bg-muted"
+                  >
+                    Incluir todas visíveis
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                onClick={() => setStep("paste")}
+                className="text-xs text-muted-foreground hover:underline"
+              >
+                ← Voltar e colar de novo
+              </button>
+            </div>
           </div>
           <div className="border border-border rounded-lg overflow-x-auto max-h-[55vh] overflow-y-auto">
             <table className="w-full text-sm">
@@ -1112,7 +1295,7 @@ function ImportInvoiceModal({
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r, i) => (
+                {visibleRowsWithIdx.map(({ row: r, i }) => (
                   <tr
                     key={i}
                     className={`border-t border-border ${
