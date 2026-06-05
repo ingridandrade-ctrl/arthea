@@ -98,6 +98,7 @@ export function CartoesClient() {
   const [editingTx, setEditingTx] = useState<InvoiceTx | null>(null);
   const [bulkDateInvoice, setBulkDateInvoice] = useState<Invoice | null>(null);
   const [movingInvoice, setMovingInvoice] = useState<Invoice | null>(null);
+  const [reviewingInvoice, setReviewingInvoice] = useState<Invoice | null>(null);
   const [selectedTxIds, setSelectedTxIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
@@ -423,6 +424,16 @@ export function CartoesClient() {
                               Mover pra outro mês
                             </button>
                           )}
+                          {inv.transactions.length > 0 && (
+                            <button
+                              onClick={() => setReviewingInvoice(inv)}
+                              className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-primary/40 text-primary hover:bg-primary/10"
+                              title="Re-analisar o PDF e ver o que falta ou sobra"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              Revisar com IA
+                            </button>
+                          )}
                           <button
                             onClick={() => deleteInvoice(inv)}
                             className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-destructive/30 hover:bg-destructive/10 text-destructive"
@@ -611,6 +622,20 @@ export function CartoesClient() {
           onClose={() => setMovingInvoice(null)}
           onSaved={() => {
             setMovingInvoice(null);
+            load();
+          }}
+        />
+      )}
+
+      {reviewingInvoice && (
+        <ImportInvoiceModal
+          cards={cards}
+          defaultCardId={reviewingInvoice.accountId}
+          settings={settings}
+          existingInvoice={reviewingInvoice}
+          onClose={() => setReviewingInvoice(null)}
+          onImported={() => {
+            setReviewingInvoice(null);
             load();
           }}
         />
@@ -1111,24 +1136,33 @@ type ParsedRow = {
   owner: Owner;
   paidByOwner?: "PARTNER_A" | "PARTNER_B" | null;
   excluded?: boolean;
+  matchStatus?: "new" | "matched";
+  matchedTxId?: string | null;
 };
+
+function normalizeDesc(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20);
+}
 
 function ImportInvoiceModal({
   cards,
   defaultCardId,
   settings,
+  existingInvoice,
   onClose,
   onImported,
 }: {
   cards: Account[];
   defaultCardId: string;
   settings: Settings | null;
+  existingInvoice?: Invoice | null;
   onClose: () => void;
   onImported: () => void;
 }) {
+  const reviewMode = !!existingInvoice;
   const [step, setStep] = useState<"paste" | "review">("paste");
   const [mode, setMode] = useState<"pdf" | "text">("pdf");
-  const [accountId, setAccountId] = useState(defaultCardId);
+  const [accountId, setAccountId] = useState(existingInvoice?.accountId || defaultCardId);
   const [text, setText] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfPassword, setPdfPassword] = useState("");
@@ -1139,7 +1173,9 @@ function ImportInvoiceModal({
   const [error, setError] = useState<string | null>(null);
   const today = new Date();
   const [invoiceMonth, setInvoiceMonth] = useState<string>(
-    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`
+    existingInvoice
+      ? `${existingInvoice.year}-${String(existingInvoice.month).padStart(2, "0")}`
+      : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`
   );
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
@@ -1193,8 +1229,16 @@ function ImportInvoiceModal({
       return;
     }
     setCategories(data.categories || []);
-    setRows(
-      data.transactions.map((t: any) => ({
+    const existingPool = existingInvoice
+      ? existingInvoice.transactions.map((t) => ({
+          id: t.id,
+          amount: t.amount,
+          normDesc: normalizeDesc(t.description),
+          used: false,
+        }))
+      : [];
+    const parsed: ParsedRow[] = data.transactions.map((t: any) => {
+      const row: ParsedRow = {
         date: t.date,
         description: t.description,
         amount: t.amount,
@@ -1202,8 +1246,25 @@ function ImportInvoiceModal({
         owner: (t.owner as Owner) || "COUPLE",
         paidByOwner: null,
         excluded: false,
-      }))
-    );
+      };
+      if (existingInvoice) {
+        const nd = normalizeDesc(t.description);
+        const matchIdx = existingPool.findIndex(
+          (e) => !e.used && Math.abs(e.amount - t.amount) < 0.01 && e.normDesc === nd
+        );
+        if (matchIdx >= 0) {
+          existingPool[matchIdx].used = true;
+          row.matchStatus = "matched";
+          row.matchedTxId = existingPool[matchIdx].id;
+          row.excluded = true;
+        } else {
+          row.matchStatus = "new";
+          row.excluded = false;
+        }
+      }
+      return row;
+    });
+    setRows(parsed);
     setStep("review");
   }
 
@@ -1421,12 +1482,82 @@ function ImportInvoiceModal({
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 text-sm">
-            <strong>⚠️ Quase lá!</strong> A IA já analisou — agora <strong>revise as linhas
-            abaixo</strong> (mude categorias, marque quem usou, exclua linhas erradas) e clique
-            em <strong>"Confirmar e criar X lançamentos"</strong> no fim da página para
-            <strong> salvar</strong>. Se fechar agora, nada é salvo.
-          </div>
+          {reviewMode && existingInvoice ? (() => {
+            const matched = rows.filter((r) => r.matchStatus === "matched").length;
+            const newRows = rows.filter((r) => r.matchStatus === "new").length;
+            const matchedIds = new Set(
+              rows.filter((r) => r.matchedTxId).map((r) => r.matchedTxId)
+            );
+            const missing = existingInvoice.transactions.filter((t) => !matchedIds.has(t.id));
+            const parsedTotal = rows.reduce((s, r) => s + r.amount, 0);
+            const systemTotal = existingInvoice.transactions.reduce((s, t) => s + t.amount, 0);
+            const diff = parsedTotal - systemTotal;
+            return (
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-3">
+                <p className="text-sm font-semibold">
+                  Comparação com a fatura no sistema
+                </p>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className="bg-card border border-border rounded p-2">
+                    <p className="text-muted-foreground">Total no PDF</p>
+                    <p className="font-semibold tabular-nums">{formatCurrency(parsedTotal)}</p>
+                  </div>
+                  <div className="bg-card border border-border rounded p-2">
+                    <p className="text-muted-foreground">Total no sistema</p>
+                    <p className="font-semibold tabular-nums">{formatCurrency(systemTotal)}</p>
+                  </div>
+                  <div className={`border rounded p-2 ${Math.abs(diff) < 0.01 ? "bg-success/10 border-success/30" : "bg-destructive/10 border-destructive/30"}`}>
+                    <p className="text-muted-foreground">Diferença</p>
+                    <p className={`font-semibold tabular-nums ${Math.abs(diff) < 0.01 ? "text-success" : "text-destructive"}`}>
+                      {formatCurrency(diff)}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-xs">
+                  <p>
+                    <span className="text-success">●</span> <strong>{matched}</strong> compra
+                    {matched === 1 ? "" : "s"} já está{matched === 1 ? "" : "ão"} no sistema
+                    (não vou criar de novo)
+                  </p>
+                  <p>
+                    <span className="text-primary">●</span> <strong>{newRows}</strong> compra
+                    {newRows === 1 ? "" : "s"} no PDF não está{newRows === 1 ? "" : "ão"} no
+                    sistema — marcadas pra adicionar
+                  </p>
+                  {missing.length > 0 && (
+                    <div className="mt-2 p-2 bg-warning/10 border border-warning/30 rounded">
+                      <p className="font-medium text-warning mb-1">
+                        ⚠️ {missing.length} compra{missing.length === 1 ? " está" : "s estão"} no
+                        sistema mas NÃO apareceu{missing.length === 1 ? "" : "ram"} no PDF:
+                      </p>
+                      <ul className="ml-4 list-disc">
+                        {missing.slice(0, 10).map((t) => (
+                          <li key={t.id}>
+                            {new Date(t.date).toLocaleDateString("pt-BR")} — {t.description} —{" "}
+                            {formatCurrency(t.amount)}
+                          </li>
+                        ))}
+                        {missing.length > 10 && (
+                          <li>…e mais {missing.length - 10}</li>
+                        )}
+                      </ul>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Talvez você queira excluir essas linhas direto na fatura (no botão Excluir
+                        de cada uma).
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })() : (
+            <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 text-sm">
+              <strong>⚠️ Quase lá!</strong> A IA já analisou — agora <strong>revise as linhas
+              abaixo</strong> (mude categorias, marque quem usou, exclua linhas erradas) e clique
+              em <strong>"Confirmar e criar X lançamentos"</strong> no fim da página para
+              <strong> salvar</strong>. Se fechar agora, nada é salvo.
+            </div>
+          )}
 
           <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
             <div>
@@ -1538,12 +1669,24 @@ function ImportInvoiceModal({
                       />
                     </td>
                     <td className="px-2 py-1.5">
-                      <input
-                        type="text"
-                        value={r.description}
-                        onChange={(e) => updateRow(i, { description: e.target.value })}
-                        className="w-full px-1 py-0.5 rounded border border-border bg-background"
-                      />
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          value={r.description}
+                          onChange={(e) => updateRow(i, { description: e.target.value })}
+                          className="flex-1 px-1 py-0.5 rounded border border-border bg-background"
+                        />
+                        {r.matchStatus === "matched" && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-success/15 text-success border border-success/30 whitespace-nowrap">
+                            já no sistema
+                          </span>
+                        )}
+                        {r.matchStatus === "new" && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-primary/15 text-primary border border-primary/30 whitespace-nowrap">
+                            nova
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-2 py-1.5 text-right">
                       <input
