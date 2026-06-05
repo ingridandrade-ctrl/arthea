@@ -1187,6 +1187,8 @@ function ImportInvoiceModal({
   );
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
+  const [bulkDate, setBulkDate] = useState("");
+  const [invoiceDueDate, setInvoiceDueDate] = useState("");
 
   const partnerA = settings?.partnerAName || "Pessoa A";
   const partnerB = settings?.partnerBName || "Pessoa B";
@@ -1308,7 +1310,13 @@ function ImportInvoiceModal({
     const res = await fetch("/api/financas/import/commit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accountId, rows: toSend, invoiceYear, invoiceMonth: invoiceMonthNum }),
+      body: JSON.stringify({
+        accountId,
+        rows: toSend,
+        invoiceYear,
+        invoiceMonth: invoiceMonthNum,
+        invoiceDueDate: invoiceDueDate || null,
+      }),
     });
     const data = await res.json().catch(() => ({}));
     setBusy(false);
@@ -1335,6 +1343,12 @@ function ImportInvoiceModal({
   function bulkSetExcluded(excluded: boolean) {
     const visibleIdx = new Set(visibleRowsWithIdx.map((x) => x.i));
     setRows((rs) => rs.map((r, i) => (visibleIdx.has(i) ? { ...r, excluded } : r)));
+  }
+
+  function applyBulkDate() {
+    if (!bulkDate || !/^\d{4}-\d{2}-\d{2}$/.test(bulkDate)) return;
+    const visibleIdx = new Set(visibleRowsWithIdx.map((x) => x.i));
+    setRows((rs) => rs.map((r, i) => (visibleIdx.has(i) ? { ...r, date: bulkDate } : r)));
   }
 
   const total = rows.filter((r) => !r.excluded).reduce((s, r) => s + r.amount, 0);
@@ -1583,7 +1597,7 @@ function ImportInvoiceModal({
             </div>
           )}
 
-          <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1">Mês desta fatura</label>
               <input
@@ -1594,6 +1608,48 @@ function ImportInvoiceModal({
               />
               <p className="text-[10px] text-muted-foreground mt-1">
                 Tudo cai no vencimento desse mês, independente da data da compra.
+              </p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">
+                Data de vencimento da fatura <span className="text-muted-foreground font-normal">(opcional)</span>
+              </label>
+              <input
+                type="date"
+                value={invoiceDueDate}
+                onChange={(e) => setInvoiceDueDate(e.target.value)}
+                className="w-full px-2 py-1.5 rounded-lg border border-border bg-background text-sm"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Vazio = usa o vencimento padrão do cartão.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg p-3 grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <div className="md:col-span-3">
+              <label className="block text-xs font-medium mb-1">
+                Data da compra — aplicar em todas {(filterFrom || filterTo) ? "(visíveis no filtro)" : ""}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={bulkDate}
+                  onChange={(e) => setBulkDate(e.target.value)}
+                  className="flex-1 px-2 py-1.5 rounded-lg border border-border bg-background text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={applyBulkDate}
+                  disabled={!bulkDate}
+                  className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 text-xs font-medium"
+                >
+                  Aplicar em todas
+                </button>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Sobrescreve a data da compra de cada linha. Útil pra alinhar tudo com o
+                vencimento.
               </p>
             </div>
             <div>
