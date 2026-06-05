@@ -1141,7 +1141,15 @@ type ParsedRow = {
 };
 
 function normalizeDesc(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20);
+  // Match by value+name, ignoring case, accents, digits (parcela markers),
+  // punctuation and length variations from the IA. Keep only the first 8
+  // letters — collisions get filtered by amount tolerance anyway.
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}+/gu, "")
+    .replace(/[^a-z]/g, "")
+    .slice(0, 8);
 }
 
 function ImportInvoiceModal({
@@ -1229,13 +1237,17 @@ function ImportInvoiceModal({
       return;
     }
     setCategories(data.categories || []);
+    const isProjectionCategory = (name: string | null | undefined) =>
+      typeof name === "string" && name.toLowerCase().includes("parcelad");
     const existingPool = existingInvoice
-      ? existingInvoice.transactions.map((t) => ({
-          id: t.id,
-          amount: t.amount,
-          normDesc: normalizeDesc(t.description),
-          used: false,
-        }))
+      ? existingInvoice.transactions
+          .filter((t) => !isProjectionCategory(t.category?.name))
+          .map((t) => ({
+            id: t.id,
+            amount: t.amount,
+            normDesc: normalizeDesc(t.description),
+            used: false,
+          }))
       : [];
     const parsed: ParsedRow[] = data.transactions.map((t: any) => {
       const row: ParsedRow = {
@@ -1483,20 +1495,32 @@ function ImportInvoiceModal({
       ) : (
         <div className="space-y-3">
           {reviewMode && existingInvoice ? (() => {
+            const isProjectionCategory = (name: string | null | undefined) =>
+              typeof name === "string" && name.toLowerCase().includes("parcelad");
+            const considerable = existingInvoice.transactions.filter(
+              (t) => !isProjectionCategory(t.category?.name)
+            );
+            const ignored = existingInvoice.transactions.length - considerable.length;
             const matched = rows.filter((r) => r.matchStatus === "matched").length;
             const newRows = rows.filter((r) => r.matchStatus === "new").length;
             const matchedIds = new Set(
               rows.filter((r) => r.matchedTxId).map((r) => r.matchedTxId)
             );
-            const missing = existingInvoice.transactions.filter((t) => !matchedIds.has(t.id));
+            const missing = considerable.filter((t) => !matchedIds.has(t.id));
             const parsedTotal = rows.reduce((s, r) => s + r.amount, 0);
-            const systemTotal = existingInvoice.transactions.reduce((s, t) => s + t.amount, 0);
+            const systemTotal = considerable.reduce((s, t) => s + t.amount, 0);
             const diff = parsedTotal - systemTotal;
             return (
               <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-3">
                 <p className="text-sm font-semibold">
                   Comparação com a fatura no sistema
                 </p>
+                {ignored > 0 && (
+                  <p className="text-[11px] text-muted-foreground italic">
+                    Ignorando {ignored} compra{ignored === 1 ? "" : "s"} da categoria de parcelas
+                    futuras (não fazem parte desta fatura ainda).
+                  </p>
+                )}
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   <div className="bg-card border border-border rounded p-2">
                     <p className="text-muted-foreground">Total no PDF</p>
