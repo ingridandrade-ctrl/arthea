@@ -120,3 +120,23 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     throw e;
   }
 }
+
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  try {
+    const household = await requireHousehold();
+    const inv = await prisma.finCreditCardInvoice.findFirst({
+      where: { id: params.id, householdId: household.id },
+    });
+    if (!inv) return NextResponse.json({ error: "Não encontrada" }, { status: 404 });
+    await prisma.$transaction(async (tx) => {
+      await tx.finTransaction.deleteMany({
+        where: { householdId: household.id, invoiceId: inv.id },
+      });
+      await tx.finCreditCardInvoice.delete({ where: { id: inv.id } });
+    });
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    if (e instanceof HouseholdAuthError) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    throw e;
+  }
+}
