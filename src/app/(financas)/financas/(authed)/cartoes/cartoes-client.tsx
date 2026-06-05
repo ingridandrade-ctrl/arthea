@@ -181,6 +181,9 @@ export function CartoesClient() {
     (s, inv) => s + inv.transactions.filter((t) => t.installmentProjected).length,
     0
   );
+  const emptyCount = invoices.filter(
+    (inv) => inv.transactions.length === 0 && inv.status !== "PAID"
+  ).length;
 
   async function cleanupProjected() {
     if (
@@ -190,6 +193,21 @@ export function CartoesClient() {
     )
       return;
     const res = await fetch("/api/financas/transactions/cleanup-projected", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    if (res.ok) load();
+  }
+
+  async function cleanupEmpty() {
+    if (
+      !confirm(
+        `Excluir todas as ${emptyCount} faturas vazias?\n\nSão faturas sem nenhuma compra. Você pode importá-las de novo quando quiser.`
+      )
+    )
+      return;
+    const res = await fetch("/api/financas/invoices/cleanup-empty", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
@@ -213,6 +231,16 @@ export function CartoesClient() {
             >
               <Trash2 className="w-4 h-4" />
               Limpar {projectedCount} parcela{projectedCount === 1 ? "" : "s"} projetada{projectedCount === 1 ? "" : "s"}
+            </button>
+          )}
+          {emptyCount > 0 && (
+            <button
+              onClick={cleanupEmpty}
+              title="Apaga todas as faturas sem compras"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-destructive/30 text-destructive hover:bg-destructive/10 text-sm font-medium"
+            >
+              <Trash2 className="w-4 h-4" />
+              Limpar {emptyCount} fatura{emptyCount === 1 ? "" : "s"} vazia{emptyCount === 1 ? "" : "s"}
             </button>
           )}
           <button
