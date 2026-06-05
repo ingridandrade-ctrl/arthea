@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   try {
     const household = await requireHousehold();
     const body = await req.json().catch(() => ({}));
-    const { accountId, rows, invoiceYear, invoiceMonth } = body ?? {};
+    const { accountId, rows, invoiceYear, invoiceMonth, invoiceDueDate } = body ?? {};
 
     if (typeof accountId !== "string" || !accountId) {
       return NextResponse.json({ error: "Cartão é obrigatório" }, { status: 400 });
@@ -69,9 +69,19 @@ export async function POST(req: Request) {
         : [];
     const validCatIds = new Set(cats.map((c) => c.id));
 
-    const fixedInvoice = hasFixedInvoice
+    let fixedInvoice = hasFixedInvoice
       ? await ensureInvoiceForMonth(household.id, account, invoiceYear, invoiceMonth)
       : null;
+
+    if (fixedInvoice && typeof invoiceDueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(invoiceDueDate)) {
+      const newDue = parseLocalDate(invoiceDueDate);
+      if (fixedInvoice.dueDate.getTime() !== newDue.getTime()) {
+        fixedInvoice = await prisma.finCreditCardInvoice.update({
+          where: { id: fixedInvoice.id },
+          data: { dueDate: newDue },
+        });
+      }
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       const createdIds: string[] = [];
