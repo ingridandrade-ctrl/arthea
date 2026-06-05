@@ -132,6 +132,19 @@ export function CartoesClient() {
     }
   }
 
+  async function deleteInvoice(inv: Invoice) {
+    const msg =
+      inv.transactions.length > 0
+        ? `Excluir a fatura de ${monthName(inv.month)}/${inv.year}?\n\nIsso vai apagar também as ${inv.transactions.length} compra${inv.transactions.length === 1 ? "" : "s"} dela.`
+        : `Excluir a fatura vazia de ${monthName(inv.month)}/${inv.year}?`;
+    if (!confirm(msg)) return;
+    const res = await fetch(`/api/financas/invoices/${inv.id}`, { method: "DELETE" });
+    if (res.ok) load();
+  }
+
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+
   async function load() {
     setLoading(true);
     const [accs, invs, st, cats] = await Promise.all([
@@ -154,7 +167,16 @@ export function CartoesClient() {
     load();
   }, []);
 
-  const visible = selected ? invoices.filter((i) => i.accountId === selected) : [];
+  const visible = selected
+    ? invoices
+        .filter((i) => i.accountId === selected)
+        .filter((i) => {
+          const key = `${i.year}-${String(i.month).padStart(2, "0")}`;
+          if (filterFrom && key < filterFrom) return false;
+          if (filterTo && key > filterTo) return false;
+          return true;
+        })
+    : [];
   const projectedCount = invoices.reduce(
     (s, inv) => s + inv.transactions.filter((t) => t.installmentProjected).length,
     0
@@ -259,10 +281,51 @@ export function CartoesClient() {
             ))}
           </div>
 
+          <div className="flex flex-wrap items-end gap-3 mb-4 p-3 bg-muted/30 border border-border rounded-lg">
+            <div>
+              <label className="block text-[10px] font-medium text-muted-foreground mb-1 uppercase tracking-wide">
+                Mês de
+              </label>
+              <input
+                type="month"
+                value={filterFrom}
+                onChange={(e) => setFilterFrom(e.target.value)}
+                className="px-2 py-1.5 rounded border border-border bg-background text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-medium text-muted-foreground mb-1 uppercase tracking-wide">
+                Mês até
+              </label>
+              <input
+                type="month"
+                value={filterTo}
+                onChange={(e) => setFilterTo(e.target.value)}
+                className="px-2 py-1.5 rounded border border-border bg-background text-sm"
+              />
+            </div>
+            {(filterFrom || filterTo) && (
+              <button
+                onClick={() => {
+                  setFilterFrom("");
+                  setFilterTo("");
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground underline"
+              >
+                limpar filtro
+              </button>
+            )}
+            <div className="text-xs text-muted-foreground ml-auto">
+              {visible.length} fatura{visible.length === 1 ? "" : "s"} {filterFrom || filterTo ? "no filtro" : "no total"}
+            </div>
+          </div>
+
           {visible.length === 0 ? (
             <div className="text-center py-12 bg-card border border-border rounded-xl">
               <p className="text-sm text-muted-foreground">
-                Nenhuma fatura ainda. Lance uma despesa neste cartão para gerar a primeira.
+                {filterFrom || filterTo
+                  ? "Nenhuma fatura nesse período."
+                  : "Nenhuma fatura ainda. Lance uma despesa neste cartão para gerar a primeira."}
               </p>
             </div>
           ) : (
@@ -321,6 +384,14 @@ export function CartoesClient() {
                               Definir data única
                             </button>
                           )}
+                          <button
+                            onClick={() => deleteInvoice(inv)}
+                            className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-destructive/30 hover:bg-destructive/10 text-destructive"
+                            title="Excluir esta fatura e todos os lançamentos dela"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Excluir fatura
+                          </button>
                         </div>
                       </div>
                     </div>
