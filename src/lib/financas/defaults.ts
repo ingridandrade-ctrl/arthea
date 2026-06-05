@@ -26,6 +26,7 @@ export const DEFAULT_CATEGORIES: {
   { name: "Viagem", kind: "EXPENSE", color: "#0891b2", icon: "Plane" },
   { name: "Cuidados pessoais", kind: "EXPENSE", color: "#db2777", icon: "Sparkles" },
   { name: "Pets", kind: "EXPENSE", color: "#65a30d", icon: "PawPrint" },
+  { name: "Presentes", kind: "EXPENSE", color: "#f43f5e", icon: "Gift" },
   { name: "Outras despesas", kind: "EXPENSE", color: "#737373", icon: "MoreHorizontal" },
 ];
 
