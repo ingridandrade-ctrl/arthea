@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, CheckCircle2, Clock, AlertTriangle, Lock, Sparkles, Trash2, Pencil, CalendarClock } from "lucide-react";
+import { CreditCard, CheckCircle2, Clock, AlertTriangle, Lock, Sparkles, Trash2, Pencil, CalendarClock, ArrowRightLeft } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
 import { formatCurrency } from "@/lib/utils";
@@ -97,6 +97,7 @@ export function CartoesClient() {
   const [editingCard, setEditingCard] = useState<Account | null>(null);
   const [editingTx, setEditingTx] = useState<InvoiceTx | null>(null);
   const [bulkDateInvoice, setBulkDateInvoice] = useState<Invoice | null>(null);
+  const [movingInvoice, setMovingInvoice] = useState<Invoice | null>(null);
   const [selectedTxIds, setSelectedTxIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
@@ -412,6 +413,16 @@ export function CartoesClient() {
                               Definir data única
                             </button>
                           )}
+                          {inv.transactions.length > 0 && (
+                            <button
+                              onClick={() => setMovingInvoice(inv)}
+                              className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-muted text-muted-foreground"
+                              title="Mover todas as compras desta fatura para outro mês"
+                            >
+                              <ArrowRightLeft className="w-3.5 h-3.5" />
+                              Mover pra outro mês
+                            </button>
+                          )}
                           <button
                             onClick={() => deleteInvoice(inv)}
                             className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-destructive/30 hover:bg-destructive/10 text-destructive"
@@ -594,6 +605,17 @@ export function CartoesClient() {
         />
       )}
 
+      {movingInvoice && (
+        <MoveInvoiceModal
+          invoice={movingInvoice}
+          onClose={() => setMovingInvoice(null)}
+          onSaved={() => {
+            setMovingInvoice(null);
+            load();
+          }}
+        />
+      )}
+
       {bulkDateInvoice && (
         <BulkDateModal
           invoice={bulkDateInvoice}
@@ -605,6 +627,103 @@ export function CartoesClient() {
         />
       )}
     </div>
+  );
+}
+
+function MoveInvoiceModal({
+  invoice,
+  onClose,
+  onSaved,
+}: {
+  invoice: Invoice;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const sourceMonth = `${invoice.year}-${String(invoice.month).padStart(2, "0")}`;
+  const [target, setTarget] = useState(sourceMonth);
+  const [deleteSource, setDeleteSource] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (target === sourceMonth) {
+      setError("Escolha um mês diferente do atual.");
+      return;
+    }
+    setSaving(true);
+    const res = await fetch(`/api/financas/invoices/${invoice.id}/move`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ targetMonth: target, deleteSource }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setSaving(false);
+    if (!res.ok) {
+      setError(data?.error || "Erro ao mover");
+      return;
+    }
+    onSaved();
+  }
+
+  return (
+    <Modal title="Mover compras pra outro mês" onClose={onClose} maxWidth="max-w-md">
+      <form onSubmit={submit} className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Vai mover todas as <strong>{invoice.transactions.length}</strong> compra
+          {invoice.transactions.length === 1 ? "" : "s"} da fatura de{" "}
+          <strong>
+            {new Date(invoice.year, invoice.month).toLocaleDateString("pt-BR", {
+              month: "long",
+              year: "numeric",
+            })}
+          </strong>{" "}
+          para o mês que você escolher abaixo.
+        </p>
+        <div>
+          <label className="block text-sm font-medium mb-1">Mês de destino</label>
+          <input
+            type="month"
+            value={target}
+            onChange={(e) => setTarget(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-border bg-background"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Se a fatura desse mês ainda não existe, eu crio.
+          </p>
+        </div>
+        <label className="flex items-start gap-2 text-sm p-3 rounded-lg border border-border bg-muted/30 cursor-pointer hover:bg-muted/50">
+          <input
+            type="checkbox"
+            checked={deleteSource}
+            onChange={(e) => setDeleteSource(e.target.checked)}
+            className="mt-0.5"
+          />
+          <span>
+            <strong>Apagar a fatura atual</strong> depois de mover as compras (recomendado — fica
+            vazia se você não fizer isso)
+          </span>
+        </label>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg border border-border hover:bg-muted text-sm"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 text-sm font-medium"
+          >
+            {saving ? "Movendo..." : "Mover"}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
