@@ -78,6 +78,14 @@ export function DashboardClient() {
     load();
   }, [month, cardGrouping, ownerFilter]);
 
+  useEffect(() => {
+    function onFocus() {
+      load();
+    }
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [month, cardGrouping, ownerFilter]);
+
   if (loading || !data) {
     return (
       <div>

@@ -86,12 +86,13 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     });
     if (!existing) return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
 
-    const inUse = await prisma.finTransaction.count({ where: { recurringId: params.id } });
-    if (inUse > 0) {
-      await prisma.finRecurringRule.update({ where: { id: params.id }, data: { active: false } });
-      return NextResponse.json({ ok: true, deactivated: true });
-    }
-    await prisma.finRecurringRule.delete({ where: { id: params.id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.finTransaction.updateMany({
+        where: { recurringId: params.id, householdId: household.id },
+        data: { recurringId: null },
+      });
+      await tx.finRecurringRule.delete({ where: { id: params.id } });
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     if (e instanceof HouseholdAuthError) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });

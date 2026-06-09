@@ -105,6 +105,16 @@ export async function runRecurringForHousehold(householdId: string, until: Date 
     if (occs.length === 0) continue;
 
     for (const date of occs) {
+      const dupeExists = await prisma.finTransaction.findFirst({
+        where: {
+          householdId,
+          recurringId: rule.id,
+          date,
+        },
+        select: { id: true },
+      });
+      if (dupeExists) continue;
+
       let invoiceId: string | null = null;
       if (rule.type === "EXPENSE" && rule.account.type === "CREDIT_CARD") {
         const inv = await ensureInvoice(householdId, rule.account, date);

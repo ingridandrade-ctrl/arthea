@@ -231,6 +231,15 @@ export function LancamentosClient() {
     loadTx();
   }, [from, to, accountId, categoryId, owner, type, status, q]);
 
+  useEffect(() => {
+    function onFocus() {
+      loadTx();
+      loadStatic();
+    }
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
+
   async function remove(id: string) {
     if (!confirm("Excluir este lançamento?")) return;
     await fetch(`/api/financas/transactions/${id}`, { method: "DELETE" });
