@@ -169,6 +169,14 @@ export function CartoesClient() {
     load();
   }, []);
 
+  useEffect(() => {
+    function onFocus() {
+      load();
+    }
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
+
   const visible = selected
     ? invoices
         .filter((i) => i.accountId === selected)
