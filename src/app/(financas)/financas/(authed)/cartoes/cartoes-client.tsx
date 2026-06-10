@@ -1353,6 +1353,23 @@ function ImportInvoiceModal({
     setRows((rs) => rs.map((r, i) => (visibleIdx.has(i) ? { ...r, excluded } : r)));
   }
 
+  function addManualRow() {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    setRows((rs) => [
+      ...rs,
+      {
+        date: todayStr,
+        description: "",
+        amount: 0,
+        categoryId: null,
+        owner: "COUPLE",
+        paidByOwner: null,
+        excluded: false,
+        matchStatus: "new",
+      },
+    ]);
+  }
+
   function applyBulkDate() {
     if (!bulkDate || !/^\d{4}-\d{2}-\d{2}$/.test(bulkDate)) return;
     const visibleIdx = new Set(visibleRowsWithIdx.map((x) => x.i));
@@ -1712,6 +1729,14 @@ function ImportInvoiceModal({
               )}
               <button
                 type="button"
+                onClick={addManualRow}
+                className="text-xs px-2 py-1 rounded border border-primary text-primary hover:bg-primary/10 font-medium"
+                title="Adicionar uma compra que a IA não detectou"
+              >
+                + Adicionar linha
+              </button>
+              <button
+                type="button"
                 onClick={() => setStep("paste")}
                 className="text-xs text-muted-foreground hover:underline"
               >
@@ -1764,15 +1789,26 @@ function ImportInvoiceModal({
                           onChange={(e) => updateRow(i, { description: e.target.value })}
                           className="flex-1 px-1 py-0.5 rounded border border-border bg-background"
                         />
-                        {r.matchStatus === "matched" && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-success/15 text-success border border-success/30 whitespace-nowrap">
-                            já no sistema
-                          </span>
-                        )}
-                        {r.matchStatus === "new" && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-primary/15 text-primary border border-primary/30 whitespace-nowrap">
-                            nova
-                          </span>
+                        {reviewMode && (
+                          <select
+                            value={r.matchStatus ?? "new"}
+                            onChange={(e) => {
+                              const v = e.target.value as "new" | "matched";
+                              updateRow(i, {
+                                matchStatus: v,
+                                excluded: v === "matched",
+                              });
+                            }}
+                            title="Forçar status: nova adiciona ao sistema, já no sistema é pulada"
+                            className={`text-[10px] px-1 py-0.5 rounded font-medium whitespace-nowrap border ${
+                              r.matchStatus === "matched"
+                                ? "bg-success/15 text-success border-success/30"
+                                : "bg-primary/15 text-primary border-primary/30"
+                            }`}
+                          >
+                            <option value="new">nova</option>
+                            <option value="matched">já no sistema</option>
+                          </select>
                         )}
                       </div>
                     </td>
@@ -1819,6 +1855,74 @@ function ImportInvoiceModal({
               </tbody>
             </table>
           </div>
+
+          {reviewMode && existingInvoice && existingInvoice.transactions.length > 0 && (
+            <details className="border border-border rounded-lg" open>
+              <summary className="px-3 py-2 cursor-pointer bg-muted/30 text-sm font-medium flex items-center justify-between">
+                <span>
+                  Lançamentos já no sistema desta fatura ({existingInvoice.transactions.length})
+                </span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  Use o pincel pra editar a data, ou a lixeira pra excluir compras erradas — sem
+                  fechar essa revisão.
+                </span>
+              </summary>
+              <div className="max-h-[35vh] overflow-y-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/20 text-muted-foreground text-left sticky top-0">
+                    <tr>
+                      <th className="px-2 py-1.5 font-medium">Data</th>
+                      <th className="px-2 py-1.5 font-medium">Descrição</th>
+                      <th className="px-2 py-1.5 font-medium text-right">Valor</th>
+                      <th className="px-2 py-1.5 font-medium">Categoria</th>
+                      <th className="px-2 py-1.5 w-12"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {existingInvoice.transactions.map((t) => (
+                      <tr key={t.id} className="border-t border-border hover:bg-muted/20">
+                        <td className="px-2 py-1">
+                          {new Date(t.date).toLocaleDateString("pt-BR")}
+                        </td>
+                        <td className="px-2 py-1">{t.description}</td>
+                        <td className="px-2 py-1 text-right tabular-nums">
+                          {formatCurrency(t.amount)}
+                        </td>
+                        <td className="px-2 py-1">
+                          {t.category ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              <span
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{ backgroundColor: t.category.color }}
+                              />
+                              {t.category.name}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground italic">sem cat.</span>
+                          )}
+                        </td>
+                        <td className="px-2 py-1 text-right">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!confirm(`Excluir "${t.description}" do sistema?`)) return;
+                              await fetch(`/api/financas/transactions/${t.id}`, { method: "DELETE" });
+                              onImported();
+                            }}
+                            className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                            title="Excluir do sistema"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          )}
+
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-2 rounded-lg">{error}</div>
           )}
