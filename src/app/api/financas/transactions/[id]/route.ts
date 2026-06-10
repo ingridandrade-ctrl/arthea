@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 import { parseLocalDate } from "@/lib/financas/dates";
+import { ensureInvoice } from "@/lib/financas/credit-cards";
 
 const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
 
@@ -65,6 +66,18 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (typeof body.paid === "boolean") {
       data.paid = body.paid;
       data.paidAt = body.paid ? (body.paidAt ? parseLocalDate(body.paidAt) : new Date()) : null;
+    }
+
+    if (data.date && existing.invoiceId) {
+      const accountId = (data.accountId as string | undefined) ?? existing.accountId;
+      const account = await prisma.finAccount.findFirst({
+        where: { id: accountId, householdId: household.id },
+        select: { id: true, type: true, closingDay: true, dueDay: true },
+      });
+      if (account && account.type === "CREDIT_CARD") {
+        const inv = await ensureInvoice(household.id, account, data.date as Date);
+        data.invoiceId = inv?.id ?? null;
+      }
     }
 
     const updated = await prisma.finTransaction.update({
