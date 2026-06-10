@@ -66,13 +66,39 @@ export function CasalClient() {
   const [dash, setDash] = useState<DashboardLite | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const today = new Date();
+  const [period, setPeriod] = useState<string>(
+    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`
+  );
+
+  function periodRange(): { from: string | null; to: string | null } {
+    if (!period) return { from: null, to: null };
+    const m = period.match(/^(\d{4})-(\d{2})$/);
+    if (!m) return { from: null, to: null };
+    const y = parseInt(m[1], 10);
+    const mo = parseInt(m[2], 10) - 1;
+    const fromDate = new Date(Date.UTC(y, mo, 1));
+    const toDate = new Date(Date.UTC(y, mo + 1, 0));
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return {
+      from: `${fromDate.getUTCFullYear()}-${pad(fromDate.getUTCMonth() + 1)}-${pad(fromDate.getUTCDate())}`,
+      to: `${toDate.getUTCFullYear()}-${pad(toDate.getUTCMonth() + 1)}-${pad(toDate.getUTCDate())}`,
+    };
+  }
 
   async function load() {
     setLoading(true);
+    const { from, to } = periodRange();
+    const settlementUrl = period
+      ? `/api/financas/settlements?from=${from}&to=${to}`
+      : "/api/financas/settlements";
+    const dashUrl = period
+      ? `/api/financas/dashboard?owner=COUPLE&month=${period}`
+      : `/api/financas/dashboard?owner=COUPLE`;
     const [s, d, dashRes] = await Promise.all([
       fetch("/api/financas/settings").then((r) => r.json()),
-      fetch("/api/financas/settlements").then((r) => r.json()),
-      fetch("/api/financas/dashboard?owner=COUPLE").then((r) => r.json()),
+      fetch(settlementUrl).then((r) => r.json()),
+      fetch(dashUrl).then((r) => r.json()),
     ]);
     setSettings(s);
     setSettlements(d.settlements || []);
@@ -87,7 +113,7 @@ export function CasalClient() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [period]);
 
   async function remove(id: string) {
     if (!confirm("Excluir este acerto?")) return;
@@ -113,6 +139,31 @@ export function CasalClient() {
           </button>
         }
       />
+
+      <div className="flex flex-wrap items-end gap-3 mb-4 p-3 bg-muted/30 border border-border rounded-lg">
+        <div>
+          <label className="block text-[10px] font-medium text-muted-foreground mb-1 uppercase tracking-wide">
+            Mês
+          </label>
+          <input
+            type="month"
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className="px-2 py-1.5 rounded border border-border bg-background text-sm"
+          />
+        </div>
+        {period && (
+          <button
+            onClick={() => setPeriod("")}
+            className="text-xs text-muted-foreground hover:text-foreground underline mb-1.5"
+          >
+            ver tudo
+          </button>
+        )}
+        <p className="text-xs text-muted-foreground ml-auto mb-1.5">
+          Filtra Saldo, Origem dos repasses e Histórico
+        </p>
+      </div>
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
@@ -304,38 +355,18 @@ export function CasalClient() {
             </div>
           </div>
 
-          {balance && (balance.contributions.aOwesB.length > 0 || balance.contributions.bOwesA.length > 0) && (
-            <div className="bg-card border border-border rounded-xl overflow-hidden mb-4">
-              <div className="p-4 border-b border-border flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold">Origem dos repasses</h2>
-                <span className="text-xs text-muted-foreground ml-auto">
-                  Despesas que cada um pagou e ainda precisa receber de volta
-                </span>
-              </div>
-              <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
-                <ContributionList
-                  title={`${ownerName("PARTNER_A")} → ${ownerName("PARTNER_B")}`}
-                  subtitle={`Coisas que ${ownerName("PARTNER_B")} pagou e ${ownerName("PARTNER_A")} deve devolver`}
-                  items={balance.contributions.aOwesB}
-                />
-                <ContributionList
-                  title={`${ownerName("PARTNER_B")} → ${ownerName("PARTNER_A")}`}
-                  subtitle={`Coisas que ${ownerName("PARTNER_A")} pagou e ${ownerName("PARTNER_B")} deve devolver`}
-                  items={balance.contributions.bOwesA}
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="p-4 border-b border-border flex items-center gap-2">
-              <Users className="w-4 h-4 text-muted-foreground" />
-              <h2 className="text-sm font-semibold">Histórico de acertos</h2>
+          <div className="bg-card border-2 border-primary/20 rounded-xl overflow-hidden mb-4 shadow-sm">
+            <div className="p-4 border-b border-border flex items-center gap-2 bg-primary/5">
+              <Users className="w-4 h-4 text-primary" />
+              <h2 className="text-base font-semibold">Histórico de acertos</h2>
+              <span className="text-xs text-muted-foreground ml-auto">
+                {settlements.length} acerto{settlements.length === 1 ? "" : "s"}{" "}
+                {period ? "no mês" : "no total"}
+              </span>
             </div>
             {settlements.length === 0 ? (
               <p className="p-6 text-sm text-muted-foreground text-center">
-                Nenhum acerto registrado.
+                Nenhum acerto registrado {period ? "neste mês" : "ainda"}.
               </p>
             ) : (
               <table className="w-full text-sm">
@@ -373,6 +404,30 @@ export function CasalClient() {
               </table>
             )}
           </div>
+
+          {balance && (balance.contributions.aOwesB.length > 0 || balance.contributions.bOwesA.length > 0) && (
+            <div className="bg-card border border-border rounded-xl overflow-hidden mb-4">
+              <div className="p-4 border-b border-border flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Origem dos repasses</h2>
+                <span className="text-xs text-muted-foreground ml-auto">
+                  Despesas que cada um pagou e ainda precisa receber de volta
+                </span>
+              </div>
+              <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
+                <ContributionList
+                  title={`${ownerName("PARTNER_A")} → ${ownerName("PARTNER_B")}`}
+                  subtitle={`Coisas que ${ownerName("PARTNER_B")} pagou e ${ownerName("PARTNER_A")} deve devolver`}
+                  items={balance.contributions.aOwesB}
+                />
+                <ContributionList
+                  title={`${ownerName("PARTNER_B")} → ${ownerName("PARTNER_A")}`}
+                  subtitle={`Coisas que ${ownerName("PARTNER_A")} pagou e ${ownerName("PARTNER_B")} deve devolver`}
+                  items={balance.contributions.bOwesA}
+                />
+              </div>
+            </div>
+          )}
         </>
       )}
 
