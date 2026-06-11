@@ -49,8 +49,24 @@ const nextConfig = {
           has: [{ type: "host", value: "consulta.clinicabrescancin.com.br" }],
           destination: "/clinicabrescancin/admin/:path*",
         },
+        // URL limpa pras aulas estáticas em public/aulas — sem o .html no fim.
+        {
+          source: "/aulas/arte-da-presenca",
+          destination: "/aulas/arte-da-presenca.html",
+        },
       ],
     };
+  },
+  async headers() {
+    // Páginas de aulas não devem aparecer em buscadores (acesso por link).
+    return [
+      {
+        source: "/aulas/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+    ];
   },
   async redirects() {
     return [
