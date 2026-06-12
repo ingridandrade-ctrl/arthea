@@ -7,21 +7,40 @@ Mapa das integrações de plataformas terceiras que a Arthea usa (ou pretende us
 
 ## Google Ads
 
-**Status:** credenciais geradas, ainda não conectada no app.
+**Status:** ✅ módulo backend implementado, falta deploy + cadastro de env vars na Vercel + UI no dashboard do portal.
 
 - **OAuth Client ID + Secret:** gerados no Google Cloud Console (projeto da Arthea), no Client OAuth `1056079046828-tbhvh...`
 - **Refresh token:** gerado em **mai/2026** pelo script `scripts/google_ads_refresh_token.py`, scope `https://www.googleapis.com/auth/adwords`
 - **Onde estão guardados:** **Apple Notes da Ingrid** — buscar pela entrada **"Google Ads — Arthea"**
 
-### Pra conectar a integração no app
+### Env vars necessárias (Vercel)
 
-1. Gerar um **Developer Token** no Google Ads Manager (https://ads.google.com/aw/apicenter)
-2. Cadastrar as 4 env vars na Vercel (Settings → Environment Variables):
-   - `GOOGLE_ADS_CLIENT_ID`
-   - `GOOGLE_ADS_CLIENT_SECRET`
-   - `GOOGLE_ADS_REFRESH_TOKEN`
-   - `GOOGLE_ADS_DEVELOPER_TOKEN`
-3. Implementar rotas em `src/lib/google-ads/` e dashboard de tráfego adicionar bloco Google ao lado do Meta.
+Todos os secrets vivem aqui — **nada no banco**.
+
+- `GOOGLE_ADS_CLIENT_ID`
+- `GOOGLE_ADS_CLIENT_SECRET`
+- `GOOGLE_ADS_DEVELOPER_TOKEN` (gerar no Google Ads Manager → https://ads.google.com/aw/apicenter)
+- `GOOGLE_ADS_REFRESH_TOKEN`
+- `GOOGLE_ADS_MCC_CUSTOMER_ID` (id do MCC, sem hífens)
+
+### Modelo no banco
+
+Só metadata operacional (sem secrets):
+
+- `GoogleAdsConnection` — userId, mccCustomerId, status (ACTIVE/EXPIRED/REVOKED), cache do access token + expiração
+- `GoogleAdsAccount` — connectionId, engagementId opcional (admin linka conta → frente do cliente), customerId, name, currencyCode, hidden
+
+Migration SQL em `prisma/migrations-manual/2026-06-12_google_ads_module.sql`. Aplicar no Neon antes de mergear ou deixar o `prisma db push` do build pegar.
+
+### Código relevante
+
+- `src/lib/google-ads/config.ts` — leitura das env vars
+- `src/lib/google-ads/auth.ts` — refresh + cache do access token
+- `src/lib/google-ads/api.ts` — wrappers GAQL (summary, campaigns, keywords, search terms, daily, list accounts)
+- `src/lib/google-ads/format.ts` — micros → BRL, date ranges
+- `src/app/api/google-ads/connect/route.ts` — POST inicializa GoogleAdsConnection + smoke test
+- `src/app/api/google-ads/dashboard/route.ts` — GET dados pro cliente (sem QS numérico, com semáforo)
+- `src/app/api/google-ads/admin/route.ts` — GET dados pra análise interna (QS raw, search impression share)
 
 ### Pra rotacionar credenciais
 
