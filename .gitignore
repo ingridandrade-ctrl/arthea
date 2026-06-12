@@ -30,3 +30,7 @@ npm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# OAuth tokens locais (gerados por scripts/)
+scripts/.google_ads_refresh_token
+scripts/.*_token
