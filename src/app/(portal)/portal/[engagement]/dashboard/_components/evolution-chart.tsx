@@ -94,11 +94,12 @@ export function EvolutionChart({ data, currency = "BRL" }: { data: DailyRow[]; c
               borderRadius: 10,
               fontSize: 12.5,
             }}
-            labelFormatter={(raw: string) => fmtDate(raw)}
-            formatter={(value: any, name: string) => {
-              if (name === "Cliques") return [fmtNum(Number(value)), name];
-              if (name === "Investimento") return [fmtMoney(Number(value)), name];
-              return [value, name];
+            labelFormatter={(raw) => fmtDate(String(raw ?? ""))}
+            formatter={(value, name) => {
+              const label = String(name ?? "");
+              if (label === "Cliques") return [fmtNum(Number(value)), label];
+              if (label === "Investimento") return [fmtMoney(Number(value)), label];
+              return [String(value), label];
             }}
           />
           <Legend
