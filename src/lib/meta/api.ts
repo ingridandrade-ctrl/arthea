@@ -231,6 +231,37 @@ export interface MetaCampaignInsight {
   date_stop?: string;
 }
 
+export interface MetaDailyInsight {
+  date_start: string;
+  date_stop: string;
+  spend?: string;
+  impressions?: string;
+  clicks?: string;
+  reach?: string;
+}
+
+/**
+ * Insights diários (time_increment=1) pra montar gráfico de evolução.
+ * Retorna uma linha por dia dentro do datePreset.
+ */
+export async function getAccountDailyInsights(
+  accessToken: string,
+  adAccountId: string,
+  datePreset: string = "last_30d",
+): Promise<MetaDailyInsight[]> {
+  const client = createMetaClient(accessToken);
+  const accountPath = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
+  const { data } = await client.get(`/${accountPath}/insights`, {
+    params: {
+      fields: "spend,impressions,clicks,reach",
+      date_preset: datePreset,
+      time_increment: 1,
+      limit: "200",
+    },
+  });
+  return data.data || [];
+}
+
 export async function getCampaignInsightsForAccount(
   accessToken: string,
   adAccountId: string,

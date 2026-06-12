@@ -19,6 +19,7 @@ import {
   Megaphone,
   Globe,
   MapPin,
+  BarChart3,
 } from "lucide-react";
 import { ArtheaStar } from "./arthea-star";
 
@@ -162,6 +163,15 @@ export function PortalSidebar({
                 accent={e.accentColor}
                 emphasized={sectionActive}
               />
+              {e.type === "PAID_TRAFFIC" && (
+                <SidebarItem
+                  href={`${base}/dashboard`}
+                  label="Dashboard"
+                  icon={BarChart3}
+                  active={isUnderPath(`${base}/dashboard`)}
+                  indent
+                />
+              )}
               <SidebarItem
                 href={`${base}/entregaveis`}
                 label="Entregáveis"
