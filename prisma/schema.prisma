@@ -109,6 +109,7 @@ model User {
   engagements     ClientEngagement[]
   dossier         ClientDossier?
   metaConnections MetaConnection[]
+  googleAdsConnection GoogleAdsConnection?
   scenesEnabled   Boolean            @default(false)
   scenes          Scene[]
   sceneComments   SceneComment[]
@@ -784,6 +785,7 @@ model ClientEngagement {
   accesses       ClientAccess[]
   references     ClientReference[]
   metaAdAccounts MetaAdAccount[]
+  googleAdsAccounts GoogleAdsAccount[]
 
   @@unique([clientId, slug])
   @@index([clientId])
@@ -1094,4 +1096,47 @@ model SceneComment {
   createdAt    DateTime @default(now())
 
   @@index([sceneId])
+}
+
+// ─── Google Ads ─────────────────────────────────────────────────
+// Metadata operacional da conexão Google Ads. Os secrets (client_id,
+// client_secret, developer_token, refresh_token) vivem em env vars na
+// Vercel — nunca no banco.
+
+enum GoogleAdsStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
+model GoogleAdsConnection {
+  id             String          @id @default(cuid())
+  userId         String          @unique
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mccCustomerId  String
+  status         GoogleAdsStatus @default(ACTIVE)
+  // Cache do access token (Bearer) — renovado a partir do refresh token
+  // armazenado em env var. Expira em ~1h.
+  accessToken    String?
+  tokenExpiresAt DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  adAccounts     GoogleAdsAccount[]
+}
+
+model GoogleAdsAccount {
+  id            String              @id @default(cuid())
+  connectionId  String
+  connection    GoogleAdsConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  engagementId  String?
+  engagement    ClientEngagement?   @relation(fields: [engagementId], references: [id], onDelete: SetNull)
+  customerId    String
+  name          String
+  currencyCode  String              @default("BRL")
+  hidden        Boolean             @default(false)
+  createdAt     DateTime            @default(now())
+
+  @@unique([connectionId, customerId])
+  @@index([engagementId])
+  @@index([hidden])
 }
