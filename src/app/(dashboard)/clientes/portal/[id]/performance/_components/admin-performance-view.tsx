@@ -1,8 +1,8 @@
 "use client";
 
-// Visão sênior de performance — dark mode moderno.
-// Inspiração: Linear, Vercel, Stripe dashboards.
-// Big sans-serif tabular numbers, sparklines, radial gauge, donut, live pulse.
+// Visão sênior de performance — moderno, claro, paleta Arthea preservada.
+// Tudo flui no mesmo warm-white #FAF9F6: hero, KPIs, insights e detalhamento
+// vivem na mesma "página" visual sem container quebrando o ritmo.
 
 import { useEffect, useState, useMemo } from "react";
 import {
@@ -59,26 +59,28 @@ const META_PRESET: Record<Period, string> = {
 
 type Tab = "google" | "meta";
 
-const COLOR = {
-  bg: "#0A0E1A",
-  bgGrad: "radial-gradient(ellipse at top, #0D1B2A 0%, #06090F 60%)",
-  surface: "rgba(255,255,255,0.03)",
-  surfaceHi: "rgba(255,255,255,0.06)",
-  border: "rgba(255,255,255,0.08)",
-  borderHi: "rgba(255,255,255,0.14)",
-  text: "#E8ECF1",
-  textDim: "#8B92A0",
-  textMute: "#5C6373",
-  accent: "#4ADE80", // green-400
-  accentDeep: "#22C55E",
-  accentSoft: "rgba(74,222,128,0.12)",
-  blue: "#60A5FA",
-  blueSoft: "rgba(96,165,250,0.12)",
-  amber: "#FBBF24",
-  amberSoft: "rgba(251,191,36,0.14)",
-  red: "#F87171",
-  redSoft: "rgba(248,113,113,0.14)",
-  purple: "#A78BFA",
+// Paleta Arthea
+const C = {
+  bg: "#FAF9F6",
+  bgSoft: "#F4F1EA",
+  surface: "#FFFFFF",
+  border: "rgba(13,74,74,0.08)",
+  borderHi: "rgba(13,74,74,0.16)",
+  shadow: "0 1px 2px rgba(13,74,74,0.04), 0 8px 24px -12px rgba(13,74,74,0.08)",
+  shadowHi: "0 2px 6px rgba(13,74,74,0.06), 0 16px 40px -20px rgba(13,74,74,0.12)",
+  text: "#1A1A1A",
+  textDim: "#6B7280",
+  textMute: "#8B867B",
+  teal: "#0D4A4A",
+  tealMid: "#1D7070",
+  mint: "#7ED4D4",
+  mintSoft: "#E0F2F1",
+  amber: "#D97706",
+  amberSoft: "#FEF3C7",
+  red: "#DC2626",
+  redSoft: "#FEE2E2",
+  blue: "#2563EB",
+  blueSoft: "#DBEAFE",
 };
 
 export function AdminPerformanceView({
@@ -135,162 +137,206 @@ export function AdminPerformanceView({
   return (
     <div
       style={{
-        background: COLOR.bg,
-        backgroundImage: COLOR.bgGrad,
+        background: C.bg,
         minHeight: "100vh",
         margin: "-24px",
-        padding: "24px 0 80px",
-        color: COLOR.text,
+        padding: "0 0 80px",
+        color: C.text,
         fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
       }}
     >
       <style>{`
         @keyframes pulse-dot {
           0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.4); opacity: 0.6; }
+          50% { transform: scale(1.5); opacity: 0.5; }
         }
-        .live-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
-        .glass-card {
-          background: ${COLOR.surface};
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid ${COLOR.border};
-          border-radius: 16px;
-          transition: border-color 0.2s ease, background 0.2s ease;
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        .glass-card:hover { border-color: ${COLOR.borderHi}; background: ${COLOR.surfaceHi}; }
+        .live-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
+        .fade-up { animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .arc-card {
+          background: ${C.surface};
+          border: 1px solid ${C.border};
+          border-radius: 20px;
+          box-shadow: ${C.shadow};
+          transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+        }
+        .arc-card:hover {
+          box-shadow: ${C.shadowHi};
+          border-color: ${C.borderHi};
+        }
         .tabular { font-variant-numeric: tabular-nums; }
       `}</style>
 
-      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 32px" }}>
-        {/* Top strip — status pill + period */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 24,
-            flexWrap: "wrap",
-            gap: 12,
-          }}
-        >
+      {/* Hero band with subtle gradient backdrop */}
+      <div
+        style={{
+          background: `linear-gradient(180deg, ${C.bgSoft} 0%, ${C.bg} 100%)`,
+          borderBottom: `1px solid ${C.border}`,
+          padding: "32px 0 36px",
+        }}
+      >
+        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 40px" }}>
+          {/* Top row — status + period selector */}
           <div
+            className="fade-up"
             style={{
-              display: "inline-flex",
+              display: "flex",
+              justifyContent: "space-between",
               alignItems: "center",
-              gap: 8,
-              padding: "6px 12px 6px 10px",
-              background: COLOR.accentSoft,
-              border: `1px solid rgba(74,222,128,0.25)`,
-              borderRadius: 999,
+              marginBottom: 28,
+              flexWrap: "wrap",
+              gap: 12,
             }}
           >
-            <span
-              className="live-dot"
+            <div
               style={{
-                width: 6,
-                height: 6,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 14px 6px 10px",
+                background: C.mintSoft,
+                border: `1px solid rgba(126,212,212,0.5)`,
                 borderRadius: 999,
-                background: COLOR.accent,
-                boxShadow: `0 0 8px ${COLOR.accent}`,
-              }}
-            />
-            <span
-              style={{
-                fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-                fontSize: 10.5,
-                letterSpacing: "0.18em",
-                textTransform: "uppercase",
-                color: COLOR.accent,
-                fontWeight: 600,
               }}
             >
-              Ao vivo · atualiza a cada 1h
-            </span>
-          </div>
-
-          <div style={{ display: "inline-flex", gap: 4, padding: 4, background: COLOR.surface, border: `1px solid ${COLOR.border}`, borderRadius: 999 }}>
-            {PERIODS.map((p) => (
-              <button
-                key={p.value}
-                onClick={() => setPeriod(p.value)}
+              <span
+                className="live-dot"
                 style={{
-                  padding: "6px 14px",
+                  width: 6,
+                  height: 6,
                   borderRadius: 999,
-                  background: period === p.value ? COLOR.text : "transparent",
-                  color: period === p.value ? COLOR.bg : COLOR.textDim,
-                  border: "none",
-                  fontSize: 12.5,
-                  fontWeight: period === p.value ? 600 : 500,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  transition: "all 0.15s ease",
+                  background: C.tealMid,
+                  boxShadow: `0 0 0 4px rgba(29,112,112,0.18)`,
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                  fontSize: 10.5,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  color: C.teal,
+                  fontWeight: 600,
                 }}
               >
-                {p.label}
-              </button>
-            ))}
+                Ao vivo · atualiza a cada 1h
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: "inline-flex",
+                gap: 2,
+                padding: 4,
+                background: C.surface,
+                border: `1px solid ${C.border}`,
+                borderRadius: 999,
+                boxShadow: C.shadow,
+              }}
+            >
+              {PERIODS.map((p) => (
+                <button
+                  key={p.value}
+                  onClick={() => setPeriod(p.value)}
+                  style={{
+                    padding: "7px 16px",
+                    borderRadius: 999,
+                    background: period === p.value ? C.teal : "transparent",
+                    color: period === p.value ? C.surface : C.textDim,
+                    border: "none",
+                    fontSize: 12.5,
+                    fontWeight: period === p.value ? 600 : 500,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    transition: "all 0.18s ease",
+                    letterSpacing: period === p.value ? "0" : "0",
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Hero */}
+          <div className="fade-up" style={{ animationDelay: "0.05s" }}>
+            <p
+              style={{
+                fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                fontSize: 11,
+                color: C.tealMid,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                fontWeight: 600,
+                margin: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <span style={{ width: 22, height: 1, background: C.tealMid }} />
+              {engagementName} · Performance
+            </p>
+            <h1
+              style={{
+                fontSize: "clamp(40px, 6vw, 68px)",
+                fontWeight: 700,
+                letterSpacing: "-0.035em",
+                color: C.teal,
+                margin: "14px 0 0",
+                lineHeight: 1.0,
+              }}
+            >
+              {clientName}
+            </h1>
+            <p
+              style={{
+                fontSize: 15,
+                color: C.textDim,
+                margin: "10px 0 0",
+                maxWidth: 540,
+                lineHeight: 1.55,
+              }}
+            >
+              Visão consolidada Google + Meta. Os números mudam em tempo real conforme as plataformas atualizam.
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Hero — client name */}
-        <header style={{ marginBottom: 32 }}>
-          <p
-            style={{
-              fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-              fontSize: 11,
-              color: COLOR.textMute,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-              fontWeight: 600,
-              margin: 0,
-            }}
-          >
-            {engagementName} · Performance
-          </p>
-          <h1
-            style={{
-              fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
-              fontSize: "clamp(36px, 5.5vw, 60px)",
-              fontWeight: 700,
-              letterSpacing: "-0.04em",
-              color: COLOR.text,
-              margin: "10px 0 0",
-              lineHeight: 1.0,
-              backgroundImage: `linear-gradient(135deg, ${COLOR.text} 0%, ${COLOR.accent} 100%)`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            {clientName}
-          </h1>
-        </header>
-
-        {/* Main grid — health gauge + 4 KPIs + donut */}
+      {/* Main container — flows seamlessly on the warm white bg */}
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "32px 40px 0" }}>
+        {/* KPI grid: health gauge + 4 KPIs + donut */}
         <section
+          className="fade-up"
           style={{
+            animationDelay: "0.1s",
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(195px, 1fr))",
             gap: 14,
-            marginBottom: 24,
+            marginBottom: 40,
           }}
         >
           <HealthCard health={health} loading={loading} />
           <KpiCard
             label="Investimento"
             value={loading ? "—" : fmtBRL(agg.spend)}
-            sub={`${agg.spend > 0 ? "BRL · total" : "sem gastos"}`}
+            sub={agg.spend > 0 ? "BRL · total" : "sem gastos"}
             spark={dailySpend.map((d) => d.spend)}
-            color={COLOR.accent}
+            color={C.teal}
+            sparkColor={C.tealMid}
             icon={<DollarSign size={13} />}
           />
           <KpiCard
             label="Resultados"
             value={loading ? "—" : agg.results.toLocaleString("pt-BR")}
             sub={agg.costPerResult > 0 ? `${fmtBRL(agg.costPerResult)} cada` : "leads + conversões"}
-            spark={dailySpend.map((d, i) => dailySpend.slice(0, i + 1).reduce((s, x) => s + x.clicks, 0))}
-            color={COLOR.blue}
+            spark={cumulativeSeries(dailySpend.map((d) => d.clicks))}
+            color={C.tealMid}
+            sparkColor={C.mint}
             icon={<Target size={13} />}
             highlight
           />
@@ -299,7 +345,8 @@ export function AdminPerformanceView({
             value={loading ? "—" : agg.clicks.toLocaleString("pt-BR")}
             sub={`CTR ${(agg.ctr * 100).toFixed(2)}%`}
             spark={dailySpend.map((d) => d.clicks)}
-            color={COLOR.purple}
+            color={C.teal}
+            sparkColor={C.tealMid}
             icon={<MousePointerClick size={13} />}
           />
           <KpiCard
@@ -307,14 +354,15 @@ export function AdminPerformanceView({
             value={loading ? "—" : compact(agg.impressions)}
             sub={agg.impressions > 0 ? "alcance bruto" : "—"}
             spark={dailySpend.map((d) => d.impressions)}
-            color={COLOR.amber}
+            color={C.teal}
+            sparkColor={C.tealMid}
             icon={<Activity size={13} />}
           />
           <PlatformDonut googleShare={agg.googleShare} metaShare={agg.metaShare} loading={loading} />
         </section>
 
         {/* Insights */}
-        <section style={{ marginBottom: 32 }}>
+        <section className="fade-up" style={{ animationDelay: "0.15s", marginBottom: 48 }}>
           <SectionTitle eyebrow="Insights" title="O que está acontecendo agora" />
           {loading ? (
             <InsightsLoading />
@@ -324,8 +372,8 @@ export function AdminPerformanceView({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-                gap: 12,
+                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                gap: 14,
               }}
             >
               {insights.map((ins, i) => (
@@ -335,34 +383,38 @@ export function AdminPerformanceView({
           )}
         </section>
 
-        {/* Tabs + dark wrapper for detail */}
-        <section>
+        {/* Detalhamento — flows naturally, no wrapping container */}
+        <section className="fade-up" style={{ animationDelay: "0.2s" }}>
           <SectionTitle eyebrow="Detalhamento" title="Por plataforma" />
           <div
             role="tablist"
             style={{
               display: "inline-flex",
-              background: COLOR.surface,
-              border: `1px solid ${COLOR.border}`,
+              background: C.surface,
+              border: `1px solid ${C.border}`,
               borderRadius: 12,
               padding: 4,
               gap: 2,
-              marginBottom: 16,
+              marginBottom: 24,
+              boxShadow: C.shadow,
             }}
           >
-            <DarkTab active={tab === "google"} onClick={() => setTab("google")} label="Google Ads" dotColor="#FBBF24" />
-            <DarkTab active={tab === "meta"} onClick={() => setTab("meta")} label="Meta Ads" dotColor="#60A5FA" />
+            <PlatformTab
+              active={tab === "google"}
+              onClick={() => setTab("google")}
+              label="Google Ads"
+              dotColor="#FBBF24"
+            />
+            <PlatformTab
+              active={tab === "meta"}
+              onClick={() => setTab("meta")}
+              label="Meta Ads"
+              dotColor="#2563EB"
+            />
           </div>
 
-          {/* Light panel container for embedded sections */}
-          <div
-            style={{
-              background: "#FAF9F6",
-              borderRadius: 16,
-              padding: 24,
-              border: `1px solid ${COLOR.border}`,
-            }}
-          >
+          {/* sections live directly on the warm bg — no extra container */}
+          <div>
             {tab === "google" ? (
               <GoogleSection data={googleData} loading={loading} />
             ) : (
@@ -372,37 +424,40 @@ export function AdminPerformanceView({
         </section>
 
         {/* AI Section preview */}
-        <section style={{ marginTop: 32 }}>
+        <section className="fade-up" style={{ animationDelay: "0.25s", marginTop: 48 }}>
           <div
-            className="glass-card"
+            className="arc-card"
             style={{
-              padding: "24px 28px",
+              padding: "26px 30px",
               display: "flex",
               alignItems: "center",
-              gap: 20,
+              gap: 22,
               flexWrap: "wrap",
+              background: `linear-gradient(135deg, ${C.surface} 0%, ${C.mintSoft} 100%)`,
+              borderColor: "rgba(126,212,212,0.4)",
             }}
           >
             <div
               style={{
-                width: 48,
-                height: 48,
-                borderRadius: 14,
-                background: `linear-gradient(135deg, ${COLOR.accent}, ${COLOR.blue})`,
+                width: 52,
+                height: 52,
+                borderRadius: 16,
+                background: `linear-gradient(135deg, ${C.teal} 0%, ${C.tealMid} 100%)`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
+                boxShadow: "0 4px 12px rgba(13,74,74,0.18)",
               }}
             >
-              <Sparkles size={20} color="#0A0E1A" strokeWidth={2.2} />
+              <Sparkles size={22} color={C.mint} strokeWidth={2.2} />
             </div>
-            <div style={{ flex: 1, minWidth: 220 }}>
+            <div style={{ flex: 1, minWidth: 240 }}>
               <p
                 style={{
                   fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
                   fontSize: 10.5,
-                  color: COLOR.accent,
+                  color: C.tealMid,
                   letterSpacing: "0.18em",
                   textTransform: "uppercase",
                   fontWeight: 600,
@@ -411,21 +466,21 @@ export function AdminPerformanceView({
               >
                 Próxima etapa
               </p>
-              <p style={{ fontSize: 16, color: COLOR.text, margin: "6px 0 4px", fontWeight: 600 }}>
+              <p style={{ fontSize: 17, color: C.teal, margin: "6px 0 4px", fontWeight: 600, letterSpacing: "-0.01em" }}>
                 Análise sênior gerada por IA
               </p>
-              <p style={{ fontSize: 13, color: COLOR.textDim, margin: 0, lineHeight: 1.55 }}>
+              <p style={{ fontSize: 13.5, color: C.textDim, margin: 0, lineHeight: 1.55, maxWidth: 540 }}>
                 Diagnóstico em prosa, recomendações priorizadas e rascunho de relatório semanal — direto desse painel.
               </p>
             </div>
             <button
               disabled
               style={{
-                padding: "10px 18px",
-                borderRadius: 10,
-                background: COLOR.surfaceHi,
-                color: COLOR.textDim,
-                border: `1px solid ${COLOR.border}`,
+                padding: "11px 20px",
+                borderRadius: 12,
+                background: C.surface,
+                color: C.textMute,
+                border: `1px solid ${C.border}`,
                 fontSize: 13,
                 fontWeight: 500,
                 fontFamily: "inherit",
@@ -451,32 +506,24 @@ type Health = {
 
 function HealthCard({ health, loading }: { health: Health; loading: boolean }) {
   const tierColor: Record<Health["tier"], string> = {
-    excellent: COLOR.accent,
-    stable: COLOR.blue,
-    attention: COLOR.amber,
-    critical: COLOR.red,
-    unknown: COLOR.textMute,
+    excellent: C.tealMid,
+    stable: C.tealMid,
+    attention: C.amber,
+    critical: C.red,
+    unknown: C.textMute,
   };
   const color = tierColor[health.tier];
   const gaugeData = [{ name: "score", value: health.score, fill: color }];
 
   return (
-    <div
-      className="glass-card"
-      style={{
-        padding: "20px 22px",
-        position: "relative",
-        overflow: "hidden",
-        minHeight: 200,
-      }}
-    >
+    <div className="arc-card" style={{ padding: "22px 22px 18px", minHeight: 220, position: "relative" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <p
             style={{
               fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
               fontSize: 10.5,
-              color: COLOR.textDim,
+              color: C.textMute,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
               fontWeight: 600,
@@ -491,30 +538,30 @@ function HealthCard({ health, loading }: { health: Health; loading: boolean }) {
         </div>
         <div
           style={{
-            width: 28,
-            height: 28,
-            borderRadius: 8,
-            background: `${color}22`,
+            width: 30,
+            height: 30,
+            borderRadius: 9,
+            background: `${color}18`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Zap size={14} color={color} strokeWidth={2} />
+          <Zap size={15} color={color} strokeWidth={2} />
         </div>
       </div>
 
       <div style={{ position: "relative", height: 130, marginTop: 4 }}>
         <ResponsiveContainer width="100%" height="100%">
           <RadialBarChart
-            innerRadius="68%"
-            outerRadius="96%"
+            innerRadius="70%"
+            outerRadius="98%"
             data={gaugeData}
             startAngle={210}
             endAngle={-30}
           >
             <RadialBar
-              background={{ fill: "rgba(255,255,255,0.05)" } as any}
+              background={{ fill: "rgba(13,74,74,0.06)" } as any}
               dataKey="value"
               cornerRadius={20}
               isAnimationActive
@@ -537,28 +584,21 @@ function HealthCard({ health, loading }: { health: Health; loading: boolean }) {
             style={{
               fontSize: 38,
               fontWeight: 700,
-              color: COLOR.text,
+              color: C.teal,
               letterSpacing: "-0.04em",
               lineHeight: 1,
             }}
           >
             {loading ? "—" : health.score}
           </span>
-          <span style={{ fontSize: 10, color: COLOR.textMute, marginTop: 2, letterSpacing: "0.1em" }}>
+          <span style={{ fontSize: 10, color: C.textMute, marginTop: 2, letterSpacing: "0.1em" }}>
             / 100
           </span>
         </div>
       </div>
 
       {!loading && health.reasons.length > 0 && (
-        <p
-          style={{
-            fontSize: 11.5,
-            color: COLOR.textDim,
-            margin: "12px 0 0",
-            lineHeight: 1.5,
-          }}
-        >
+        <p style={{ fontSize: 11.5, color: C.textDim, margin: "10px 0 0", lineHeight: 1.5 }}>
           {health.reasons[0]}
         </p>
       )}
@@ -582,6 +622,7 @@ function KpiCard({
   sub,
   spark,
   color,
+  sparkColor,
   icon,
   highlight,
 }: {
@@ -590,22 +631,24 @@ function KpiCard({
   sub?: string;
   spark: number[];
   color: string;
+  sparkColor: string;
   icon?: React.ReactNode;
   highlight?: boolean;
 }) {
   const sparkData = spark.length > 0 ? spark.map((v, i) => ({ i, v })) : [{ i: 0, v: 0 }];
+  const gradId = `spark-${label.replace(/\W/g, "")}-${sparkColor.replace("#", "")}`;
   return (
     <div
-      className="glass-card"
+      className="arc-card"
       style={{
-        padding: "18px 18px 0",
-        minHeight: 200,
+        padding: "20px 20px 0",
+        minHeight: 220,
         display: "flex",
         flexDirection: "column",
         gap: 10,
         background: highlight
-          ? `linear-gradient(180deg, rgba(96,165,250,0.06), ${COLOR.surface})`
-          : undefined,
+          ? `linear-gradient(180deg, ${C.mintSoft} 0%, ${C.surface} 55%)`
+          : C.surface,
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -613,7 +656,7 @@ function KpiCard({
           style={{
             fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
             fontSize: 10.5,
-            color: COLOR.textDim,
+            color: C.textMute,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
             fontWeight: 600,
@@ -625,11 +668,11 @@ function KpiCard({
         {icon && (
           <span
             style={{
-              width: 22,
-              height: 22,
-              borderRadius: 6,
-              background: `${color}22`,
-              color,
+              width: 24,
+              height: 24,
+              borderRadius: 7,
+              background: `${sparkColor}22`,
+              color: color,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -642,9 +685,9 @@ function KpiCard({
       <span
         className="tabular"
         style={{
-          fontSize: 30,
+          fontSize: 32,
           fontWeight: 700,
-          color: COLOR.text,
+          color: C.teal,
           letterSpacing: "-0.03em",
           lineHeight: 1.05,
         }}
@@ -652,21 +695,21 @@ function KpiCard({
         {value}
       </span>
       {sub && (
-        <p style={{ fontSize: 11.5, color: COLOR.textMute, margin: 0, lineHeight: 1.4 }}>{sub}</p>
+        <p style={{ fontSize: 11.5, color: C.textMute, margin: 0, lineHeight: 1.4 }}>{sub}</p>
       )}
-      <div style={{ height: 52, marginTop: "auto", marginLeft: -18, marginRight: -18 }}>
+      <div style={{ height: 54, marginTop: "auto", marginLeft: -20, marginRight: -20 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={sparkData}>
             <defs>
-              <linearGradient id={`spark-${color.replace("#", "")}`} x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0%" stopColor={color} stopOpacity={0.2} />
-                <stop offset="100%" stopColor={color} stopOpacity={1} />
+              <linearGradient id={gradId} x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stopColor={sparkColor} stopOpacity={0.35} />
+                <stop offset="100%" stopColor={sparkColor} stopOpacity={1} />
               </linearGradient>
             </defs>
             <Line
               type="monotone"
               dataKey="v"
-              stroke={`url(#spark-${color.replace("#", "")})`}
+              stroke={`url(#${gradId})`}
               strokeWidth={2}
               dot={false}
               isAnimationActive
@@ -689,20 +732,22 @@ function PlatformDonut({
   metaShare: number;
   loading: boolean;
 }) {
+  const googleColor = "#FBBF24";
+  const metaColor = "#2563EB";
   const data = [
-    { name: "Google", value: googleShare * 100, color: COLOR.amber },
-    { name: "Meta", value: metaShare * 100, color: COLOR.blue },
+    { name: "Google", value: googleShare * 100, color: googleColor },
+    { name: "Meta", value: metaShare * 100, color: metaColor },
   ];
   const lead = googleShare >= metaShare ? "Google" : "Meta";
   const leadShare = Math.max(googleShare, metaShare);
 
   return (
-    <div className="glass-card" style={{ padding: "20px 18px", minHeight: 200, position: "relative" }}>
+    <div className="arc-card" style={{ padding: "22px 20px 18px", minHeight: 220, position: "relative" }}>
       <p
         style={{
           fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
           fontSize: 10.5,
-          color: COLOR.textDim,
+          color: C.textMute,
           letterSpacing: "0.18em",
           textTransform: "uppercase",
           fontWeight: 600,
@@ -711,14 +756,14 @@ function PlatformDonut({
       >
         Distribuição
       </p>
-      <div style={{ position: "relative", height: 110, marginTop: 6 }}>
+      <div style={{ position: "relative", height: 120, marginTop: 6 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={data}
               dataKey="value"
-              innerRadius="65%"
-              outerRadius="95%"
+              innerRadius="68%"
+              outerRadius="96%"
               startAngle={90}
               endAngle={-270}
               paddingAngle={2}
@@ -741,15 +786,15 @@ function PlatformDonut({
             pointerEvents: "none",
           }}
         >
-          <span className="tabular" style={{ fontSize: 22, fontWeight: 700, color: COLOR.text, lineHeight: 1 }}>
+          <span className="tabular" style={{ fontSize: 24, fontWeight: 700, color: C.teal, lineHeight: 1, letterSpacing: "-0.02em" }}>
             {loading ? "—" : `${Math.round(leadShare * 100)}%`}
           </span>
-          <span style={{ fontSize: 10, color: COLOR.textMute, marginTop: 2 }}>{lead}</span>
+          <span style={{ fontSize: 10, color: C.textMute, marginTop: 3 }}>{lead}</span>
         </div>
       </div>
-      <div style={{ display: "flex", gap: 12, marginTop: 6, flexWrap: "wrap" }}>
-        <Legend color={COLOR.amber} label="Google" value={`${Math.round(googleShare * 100)}%`} />
-        <Legend color={COLOR.blue} label="Meta" value={`${Math.round(metaShare * 100)}%`} />
+      <div style={{ display: "flex", gap: 14, marginTop: 8, flexWrap: "wrap" }}>
+        <Legend color={googleColor} label="Google" value={`${Math.round(googleShare * 100)}%`} />
+        <Legend color={metaColor} label="Meta" value={`${Math.round(metaShare * 100)}%`} />
       </div>
     </div>
   );
@@ -759,8 +804,8 @@ function Legend({ color, label, value }: { color: string; label: string; value: 
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
       <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
-      <span style={{ fontSize: 11, color: COLOR.textDim, fontWeight: 500 }}>{label}</span>
-      <span className="tabular" style={{ fontSize: 11.5, color: COLOR.text, fontWeight: 600 }}>{value}</span>
+      <span style={{ fontSize: 11, color: C.textDim, fontWeight: 500 }}>{label}</span>
+      <span className="tabular" style={{ fontSize: 11.5, color: C.teal, fontWeight: 600 }}>{value}</span>
     </div>
   );
 }
@@ -772,10 +817,10 @@ type Insight = { tone: InsightTone; title: string; body: string };
 
 function InsightCard({ insight }: { insight: Insight }) {
   const palette: Record<InsightTone, { color: string; bg: string; border: string }> = {
-    good: { color: COLOR.accent, bg: COLOR.accentSoft, border: "rgba(74,222,128,0.25)" },
-    neutral: { color: COLOR.blue, bg: COLOR.blueSoft, border: "rgba(96,165,250,0.20)" },
-    warn: { color: COLOR.amber, bg: COLOR.amberSoft, border: "rgba(251,191,36,0.25)" },
-    danger: { color: COLOR.red, bg: COLOR.redSoft, border: "rgba(248,113,113,0.25)" },
+    good: { color: C.tealMid, bg: C.mintSoft, border: "rgba(126,212,212,0.5)" },
+    neutral: { color: C.tealMid, bg: C.surface, border: C.border },
+    warn: { color: C.amber, bg: C.amberSoft, border: "rgba(245,158,11,0.35)" },
+    danger: { color: C.red, bg: C.redSoft, border: "rgba(220,38,38,0.30)" },
   };
   const p = palette[insight.tone];
   const Icon = insight.tone === "good" ? TrendingUp
@@ -785,20 +830,20 @@ function InsightCard({ insight }: { insight: Insight }) {
 
   return (
     <div
-      className="glass-card"
+      className="arc-card"
       style={{
-        padding: "16px 18px",
+        padding: "18px 20px",
         display: "flex",
-        gap: 12,
+        gap: 14,
         alignItems: "flex-start",
         borderColor: p.border,
       }}
     >
       <div
         style={{
-          width: 30,
-          height: 30,
-          borderRadius: 8,
+          width: 34,
+          height: 34,
+          borderRadius: 10,
           background: p.bg,
           color: p.color,
           display: "flex",
@@ -807,7 +852,7 @@ function InsightCard({ insight }: { insight: Insight }) {
           flexShrink: 0,
         }}
       >
-        <Icon size={15} strokeWidth={2} />
+        <Icon size={16} strokeWidth={2} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p
@@ -823,7 +868,7 @@ function InsightCard({ insight }: { insight: Insight }) {
         >
           {insight.title}
         </p>
-        <p style={{ fontSize: 13, color: COLOR.text, margin: "5px 0 0", lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13.5, color: C.text, margin: "5px 0 0", lineHeight: 1.55 }}>
           {insight.body}
         </p>
       </div>
@@ -836,12 +881,12 @@ function InsightsLoading() {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-        gap: 12,
+        gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+        gap: 14,
       }}
     >
       {[0, 1, 2].map((i) => (
-        <div key={i} className="glass-card" style={{ padding: "16px 18px", minHeight: 86, opacity: 0.4 }} />
+        <div key={i} className="arc-card" style={{ padding: "18px 20px", minHeight: 88, opacity: 0.4 }} />
       ))}
     </div>
   );
@@ -850,11 +895,13 @@ function InsightsLoading() {
 function EmptyInsights() {
   return (
     <div
-      className="glass-card"
       style={{
+        background: C.surface,
+        border: `1px dashed ${C.borderHi}`,
+        borderRadius: 16,
         padding: "32px",
         textAlign: "center",
-        color: COLOR.textDim,
+        color: C.textMute,
         fontSize: 13.5,
       }}
     >
@@ -867,27 +914,31 @@ function EmptyInsights() {
 
 function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
-    <div style={{ marginBottom: 14 }}>
+    <div style={{ marginBottom: 18 }}>
       <p
         style={{
           fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
           fontSize: 10.5,
-          color: COLOR.accent,
+          color: C.tealMid,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
           fontWeight: 600,
           margin: 0,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 10,
         }}
       >
+        <span style={{ width: 18, height: 1, background: C.tealMid }} />
         {eyebrow}
       </p>
       <h2
         style={{
-          fontSize: 22,
-          fontWeight: 600,
+          fontSize: 24,
+          fontWeight: 700,
           letterSpacing: "-0.025em",
-          color: COLOR.text,
-          margin: "4px 0 0",
+          color: C.teal,
+          margin: "6px 0 0",
           lineHeight: 1.2,
         }}
       >
@@ -897,7 +948,7 @@ function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
   );
 }
 
-function DarkTab({
+function PlatformTab({
   active,
   onClick,
   label,
@@ -912,22 +963,22 @@ function DarkTab({
     <button
       onClick={onClick}
       style={{
-        padding: "7px 16px 7px 14px",
-        borderRadius: 8,
-        background: active ? COLOR.text : "transparent",
-        color: active ? COLOR.bg : COLOR.textDim,
+        padding: "8px 18px 8px 14px",
+        borderRadius: 9,
+        background: active ? C.teal : "transparent",
+        color: active ? C.surface : C.textDim,
         border: "none",
         fontSize: 13,
         fontWeight: active ? 600 : 500,
         cursor: "pointer",
         fontFamily: "inherit",
-        transition: "all 0.15s ease",
+        transition: "all 0.18s ease",
         display: "inline-flex",
         alignItems: "center",
         gap: 8,
       }}
     >
-      <span style={{ width: 6, height: 6, borderRadius: 999, background: dotColor }} />
+      <span style={{ width: 7, height: 7, borderRadius: 999, background: dotColor }} />
       {label}
     </button>
   );
@@ -977,7 +1028,7 @@ function mergeDaily(
     map.set(d.date, {
       spend: prev.spend + d.cost,
       clicks: prev.clicks + d.clicks,
-      impressions: prev.impressions + (d as any).impressions || prev.impressions,
+      impressions: prev.impressions + ((d as any).impressions || 0),
     });
   }
   for (const d of m?.daily || []) {
@@ -991,6 +1042,11 @@ function mergeDaily(
   return Array.from(map.entries())
     .map(([date, v]) => ({ date, ...v }))
     .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function cumulativeSeries(values: number[]): number[] {
+  let acc = 0;
+  return values.map((v) => (acc += v));
 }
 
 function computeHealth(g: GoogleData | null, m: MetaData | null): Health {
