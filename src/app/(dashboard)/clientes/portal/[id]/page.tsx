@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BarChart3 } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ProjectEditor } from "./_components/project-editor";
@@ -55,7 +55,7 @@ export default async function PortalClienteDetail({
         <ArrowLeft className="w-4 h-4" /> Portal de Clientes
       </Link>
 
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
             {project.client.name} · {project.client.email}
@@ -66,6 +66,15 @@ export default async function PortalClienteDetail({
             {project.accesses.length} acessos · {project.references.length} referências
           </p>
         </div>
+        {project.type === "PAID_TRAFFIC" && (
+          <Link
+            href={`/clientes/portal/${project.id}/performance`}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0D4A4A] px-4 py-2 text-sm font-medium text-white hover:bg-[#0A3838]"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Ver performance
+          </Link>
+        )}
       </div>
 
       <ProjectEditor
