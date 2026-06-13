@@ -356,60 +356,58 @@ export type ListedCustomer = {
 /**
  * Lista as contas acessíveis pelo MCC configurado. Usado quando o admin
  * vai linkar uma conta Google Ads a um ClientEngagement.
+ *
+ * Implementado via GAQL em customer_client (no MCC). Evita o endpoint REST
+ * customers:listAccessibleCustomers que tem histórico de mudanças entre
+ * versões da API.
  */
 export async function listAccessibleCustomers(
   connectionId: string,
 ): Promise<ListedCustomer[]> {
   const accessToken = await getValidAccessToken(connectionId);
   const { developerToken, mccCustomerId } = getGoogleAdsConfig();
-  // 1) Listar IDs acessíveis
-  const idsRes = await fetch(`${API_BASE}/customers:listAccessibleCustomers`, {
+
+  const query = `
+    SELECT
+      customer_client.id,
+      customer_client.descriptive_name,
+      customer_client.currency_code,
+      customer_client.manager,
+      customer_client.status
+    FROM customer_client
+    WHERE customer_client.status = 'ENABLED'
+  `;
+
+  const url = `${API_BASE}/customers/${mccCustomerId}/googleAds:searchStream`;
+  const res = await fetch(url, {
+    method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "developer-token": developerToken,
+      "login-customer-id": mccCustomerId,
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify({ query }),
   });
-  if (!idsRes.ok) {
-    const t = await idsRes.text();
-    throw new Error(`listAccessibleCustomers ${idsRes.status}: ${t.slice(0, 400)}`);
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`listAccessibleCustomers ${res.status}: ${t.slice(0, 400)}`);
   }
-  const idsData = (await idsRes.json()) as { resourceNames?: string[] };
-  const ids = (idsData.resourceNames || []).map((rn) => rn.split("/")[1]);
-  if (ids.length === 0) return [];
 
-  // 2) Pra cada id, perguntar nome + moeda via GAQL no MCC
+  const data = (await res.json()) as SearchStreamBatch[] | SearchStreamBatch;
+  const batches = Array.isArray(data) ? data : [data];
   const accounts: ListedCustomer[] = [];
-  for (const id of ids) {
-    try {
-      const url = `${API_BASE}/customers/${mccCustomerId}/googleAds:search`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "developer-token": developerToken,
-          "login-customer-id": mccCustomerId,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: `
-            SELECT customer_client.id, customer_client.descriptive_name, customer_client.currency_code
-            FROM customer_client
-            WHERE customer_client.id = ${id}
-            LIMIT 1
-          `,
-        }),
-      });
-      if (!res.ok) continue;
-      const data = (await res.json()) as { results?: any[] };
-      const row = data.results?.[0];
-      if (!row?.customerClient) continue;
+  for (const batch of batches) {
+    for (const row of batch.results || []) {
+      const cc = row.customerClient;
+      if (!cc?.id) continue;
+      // Pula a própria MCC e contas manager (só queremos contas de cliente final)
+      if (cc.manager) continue;
       accounts.push({
-        customerId: String(row.customerClient.id),
-        name: String(row.customerClient.descriptiveName || `Customer ${id}`),
-        currencyCode: String(row.customerClient.currencyCode || "BRL"),
+        customerId: String(cc.id),
+        name: String(cc.descriptiveName || `Customer ${cc.id}`),
+        currencyCode: String(cc.currencyCode || "BRL"),
       });
-    } catch {
-      // Ignora contas inacessíveis via MCC
     }
   }
   return accounts;
