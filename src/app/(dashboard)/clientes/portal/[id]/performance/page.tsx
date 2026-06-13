@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { PerformanceDashboard } from "@/app/(portal)/portal/[engagement]/dashboard/_components/performance-dashboard";
+import { AdminPerformanceView } from "./_components/admin-performance-view";
 
 export const dynamic = "force-dynamic";
 
@@ -25,16 +25,26 @@ export default async function ClientPerformanceAdmin({
   if (!engagement) notFound();
 
   return (
-    <div className="space-y-4">
+    <div>
       <Link
         href={`/clientes/portal/${params.id}`}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          fontSize: 13,
+          color: "#6B7280",
+          textDecoration: "none",
+          padding: "12px 32px 0",
+          fontFamily: "inherit",
+        }}
       >
-        <ArrowLeft className="w-4 h-4" /> Voltar para {engagement.name}
+        <ArrowLeft size={14} /> Voltar para {engagement.name}
       </Link>
-      <PerformanceDashboard
+      <AdminPerformanceView
         engagementId={engagement.id}
-        engagementName={`${engagement.client.name} · ${engagement.name}`}
+        clientName={engagement.client.name}
+        engagementName={engagement.name}
       />
     </div>
   );
