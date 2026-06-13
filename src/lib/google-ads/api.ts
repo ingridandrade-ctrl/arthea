@@ -16,7 +16,7 @@ import {
   type DateRangeKey,
 } from "./format";
 
-const API_VERSION = "v17";
+const API_VERSION = process.env.GOOGLE_ADS_API_VERSION || "v19";
 const API_BASE = `https://googleads.googleapis.com/${API_VERSION}`;
 
 export type GoogleAdsRequestContext = {
