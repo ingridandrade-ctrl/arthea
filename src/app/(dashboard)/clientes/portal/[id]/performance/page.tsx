@@ -32,14 +32,16 @@ export default async function ClientPerformanceAdmin({
           display: "inline-flex",
           alignItems: "center",
           gap: 6,
-          fontSize: 13,
-          color: "#6B7280",
+          fontSize: 12,
+          color: "#8B92A0",
           textDecoration: "none",
-          padding: "12px 32px 0",
+          padding: "16px 32px 0",
           fontFamily: "inherit",
+          position: "absolute",
+          zIndex: 10,
         }}
       >
-        <ArrowLeft size={14} /> Voltar para {engagement.name}
+        <ArrowLeft size={14} /> {engagement.name}
       </Link>
       <AdminPerformanceView
         engagementId={engagement.id}
