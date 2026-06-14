@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 import { ensureInvoice } from "@/lib/financas/credit-cards";
-import { parseLocalDate } from "@/lib/financas/dates";
+import { parseLocalDate, parseLocalDateEnd } from "@/lib/financas/dates";
 
 const VALID_TYPES = ["INCOME", "EXPENSE", "TRANSFER"];
 const VALID_OWNERS = ["PARTNER_A", "PARTNER_B", "COUPLE"];
@@ -17,8 +17,8 @@ export async function GET(req: Request) {
     const to = searchParams.get("to");
     if (from || to) {
       where.date = {};
-      if (from) where.date.gte = new Date(from);
-      if (to) where.date.lte = new Date(to);
+      if (from) where.date.gte = parseLocalDate(from);
+      if (to) where.date.lte = parseLocalDateEnd(to);
     }
     const accountId = searchParams.get("accountId");
     if (accountId) where.accountId = accountId;

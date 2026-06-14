@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { parseLocalDate, parseLocalDateEnd } from "@/lib/financas/dates";
 
 type Owner = "PARTNER_A" | "PARTNER_B" | "COUPLE";
 
@@ -48,8 +49,8 @@ export async function GET(req: Request) {
     const q = searchParams.get("q");
     const limit = Math.min(parseInt(searchParams.get("limit") || "200", 10), 500);
 
-    const fromDate = fromStr ? new Date(fromStr) : null;
-    const toDate = toStr ? new Date(toStr) : null;
+    const fromDate = fromStr ? parseLocalDate(fromStr) : null;
+    const toDate = toStr ? parseLocalDateEnd(toStr) : null;
 
     const txWhere: any = {
       householdId: household.id,

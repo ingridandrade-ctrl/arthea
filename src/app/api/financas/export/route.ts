@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { parseLocalDate, parseLocalDateEnd } from "@/lib/financas/dates";
 
 const OWNER_LABEL: Record<string, string> = {
   PARTNER_A: "A",
@@ -25,8 +26,8 @@ export async function GET(req: Request) {
     const where: any = { householdId: household.id };
     if (fromStr || toStr) {
       where.date = {};
-      if (fromStr) where.date.gte = new Date(fromStr);
-      if (toStr) where.date.lte = new Date(toStr);
+      if (fromStr) where.date.gte = parseLocalDate(fromStr);
+      if (toStr) where.date.lte = parseLocalDateEnd(toStr);
     }
 
     const [transactions, partnerNames] = await Promise.all([

@@ -36,12 +36,17 @@ export function parseInstallment(desc: string): ParsedInstallment | null {
 export function installmentGroupId(
   accountId: string,
   baseDescription: string,
-  total: number
+  total: number,
+  /** Cents (rounded). When provided, locks the group to a specific value so
+   * two purchases like 'APPLE.COM 1/12' R$100 in Jan and R$250 in Jun don't
+   * collide. */
+  amountCents?: number
 ): string {
-  return createHash("sha256")
-    .update(`${accountId}|${baseDescription}|${total}`)
-    .digest("hex")
-    .slice(0, 24);
+  const key =
+    typeof amountCents === "number"
+      ? `${accountId}|${baseDescription}|${total}|${amountCents}`
+      : `${accountId}|${baseDescription}|${total}`;
+  return createHash("sha256").update(key).digest("hex").slice(0, 24);
 }
 
 export function addMonths(date: Date, n: number): Date {

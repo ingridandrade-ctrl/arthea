@@ -257,18 +257,9 @@ export function CasalClient() {
               {balance && (
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {(() => {
-                    const aOwesB = Math.max(
-                      0,
-                      balance.details.bPaidForCouple +
-                        balance.details.bPaidForA -
-                        balance.details.settlementsAtoB
-                    );
-                    const bOwesA = Math.max(
-                      0,
-                      balance.details.aPaidForCouple +
-                        balance.details.aPaidForB -
-                        balance.details.settlementsBtoA
-                    );
+                    const net = balance.netBalance;
+                    const aOwesB = net < 0 ? Math.abs(net) : 0;
+                    const bOwesA = net > 0 ? net : 0;
                     return (
                       <>
                         <div className="rounded-lg border border-border p-4">
