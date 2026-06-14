@@ -9,7 +9,7 @@ import {
   getAdInsightsForAccount,
   getAdCreatives,
 } from "@/lib/meta/api";
-import { buildMetaSummary, aggregateMetaSummaries } from "@/lib/meta/resolvers";
+import { buildMetaSummary, aggregateMetaSummaries, listActionTypes } from "@/lib/meta/resolvers";
 import { mapObjectiveToGroup, OBJECTIVE_DEFINITIONS, type ObjectiveGroup } from "@/lib/meta/objectives";
 
 export const revalidate = 3600;
@@ -85,8 +85,9 @@ export async function GET(req: NextRequest) {
     const allCampaigns: Array<any> = [];
     const allAds: Array<any> = [];
     const dailyMap = new Map<string, { spend: number; clicks: number }>();
-    // Map ad_id → access token usado pra buscar creative depois
     const adAccessTokenMap = new Map<string, string>();
+    // Action types vistos cross-conta — pra debug
+    const actionTypesGlobal = new Map<string, number>();
 
     for (const acc of active) {
       const [insights, campaigns, daily, ads] = await Promise.all([
@@ -97,6 +98,14 @@ export async function GET(req: NextRequest) {
       ]);
 
       perAccountSummaries.push(buildMetaSummary(insights));
+
+      // Coleta action_types vistos pra debug
+      if (insights) {
+        const list = listActionTypes(insights);
+        for (const a of list) {
+          actionTypesGlobal.set(a.type, (actionTypesGlobal.get(a.type) || 0) + a.value);
+        }
+      }
 
       for (const c of campaigns) {
         const cSummary = buildMetaSummary(c);
@@ -230,6 +239,10 @@ export async function GET(req: NextRequest) {
     }
 
     const primary = active[0];
+    const actionTypesDebug = Array.from(actionTypesGlobal.entries())
+      .map(([type, value]) => ({ type, value }))
+      .sort((a, b) => b.value - a.value);
+
     return NextResponse.json({
       datePreset,
       account: {
@@ -241,6 +254,9 @@ export async function GET(req: NextRequest) {
       campaigns: allCampaigns,
       daily,
       objectiveGroups,
+      // Debug — quais action_types Meta realmente retornou. Usado pra
+      // mapear novas métricas que apareçam.
+      _debugActionTypes: actionTypesDebug,
     });
   } catch (e: any) {
     const meta = e?.response?.data?.error;

@@ -347,17 +347,15 @@ export function AdminPerformanceView({
 
         {/* Main */}
         <div style={{ maxWidth: 1320, margin: "0 auto", padding: "28px 40px 0" }}>
-          {/* Platform Tabs — dash totalmente separado por plataforma */}
-          {(hasGoogleData || hasMetaData) && (
-            <section className="fade-up" style={{ marginBottom: 28 }}>
-              <PlatformSelector
-                activePlatform={tab}
-                setActivePlatform={setTab}
-                hasGoogle={hasGoogleData}
-                hasMeta={hasMetaData}
-              />
-            </section>
-          )}
+          {/* Platform Tabs — sempre visíveis: admin escolhe qual ver */}
+          <section className="fade-up" style={{ marginBottom: 28 }}>
+            <PlatformSelector
+              activePlatform={tab}
+              setActivePlatform={setTab}
+              hasGoogle={hasGoogleData}
+              hasMeta={hasMetaData}
+            />
+          </section>
 
           {/* Dashboard da plataforma ativa */}
           {tab === "google" && (
@@ -408,13 +406,10 @@ function PlatformSelector({
   hasMeta: boolean;
 }) {
   const t = useTokens();
-  // Se só uma plataforma tem dados, não mostra seletor
-  if (hasGoogle && !hasMeta) return null;
-  if (hasMeta && !hasGoogle) return null;
 
-  const items: Array<{ id: "google" | "meta"; label: string; sub: string; color: string }> = [
-    { id: "google", label: "Google Ads", sub: "Search · Display · YouTube · Performance Max", color: t.googleColor },
-    { id: "meta", label: "Meta Ads", sub: "Facebook · Instagram · Messenger · WhatsApp", color: t.metaColor },
+  const items: Array<{ id: "google" | "meta"; label: string; sub: string; color: string; hasData: boolean }> = [
+    { id: "google", label: "Google Ads", sub: "Search · Display · YouTube · Performance Max", color: t.googleColor, hasData: hasGoogle },
+    { id: "meta", label: "Meta Ads", sub: "Facebook · Instagram · Messenger · WhatsApp", color: t.metaColor, hasData: hasMeta },
   ];
 
   return (
@@ -441,13 +436,13 @@ function PlatformSelector({
               border: "none",
               textAlign: "left",
               fontFamily: "inherit",
-              background: active ? t.surface : t.surface,
+              background: t.surface,
               boxShadow: active
                 ? `0 0 0 2px ${item.color}, 0 24px 60px -24px ${item.color}55`
                 : `0 0 0 1px ${t.border}, 0 8px 24px -16px rgba(13,74,74,0.10)`,
-              opacity: active ? 1 : 0.62,
-              transform: active ? "translateY(0)" : "translateY(0)",
+              opacity: active ? 1 : 0.65,
               transition: "all 0.2s ease",
+              position: "relative",
             }}
           >
             <div
@@ -469,9 +464,28 @@ function PlatformSelector({
               {item.id === "google" ? "G" : "M"}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 16, fontWeight: 700, color: t.text, margin: 0, letterSpacing: "-0.01em" }}>
-                {item.label}
-              </p>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <p style={{ fontSize: 16, fontWeight: 700, color: t.text, margin: 0, letterSpacing: "-0.01em" }}>
+                  {item.label}
+                </p>
+                {!item.hasData && (
+                  <span
+                    style={{
+                      fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                      fontSize: 9.5,
+                      fontWeight: 700,
+                      letterSpacing: "0.14em",
+                      textTransform: "uppercase",
+                      padding: "2px 7px",
+                      borderRadius: 999,
+                      background: t.hover,
+                      color: t.textMute,
+                    }}
+                  >
+                    sem dados
+                  </span>
+                )}
+              </div>
               <p style={{ fontSize: 11.5, color: t.textMute, margin: "3px 0 0", letterSpacing: "0.01em" }}>
                 {item.sub}
               </p>
@@ -636,6 +650,15 @@ function MetaPlatformDashboard({
         </section>
       )}
 
+      {/* Debug — action_types crus retornados pela Meta API. Útil pra
+          descobrir quais métricas Instagram/WhatsApp/etc estão sendo
+          subaproveitadas porque o action_type que eu uso não bate. */}
+      {!loading && (metaData as any)?._debugActionTypes && (
+        <section className="fade-up" style={{ animationDelay: "0.13s" }}>
+          <ActionTypesDebug actions={(metaData as any)._debugActionTypes} />
+        </section>
+      )}
+
       {/* Por objetivo de campanha */}
       <section className="fade-up" style={{ animationDelay: "0.14s" }}>
         <SubsectionHeader title="Por objetivo de campanha" hint="KPIs e criativos adaptados pro tipo de campanha." />
@@ -659,6 +682,82 @@ function MetaPlatformDashboard({
         <SubsectionHeader title="Campanhas Meta detalhadas" />
         <AdminMetaDetail data={metaData} loading={loading} />
       </section>
+    </div>
+  );
+}
+
+// ─── ActionTypesDebug: lista action_types crus pra admin ──────
+
+function ActionTypesDebug({ actions }: { actions: Array<{ type: string; value: number }> }) {
+  const t = useTokens();
+  const [open, setOpen] = useState(false);
+
+  if (!actions || actions.length === 0) return null;
+
+  return (
+    <div className="aurora-card" style={{ padding: "16px 22px", borderColor: t.border }}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="focus-ring"
+        style={{
+          width: "100%",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          textAlign: "left",
+          padding: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          color: t.textDim,
+          gap: 8,
+        }}
+      >
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+          <span
+            style={{
+              fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+              fontSize: 10,
+              color: t.textMute,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              fontWeight: 700,
+            }}
+          >
+            Debug Meta
+          </span>
+          <span style={{ fontSize: 12.5, color: t.textDim }}>
+            {actions.length} action_types retornados pela API
+          </span>
+        </div>
+        <span style={{ fontSize: 11, color: t.textMute }}>{open ? "ocultar" : "ver"}</span>
+      </button>
+      {open && (
+        <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 6 }}>
+          {actions.map((a) => (
+            <div
+              key={a.type}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "6px 10px",
+                background: t.hover,
+                borderRadius: 6,
+                fontSize: 11.5,
+                fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+              }}
+            >
+              <span style={{ color: t.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }} title={a.type}>
+                {a.type}
+              </span>
+              <span style={{ color: t.tealMid, fontWeight: 700, marginLeft: 10 }}>
+                {a.value.toLocaleString("pt-BR")}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
