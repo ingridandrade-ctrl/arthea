@@ -1,10 +1,11 @@
 "use client";
 
-// Visão sênior de performance — moderno, claro, paleta Arthea preservada.
-// Tudo flui no mesmo warm-white #FAF9F6: hero, KPIs, insights e detalhamento
-// vivem na mesma "página" visual sem container quebrando o ritmo.
+// Visão sênior de performance — design moderno, paleta Arthea, light/dark.
+// O design language do hero (arc-card, sparklines, palette teal+mint) é
+// aplicado consistentemente em toda a página, incluindo as tabelas de
+// Google e Meta no detalhamento.
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, createContext, useContext, useRef } from "react";
 import {
   Calendar,
   TrendingUp,
@@ -17,6 +18,11 @@ import {
   Zap,
   DollarSign,
   MousePointerClick,
+  Sun,
+  Moon,
+  ChevronDown,
+  ChevronUp,
+  Eye,
 } from "lucide-react";
 import {
   LineChart,
@@ -27,9 +33,15 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
+  ComposedChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Area,
 } from "recharts";
-import { GoogleSection, type GoogleData } from "@/app/(portal)/portal/[engagement]/dashboard/_components/google-section";
-import { MetaSection, type MetaData } from "@/app/(portal)/portal/[engagement]/dashboard/_components/meta-section";
+import type { GoogleData } from "@/app/(portal)/portal/[engagement]/dashboard/_components/google-section";
+import type { MetaData } from "@/app/(portal)/portal/[engagement]/dashboard/_components/meta-section";
 
 type Period = "LAST_7" | "LAST_14" | "LAST_30" | "THIS_MONTH" | "LAST_MONTH";
 
@@ -58,30 +70,111 @@ const META_PRESET: Record<Period, string> = {
 };
 
 type Tab = "google" | "meta";
+type Theme = "light" | "dark";
 
-// Paleta Arthea
-const C = {
+// ─── TOKENS ──────────────────────────────────────────────────────
+
+type Tokens = {
+  theme: Theme;
+  // surfaces
+  bg: string;
+  bgSoft: string;
+  surface: string;
+  surfaceAlt: string;
+  hover: string;
+  // borders
+  border: string;
+  borderHi: string;
+  divider: string;
+  // text
+  text: string;
+  textDim: string;
+  textMute: string;
+  // brand
+  teal: string;
+  tealMid: string;
+  mint: string;
+  mintSoft: string;
+  // semantic
+  amber: string;
+  amberSoft: string;
+  red: string;
+  redSoft: string;
+  // platform brand (constant across themes for recognition)
+  googleColor: string;
+  metaColor: string;
+  // effects
+  shadow: string;
+  shadowHi: string;
+  // gradient for hero band
+  heroBand: string;
+};
+
+const LIGHT: Tokens = {
+  theme: "light",
   bg: "#FAF9F6",
   bgSoft: "#F4F1EA",
   surface: "#FFFFFF",
+  surfaceAlt: "#FBF9F4",
+  hover: "rgba(13,74,74,0.04)",
   border: "rgba(13,74,74,0.08)",
   borderHi: "rgba(13,74,74,0.16)",
-  shadow: "0 1px 2px rgba(13,74,74,0.04), 0 8px 24px -12px rgba(13,74,74,0.08)",
-  shadowHi: "0 2px 6px rgba(13,74,74,0.06), 0 16px 40px -20px rgba(13,74,74,0.12)",
+  divider: "rgba(13,74,74,0.06)",
   text: "#1A1A1A",
-  textDim: "#6B7280",
+  textDim: "#5B6573",
   textMute: "#8B867B",
   teal: "#0D4A4A",
   tealMid: "#1D7070",
   mint: "#7ED4D4",
   mintSoft: "#E0F2F1",
-  amber: "#D97706",
+  amber: "#B45309",
   amberSoft: "#FEF3C7",
-  red: "#DC2626",
+  red: "#B91C1C",
   redSoft: "#FEE2E2",
-  blue: "#2563EB",
-  blueSoft: "#DBEAFE",
+  googleColor: "#F59E0B",
+  metaColor: "#2563EB",
+  shadow: "0 1px 2px rgba(13,74,74,0.04), 0 8px 24px -12px rgba(13,74,74,0.08)",
+  shadowHi: "0 2px 6px rgba(13,74,74,0.06), 0 16px 40px -20px rgba(13,74,74,0.12)",
+  heroBand: "linear-gradient(180deg, #F4F1EA 0%, #FAF9F6 100%)",
 };
+
+const DARK: Tokens = {
+  theme: "dark",
+  bg: "#0A1419",
+  bgSoft: "#0F1F25",
+  surface: "#121E26",
+  surfaceAlt: "#0E1A21",
+  hover: "rgba(255,255,255,0.04)",
+  border: "rgba(255,255,255,0.07)",
+  borderHi: "rgba(255,255,255,0.16)",
+  divider: "rgba(255,255,255,0.05)",
+  text: "#E8ECF1",
+  textDim: "#9CA3AF",
+  textMute: "#6B7280",
+  teal: "#7ED4D4",         // mint becomes primary in dark for contrast
+  tealMid: "#5BC4C4",
+  mint: "#7ED4D4",
+  mintSoft: "rgba(126,212,212,0.12)",
+  amber: "#FBBF24",
+  amberSoft: "rgba(251,191,36,0.12)",
+  red: "#F87171",
+  redSoft: "rgba(248,113,113,0.12)",
+  googleColor: "#FBBF24",
+  metaColor: "#60A5FA",
+  shadow: "0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.5)",
+  shadowHi: "0 2px 6px rgba(0,0,0,0.5), 0 16px 40px -20px rgba(0,0,0,0.6)",
+  heroBand: "linear-gradient(180deg, #0F1F25 0%, #0A1419 100%)",
+};
+
+const ThemeCtx = createContext<{ tokens: Tokens; theme: Theme; setTheme: (t: Theme) => void }>({
+  tokens: LIGHT,
+  theme: "light",
+  setTheme: () => {},
+});
+
+const useTokens = () => useContext(ThemeCtx).tokens;
+
+// ─── MAIN ────────────────────────────────────────────────────────
 
 export function AdminPerformanceView({
   engagementId,
@@ -92,11 +185,25 @@ export function AdminPerformanceView({
   clientName: string;
   engagementName: string;
 }) {
+  const [theme, setThemeState] = useState<Theme>("light");
+  const tokens = theme === "light" ? LIGHT : DARK;
   const [tab, setTab] = useState<Tab>("google");
   const [period, setPeriod] = useState<Period>("LAST_30");
   const [googleData, setGoogleData] = useState<GoogleData | null>(null);
   const [metaData, setMetaData] = useState<MetaData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Read persisted theme + sync to localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("arthea-perf-theme");
+      if (saved === "dark" || saved === "light") setThemeState(saved);
+    } catch {}
+  }, []);
+  const setTheme = (t: Theme) => {
+    setThemeState(t);
+    try { localStorage.setItem("arthea-perf-theme", t); } catch {}
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -135,368 +242,384 @@ export function AdminPerformanceView({
   const dailySpend = useMemo(() => mergeDaily(googleData, metaData), [googleData, metaData]);
 
   return (
-    <div
-      style={{
-        background: C.bg,
-        minHeight: "100vh",
-        margin: "-24px",
-        padding: "0 0 80px",
-        color: C.text,
-        fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
-      }}
-    >
-      <style>{`
-        @keyframes pulse-dot {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.5); opacity: 0.5; }
-        }
-        @keyframes fade-up {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .live-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
-        .fade-up { animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
-        .arc-card {
-          background: ${C.surface};
-          border: 1px solid ${C.border};
-          border-radius: 20px;
-          box-shadow: ${C.shadow};
-          transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-        }
-        .arc-card:hover {
-          box-shadow: ${C.shadowHi};
-          border-color: ${C.borderHi};
-        }
-        .tabular { font-variant-numeric: tabular-nums; }
-      `}</style>
-
-      {/* Hero band with subtle gradient backdrop */}
+    <ThemeCtx.Provider value={{ tokens, theme, setTheme }}>
       <div
         style={{
-          background: `linear-gradient(180deg, ${C.bgSoft} 0%, ${C.bg} 100%)`,
-          borderBottom: `1px solid ${C.border}`,
-          padding: "32px 0 36px",
+          background: tokens.bg,
+          minHeight: "100vh",
+          margin: "-24px",
+          padding: "0 0 80px",
+          color: tokens.text,
+          fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
+          transition: "background 0.3s ease, color 0.3s ease",
         }}
       >
-        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 40px" }}>
-          {/* Top row — status + period selector */}
-          <div
-            className="fade-up"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 28,
-              flexWrap: "wrap",
-              gap: 12,
-            }}
-          >
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "6px 14px 6px 10px",
-                background: C.mintSoft,
-                border: `1px solid rgba(126,212,212,0.5)`,
-                borderRadius: 999,
-              }}
-            >
-              <span
-                className="live-dot"
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 999,
-                  background: C.tealMid,
-                  boxShadow: `0 0 0 4px rgba(29,112,112,0.18)`,
-                }}
-              />
-              <span
-                style={{
-                  fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-                  fontSize: 10.5,
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                  color: C.teal,
-                  fontWeight: 600,
-                }}
-              >
-                Ao vivo · atualiza a cada 1h
-              </span>
-            </div>
+        <GlobalStyles tokens={tokens} />
 
-            <div
-              style={{
-                display: "inline-flex",
-                gap: 2,
-                padding: 4,
-                background: C.surface,
-                border: `1px solid ${C.border}`,
-                borderRadius: 999,
-                boxShadow: C.shadow,
-              }}
-            >
-              {PERIODS.map((p) => (
-                <button
-                  key={p.value}
-                  onClick={() => setPeriod(p.value)}
-                  style={{
-                    padding: "7px 16px",
-                    borderRadius: 999,
-                    background: period === p.value ? C.teal : "transparent",
-                    color: period === p.value ? C.surface : C.textDim,
-                    border: "none",
-                    fontSize: 12.5,
-                    fontWeight: period === p.value ? 600 : 500,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    transition: "all 0.18s ease",
-                    letterSpacing: period === p.value ? "0" : "0",
-                  }}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Hero */}
-          <div className="fade-up" style={{ animationDelay: "0.05s" }}>
-            <p
-              style={{
-                fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-                fontSize: 11,
-                color: C.tealMid,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                fontWeight: 600,
-                margin: 0,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
-              <span style={{ width: 22, height: 1, background: C.tealMid }} />
-              {engagementName} · Performance
-            </p>
-            <h1
-              style={{
-                fontSize: "clamp(40px, 6vw, 68px)",
-                fontWeight: 700,
-                letterSpacing: "-0.035em",
-                color: C.teal,
-                margin: "14px 0 0",
-                lineHeight: 1.0,
-              }}
-            >
-              {clientName}
-            </h1>
-            <p
-              style={{
-                fontSize: 15,
-                color: C.textDim,
-                margin: "10px 0 0",
-                maxWidth: 540,
-                lineHeight: 1.55,
-              }}
-            >
-              Visão consolidada Google + Meta. Os números mudam em tempo real conforme as plataformas atualizam.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Main container — flows seamlessly on the warm white bg */}
-      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "32px 40px 0" }}>
-        {/* KPI grid: health gauge + 4 KPIs + donut */}
-        <section
-          className="fade-up"
+        {/* Hero band with gradient backdrop */}
+        <div
           style={{
-            animationDelay: "0.1s",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(195px, 1fr))",
-            gap: 14,
-            marginBottom: 40,
+            background: tokens.heroBand,
+            borderBottom: `1px solid ${tokens.border}`,
+            padding: "32px 0 36px",
+            transition: "background 0.3s ease",
           }}
         >
-          <HealthCard health={health} loading={loading} />
-          <KpiCard
-            label="Investimento"
-            value={loading ? "—" : fmtBRL(agg.spend)}
-            sub={agg.spend > 0 ? "BRL · total" : "sem gastos"}
-            spark={dailySpend.map((d) => d.spend)}
-            color={C.teal}
-            sparkColor={C.tealMid}
-            icon={<DollarSign size={13} />}
-          />
-          <KpiCard
-            label="Resultados"
-            value={loading ? "—" : agg.results.toLocaleString("pt-BR")}
-            sub={agg.costPerResult > 0 ? `${fmtBRL(agg.costPerResult)} cada` : "leads + conversões"}
-            spark={cumulativeSeries(dailySpend.map((d) => d.clicks))}
-            color={C.tealMid}
-            sparkColor={C.mint}
-            icon={<Target size={13} />}
-            highlight
-          />
-          <KpiCard
-            label="Cliques"
-            value={loading ? "—" : agg.clicks.toLocaleString("pt-BR")}
-            sub={`CTR ${(agg.ctr * 100).toFixed(2)}%`}
-            spark={dailySpend.map((d) => d.clicks)}
-            color={C.teal}
-            sparkColor={C.tealMid}
-            icon={<MousePointerClick size={13} />}
-          />
-          <KpiCard
-            label="Impressões"
-            value={loading ? "—" : compact(agg.impressions)}
-            sub={agg.impressions > 0 ? "alcance bruto" : "—"}
-            spark={dailySpend.map((d) => d.impressions)}
-            color={C.teal}
-            sparkColor={C.tealMid}
-            icon={<Activity size={13} />}
-          />
-          <PlatformDonut googleShare={agg.googleShare} metaShare={agg.metaShare} loading={loading} />
-        </section>
-
-        {/* Insights */}
-        <section className="fade-up" style={{ animationDelay: "0.15s", marginBottom: 48 }}>
-          <SectionTitle eyebrow="Insights" title="O que está acontecendo agora" />
-          {loading ? (
-            <InsightsLoading />
-          ) : insights.length === 0 ? (
-            <EmptyInsights />
-          ) : (
+          <div style={{ maxWidth: 1320, margin: "0 auto", padding: "0 40px" }}>
+            {/* Top row — status + period + theme */}
             <div
+              className="fade-up"
               style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-                gap: 14,
-              }}
-            >
-              {insights.map((ins, i) => (
-                <InsightCard key={i} insight={ins} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Detalhamento — flows naturally, no wrapping container */}
-        <section className="fade-up" style={{ animationDelay: "0.2s" }}>
-          <SectionTitle eyebrow="Detalhamento" title="Por plataforma" />
-          <div
-            role="tablist"
-            style={{
-              display: "inline-flex",
-              background: C.surface,
-              border: `1px solid ${C.border}`,
-              borderRadius: 12,
-              padding: 4,
-              gap: 2,
-              marginBottom: 24,
-              boxShadow: C.shadow,
-            }}
-          >
-            <PlatformTab
-              active={tab === "google"}
-              onClick={() => setTab("google")}
-              label="Google Ads"
-              dotColor="#FBBF24"
-            />
-            <PlatformTab
-              active={tab === "meta"}
-              onClick={() => setTab("meta")}
-              label="Meta Ads"
-              dotColor="#2563EB"
-            />
-          </div>
-
-          {/* sections live directly on the warm bg — no extra container */}
-          <div>
-            {tab === "google" ? (
-              <GoogleSection data={googleData} loading={loading} />
-            ) : (
-              <MetaSection data={metaData} loading={loading} />
-            )}
-          </div>
-        </section>
-
-        {/* AI Section preview */}
-        <section className="fade-up" style={{ animationDelay: "0.25s", marginTop: 48 }}>
-          <div
-            className="arc-card"
-            style={{
-              padding: "26px 30px",
-              display: "flex",
-              alignItems: "center",
-              gap: 22,
-              flexWrap: "wrap",
-              background: `linear-gradient(135deg, ${C.surface} 0%, ${C.mintSoft} 100%)`,
-              borderColor: "rgba(126,212,212,0.4)",
-            }}
-          >
-            <div
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 16,
-                background: `linear-gradient(135deg, ${C.teal} 0%, ${C.tealMid} 100%)`,
                 display: "flex",
+                justifyContent: "space-between",
                 alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                boxShadow: "0 4px 12px rgba(13,74,74,0.18)",
+                marginBottom: 28,
+                flexWrap: "wrap",
+                gap: 12,
               }}
             >
-              <Sparkles size={22} color={C.mint} strokeWidth={2.2} />
+              <LivePill />
+              <div style={{ display: "inline-flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                <PeriodPill period={period} setPeriod={setPeriod} />
+                <ThemeToggle theme={theme} setTheme={setTheme} />
+              </div>
             </div>
-            <div style={{ flex: 1, minWidth: 240 }}>
-              <p
+
+            {/* Hero */}
+            <Hero clientName={clientName} engagementName={engagementName} />
+          </div>
+        </div>
+
+        {/* Main */}
+        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "32px 40px 0" }}>
+          {/* KPI grid */}
+          <section
+            className="fade-up"
+            style={{
+              animationDelay: "0.1s",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: 14,
+              marginBottom: 40,
+            }}
+          >
+            <HealthCard health={health} loading={loading} />
+            <KpiCard
+              label="Investimento"
+              value={loading ? "—" : fmtBRL(agg.spend)}
+              sub={agg.spend > 0 ? "BRL · total" : "sem gastos"}
+              spark={dailySpend.map((d) => d.spend)}
+              accentVar="teal"
+              icon={<DollarSign size={13} />}
+              loading={loading}
+            />
+            <KpiCard
+              label="Resultados"
+              value={loading ? "—" : agg.results.toLocaleString("pt-BR")}
+              sub={agg.costPerResult > 0 ? `${fmtBRL(agg.costPerResult)} cada` : "leads + conversões"}
+              spark={cumulativeSeries(dailySpend.map((d) => d.clicks))}
+              accentVar="mint"
+              icon={<Target size={13} />}
+              highlight
+              loading={loading}
+            />
+            <KpiCard
+              label="Cliques"
+              value={loading ? "—" : agg.clicks.toLocaleString("pt-BR")}
+              sub={`CTR ${(agg.ctr * 100).toFixed(2)}%`}
+              spark={dailySpend.map((d) => d.clicks)}
+              accentVar="tealMid"
+              icon={<MousePointerClick size={13} />}
+              loading={loading}
+            />
+            <KpiCard
+              label="Impressões"
+              value={loading ? "—" : compact(agg.impressions)}
+              sub={agg.impressions > 0 ? "alcance bruto" : "—"}
+              spark={dailySpend.map((d) => d.impressions)}
+              accentVar="teal"
+              icon={<Activity size={13} />}
+              loading={loading}
+            />
+            <PlatformDonut googleShare={agg.googleShare} metaShare={agg.metaShare} loading={loading} />
+          </section>
+
+          {/* Insights */}
+          <section className="fade-up" style={{ animationDelay: "0.15s", marginBottom: 48 }}>
+            <SectionTitle eyebrow="Insights" title="O que está acontecendo agora" />
+            {loading ? (
+              <InsightsLoading />
+            ) : insights.length === 0 ? (
+              <EmptyState text="Sem dados suficientes pra gerar insights nesse período." />
+            ) : (
+              <div
                 style={{
-                  fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-                  fontSize: 10.5,
-                  color: C.tealMid,
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                  fontWeight: 600,
-                  margin: 0,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                  gap: 14,
                 }}
               >
-                Próxima etapa
-              </p>
-              <p style={{ fontSize: 17, color: C.teal, margin: "6px 0 4px", fontWeight: 600, letterSpacing: "-0.01em" }}>
-                Análise sênior gerada por IA
-              </p>
-              <p style={{ fontSize: 13.5, color: C.textDim, margin: 0, lineHeight: 1.55, maxWidth: 540 }}>
-                Diagnóstico em prosa, recomendações priorizadas e rascunho de relatório semanal — direto desse painel.
-              </p>
-            </div>
-            <button
-              disabled
+                {insights.map((ins, i) => (
+                  <InsightCard key={i} insight={ins} />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Evolution chart spanning both platforms */}
+          <section className="fade-up" style={{ animationDelay: "0.18s", marginBottom: 48 }}>
+            <SectionTitle eyebrow="Evolução" title="Investimento e cliques por dia" />
+            <EvolutionChart data={dailySpend} loading={loading} />
+          </section>
+
+          {/* Detalhamento */}
+          <section className="fade-up" style={{ animationDelay: "0.22s" }}>
+            <SectionTitle eyebrow="Detalhamento" title="Por plataforma" />
+            <div
+              role="tablist"
               style={{
-                padding: "11px 20px",
+                display: "inline-flex",
+                background: tokens.surface,
+                border: `1px solid ${tokens.border}`,
                 borderRadius: 12,
-                background: C.surface,
-                color: C.textMute,
-                border: `1px solid ${C.border}`,
-                fontSize: 13,
-                fontWeight: 500,
-                fontFamily: "inherit",
-                cursor: "not-allowed",
+                padding: 4,
+                gap: 2,
+                marginBottom: 24,
+                boxShadow: tokens.shadow,
               }}
             >
-              Em breve
-            </button>
-          </div>
-        </section>
+              <PlatformTab active={tab === "google"} onClick={() => setTab("google")} label="Google Ads" dotColor={tokens.googleColor} />
+              <PlatformTab active={tab === "meta"} onClick={() => setTab("meta")} label="Meta Ads" dotColor={tokens.metaColor} />
+            </div>
+
+            <div>
+              {tab === "google" ? (
+                <AdminGoogleDetail data={googleData} loading={loading} />
+              ) : (
+                <AdminMetaDetail data={metaData} loading={loading} />
+              )}
+            </div>
+          </section>
+
+          {/* AI banner */}
+          <section className="fade-up" style={{ animationDelay: "0.28s", marginTop: 48 }}>
+            <AiBanner />
+          </section>
+        </div>
       </div>
+    </ThemeCtx.Provider>
+  );
+}
+
+// ─── Global animations ───────────────────────────────────────────
+
+function GlobalStyles({ tokens }: { tokens: Tokens }) {
+  return (
+    <style>{`
+      @keyframes pulse-dot {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.5); opacity: 0.5; }
+      }
+      @keyframes fade-up {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      .live-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
+      .fade-up { animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+      .arc-card {
+        background: ${tokens.surface};
+        border: 1px solid ${tokens.border};
+        border-radius: 20px;
+        box-shadow: ${tokens.shadow};
+        transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease, background 0.3s ease;
+      }
+      .arc-card:hover {
+        box-shadow: ${tokens.shadowHi};
+        border-color: ${tokens.borderHi};
+      }
+      .arc-table-row {
+        transition: background 0.15s ease;
+      }
+      .arc-table-row:hover {
+        background: ${tokens.hover};
+      }
+      .tabular { font-variant-numeric: tabular-nums; }
+      .skeleton {
+        background: linear-gradient(90deg, ${tokens.surfaceAlt} 0%, ${tokens.border} 50%, ${tokens.surfaceAlt} 100%);
+        background-size: 200% 100%;
+        animation: shimmer 1.6s ease-in-out infinite;
+        border-radius: 6px;
+      }
+      .focus-ring:focus-visible {
+        outline: 2px solid ${tokens.tealMid};
+        outline-offset: 2px;
+      }
+    `}</style>
+  );
+}
+
+// ─── Hero pieces ─────────────────────────────────────────────────
+
+function LivePill() {
+  const t = useTokens();
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "6px 14px 6px 10px",
+        background: t.mintSoft,
+        border: `1px solid ${t.mint}55`,
+        borderRadius: 999,
+      }}
+    >
+      <span
+        className="live-dot"
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: 999,
+          background: t.tealMid,
+          boxShadow: `0 0 0 4px ${t.tealMid}28`,
+        }}
+      />
+      <span
+        style={{
+          fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+          fontSize: 10.5,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: t.teal,
+          fontWeight: 600,
+        }}
+      >
+        Ao vivo · atualiza a cada 1h
+      </span>
     </div>
   );
 }
 
-// ─── Health Card with radial gauge ───────────────────────────────
+function PeriodPill({ period, setPeriod }: { period: Period; setPeriod: (p: Period) => void }) {
+  const t = useTokens();
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        gap: 2,
+        padding: 4,
+        background: t.surface,
+        border: `1px solid ${t.border}`,
+        borderRadius: 999,
+        boxShadow: t.shadow,
+      }}
+    >
+      {PERIODS.map((p) => (
+        <button
+          key={p.value}
+          onClick={() => setPeriod(p.value)}
+          className="focus-ring"
+          style={{
+            padding: "7px 16px",
+            borderRadius: 999,
+            background: period === p.value ? t.teal : "transparent",
+            color: period === p.value ? (t.teal === "#7ED4D4" ? "#0A1419" : "#FFFFFF") : t.textDim,
+            border: "none",
+            fontSize: 12.5,
+            fontWeight: period === p.value ? 600 : 500,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            transition: "all 0.18s ease",
+          }}
+        >
+          {p.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ThemeToggle({ theme, setTheme }: { theme: Theme; setTheme: (t: Theme) => void }) {
+  const t = useTokens();
+  return (
+    <button
+      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+      title={theme === "light" ? "Modo escuro" : "Modo claro"}
+      aria-label={theme === "light" ? "Ativar modo escuro" : "Ativar modo claro"}
+      className="focus-ring"
+      style={{
+        width: 38,
+        height: 38,
+        borderRadius: 999,
+        background: t.surface,
+        border: `1px solid ${t.border}`,
+        boxShadow: t.shadow,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        color: t.textDim,
+        transition: "all 0.18s ease",
+      }}
+    >
+      {theme === "light" ? <Moon size={15} strokeWidth={1.7} /> : <Sun size={16} strokeWidth={1.7} />}
+    </button>
+  );
+}
+
+function Hero({ clientName, engagementName }: { clientName: string; engagementName: string }) {
+  const t = useTokens();
+  return (
+    <div className="fade-up" style={{ animationDelay: "0.05s" }}>
+      <p
+        style={{
+          fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+          fontSize: 11,
+          color: t.tealMid,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          fontWeight: 600,
+          margin: 0,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <span style={{ width: 22, height: 1, background: t.tealMid }} />
+        {engagementName} · Performance
+      </p>
+      <h1
+        style={{
+          fontSize: "clamp(40px, 6vw, 68px)",
+          fontWeight: 700,
+          letterSpacing: "-0.035em",
+          color: t.teal,
+          margin: "14px 0 0",
+          lineHeight: 1.0,
+        }}
+      >
+        {clientName}
+      </h1>
+      <p
+        style={{
+          fontSize: 15,
+          color: t.textDim,
+          margin: "10px 0 0",
+          maxWidth: 540,
+          lineHeight: 1.55,
+        }}
+      >
+        Visão consolidada Google + Meta. Atualizada a cada hora.
+      </p>
+    </div>
+  );
+}
+
+// ─── Health Card ─────────────────────────────────────────────────
 
 type Health = {
   score: number;
@@ -505,100 +628,65 @@ type Health = {
 };
 
 function HealthCard({ health, loading }: { health: Health; loading: boolean }) {
+  const t = useTokens();
   const tierColor: Record<Health["tier"], string> = {
-    excellent: C.tealMid,
-    stable: C.tealMid,
-    attention: C.amber,
-    critical: C.red,
-    unknown: C.textMute,
+    excellent: t.tealMid,
+    stable: t.tealMid,
+    attention: t.amber,
+    critical: t.red,
+    unknown: t.textMute,
   };
   const color = tierColor[health.tier];
   const gaugeData = [{ name: "score", value: health.score, fill: color }];
+  const bgTrack = t.theme === "dark" ? "rgba(255,255,255,0.06)" : "rgba(13,74,74,0.06)";
 
   return (
-    <div className="arc-card" style={{ padding: "22px 22px 18px", minHeight: 220, position: "relative" }}>
+    <div className="arc-card" style={{ padding: "22px 22px 18px", minHeight: 230, position: "relative" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-          <p
-            style={{
-              fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-              fontSize: 10.5,
-              color: C.textMute,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              fontWeight: 600,
-              margin: 0,
-            }}
-          >
-            Saúde da conta
-          </p>
+          <Eyebrow>Saúde da conta</Eyebrow>
           <p style={{ fontSize: 12, color, margin: "6px 0 0", fontWeight: 600 }}>
             {HEALTH_LABEL[health.tier]}
           </p>
         </div>
-        <div
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: 9,
-            background: `${color}18`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Zap size={15} color={color} strokeWidth={2} />
-        </div>
+        <IconChip color={color} bg={`${color}1F`}>
+          <Zap size={15} strokeWidth={2} />
+        </IconChip>
       </div>
 
       <div style={{ position: "relative", height: 130, marginTop: 4 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <RadialBarChart
-            innerRadius="70%"
-            outerRadius="98%"
-            data={gaugeData}
-            startAngle={210}
-            endAngle={-30}
-          >
-            <RadialBar
-              background={{ fill: "rgba(13,74,74,0.06)" } as any}
-              dataKey="value"
-              cornerRadius={20}
-              isAnimationActive
-            />
+          <RadialBarChart innerRadius="70%" outerRadius="98%" data={gaugeData} startAngle={210} endAngle={-30}>
+            <RadialBar background={{ fill: bgTrack } as any} dataKey="value" cornerRadius={20} isAnimationActive />
           </RadialBarChart>
         </ResponsiveContainer>
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            pointerEvents: "none",
-          }}
-        >
-          <span
-            className="tabular"
-            style={{
-              fontSize: 38,
-              fontWeight: 700,
-              color: C.teal,
-              letterSpacing: "-0.04em",
-              lineHeight: 1,
-            }}
-          >
-            {loading ? "—" : health.score}
-          </span>
-          <span style={{ fontSize: 10, color: C.textMute, marginTop: 2, letterSpacing: "0.1em" }}>
-            / 100
-          </span>
+        <div style={centerOverlay}>
+          {loading ? (
+            <span className="skeleton" style={{ width: 60, height: 38 }} />
+          ) : (
+            <>
+              <span
+                className="tabular"
+                style={{
+                  fontSize: 40,
+                  fontWeight: 700,
+                  color: t.teal,
+                  letterSpacing: "-0.04em",
+                  lineHeight: 1,
+                }}
+              >
+                {health.score}
+              </span>
+              <span style={{ fontSize: 10, color: t.textMute, marginTop: 2, letterSpacing: "0.1em" }}>
+                / 100
+              </span>
+            </>
+          )}
         </div>
       </div>
 
       {!loading && health.reasons.length > 0 && (
-        <p style={{ fontSize: 11.5, color: C.textDim, margin: "10px 0 0", lineHeight: 1.5 }}>
+        <p style={{ fontSize: 11.5, color: t.textDim, margin: "10px 0 0", lineHeight: 1.5 }}>
           {health.reasons[0]}
         </p>
       )}
@@ -614,95 +702,90 @@ const HEALTH_LABEL: Record<Health["tier"], string> = {
   unknown: "Sem dados",
 };
 
-// ─── KPI Card with inline sparkline ──────────────────────────────
+const centerOverlay: React.CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  pointerEvents: "none",
+};
+
+// ─── KPI Card ────────────────────────────────────────────────────
 
 function KpiCard({
   label,
   value,
   sub,
   spark,
-  color,
-  sparkColor,
+  accentVar,
   icon,
   highlight,
+  loading,
 }: {
   label: string;
   value: string;
   sub?: string;
   spark: number[];
-  color: string;
-  sparkColor: string;
+  accentVar: "teal" | "tealMid" | "mint";
   icon?: React.ReactNode;
   highlight?: boolean;
+  loading?: boolean;
 }) {
+  const t = useTokens();
+  const color = t[accentVar];
+  const sparkColor = accentVar === "mint" ? t.tealMid : t.mint;
   const sparkData = spark.length > 0 ? spark.map((v, i) => ({ i, v })) : [{ i: 0, v: 0 }];
-  const gradId = `spark-${label.replace(/\W/g, "")}-${sparkColor.replace("#", "")}`;
+  const gradId = useRef(`spark-${Math.random().toString(36).slice(2, 9)}`).current;
+
   return (
     <div
       className="arc-card"
       style={{
         padding: "20px 20px 0",
-        minHeight: 220,
+        minHeight: 230,
         display: "flex",
         flexDirection: "column",
         gap: 10,
         background: highlight
-          ? `linear-gradient(180deg, ${C.mintSoft} 0%, ${C.surface} 55%)`
-          : C.surface,
+          ? `linear-gradient(180deg, ${t.mintSoft} 0%, ${t.surface} 60%)`
+          : t.surface,
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <p
-          style={{
-            fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-            fontSize: 10.5,
-            color: C.textMute,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            fontWeight: 600,
-            margin: 0,
-          }}
-        >
-          {label}
-        </p>
+        <Eyebrow>{label}</Eyebrow>
         {icon && (
-          <span
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: 7,
-              background: `${sparkColor}22`,
-              color: color,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <IconChip color={color} bg={`${sparkColor}22`}>
             {icon}
-          </span>
+          </IconChip>
         )}
       </div>
-      <span
-        className="tabular"
-        style={{
-          fontSize: 32,
-          fontWeight: 700,
-          color: C.teal,
-          letterSpacing: "-0.03em",
-          lineHeight: 1.05,
-        }}
-      >
-        {value}
-      </span>
-      {sub && (
-        <p style={{ fontSize: 11.5, color: C.textMute, margin: 0, lineHeight: 1.4 }}>{sub}</p>
+      {loading ? (
+        <span className="skeleton" style={{ width: "60%", height: 32 }} />
+      ) : (
+        <span
+          className="tabular"
+          style={{
+            fontSize: 32,
+            fontWeight: 700,
+            color: t.teal,
+            letterSpacing: "-0.03em",
+            lineHeight: 1.05,
+          }}
+        >
+          {value}
+        </span>
+      )}
+      {sub && !loading && (
+        <p style={{ fontSize: 11.5, color: t.textMute, margin: 0, lineHeight: 1.4 }}>{sub}</p>
       )}
       <div style={{ height: 54, marginTop: "auto", marginLeft: -20, marginRight: -20 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={sparkData}>
             <defs>
               <linearGradient id={gradId} x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0%" stopColor={sparkColor} stopOpacity={0.35} />
+                <stop offset="0%" stopColor={sparkColor} stopOpacity={0.3} />
                 <stop offset="100%" stopColor={sparkColor} stopOpacity={1} />
               </linearGradient>
             </defs>
@@ -732,31 +815,18 @@ function PlatformDonut({
   metaShare: number;
   loading: boolean;
 }) {
-  const googleColor = "#FBBF24";
-  const metaColor = "#2563EB";
+  const t = useTokens();
   const data = [
-    { name: "Google", value: googleShare * 100, color: googleColor },
-    { name: "Meta", value: metaShare * 100, color: metaColor },
+    { name: "Google", value: googleShare * 100, color: t.googleColor },
+    { name: "Meta", value: metaShare * 100, color: t.metaColor },
   ];
   const lead = googleShare >= metaShare ? "Google" : "Meta";
   const leadShare = Math.max(googleShare, metaShare);
 
   return (
-    <div className="arc-card" style={{ padding: "22px 20px 18px", minHeight: 220, position: "relative" }}>
-      <p
-        style={{
-          fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-          fontSize: 10.5,
-          color: C.textMute,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          fontWeight: 600,
-          margin: 0,
-        }}
-      >
-        Distribuição
-      </p>
-      <div style={{ position: "relative", height: 120, marginTop: 6 }}>
+    <div className="arc-card" style={{ padding: "22px 20px 18px", minHeight: 230, position: "relative" }}>
+      <Eyebrow>Distribuição</Eyebrow>
+      <div style={{ position: "relative", height: 130, marginTop: 6 }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -775,37 +845,34 @@ function PlatformDonut({
             </Pie>
           </PieChart>
         </ResponsiveContainer>
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            pointerEvents: "none",
-          }}
-        >
-          <span className="tabular" style={{ fontSize: 24, fontWeight: 700, color: C.teal, lineHeight: 1, letterSpacing: "-0.02em" }}>
-            {loading ? "—" : `${Math.round(leadShare * 100)}%`}
-          </span>
-          <span style={{ fontSize: 10, color: C.textMute, marginTop: 3 }}>{lead}</span>
+        <div style={centerOverlay}>
+          {loading ? (
+            <span className="skeleton" style={{ width: 48, height: 24 }} />
+          ) : (
+            <>
+              <span className="tabular" style={{ fontSize: 26, fontWeight: 700, color: t.teal, lineHeight: 1, letterSpacing: "-0.02em" }}>
+                {Math.round(leadShare * 100)}%
+              </span>
+              <span style={{ fontSize: 10, color: t.textMute, marginTop: 3 }}>{lead}</span>
+            </>
+          )}
         </div>
       </div>
       <div style={{ display: "flex", gap: 14, marginTop: 8, flexWrap: "wrap" }}>
-        <Legend color={googleColor} label="Google" value={`${Math.round(googleShare * 100)}%`} />
-        <Legend color={metaColor} label="Meta" value={`${Math.round(metaShare * 100)}%`} />
+        <Legend color={t.googleColor} label="Google" value={`${Math.round(googleShare * 100)}%`} />
+        <Legend color={t.metaColor} label="Meta" value={`${Math.round(metaShare * 100)}%`} />
       </div>
     </div>
   );
 }
 
 function Legend({ color, label, value }: { color: string; label: string; value: string }) {
+  const t = useTokens();
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
       <span style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
-      <span style={{ fontSize: 11, color: C.textDim, fontWeight: 500 }}>{label}</span>
-      <span className="tabular" style={{ fontSize: 11.5, color: C.teal, fontWeight: 600 }}>{value}</span>
+      <span style={{ fontSize: 11, color: t.textDim, fontWeight: 500 }}>{label}</span>
+      <span className="tabular" style={{ fontSize: 11.5, color: t.teal, fontWeight: 600 }}>{value}</span>
     </div>
   );
 }
@@ -816,11 +883,12 @@ type InsightTone = "good" | "neutral" | "warn" | "danger";
 type Insight = { tone: InsightTone; title: string; body: string };
 
 function InsightCard({ insight }: { insight: Insight }) {
+  const t = useTokens();
   const palette: Record<InsightTone, { color: string; bg: string; border: string }> = {
-    good: { color: C.tealMid, bg: C.mintSoft, border: "rgba(126,212,212,0.5)" },
-    neutral: { color: C.tealMid, bg: C.surface, border: C.border },
-    warn: { color: C.amber, bg: C.amberSoft, border: "rgba(245,158,11,0.35)" },
-    danger: { color: C.red, bg: C.redSoft, border: "rgba(220,38,38,0.30)" },
+    good: { color: t.tealMid, bg: t.mintSoft, border: `${t.mint}88` },
+    neutral: { color: t.tealMid, bg: t.surface, border: t.border },
+    warn: { color: t.amber, bg: t.amberSoft, border: `${t.amber}55` },
+    danger: { color: t.red, bg: t.redSoft, border: `${t.red}55` },
   };
   const p = palette[insight.tone];
   const Icon = insight.tone === "good" ? TrendingUp
@@ -839,21 +907,9 @@ function InsightCard({ insight }: { insight: Insight }) {
         borderColor: p.border,
       }}
     >
-      <div
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: 10,
-          background: p.bg,
-          color: p.color,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
+      <IconChip color={p.color} bg={p.bg}>
         <Icon size={16} strokeWidth={2} />
-      </div>
+      </IconChip>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p
           style={{
@@ -868,7 +924,7 @@ function InsightCard({ insight }: { insight: Insight }) {
         >
           {insight.title}
         </p>
-        <p style={{ fontSize: 13.5, color: C.text, margin: "5px 0 0", lineHeight: 1.55 }}>
+        <p style={{ fontSize: 13.5, color: t.text, margin: "5px 0 0", lineHeight: 1.55 }}>
           {insight.body}
         </p>
       </div>
@@ -886,40 +942,169 @@ function InsightsLoading() {
       }}
     >
       {[0, 1, 2].map((i) => (
-        <div key={i} className="arc-card" style={{ padding: "18px 20px", minHeight: 88, opacity: 0.4 }} />
+        <div key={i} className="arc-card" style={{ padding: "18px 20px", minHeight: 92, opacity: 0.5 }}>
+          <span className="skeleton" style={{ display: "block", height: 12, width: "40%", marginBottom: 10 }} />
+          <span className="skeleton" style={{ display: "block", height: 12, width: "85%", marginBottom: 6 }} />
+          <span className="skeleton" style={{ display: "block", height: 12, width: "65%" }} />
+        </div>
       ))}
     </div>
   );
 }
 
-function EmptyInsights() {
+function EmptyState({ text }: { text: string }) {
+  const t = useTokens();
   return (
     <div
       style={{
-        background: C.surface,
-        border: `1px dashed ${C.borderHi}`,
+        background: t.surface,
+        border: `1px dashed ${t.borderHi}`,
         borderRadius: 16,
-        padding: "32px",
+        padding: "40px 32px",
         textAlign: "center",
-        color: C.textMute,
+        color: t.textMute,
         fontSize: 13.5,
       }}
     >
-      Sem dados suficientes pra gerar insights nesse período.
+      {text}
     </div>
   );
 }
 
-// ─── SectionTitle ────────────────────────────────────────────────
+// ─── Evolution Chart ─────────────────────────────────────────────
+
+function EvolutionChart({
+  data,
+  loading,
+}: {
+  data: Array<{ date: string; spend: number; clicks: number }>;
+  loading: boolean;
+}) {
+  const t = useTokens();
+  if (loading) {
+    return (
+      <div className="arc-card" style={{ padding: 20, height: 320 }}>
+        <span className="skeleton" style={{ display: "block", width: "100%", height: "100%", borderRadius: 14 }} />
+      </div>
+    );
+  }
+  if (!data || data.length === 0) {
+    return <EmptyState text="Sem dados de evolução no período." />;
+  }
+  const fmtDate = (raw: string) => {
+    const parts = raw.split("-");
+    return `${parts[2]}/${parts[1]}`;
+  };
+  return (
+    <div className="arc-card" style={{ padding: 20 }}>
+      <ResponsiveContainer width="100%" height={300}>
+        <ComposedChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
+          <defs>
+            <linearGradient id="spendArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={t.tealMid} stopOpacity={0.32} />
+              <stop offset="100%" stopColor={t.tealMid} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke={t.divider} vertical={false} />
+          <XAxis
+            dataKey="date"
+            tickFormatter={fmtDate}
+            tick={{ fontSize: 11, fill: t.textMute }}
+            stroke={t.border}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            yAxisId="clicks"
+            orientation="left"
+            tick={{ fontSize: 11, fill: t.textMute }}
+            stroke={t.border}
+            axisLine={false}
+            tickLine={false}
+            tickFormatter={(v) => Number(v).toLocaleString("pt-BR")}
+          />
+          <YAxis
+            yAxisId="spend"
+            orientation="right"
+            tick={{ fontSize: 11, fill: t.textMute }}
+            stroke={t.border}
+            axisLine={false}
+            tickLine={false}
+            tickFormatter={(v) =>
+              Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })
+            }
+          />
+          <Tooltip
+            contentStyle={{
+              background: t.surface,
+              border: `1px solid ${t.borderHi}`,
+              borderRadius: 12,
+              fontSize: 12.5,
+              color: t.text,
+              boxShadow: t.shadowHi,
+            }}
+            labelStyle={{ color: t.textMute, fontSize: 11, marginBottom: 4 }}
+            labelFormatter={(raw) => fmtDate(String(raw ?? ""))}
+            formatter={(value, name) => {
+              const label = String(name ?? "");
+              if (label === "Cliques") return [Number(value).toLocaleString("pt-BR"), label];
+              if (label === "Investimento")
+                return [
+                  Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }),
+                  label,
+                ];
+              return [String(value), label];
+            }}
+          />
+          <Area
+            yAxisId="spend"
+            type="monotone"
+            dataKey="spend"
+            name="Investimento"
+            fill="url(#spendArea)"
+            stroke="none"
+            isAnimationActive
+          />
+          <Line
+            yAxisId="clicks"
+            type="monotone"
+            dataKey="clicks"
+            name="Cliques"
+            stroke={t.teal}
+            strokeWidth={2.5}
+            dot={false}
+            activeDot={{ r: 5, fill: t.teal, stroke: t.surface, strokeWidth: 2 }}
+            isAnimationActive
+          />
+          <Line
+            yAxisId="spend"
+            type="monotone"
+            dataKey="spend"
+            name="Investimento"
+            stroke={t.tealMid}
+            strokeWidth={2}
+            strokeDasharray="4 4"
+            dot={false}
+            activeDot={{ r: 4 }}
+            isAnimationActive
+          />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// ─── SectionTitle, Eyebrow, IconChip ─────────────────────────────
 
 function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
+  const t = useTokens();
   return (
     <div style={{ marginBottom: 18 }}>
       <p
         style={{
           fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
           fontSize: 10.5,
-          color: C.tealMid,
+          color: t.tealMid,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
           fontWeight: 600,
@@ -929,7 +1114,7 @@ function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
           gap: 10,
         }}
       >
-        <span style={{ width: 18, height: 1, background: C.tealMid }} />
+        <span style={{ width: 18, height: 1, background: t.tealMid }} />
         {eyebrow}
       </p>
       <h2
@@ -937,7 +1122,7 @@ function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
           fontSize: 24,
           fontWeight: 700,
           letterSpacing: "-0.025em",
-          color: C.teal,
+          color: t.teal,
           margin: "6px 0 0",
           lineHeight: 1.2,
         }}
@@ -945,6 +1130,45 @@ function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
         {title}
       </h2>
     </div>
+  );
+}
+
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  const t = useTokens();
+  return (
+    <p
+      style={{
+        fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+        fontSize: 10.5,
+        color: t.textMute,
+        letterSpacing: "0.18em",
+        textTransform: "uppercase",
+        fontWeight: 600,
+        margin: 0,
+      }}
+    >
+      {children}
+    </p>
+  );
+}
+
+function IconChip({ children, color, bg }: { children: React.ReactNode; color: string; bg: string }) {
+  return (
+    <span
+      style={{
+        width: 30,
+        height: 30,
+        borderRadius: 9,
+        background: bg,
+        color,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      {children}
+    </span>
   );
 }
 
@@ -959,14 +1183,16 @@ function PlatformTab({
   label: string;
   dotColor: string;
 }) {
+  const t = useTokens();
   return (
     <button
       onClick={onClick}
+      className="focus-ring"
       style={{
         padding: "8px 18px 8px 14px",
         borderRadius: 9,
-        background: active ? C.teal : "transparent",
-        color: active ? C.surface : C.textDim,
+        background: active ? t.teal : "transparent",
+        color: active ? (t.teal === "#7ED4D4" ? "#0A1419" : "#FFFFFF") : t.textDim,
         border: "none",
         fontSize: 13,
         fontWeight: active ? 600 : 500,
@@ -981,6 +1207,629 @@ function PlatformTab({
       <span style={{ width: 7, height: 7, borderRadius: 999, background: dotColor }} />
       {label}
     </button>
+  );
+}
+
+// ─── Account Header Strip ────────────────────────────────────────
+
+function AccountStrip({
+  platform,
+  accountName,
+  currency,
+  dotColor,
+  mini,
+}: {
+  platform: string;
+  accountName: string;
+  currency: string;
+  dotColor: string;
+  mini: { label: string; value: string }[];
+}) {
+  const t = useTokens();
+  return (
+    <div
+      className="arc-card"
+      style={{
+        padding: "20px 22px",
+        marginBottom: 16,
+        display: "flex",
+        alignItems: "center",
+        gap: 24,
+        flexWrap: "wrap",
+      }}
+    >
+      <div style={{ flex: "1 1 240px", minWidth: 240 }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <span style={{ width: 8, height: 8, borderRadius: 999, background: dotColor }} />
+          <span
+            style={{
+              fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+              fontSize: 10.5,
+              color: t.textMute,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              fontWeight: 600,
+            }}
+          >
+            {platform} · {currency}
+          </span>
+        </div>
+        <p style={{ fontSize: 18, fontWeight: 700, color: t.teal, margin: "4px 0 0", letterSpacing: "-0.015em" }}>
+          {accountName}
+        </p>
+      </div>
+      <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+        {mini.map((m) => (
+          <div key={m.label}>
+            <p
+              style={{
+                fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                fontSize: 9.5,
+                color: t.textMute,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                fontWeight: 600,
+                margin: 0,
+              }}
+            >
+              {m.label}
+            </p>
+            <p className="tabular" style={{ fontSize: 18, fontWeight: 700, color: t.text, margin: "2px 0 0", letterSpacing: "-0.02em" }}>
+              {m.value}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Modern Table ────────────────────────────────────────────────
+
+function ArcTable({
+  columns,
+  rows,
+  emptyText,
+  loading,
+}: {
+  columns: Array<{ key: string; label: string; align?: "left" | "right" | "center"; width?: string }>;
+  rows: Array<Array<React.ReactNode>>;
+  emptyText: string;
+  loading?: boolean;
+}) {
+  const t = useTokens();
+  return (
+    <div
+      className="arc-card"
+      style={{ padding: 0, overflow: "hidden" }}
+    >
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead style={{ background: t.surfaceAlt }}>
+            <tr>
+              {columns.map((c) => (
+                <th
+                  key={c.key}
+                  style={{
+                    textAlign: c.align || "left",
+                    padding: "14px 18px",
+                    fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                    fontSize: 10.5,
+                    color: t.textMute,
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    fontWeight: 600,
+                    borderBottom: `1px solid ${t.divider}`,
+                    whiteSpace: "nowrap",
+                    width: c.width,
+                  }}
+                >
+                  {c.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              [0, 1, 2].map((i) => (
+                <tr key={i}>
+                  {columns.map((c, j) => (
+                    <td key={j} style={{ padding: "14px 18px", borderBottom: `1px solid ${t.divider}` }}>
+                      <span className="skeleton" style={{ display: "block", height: 12, width: j === 0 ? "80%" : "50%" }} />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : rows.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  style={{ padding: "32px 16px", textAlign: "center", color: t.textMute, fontStyle: "italic" }}
+                >
+                  {emptyText}
+                </td>
+              </tr>
+            ) : (
+              rows.map((row, i) => (
+                <tr key={i} className="arc-table-row" style={{ borderBottom: `1px solid ${t.divider}` }}>
+                  {row.map((cell, j) => (
+                    <td
+                      key={j}
+                      style={{
+                        padding: "14px 18px",
+                        textAlign: columns[j].align || "left",
+                        color: t.text,
+                        fontFamily:
+                          columns[j].align === "right"
+                            ? "ui-monospace, 'JetBrains Mono', monospace"
+                            : "inherit",
+                        fontSize: columns[j].align === "right" ? 12.5 : 13,
+                        whiteSpace: "nowrap",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── Pills ───────────────────────────────────────────────────────
+
+function Pill({ children, tone = "neutral" }: { children: React.ReactNode; tone?: "neutral" | "good" | "warn" | "danger" | "accent" }) {
+  const t = useTokens();
+  const palette = {
+    neutral: { bg: t.hover, color: t.textDim },
+    good: { bg: t.mintSoft, color: t.tealMid },
+    warn: { bg: t.amberSoft, color: t.amber },
+    danger: { bg: t.redSoft, color: t.red },
+    accent: { bg: `${t.tealMid}1F`, color: t.tealMid },
+  };
+  const p = palette[tone];
+  return (
+    <span
+      style={{
+        fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+        fontSize: 9.5,
+        fontWeight: 600,
+        textTransform: "uppercase",
+        letterSpacing: "0.12em",
+        padding: "3px 9px",
+        borderRadius: 999,
+        background: p.bg,
+        color: p.color,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function QualityDot({ tier }: { tier: "good" | "warn" | "bad" | "unknown" }) {
+  const t = useTokens();
+  const color = tier === "good" ? t.tealMid : tier === "warn" ? t.amber : tier === "bad" ? t.red : t.textMute;
+  const label = tier === "good" ? "Boa qualidade" : tier === "warn" ? "Atenção" : tier === "bad" ? "Precisa otimizar" : "Sem dados";
+  return (
+    <span
+      title={label}
+      aria-label={label}
+      style={{
+        display: "inline-block",
+        width: 10,
+        height: 10,
+        borderRadius: 999,
+        background: color,
+        boxShadow: `0 0 0 3px ${color}22`,
+      }}
+    />
+  );
+}
+
+// ─── Collapsible Header ──────────────────────────────────────────
+
+function Collapsible({
+  eyebrow,
+  title,
+  open,
+  onToggle,
+  disabled = false,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  open: boolean;
+  onToggle: () => void;
+  disabled?: boolean;
+  children?: React.ReactNode;
+}) {
+  const t = useTokens();
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <button
+        onClick={disabled ? undefined : onToggle}
+        disabled={disabled}
+        className="focus-ring"
+        style={{
+          width: "100%",
+          padding: "16px 20px",
+          background: t.surface,
+          border: `1px solid ${t.border}`,
+          borderRadius: open ? "16px 16px 0 0" : 16,
+          textAlign: "left",
+          cursor: disabled ? "default" : "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          opacity: disabled ? 0.6 : 1,
+          marginBottom: open ? -1 : 0,
+          fontFamily: "inherit",
+          boxShadow: t.shadow,
+          transition: "background 0.15s ease",
+        }}
+      >
+        <div>
+          <Eyebrow>{eyebrow}</Eyebrow>
+          <span style={{ fontSize: 14, color: t.text, marginTop: 4, display: "block", fontWeight: 500 }}>
+            {title}
+          </span>
+        </div>
+        {!disabled && (open ? <ChevronUp size={16} color={t.textMute} /> : <ChevronDown size={16} color={t.textMute} />)}
+      </button>
+      {open && children}
+    </div>
+  );
+}
+
+// ─── ADMIN GOOGLE DETAIL ─────────────────────────────────────────
+
+function AdminGoogleDetail({ data, loading }: { data: GoogleData | null; loading: boolean }) {
+  const t = useTokens();
+  const [showKeywords, setShowKeywords] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+
+  if (loading && !data) return <DetailLoading />;
+  if (!data) return null;
+  if (data.note) return <EmptyState text={data.note} />;
+  if (data.error) return <ErrorState text={data.error} />;
+  if (!data.summary || !data.account) return <EmptyState text="Sem dados Google Ads no período." />;
+
+  const currency = data.account.currencyCode;
+  const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency, maximumFractionDigits: 2 });
+  const moneyShort = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency, maximumFractionDigits: 0 });
+  const num = (v: number) => v.toLocaleString("pt-BR");
+  const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
+  const s = data.summary;
+
+  const bestCtrId =
+    data.campaigns.length > 0
+      ? data.campaigns.reduce((a, b) => (b.ctr > a.ctr ? b : a)).campaignId
+      : null;
+  const mostConvId =
+    data.campaigns.length > 0 && data.campaigns.some((c) => c.conversions > 0)
+      ? data.campaigns.reduce((a, b) => (b.conversions > a.conversions ? b : a)).campaignId
+      : null;
+
+  return (
+    <div>
+      <AccountStrip
+        platform="Google Ads"
+        accountName={data.account.name}
+        currency={data.account.currencyCode}
+        dotColor={t.googleColor}
+        mini={[
+          { label: "Investimento", value: moneyShort(s.cost) },
+          { label: "Cliques", value: num(s.clicks) },
+          { label: "CTR", value: pct(s.ctr) },
+          { label: "CPC médio", value: money(s.averageCpc) },
+          { label: "Conversões", value: num(s.conversions) },
+        ]}
+      />
+
+      {/* Campanhas */}
+      <h3 style={{ fontSize: 14, fontWeight: 600, color: t.text, margin: "24px 0 12px", letterSpacing: "-0.01em" }}>
+        Campanhas
+      </h3>
+      <ArcTable
+        columns={[
+          { key: "name", label: "Campanha" },
+          { key: "imp", label: "Impressões", align: "right" },
+          { key: "clk", label: "Cliques", align: "right" },
+          { key: "ctr", label: "CTR", align: "right" },
+          { key: "cpc", label: "CPC", align: "right" },
+          { key: "conv", label: "Conv.", align: "right" },
+          { key: "cost", label: "Custo", align: "right" },
+        ]}
+        rows={data.campaigns.map((c) => [
+          <span key="n" style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ color: t.text }}>{c.campaignName}</span>
+            {c.campaignId === bestCtrId && <Pill tone="good">Melhor CTR</Pill>}
+            {c.campaignId === mostConvId && <Pill tone="accent">Top conversões</Pill>}
+          </span>,
+          num(c.impressions),
+          num(c.clicks),
+          pct(c.ctr),
+          money(c.averageCpc),
+          num(c.conversions),
+          <strong key="cost" style={{ color: t.teal, fontWeight: 600 }}>{money(c.cost)}</strong>,
+        ])}
+        emptyText="Nenhuma campanha no período."
+      />
+
+      {/* Keywords colapsável */}
+      <div style={{ marginTop: 24 }}>
+        <Collapsible
+          eyebrow="Palavras-chave"
+          title={`Top ${data.keywords.length} por impressões`}
+          open={showKeywords}
+          onToggle={() => setShowKeywords((v) => !v)}
+          disabled={data.keywords.length === 0}
+        >
+          <div style={{ borderRadius: "0 0 16px 16px", overflow: "hidden", border: `1px solid ${t.border}`, borderTop: "none" }}>
+            <ArcTable
+              columns={[
+                { key: "kw", label: "Palavra-chave" },
+                { key: "match", label: "Tipo" },
+                { key: "camp", label: "Campanha" },
+                { key: "imp", label: "Impressões", align: "right" },
+                { key: "clk", label: "Cliques", align: "right" },
+                { key: "ctr", label: "CTR", align: "right" },
+                { key: "cpc", label: "CPC", align: "right" },
+                { key: "q", label: "Qualidade", align: "center" },
+              ]}
+              rows={data.keywords.map((k) => [
+                k.keywordText,
+                <Pill key="m" tone="neutral">{k.matchType.toLowerCase()}</Pill>,
+                k.campaignName,
+                num(k.impressions),
+                num(k.clicks),
+                pct(k.ctr),
+                money(k.averageCpc),
+                <QualityDot key="q" tier={k.qualityTier || "unknown"} />,
+              ])}
+              emptyText="Sem palavras-chave no período."
+            />
+          </div>
+        </Collapsible>
+      </div>
+
+      {/* Search terms colapsável */}
+      <div>
+        <Collapsible
+          eyebrow="Termos de busca"
+          title={
+            data.searchTerms.length > 0
+              ? `${data.searchTerms.length} termos que ativaram seus anúncios`
+              : "Sem termos disponíveis no período"
+          }
+          open={showTerms}
+          onToggle={() => setShowTerms((v) => !v)}
+          disabled={data.searchTerms.length === 0}
+        >
+          <div style={{ borderRadius: "0 0 16px 16px", overflow: "hidden", border: `1px solid ${t.border}`, borderTop: "none" }}>
+            <ArcTable
+              columns={[
+                { key: "t", label: "Termo buscado" },
+                { key: "c", label: "Campanha" },
+                { key: "clk", label: "Cliques", align: "right" },
+                { key: "ctr", label: "CTR", align: "right" },
+                { key: "cost", label: "Custo", align: "right" },
+              ]}
+              rows={data.searchTerms.map((tr) => [
+                tr.searchTerm,
+                tr.campaignName,
+                num(tr.clicks),
+                pct(tr.ctr),
+                <strong key="cost" style={{ color: t.teal, fontWeight: 600 }}>{money(tr.cost)}</strong>,
+              ])}
+              emptyText="Sem termos no período."
+            />
+            <p style={{ fontSize: 11.5, color: t.textMute, padding: "12px 18px", margin: 0, lineHeight: 1.5, background: t.surfaceAlt }}>
+              Termos com muitos cliques e poucas conversões viram negativas no próximo ajuste.
+            </p>
+          </div>
+        </Collapsible>
+      </div>
+    </div>
+  );
+}
+
+// ─── ADMIN META DETAIL ───────────────────────────────────────────
+
+function AdminMetaDetail({ data, loading }: { data: MetaData | null; loading: boolean }) {
+  const t = useTokens();
+
+  if (loading && !data) return <DetailLoading />;
+  if (!data) return null;
+  if (data.note) return <EmptyState text={data.note} />;
+  if (data.error) return <ErrorState text={data.error} />;
+  if (!data.summary || !data.account) return <EmptyState text="Sem dados Meta Ads no período." />;
+
+  const currency = data.account.currency || "BRL";
+  const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency, maximumFractionDigits: 2 });
+  const moneyShort = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency, maximumFractionDigits: 0 });
+  const num = (v: number) => v.toLocaleString("pt-BR");
+  const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
+  const decimal = (v: number, d = 1) => v.toLocaleString("pt-BR", { maximumFractionDigits: d, minimumFractionDigits: d });
+  const s = data.summary;
+
+  const freqTone: "good" | "warn" | "danger" = s.frequency >= 5 ? "danger" : s.frequency >= 3 ? "warn" : "good";
+  const bestCtrId =
+    data.campaigns.length > 0
+      ? data.campaigns.reduce((a, b) => (b.ctr > a.ctr ? b : a)).campaignId
+      : null;
+
+  return (
+    <div>
+      <AccountStrip
+        platform="Meta Ads"
+        accountName={data.account.name}
+        currency={data.account.currency}
+        dotColor={t.metaColor}
+        mini={[
+          { label: "Investimento", value: moneyShort(s.spend) },
+          { label: "Alcance", value: num(s.reach) },
+          { label: "CTR", value: pct(s.ctr) },
+          { label: "Frequência", value: `${decimal(s.frequency)}×` },
+          { label: "Resultados", value: num(s.results) },
+        ]}
+      />
+
+      {freqTone !== "good" && (
+        <div
+          style={{
+            background: freqTone === "danger" ? t.redSoft : t.amberSoft,
+            border: `1px solid ${freqTone === "danger" ? t.red : t.amber}55`,
+            borderRadius: 14,
+            padding: "14px 18px",
+            display: "flex",
+            gap: 12,
+            alignItems: "flex-start",
+            marginBottom: 16,
+          }}
+        >
+          <IconChip color={freqTone === "danger" ? t.red : t.amber} bg={freqTone === "danger" ? t.redSoft : t.amberSoft}>
+            <AlertCircle size={16} />
+          </IconChip>
+          <p style={{ fontSize: 13.5, color: t.text, margin: 0, lineHeight: 1.5 }}>
+            Frequência em <strong>{decimal(s.frequency)}×</strong>. Acima de 3 satura o público — refresh de criativo recomendado.
+          </p>
+        </div>
+      )}
+
+      <h3 style={{ fontSize: 14, fontWeight: 600, color: t.text, margin: "24px 0 12px", letterSpacing: "-0.01em" }}>
+        Campanhas
+      </h3>
+      <ArcTable
+        columns={[
+          { key: "name", label: "Campanha" },
+          { key: "imp", label: "Impressões", align: "right" },
+          { key: "clk", label: "Cliques", align: "right" },
+          { key: "ctr", label: "CTR", align: "right" },
+          { key: "cpm", label: "CPM", align: "right" },
+          { key: "cost", label: "Custo", align: "right" },
+        ]}
+        rows={data.campaigns.map((c) => [
+          <span key="n" style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ color: t.text }}>{c.campaignName}</span>
+            {c.campaignId === bestCtrId && c.clicks > 0 && <Pill tone="good">Melhor CTR</Pill>}
+          </span>,
+          num(c.impressions),
+          num(c.clicks),
+          pct(c.ctr),
+          money(c.cpm),
+          <strong key="cost" style={{ color: t.teal, fontWeight: 600 }}>{money(c.spend)}</strong>,
+        ])}
+        emptyText="Nenhuma campanha ativa no período."
+      />
+
+      <p style={{ fontSize: 11.5, color: t.textMute, marginTop: 12, lineHeight: 1.5 }}>
+        Alcance por campanha não é fornecido pela Meta — só no nível da conta.
+      </p>
+    </div>
+  );
+}
+
+function DetailLoading() {
+  return (
+    <div className="arc-card" style={{ padding: 28, minHeight: 200 }}>
+      <span className="skeleton" style={{ display: "block", height: 14, width: "30%", marginBottom: 12 }} />
+      <span className="skeleton" style={{ display: "block", height: 12, width: "60%", marginBottom: 8 }} />
+      <span className="skeleton" style={{ display: "block", height: 12, width: "50%" }} />
+    </div>
+  );
+}
+
+function ErrorState({ text }: { text: string }) {
+  const t = useTokens();
+  return (
+    <div
+      style={{
+        background: t.amberSoft,
+        border: `1px solid ${t.amber}55`,
+        borderRadius: 14,
+        padding: "20px 24px",
+        color: t.amber,
+        fontSize: 13.5,
+        display: "flex",
+        gap: 10,
+        alignItems: "flex-start",
+      }}
+    >
+      <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+      <span style={{ color: t.text }}>{text}</span>
+    </div>
+  );
+}
+
+// ─── AI Banner ───────────────────────────────────────────────────
+
+function AiBanner() {
+  const t = useTokens();
+  return (
+    <div
+      className="arc-card"
+      style={{
+        padding: "26px 30px",
+        display: "flex",
+        alignItems: "center",
+        gap: 22,
+        flexWrap: "wrap",
+        background: `linear-gradient(135deg, ${t.surface} 0%, ${t.mintSoft} 100%)`,
+        borderColor: `${t.mint}88`,
+      }}
+    >
+      <div
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: 16,
+          background: `linear-gradient(135deg, ${t.teal} 0%, ${t.tealMid} 100%)`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          boxShadow: `0 4px 12px ${t.teal}40`,
+        }}
+      >
+        <Sparkles size={22} color={t.theme === "dark" ? "#0A1419" : t.mint} strokeWidth={2.2} />
+      </div>
+      <div style={{ flex: 1, minWidth: 240 }}>
+        <Eyebrow>Próxima etapa</Eyebrow>
+        <p style={{ fontSize: 17, color: t.teal, margin: "6px 0 4px", fontWeight: 600, letterSpacing: "-0.01em" }}>
+          Análise sênior gerada por IA
+        </p>
+        <p style={{ fontSize: 13.5, color: t.textDim, margin: 0, lineHeight: 1.55, maxWidth: 540 }}>
+          Diagnóstico em prosa, recomendações priorizadas e rascunho de relatório semanal — direto desse painel.
+        </p>
+      </div>
+      <button
+        disabled
+        style={{
+          padding: "11px 20px",
+          borderRadius: 12,
+          background: t.surface,
+          color: t.textMute,
+          border: `1px solid ${t.border}`,
+          fontSize: 13,
+          fontWeight: 500,
+          fontFamily: "inherit",
+          cursor: "not-allowed",
+        }}
+      >
+        Em breve
+      </button>
+    </div>
   );
 }
 
@@ -1195,3 +2044,4 @@ function computeInsights(
 
   return out.slice(0, 6);
 }
+
