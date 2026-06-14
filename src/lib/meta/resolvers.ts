@@ -169,16 +169,24 @@ export function getStartTrial(insights: AnyInsights): number {
 // ─── Métricas Instagram (tráfego pra perfil, seguidores) ─────────
 
 /**
- * Visitas ao perfil — usado em campanhas de tráfego com destino "Perfil
- * do Instagram" ou "Página do Facebook". Vem em diferentes action_types
- * dependendo de como a campanha foi configurada.
+ * Visitas ao perfil — Meta usa diferentes action_types dependendo do
+ * tipo de campanha. Esta função tenta TODOS os possíveis:
+ *
+ *   - onsite_conversion.profile_visit (campaigns de TRAFFIC pro perfil)
+ *   - instagram_profile_visit / page_profile_visit
+ *   - link_click (quando destination_url é o perfil — fallback)
+ *   - page_view (campaigns de awareness pra página)
+ *   - onsite_conversion.page_visit
  */
 export function getProfileVisits(insights: AnyInsights): number {
   return sumActionValues(insights.actions, [
     "onsite_conversion.profile_visit",
     "instagram_profile_visit",
     "onsite_conversion.instagram_profile_visit",
-    "page_view",
+    "page_profile_visit",
+    "page_visit",
+    "onsite_conversion.page_visit",
+    "onsite_conversion.fb_pixel_profile_visit",
   ]);
 }
 
@@ -189,9 +197,13 @@ export function getCostPerProfileVisit(insights: AnyInsights): number {
 }
 
 /**
- * Seguidores ganhos — campanhas de engajamento ou tráfego com
- * "Seguir Página" como objetivo. Inclui Facebook page likes e
- * Instagram follows.
+ * Seguidores ganhos — Facebook page likes + Instagram follows.
+ * Action_types possíveis em diferentes versões da API:
+ *
+ *   - follow / onsite_conversion.follow
+ *   - like / page_like / onsite_conversion.page_like
+ *   - instagram_follow
+ *   - page_engagement (parcialmente — composite)
  */
 export function getFollows(insights: AnyInsights): number {
   return sumActionValues(insights.actions, [
@@ -200,6 +212,8 @@ export function getFollows(insights: AnyInsights): number {
     "like",
     "page_like",
     "onsite_conversion.page_like",
+    "instagram_follow",
+    "onsite_conversion.instagram_follow",
   ]);
 }
 
@@ -207,6 +221,23 @@ export function getCostPerFollow(insights: AnyInsights): number {
   const v = getFollows(insights);
   const spend = Number(insights.spend || 0);
   return v > 0 ? spend / v : 0;
+}
+
+/**
+ * Debug: retorna lista única de action_types vistos no payload, com
+ * valor total. Útil pra descobrir qual action_type Meta está realmente
+ * retornando pra um cliente específico (Brescancin etc).
+ */
+export function listActionTypes(insights: AnyInsights): Array<{ type: string; value: number }> {
+  if (!insights.actions) return [];
+  const map = new Map<string, number>();
+  for (const a of insights.actions) {
+    const v = Number(a.value || 0);
+    map.set(a.action_type, (map.get(a.action_type) || 0) + (Number.isFinite(v) ? v : 0));
+  }
+  return Array.from(map.entries())
+    .map(([type, value]) => ({ type, value }))
+    .sort((a, b) => b.value - a.value);
 }
 
 export function getLandingPageViews(insights: AnyInsights): number {
