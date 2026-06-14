@@ -379,6 +379,17 @@ export function AdminPerformanceView({
             <PlatformDonut googleShare={agg.googleShare} metaShare={agg.metaShare} loading={loading} />
           </section>
 
+          {/* Métricas Básicas (CTR, CPC, CPM, Frequência, Alcance, link clicks) */}
+          <section className="fade-up" style={{ animationDelay: "0.12s", marginBottom: 40 }}>
+            <SectionTitle eyebrow="Performance" title="CTR, CPC, CPM e alcance" />
+            <BasicMetricsGrid
+              googleData={googleData}
+              metaData={metaData}
+              loading={loading}
+              hidden={hiddenMetrics}
+            />
+          </section>
+
           {/* Métricas de Conversão (Receita, ROAS, CPL, Ticket Médio etc) */}
           <section className="fade-up" style={{ animationDelay: "0.13s", marginBottom: 40 }}>
             <SectionTitle eyebrow="Conversão e Financeiro" title="Receita, ROAS e custo por resultado" />
@@ -388,6 +399,23 @@ export function AdminPerformanceView({
               loading={loading}
               hidden={hiddenMetrics}
             />
+          </section>
+
+          {/* Engajamento e Tráfego (link clicks, landing page views, engagements) */}
+          <section className="fade-up" style={{ animationDelay: "0.135s", marginBottom: 40 }}>
+            <SectionTitle eyebrow="Engajamento" title="Cliques no link, visitas e interações" />
+            <EngagementMetricsGrid
+              googleData={googleData}
+              metaData={metaData}
+              loading={loading}
+              hidden={hiddenMetrics}
+            />
+          </section>
+
+          {/* Funil de Conversão Ecommerce (Meta) */}
+          <section className="fade-up" style={{ animationDelay: "0.137s", marginBottom: 40 }}>
+            <SectionTitle eyebrow="Funil de Conversão" title="ViewContent → Carrinho → Checkout → Compra" />
+            <EcommerceFunnelBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
           </section>
 
           {/* Análise de Vídeo (Meta) — Hook Rate, Hold Rate, ThruPlay, curva de retenção */}
@@ -682,10 +710,30 @@ function OrganizeButton({ onClick, hiddenCount }: { onClick: () => void; hiddenC
 
 // ─── Organize Modal ─────────────────────────────────────────────
 
-type OrganizeMetric = { id: string; label: string; category: "conversion" | "video" };
+type OrganizeMetric = {
+  id: string;
+  label: string;
+  category: "basic" | "engagement" | "conversion" | "funnel" | "video";
+};
 
 const ORGANIZE_METRICS: OrganizeMetric[] = [
-  // Conversão
+  // Básicas (Performance)
+  { id: "g_ctr", label: "CTR (Google)", category: "basic" },
+  { id: "g_cpc", label: "CPC (Google)", category: "basic" },
+  { id: "g_cpm", label: "CPM (Google)", category: "basic" },
+  { id: "m_ctr", label: "CTR (Meta)", category: "basic" },
+  { id: "m_cpc", label: "CPC (Meta)", category: "basic" },
+  { id: "m_cpm", label: "CPM (Meta)", category: "basic" },
+  { id: "m_reach", label: "Alcance (Meta)", category: "basic" },
+  { id: "m_frequency", label: "Frequência (Meta)", category: "basic" },
+  // Engajamento
+  { id: "m_link_clicks", label: "Cliques no link (Meta)", category: "engagement" },
+  { id: "m_lpv_eng", label: "Visitas ao site (Meta)", category: "engagement" },
+  { id: "m_lpv_rate", label: "Taxa de carregamento", category: "engagement" },
+  { id: "g_clicks", label: "Cliques (Google)", category: "engagement" },
+  { id: "g_impressions", label: "Impressões (Google)", category: "engagement" },
+  { id: "m_impressions", label: "Impressões (Meta)", category: "engagement" },
+  // Conversão e Financeiro
   { id: "g_revenue", label: "Receita (Google)", category: "conversion" },
   { id: "g_roas", label: "ROAS (Google)", category: "conversion" },
   { id: "g_cpa", label: "CPA (Google)", category: "conversion" },
@@ -694,18 +742,31 @@ const ORGANIZE_METRICS: OrganizeMetric[] = [
   { id: "m_leads", label: "Leads (Meta)", category: "conversion" },
   { id: "m_purchases", label: "Compras (Meta)", category: "conversion" },
   { id: "m_conversations", label: "Conversas (Meta)", category: "conversion" },
-  { id: "m_lpv", label: "Visitas ao site (Meta)", category: "conversion" },
+  { id: "m_lpv", label: "Visitas ao site (Conversão)", category: "conversion" },
+  // Funil ecommerce
+  { id: "f_view_content", label: "Visualizações de produto", category: "funnel" },
+  { id: "f_add_to_cart", label: "Adições ao carrinho", category: "funnel" },
+  { id: "f_initiate_checkout", label: "Inícios de checkout", category: "funnel" },
+  { id: "f_add_payment_info", label: "Info de pagamento", category: "funnel" },
+  { id: "f_purchases", label: "Compras (funil)", category: "funnel" },
+  { id: "f_complete_registration", label: "Cadastros completos", category: "funnel" },
+  { id: "f_page_conv_rate", label: "Taxa View → Carrinho", category: "funnel" },
+  { id: "f_cart_conv_rate", label: "Taxa Carrinho → Checkout", category: "funnel" },
+  { id: "f_checkout_conv_rate", label: "Taxa Checkout → Compra", category: "funnel" },
   // Vídeo
   { id: "v_hook", label: "Hook Rate", category: "video" },
   { id: "v_hold", label: "Hold Rate", category: "video" },
   { id: "v_thru", label: "ThruPlay Rate", category: "video" },
-  { id: "v_avg_time", label: "Tempo Médio", category: "video" },
+  { id: "v_avg_time", label: "Tempo Médio Assistido", category: "video" },
   { id: "v_cp_hook", label: "CP-Hook", category: "video" },
   { id: "v_cp_thru", label: "CP-ThruPlay", category: "video" },
 ];
 
 const CATEGORY_LABEL: Record<OrganizeMetric["category"], string> = {
+  basic: "Performance",
+  engagement: "Engajamento",
   conversion: "Conversão e Financeiro",
+  funnel: "Funil de Conversão (Ecommerce)",
   video: "Análise de Vídeo",
 };
 
@@ -2206,6 +2267,449 @@ function AiBanner() {
       >
         Em breve
       </button>
+    </div>
+  );
+}
+
+// ─── Ecommerce Funnel Block ─────────────────────────────────────
+
+function EcommerceFunnelBlock({
+  metaData,
+  loading,
+  hidden = new Set<string>(),
+}: {
+  metaData: MetaData | null;
+  loading: boolean;
+  hidden?: Set<string>;
+}) {
+  const t = useTokens();
+  const m = metaData?.summary as any;
+  const currency = metaData?.account?.currency || "BRL";
+
+  if (loading) return <KpiSkeletonGrid />;
+  if (!m || (m.viewContent || 0) + (m.addToCart || 0) + (m.initiateCheckout || 0) + (m.purchases || 0) === 0) {
+    return (
+      <EmptyState text="Sem eventos de funil ecommerce. Esse bloco aparece quando o pixel/CAPI registra ViewContent, AddToCart, InitiateCheckout ou Purchase." />
+    );
+  }
+
+  const tiles: Array<{
+    id: string;
+    label: string;
+    value: string;
+    sub?: string;
+    tooltip: string;
+    platformDot: string;
+    accent?: string;
+  }> = [];
+
+  if ((m.viewContent || 0) > 0) {
+    tiles.push({
+      id: "f_view_content",
+      label: "Visualizações de produto",
+      value: (m.viewContent || 0).toLocaleString("pt-BR"),
+      sub: `${fmtCurrency(m.costPerViewContent || 0, currency)} cada`,
+      tooltip: "Eventos ViewContent — pessoas que visitaram página de produto.",
+      platformDot: t.metaColor,
+    });
+  }
+  if ((m.addToCart || 0) > 0) {
+    tiles.push({
+      id: "f_add_to_cart",
+      label: "Adições ao carrinho",
+      value: (m.addToCart || 0).toLocaleString("pt-BR"),
+      sub: `${fmtCurrency(m.costPerAddToCart || 0, currency)} cada`,
+      tooltip: "Eventos AddToCart — adicionou produto ao carrinho.",
+      platformDot: t.metaColor,
+    });
+  }
+  if ((m.initiateCheckout || 0) > 0) {
+    tiles.push({
+      id: "f_initiate_checkout",
+      label: "Inícios de checkout",
+      value: (m.initiateCheckout || 0).toLocaleString("pt-BR"),
+      sub: `${fmtCurrency(m.costPerInitiateCheckout || 0, currency)} cada`,
+      tooltip: "Eventos InitiateCheckout — clicou pra finalizar compra. Sinal de alta intenção.",
+      platformDot: t.metaColor,
+    });
+  }
+  if ((m.addPaymentInfo || 0) > 0) {
+    tiles.push({
+      id: "f_add_payment_info",
+      label: "Info de pagamento",
+      value: (m.addPaymentInfo || 0).toLocaleString("pt-BR"),
+      sub: "passou da etapa cartão",
+      tooltip: "Eventos AddPaymentInfo — preencheu dados de pagamento. Último passo antes da compra.",
+      platformDot: t.metaColor,
+    });
+  }
+  if ((m.purchases || 0) > 0) {
+    tiles.push({
+      id: "f_purchases",
+      label: "Compras",
+      value: (m.purchases || 0).toLocaleString("pt-BR"),
+      sub: `${fmtCurrency(m.costPerPurchase || 0, currency)} cada`,
+      tooltip: "Eventos Purchase — compra finalizada.",
+      platformDot: t.metaColor,
+      accent: t.tealMid,
+    });
+  }
+  if ((m.completeRegistration || 0) > 0) {
+    tiles.push({
+      id: "f_complete_registration",
+      label: "Cadastros completos",
+      value: (m.completeRegistration || 0).toLocaleString("pt-BR"),
+      sub: `${fmtCurrency(m.costPerCompleteRegistration || 0, currency)} cada`,
+      tooltip: "Eventos CompleteRegistration — cadastro finalizado.",
+      platformDot: t.metaColor,
+    });
+  }
+
+  // Taxas de conversão entre etapas
+  const rates: Array<{ id: string; label: string; value: number; tooltip: string }> = [];
+  if ((m.viewContent || 0) > 0 && (m.addToCart || 0) > 0) {
+    rates.push({
+      id: "f_page_conv_rate",
+      label: "View → Carrinho",
+      value: m.productPageConversionRate || 0,
+      tooltip: "% das visitas à página de produto que viraram adição ao carrinho.",
+    });
+  }
+  if ((m.addToCart || 0) > 0 && (m.initiateCheckout || 0) > 0) {
+    rates.push({
+      id: "f_cart_conv_rate",
+      label: "Carrinho → Checkout",
+      value: m.cartConversionRate || 0,
+      tooltip: "% das adições ao carrinho que iniciaram checkout. Bom: 30-50%.",
+    });
+  }
+  if ((m.initiateCheckout || 0) > 0 && (m.purchases || 0) > 0) {
+    rates.push({
+      id: "f_checkout_conv_rate",
+      label: "Checkout → Compra",
+      value: m.checkoutConversionRate || 0,
+      tooltip: "% dos checkouts iniciados que viraram compra. Bom: 40-70%. Baixo = problema na finalização.",
+    });
+  }
+
+  const visibleTiles = tiles.filter((x) => !hidden.has(x.id));
+  const visibleRates = rates.filter((x) => !hidden.has(x.id));
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* KPIs do funil */}
+      {visibleTiles.length > 0 && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+            gap: 14,
+          }}
+        >
+          {visibleTiles.map((tile) => (
+            <SmallKpiTile key={tile.id} {...tile} />
+          ))}
+        </div>
+      )}
+
+      {/* Taxas de conversão entre etapas */}
+      {visibleRates.length > 0 && (
+        <div className="arc-card" style={{ padding: "20px 24px" }}>
+          <Eyebrow>Taxas de conversão entre etapas</Eyebrow>
+          <p style={{ fontSize: 12.5, color: t.textDim, margin: "6px 0 14px", lineHeight: 1.5 }}>
+            Onde o funil derrete. Tom em vermelho = abaixo do esperado pro mercado.
+          </p>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            {visibleRates.map((r) => {
+              const tone =
+                r.value >= 0.5 ? t.tealMid : r.value >= 0.2 ? t.amber : t.red;
+              return (
+                <div key={r.id} style={{ flex: "1 1 200px" }} title={r.tooltip}>
+                  <p
+                    style={{
+                      fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                      fontSize: 10,
+                      color: t.textMute,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      fontWeight: 600,
+                      margin: 0,
+                    }}
+                  >
+                    {r.label}
+                  </p>
+                  <p
+                    className="tabular"
+                    style={{
+                      fontSize: 26,
+                      fontWeight: 700,
+                      color: tone,
+                      margin: "6px 0 2px",
+                      letterSpacing: "-0.025em",
+                    }}
+                  >
+                    {(r.value * 100).toFixed(1)}%
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Basic Metrics Grid (CTR, CPC, CPM, Frequência, Alcance) ────
+
+function BasicMetricsGrid({
+  googleData,
+  metaData,
+  loading,
+  hidden = new Set<string>(),
+}: {
+  googleData: GoogleData | null;
+  metaData: MetaData | null;
+  loading: boolean;
+  hidden?: Set<string>;
+}) {
+  const t = useTokens();
+  const g = googleData?.summary as any;
+  const m = metaData?.summary as any;
+  const gCurr = googleData?.account?.currencyCode || "BRL";
+  const mCurr = metaData?.account?.currency || "BRL";
+
+  const tiles: Array<{
+    id: string;
+    label: string;
+    value: string;
+    sub?: string;
+    tooltip: string;
+    platformDot: string;
+    accent?: string;
+  }> = [];
+
+  if (g && g.cost > 0) {
+    tiles.push({
+      id: "g_ctr",
+      label: "CTR (Google)",
+      value: `${((g.ctr || 0) * 100).toFixed(2)}%`,
+      sub: g.ctr >= 0.03 ? "acima do esperado" : g.ctr >= 0.01 ? "ok" : "abaixo do mercado",
+      tooltip: "Taxa de Cliques. Quantos cliques aconteceram a cada 100 impressões.",
+      platformDot: t.googleColor,
+      accent: g.ctr >= 0.03 ? t.tealMid : g.ctr >= 0.01 ? undefined : t.amber,
+    });
+    tiles.push({
+      id: "g_cpc",
+      label: "CPC (Google)",
+      value: fmtCurrency(g.averageCpc || 0, gCurr),
+      sub: "custo médio por clique",
+      tooltip: "Quanto você paga em média por cada clique. Quanto menor, melhor.",
+      platformDot: t.googleColor,
+    });
+    tiles.push({
+      id: "g_cpm",
+      label: "CPM (Google)",
+      value: fmtCurrency(g.averageCpm || 0, gCurr),
+      sub: "custo por mil impressões",
+      tooltip: "Custo de cada 1.000 impressões. Indica inflação do leilão da plataforma.",
+      platformDot: t.googleColor,
+    });
+  }
+
+  if (m && m.spend > 0) {
+    tiles.push({
+      id: "m_ctr",
+      label: "CTR (Meta)",
+      value: `${((m.ctr || 0) * 100).toFixed(2)}%`,
+      sub: m.ctr >= 0.02 ? "acima do esperado" : m.ctr >= 0.01 ? "ok" : "abaixo do mercado",
+      tooltip: "Taxa de Cliques no Meta. Cliques ÷ impressões.",
+      platformDot: t.metaColor,
+      accent: m.ctr >= 0.02 ? t.tealMid : m.ctr >= 0.01 ? undefined : t.amber,
+    });
+    tiles.push({
+      id: "m_cpc",
+      label: "CPC (Meta)",
+      value: fmtCurrency(m.cpc || 0, mCurr),
+      sub: "custo médio por clique",
+      tooltip: "Custo médio por clique no Meta.",
+      platformDot: t.metaColor,
+    });
+    tiles.push({
+      id: "m_cpm",
+      label: "CPM (Meta)",
+      value: fmtCurrency(m.cpm || 0, mCurr),
+      sub: "custo por mil impressões",
+      tooltip: "Custo de cada 1.000 impressões no Meta.",
+      platformDot: t.metaColor,
+    });
+    tiles.push({
+      id: "m_reach",
+      label: "Alcance (Meta)",
+      value: compact(m.reach || 0),
+      sub: "pessoas únicas",
+      tooltip: "Pessoas únicas que viram seus anúncios. Diferente de impressões (que conta repetições).",
+      platformDot: t.metaColor,
+    });
+    if ((m.frequency || 0) > 0) {
+      const freq = m.frequency;
+      tiles.push({
+        id: "m_frequency",
+        label: "Frequência (Meta)",
+        value: `${freq.toFixed(1)}×`,
+        sub: freq >= 5 ? "crítica" : freq >= 3 ? "atenção" : "saudável",
+        tooltip: "Em média, quantas vezes cada pessoa viu seus anúncios. >3× cansa, >5× é crítico.",
+        platformDot: t.metaColor,
+        accent: freq >= 5 ? t.red : freq >= 3 ? t.amber : t.tealMid,
+      });
+    }
+  }
+
+  const visible = tiles.filter((x) => !hidden.has(x.id));
+
+  if (loading) return <KpiSkeletonGrid />;
+  if (tiles.length === 0) {
+    return <EmptyState text="Sem dados de performance no período." />;
+  }
+  if (visible.length === 0) {
+    return <EmptyState text="Todas as métricas de Performance estão ocultas. Use 'Organizar' pra ativar." />;
+  }
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+        gap: 14,
+      }}
+    >
+      {visible.map((tile) => (
+        <SmallKpiTile key={tile.id} {...tile} />
+      ))}
+    </div>
+  );
+}
+
+// ─── Engagement Metrics Grid ────────────────────────────────────
+
+function EngagementMetricsGrid({
+  googleData,
+  metaData,
+  loading,
+  hidden = new Set<string>(),
+}: {
+  googleData: GoogleData | null;
+  metaData: MetaData | null;
+  loading: boolean;
+  hidden?: Set<string>;
+}) {
+  const t = useTokens();
+  const g = googleData?.summary as any;
+  const m = metaData?.summary as any;
+  const gCurr = googleData?.account?.currencyCode || "BRL";
+  const mCurr = metaData?.account?.currency || "BRL";
+
+  const tiles: Array<{
+    id: string;
+    label: string;
+    value: string;
+    sub?: string;
+    tooltip: string;
+    platformDot: string;
+    accent?: string;
+  }> = [];
+
+  if (m && m.spend > 0) {
+    if ((m.linkClicks || 0) > 0) {
+      tiles.push({
+        id: "m_link_clicks",
+        label: "Cliques no link (Meta)",
+        value: (m.linkClicks || 0).toLocaleString("pt-BR"),
+        sub: "que levaram ao site",
+        tooltip: "Cliques que levaram ao seu site. Subset dos cliques totais.",
+        platformDot: t.metaColor,
+      });
+    }
+    if ((m.landingPageViews || 0) > 0) {
+      tiles.push({
+        id: "m_lpv_eng",
+        label: "Visitas ao site (Meta)",
+        value: (m.landingPageViews || 0).toLocaleString("pt-BR"),
+        sub: `${fmtCurrency(m.costPerLandingPageView || 0, mCurr)} cada`,
+        tooltip: "Pessoas que clicaram E carregaram o site (não bounce). Mede qualidade do tráfego.",
+        platformDot: t.metaColor,
+      });
+    }
+    // Bounce rate estimate (visits / link clicks)
+    if ((m.linkClicks || 0) > 0 && (m.landingPageViews || 0) > 0) {
+      const lpvRate = m.landingPageViews / m.linkClicks;
+      tiles.push({
+        id: "m_lpv_rate",
+        label: "Taxa de carregamento",
+        value: `${(lpvRate * 100).toFixed(1)}%`,
+        sub: lpvRate >= 0.85 ? "site rápido" : lpvRate >= 0.6 ? "ok" : "site lento",
+        tooltip: "Visitas ÷ cliques no link. Mede se quem clica realmente espera o site carregar.",
+        platformDot: t.metaColor,
+        accent: lpvRate >= 0.85 ? t.tealMid : lpvRate >= 0.6 ? undefined : t.amber,
+      });
+    }
+  }
+
+  if (g && g.cost > 0) {
+    if ((g.clicks || 0) > 0) {
+      tiles.push({
+        id: "g_clicks",
+        label: "Cliques (Google)",
+        value: (g.clicks || 0).toLocaleString("pt-BR"),
+        sub: "total de cliques",
+        tooltip: "Cliques nos anúncios Google (qualquer tipo).",
+        platformDot: t.googleColor,
+      });
+    }
+    if ((g.impressions || 0) > 0) {
+      tiles.push({
+        id: "g_impressions",
+        label: "Impressões (Google)",
+        value: compact(g.impressions || 0),
+        sub: "exibições do anúncio",
+        tooltip: "Quantas vezes seus anúncios apareceram no Google.",
+        platformDot: t.googleColor,
+      });
+    }
+  }
+
+  if (m && (m.impressions || 0) > 0) {
+    tiles.push({
+      id: "m_impressions",
+      label: "Impressões (Meta)",
+      value: compact(m.impressions || 0),
+      sub: "exibições do anúncio",
+      tooltip: "Quantas vezes seus anúncios apareceram no Meta.",
+      platformDot: t.metaColor,
+    });
+  }
+
+  const visible = tiles.filter((x) => !hidden.has(x.id));
+
+  if (loading) return <KpiSkeletonGrid />;
+  if (tiles.length === 0) {
+    return <EmptyState text="Sem dados de engajamento no período." />;
+  }
+  if (visible.length === 0) {
+    return <EmptyState text="Todas as métricas de Engajamento estão ocultas. Use 'Organizar' pra ativar." />;
+  }
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+        gap: 14,
+      }}
+    >
+      {visible.map((tile) => (
+        <SmallKpiTile key={tile.id} {...tile} />
+      ))}
     </div>
   );
 }
