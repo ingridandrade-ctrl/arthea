@@ -160,8 +160,14 @@ const num = (v: unknown): number => {
 // ─── Queries ─────────────────────────────────────────────────────
 
 /**
- * Totais agregados da conta no período. Inclui métricas avançadas:
- * receita, ROAS, CPM, vídeo (YouTube) com quartis e engagement.
+ * Totais agregados da conta no período.
+ *
+ * Nota Google Ads API v22: a query no nível `customer` só aceita métricas
+ * universais (válidas em todos os canais). Campos específicos de vídeo
+ * (video_views, video_view_rate, average_cpv, video_quartile_*) e de display
+ * (engagements, engagement_rate, view_through_conversions) só funcionam em
+ * `campaign`/`ad_group_ad`. Esses agregados, quando precisos, vêm da soma
+ * das linhas de getCampaignBreakdown no endpoint.
  */
 export async function getAccountSummary(
   ctx: GoogleAdsRequestContext,
@@ -177,17 +183,7 @@ export async function getAccountSummary(
       metrics.cost_micros,
       metrics.conversions,
       metrics.conversions_value,
-      metrics.cost_per_conversion,
-      metrics.video_views,
-      metrics.video_view_rate,
-      metrics.average_cpv,
-      metrics.video_quartile_p25_rate,
-      metrics.video_quartile_p50_rate,
-      metrics.video_quartile_p75_rate,
-      metrics.video_quartile_p100_rate,
-      metrics.view_through_conversions,
-      metrics.engagements,
-      metrics.engagement_rate
+      metrics.cost_per_conversion
     FROM customer
     WHERE segments.date DURING ${dateRange}
   `;
@@ -198,39 +194,16 @@ export async function getAccountSummary(
   let costMicros = 0;
   let conversions = 0;
   let conversionsValue = 0;
-  let videoViews = 0;
-  let viewThroughConversions = 0;
-  let engagements = 0;
-  // Médias ponderadas (acumular numerador, dividir pelo total no fim)
   let cpmNumerator = 0;
-  let viewRateNumerator = 0;
-  let cpvNumerator = 0;
-  let p25Num = 0;
-  let p50Num = 0;
-  let p75Num = 0;
-  let p100Num = 0;
-  let engagementRateNumerator = 0;
 
   for (const r of rows) {
     const imp = num(r.metrics?.impressions);
-    const v = num(r.metrics?.videoViews);
     impressions += imp;
     clicks += num(r.metrics?.clicks);
     costMicros += num(r.metrics?.costMicros);
     conversions += num(r.metrics?.conversions);
     conversionsValue += num(r.metrics?.conversionsValue);
-    videoViews += v;
-    viewThroughConversions += num(r.metrics?.viewThroughConversions);
-    engagements += num(r.metrics?.engagements);
-    // Ponderações
     cpmNumerator += num(r.metrics?.averageCpm) * imp;
-    viewRateNumerator += num(r.metrics?.videoViewRate) * imp;
-    cpvNumerator += microsToValue(r.metrics?.averageCpv) * v;
-    p25Num += num(r.metrics?.videoQuartileP25Rate) * v;
-    p50Num += num(r.metrics?.videoQuartileP50Rate) * v;
-    p75Num += num(r.metrics?.videoQuartileP75Rate) * v;
-    p100Num += num(r.metrics?.videoQuartileP100Rate) * v;
-    engagementRateNumerator += num(r.metrics?.engagementRate) * imp;
   }
 
   const cost = microsToValue(costMicros);
@@ -239,13 +212,6 @@ export async function getAccountSummary(
   const averageCpm = impressions > 0 ? cpmNumerator / impressions : 0;
   const costPerConversion = conversions > 0 ? cost / conversions : 0;
   const roas = cost > 0 ? conversionsValue / cost : 0;
-  const videoViewRate = impressions > 0 ? viewRateNumerator / impressions : 0;
-  const averageCpv = videoViews > 0 ? cpvNumerator / videoViews : 0;
-  const videoQuartileP25Rate = videoViews > 0 ? p25Num / videoViews : 0;
-  const videoQuartileP50Rate = videoViews > 0 ? p50Num / videoViews : 0;
-  const videoQuartileP75Rate = videoViews > 0 ? p75Num / videoViews : 0;
-  const videoQuartileP100Rate = videoViews > 0 ? p100Num / videoViews : 0;
-  const engagementRate = impressions > 0 ? engagementRateNumerator / impressions : 0;
 
   return {
     impressions,
@@ -258,16 +224,18 @@ export async function getAccountSummary(
     conversionsValue,
     roas,
     costPerConversion,
-    videoViews,
-    videoViewRate,
-    averageCpv,
-    videoQuartileP25Rate,
-    videoQuartileP50Rate,
-    videoQuartileP75Rate,
-    videoQuartileP100Rate,
-    viewThroughConversions,
-    engagements,
-    engagementRate,
+    // Vídeo / engagement zerados — agregados a partir do breakdown de
+    // campanhas no endpoint /api/google-ads/dashboard.
+    videoViews: 0,
+    videoViewRate: 0,
+    averageCpv: 0,
+    videoQuartileP25Rate: 0,
+    videoQuartileP50Rate: 0,
+    videoQuartileP75Rate: 0,
+    videoQuartileP100Rate: 0,
+    viewThroughConversions: 0,
+    engagements: 0,
+    engagementRate: 0,
   };
 }
 
@@ -286,6 +254,8 @@ export async function getCampaignBreakdown(
   const adminFields = includeAdminMetrics
     ? `, metrics.search_impression_share, metrics.search_top_impression_share, metrics.search_budget_lost_impression_share, metrics.search_rank_lost_impression_share`
     : "";
+  // Métricas universais (todos os channel_types). Vídeo é puxado via
+  // getVideoCampaignBreakdown quando tiver campanha VIDEO.
   const query = `
     SELECT
       campaign.id,
@@ -301,10 +271,7 @@ export async function getCampaignBreakdown(
       metrics.cost_micros,
       metrics.conversions,
       metrics.conversions_value,
-      metrics.cost_per_conversion,
-      metrics.video_views,
-      metrics.video_view_rate,
-      metrics.average_cpv${adminFields}
+      metrics.cost_per_conversion${adminFields}
     FROM campaign
     WHERE segments.date DURING ${dateRange}
     ORDER BY metrics.cost_micros DESC
@@ -332,9 +299,9 @@ export async function getCampaignBreakdown(
       conversionsValue,
       roas,
       costPerConversion: microsToValue(r.metrics?.costPerConversion),
-      videoViews: num(r.metrics?.videoViews),
-      videoViewRate: num(r.metrics?.videoViewRate),
-      averageCpv: microsToValue(r.metrics?.averageCpv),
+      videoViews: 0,
+      videoViewRate: 0,
+      averageCpv: 0,
       searchImpressionShare: includeAdminMetrics
         ? num(r.metrics?.searchImpressionShare) || null
         : null,
@@ -343,6 +310,64 @@ export async function getCampaignBreakdown(
         : null,
     };
   });
+}
+
+/**
+ * Performance específica de campanhas VIDEO (YouTube). Query separada
+ * porque campos de vídeo só funcionam quando o channel type é VIDEO.
+ * Retorna lista que pode ser correlacionada com getCampaignBreakdown via id.
+ */
+export type VideoCampaignMetrics = {
+  campaignId: string;
+  videoViews: number;
+  videoViewRate: number;
+  averageCpv: number;
+  videoQuartileP25Rate: number;
+  videoQuartileP50Rate: number;
+  videoQuartileP75Rate: number;
+  videoQuartileP100Rate: number;
+};
+
+export async function getVideoCampaignBreakdown(
+  ctx: GoogleAdsRequestContext,
+  dateRange: DateRangeKey,
+): Promise<VideoCampaignMetrics[]> {
+  const query = `
+    SELECT
+      campaign.id,
+      metrics.video_views,
+      metrics.video_view_rate,
+      metrics.average_cpv,
+      metrics.video_quartile_p25_rate,
+      metrics.video_quartile_p50_rate,
+      metrics.video_quartile_p75_rate,
+      metrics.video_quartile_p100_rate
+    FROM campaign
+    WHERE segments.date DURING ${dateRange}
+      AND campaign.advertising_channel_type = 'VIDEO'
+  `;
+  try {
+    const rows = await runGAQL(ctx, query);
+    return rows.map(
+      (r): VideoCampaignMetrics => ({
+        campaignId: String(r.campaign?.id ?? ""),
+        videoViews: num(r.metrics?.videoViews),
+        videoViewRate: num(r.metrics?.videoViewRate),
+        averageCpv: microsToValue(r.metrics?.averageCpv),
+        videoQuartileP25Rate: num(r.metrics?.videoQuartileP25Rate),
+        videoQuartileP50Rate: num(r.metrics?.videoQuartileP50Rate),
+        videoQuartileP75Rate: num(r.metrics?.videoQuartileP75Rate),
+        videoQuartileP100Rate: num(r.metrics?.videoQuartileP100Rate),
+      }),
+    );
+  } catch (err) {
+    // Conta sem campanhas VIDEO ativas no período retorna erro de UNRECOGNIZED_FIELD
+    // em alguns casos. Tratamos como vazio em vez de propagar.
+    if (err instanceof Error && /UNRECOGNIZED|VIDEO|empty/i.test(err.message)) {
+      return [];
+    }
+    return [];
+  }
 }
 
 /**
