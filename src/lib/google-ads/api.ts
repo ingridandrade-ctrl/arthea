@@ -70,23 +70,49 @@ export type AccountSummary = {
   clicks: number;
   ctr: number; // 0–1
   averageCpc: number; // BRL
+  averageCpm: number; // BRL
   cost: number; // BRL
   conversions: number;
+  conversionsValue: number; // Receita total
+  roas: number; // Receita / Investimento
   costPerConversion: number; // BRL
+  // Vídeo (YouTube)
+  videoViews: number;
+  videoViewRate: number; // views / impressões
+  averageCpv: number; // BRL
+  videoQuartileP25Rate: number;
+  videoQuartileP50Rate: number;
+  videoQuartileP75Rate: number;
+  videoQuartileP100Rate: number;
+  viewThroughConversions: number;
+  // Engagement (Display)
+  engagements: number;
+  engagementRate: number;
 };
 
 export type CampaignBreakdownRow = {
   campaignId: string;
   campaignName: string;
   status: string; // ENABLED | PAUSED | REMOVED
+  channelType: string; // SEARCH | DISPLAY | VIDEO | SHOPPING | PERFORMANCE_MAX | DEMAND_GEN
+  advertisingChannelSubType?: string;
   impressions: number;
   clicks: number;
   ctr: number;
   averageCpc: number;
+  averageCpm: number;
   cost: number;
   conversions: number;
+  conversionsValue: number;
+  roas: number;
   costPerConversion: number;
-  searchImpressionShare: number | null; // 0–1 (só admin)
+  // Vídeo
+  videoViews: number;
+  videoViewRate: number;
+  averageCpv: number;
+  // Admin / quality
+  searchImpressionShare: number | null;
+  searchTopImpressionShare: number | null;
 };
 
 export type KeywordPerformanceRow = {
@@ -120,6 +146,7 @@ export type DailyPerformanceRow = {
   clicks: number;
   cost: number;
   conversions: number;
+  conversionsValue: number;
 };
 
 // ─── Helpers de parse seguro ─────────────────────────────────────
@@ -133,8 +160,8 @@ const num = (v: unknown): number => {
 // ─── Queries ─────────────────────────────────────────────────────
 
 /**
- * Totais agregados da conta no período (impressões, cliques, CTR, CPC médio,
- * custo, conversões, custo por conversão).
+ * Totais agregados da conta no período. Inclui métricas avançadas:
+ * receita, ROAS, CPM, vídeo (YouTube) com quartis e engagement.
  */
 export async function getAccountSummary(
   ctx: GoogleAdsRequestContext,
@@ -146,33 +173,110 @@ export async function getAccountSummary(
       metrics.clicks,
       metrics.ctr,
       metrics.average_cpc,
+      metrics.average_cpm,
       metrics.cost_micros,
       metrics.conversions,
-      metrics.cost_per_conversion
+      metrics.conversions_value,
+      metrics.cost_per_conversion,
+      metrics.video_views,
+      metrics.video_view_rate,
+      metrics.average_cpv,
+      metrics.video_quartile_p25_rate,
+      metrics.video_quartile_p50_rate,
+      metrics.video_quartile_p75_rate,
+      metrics.video_quartile_p100_rate,
+      metrics.view_through_conversions,
+      metrics.engagements,
+      metrics.engagement_rate
     FROM customer
     WHERE segments.date DURING ${dateRange}
   `;
   const rows = await runGAQL(ctx, query);
+
   let impressions = 0;
   let clicks = 0;
   let costMicros = 0;
   let conversions = 0;
+  let conversionsValue = 0;
+  let videoViews = 0;
+  let viewThroughConversions = 0;
+  let engagements = 0;
+  // Médias ponderadas (acumular numerador, dividir pelo total no fim)
+  let cpmNumerator = 0;
+  let viewRateNumerator = 0;
+  let cpvNumerator = 0;
+  let p25Num = 0;
+  let p50Num = 0;
+  let p75Num = 0;
+  let p100Num = 0;
+  let engagementRateNumerator = 0;
+
   for (const r of rows) {
-    impressions += num(r.metrics?.impressions);
+    const imp = num(r.metrics?.impressions);
+    const v = num(r.metrics?.videoViews);
+    impressions += imp;
     clicks += num(r.metrics?.clicks);
     costMicros += num(r.metrics?.costMicros);
     conversions += num(r.metrics?.conversions);
+    conversionsValue += num(r.metrics?.conversionsValue);
+    videoViews += v;
+    viewThroughConversions += num(r.metrics?.viewThroughConversions);
+    engagements += num(r.metrics?.engagements);
+    // Ponderações
+    cpmNumerator += num(r.metrics?.averageCpm) * imp;
+    viewRateNumerator += num(r.metrics?.videoViewRate) * imp;
+    cpvNumerator += microsToValue(r.metrics?.averageCpv) * v;
+    p25Num += num(r.metrics?.videoQuartileP25Rate) * v;
+    p50Num += num(r.metrics?.videoQuartileP50Rate) * v;
+    p75Num += num(r.metrics?.videoQuartileP75Rate) * v;
+    p100Num += num(r.metrics?.videoQuartileP100Rate) * v;
+    engagementRateNumerator += num(r.metrics?.engagementRate) * imp;
   }
+
   const cost = microsToValue(costMicros);
   const ctr = impressions > 0 ? clicks / impressions : 0;
   const averageCpc = clicks > 0 ? cost / clicks : 0;
+  const averageCpm = impressions > 0 ? cpmNumerator / impressions : 0;
   const costPerConversion = conversions > 0 ? cost / conversions : 0;
-  return { impressions, clicks, ctr, averageCpc, cost, conversions, costPerConversion };
+  const roas = cost > 0 ? conversionsValue / cost : 0;
+  const videoViewRate = impressions > 0 ? viewRateNumerator / impressions : 0;
+  const averageCpv = videoViews > 0 ? cpvNumerator / videoViews : 0;
+  const videoQuartileP25Rate = videoViews > 0 ? p25Num / videoViews : 0;
+  const videoQuartileP50Rate = videoViews > 0 ? p50Num / videoViews : 0;
+  const videoQuartileP75Rate = videoViews > 0 ? p75Num / videoViews : 0;
+  const videoQuartileP100Rate = videoViews > 0 ? p100Num / videoViews : 0;
+  const engagementRate = impressions > 0 ? engagementRateNumerator / impressions : 0;
+
+  return {
+    impressions,
+    clicks,
+    ctr,
+    averageCpc,
+    averageCpm,
+    cost,
+    conversions,
+    conversionsValue,
+    roas,
+    costPerConversion,
+    videoViews,
+    videoViewRate,
+    averageCpv,
+    videoQuartileP25Rate,
+    videoQuartileP50Rate,
+    videoQuartileP75Rate,
+    videoQuartileP100Rate,
+    viewThroughConversions,
+    engagements,
+    engagementRate,
+  };
 }
 
 /**
  * Performance por campanha, ordenada por custo. Inclui search impression
- * share só se `includeAdminMetrics=true` (visão sênior).
+ * share + search top impression share quando `includeAdminMetrics=true`.
+ *
+ * Sempre retorna métricas avançadas (receita, ROAS, CPM, vídeo) — o resolver
+ * de cada campanha decide quais expor pra cliente vs admin.
  */
 export async function getCampaignBreakdown(
   ctx: GoogleAdsRequestContext,
@@ -180,42 +284,65 @@ export async function getCampaignBreakdown(
   includeAdminMetrics = false,
 ): Promise<CampaignBreakdownRow[]> {
   const adminFields = includeAdminMetrics
-    ? `, metrics.search_impression_share, metrics.search_budget_lost_impression_share, metrics.search_rank_lost_impression_share`
+    ? `, metrics.search_impression_share, metrics.search_top_impression_share, metrics.search_budget_lost_impression_share, metrics.search_rank_lost_impression_share`
     : "";
   const query = `
     SELECT
       campaign.id,
       campaign.name,
       campaign.status,
+      campaign.advertising_channel_type,
+      campaign.advertising_channel_sub_type,
       metrics.impressions,
       metrics.clicks,
       metrics.ctr,
       metrics.average_cpc,
+      metrics.average_cpm,
       metrics.cost_micros,
       metrics.conversions,
-      metrics.cost_per_conversion${adminFields}
+      metrics.conversions_value,
+      metrics.cost_per_conversion,
+      metrics.video_views,
+      metrics.video_view_rate,
+      metrics.average_cpv${adminFields}
     FROM campaign
     WHERE segments.date DURING ${dateRange}
     ORDER BY metrics.cost_micros DESC
   `;
   const rows = await runGAQL(ctx, query);
-  return rows.map(
-    (r): CampaignBreakdownRow => ({
+  return rows.map((r): CampaignBreakdownRow => {
+    const cost = microsToValue(r.metrics?.costMicros);
+    const conversionsValue = num(r.metrics?.conversionsValue);
+    const roas = cost > 0 ? conversionsValue / cost : 0;
+    return {
       campaignId: String(r.campaign?.id ?? ""),
       campaignName: String(r.campaign?.name ?? ""),
       status: String(r.campaign?.status ?? ""),
+      channelType: String(r.campaign?.advertisingChannelType ?? ""),
+      advertisingChannelSubType: r.campaign?.advertisingChannelSubType
+        ? String(r.campaign.advertisingChannelSubType)
+        : undefined,
       impressions: num(r.metrics?.impressions),
       clicks: num(r.metrics?.clicks),
       ctr: num(r.metrics?.ctr),
       averageCpc: microsToValue(r.metrics?.averageCpc),
-      cost: microsToValue(r.metrics?.costMicros),
+      averageCpm: num(r.metrics?.averageCpm),
+      cost,
       conversions: num(r.metrics?.conversions),
+      conversionsValue,
+      roas,
       costPerConversion: microsToValue(r.metrics?.costPerConversion),
+      videoViews: num(r.metrics?.videoViews),
+      videoViewRate: num(r.metrics?.videoViewRate),
+      averageCpv: microsToValue(r.metrics?.averageCpv),
       searchImpressionShare: includeAdminMetrics
         ? num(r.metrics?.searchImpressionShare) || null
         : null,
-    }),
-  );
+      searchTopImpressionShare: includeAdminMetrics
+        ? num(r.metrics?.searchTopImpressionShare) || null
+        : null,
+    };
+  });
 }
 
 /**
@@ -317,7 +444,7 @@ export async function getSearchTermsReport(
   }
 }
 
-/** Série diária da conta inteira (pro gráfico de evolução). */
+/** Série diária da conta inteira (pro gráfico de evolução). Inclui receita. */
 export async function getDailyPerformance(
   ctx: GoogleAdsRequestContext,
   dateRange: DateRangeKey,
@@ -328,7 +455,8 @@ export async function getDailyPerformance(
       metrics.impressions,
       metrics.clicks,
       metrics.cost_micros,
-      metrics.conversions
+      metrics.conversions,
+      metrics.conversions_value
     FROM customer
     WHERE segments.date DURING ${dateRange}
     ORDER BY segments.date ASC
@@ -341,6 +469,7 @@ export async function getDailyPerformance(
       clicks: num(r.metrics?.clicks),
       cost: microsToValue(r.metrics?.costMicros),
       conversions: num(r.metrics?.conversions),
+      conversionsValue: num(r.metrics?.conversionsValue),
     }),
   );
 }
