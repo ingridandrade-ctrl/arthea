@@ -58,8 +58,9 @@ const CRM_ITEMS: NavItem[] = [
 ];
 
 const CLIENTES_ITEMS: NavItem[] = [
-  { name: "Portal dos clientes", href: "/clientes/portal", icon: PanelsTopLeft, roles: ["ADMIN", "MANAGER"] },
+  { name: "Clientes", href: "/clientes", icon: Users, roles: ["ADMIN", "MANAGER"], match: "/clientes" },
   { name: "Projetos", href: "/projetos", icon: KanbanSquare, roles: ["ADMIN", "MANAGER"] },
+  { name: "Portal (por frente)", href: "/clientes/portal", icon: PanelsTopLeft, roles: ["ADMIN", "MANAGER"] },
   { name: "Meta Ads", href: "/clientes/meta", icon: Megaphone, roles: ["ADMIN", "MANAGER"] },
   { name: "Google Ads", href: "/clientes/google-ads", icon: BarChart3, roles: ["ADMIN", "MANAGER"] },
 ];
