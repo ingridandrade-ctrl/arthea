@@ -122,7 +122,12 @@ export async function POST(req: Request) {
           continue;
         }
 
-        const groupId = installmentGroupId(account.id, parc.baseDescription, parc.total);
+        const groupId = installmentGroupId(
+          account.id,
+          parc.baseDescription,
+          parc.total,
+          Math.round(r.amount * 100)
+        );
 
         if (r.forceNew) {
           const created = await tx.finTransaction.create({

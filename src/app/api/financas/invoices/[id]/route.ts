@@ -93,11 +93,49 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 
     if (action === "reopen") {
-      const updated = await prisma.finCreditCardInvoice.update({
-        where: { id: inv.id },
-        data: { paidAt: null, paymentAccountId: null, status: "CLOSED" },
+      const result = await prisma.$transaction(async (tx) => {
+        // Undo paid state on every tx in this invoice
+        await tx.finTransaction.updateMany({
+          where: { householdId: household.id, invoiceId: inv.id },
+          data: { paid: false, paidAt: null },
+        });
+
+        // Delete the auto-generated payment TRANSFER, if any. We match by:
+        // type=TRANSFER, toAccountId=this CC account, amount within 0.01,
+        // date == paidAt of the invoice. This is the same shape the pay
+        // action creates above.
+        if (inv.paidAt && inv.paymentAccountId) {
+          const total = await tx.finTransaction.aggregate({
+            where: { householdId: household.id, invoiceId: inv.id },
+            _sum: { amount: true },
+          });
+          const totalAmount = total._sum.amount ?? 0;
+          const transferCandidates = await tx.finTransaction.findMany({
+            where: {
+              householdId: household.id,
+              type: "TRANSFER",
+              toAccountId: inv.accountId,
+              accountId: inv.paymentAccountId,
+              date: inv.paidAt,
+            },
+            select: { id: true, amount: true },
+          });
+          // Delete the one whose amount matches the fatura total (within 1 cent)
+          const match = transferCandidates.find(
+            (t) => Math.abs(t.amount - totalAmount) < 0.01
+          );
+          if (match) {
+            await tx.finTransaction.delete({ where: { id: match.id } });
+          }
+        }
+
+        const updated = await tx.finCreditCardInvoice.update({
+          where: { id: inv.id },
+          data: { paidAt: null, paymentAccountId: null, status: "CLOSED" },
+        });
+        return updated;
       });
-      return NextResponse.json(updated);
+      return NextResponse.json(result);
     }
 
     if (action === "setAllDates") {

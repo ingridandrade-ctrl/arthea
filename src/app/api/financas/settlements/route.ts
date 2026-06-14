@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 import { computeCoupleBalance } from "@/lib/financas/couple";
-import { parseLocalDate } from "@/lib/financas/dates";
+import { parseLocalDate, parseLocalDateEnd } from "@/lib/financas/dates";
 
 export async function GET(req: Request) {
   try {
@@ -10,8 +10,8 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const fromStr = searchParams.get("from");
     const toStr = searchParams.get("to");
-    const from = fromStr ? new Date(fromStr) : undefined;
-    const to = toStr ? new Date(toStr) : undefined;
+    const from = fromStr ? parseLocalDate(fromStr) : undefined;
+    const to = toStr ? parseLocalDateEnd(toStr) : undefined;
 
     const [settlements, balance] = await Promise.all([
       prisma.finSettlement.findMany({

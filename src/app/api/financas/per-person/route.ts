@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
+import { parseLocalDate, parseLocalDateEnd } from "@/lib/financas/dates";
 
 type CategoryAgg = {
   id: string | null;
@@ -76,8 +77,8 @@ export async function GET(req: Request) {
       ? "purchase_date"
       : "fatura_month";
 
-    const from = fromStr ? new Date(fromStr) : null;
-    const to = toStr ? new Date(toStr) : null;
+    const from = fromStr ? parseLocalDate(fromStr) : null;
+    const to = toStr ? parseLocalDateEnd(toStr) : null;
 
     const transactions = await prisma.finTransaction.findMany({
       where: { householdId: household.id, type: "EXPENSE" },
