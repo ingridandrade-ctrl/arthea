@@ -18,6 +18,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (action === "pay") {
       const skipTransfer = body?.skipTransfer === true;
       const paidAt = body?.paidAt ? parseLocalDate(body.paidAt) : new Date();
+      const paidBy: "PARTNER_A" | "PARTNER_B" | null =
+        body?.paidBy === "PARTNER_A" || body?.paidBy === "PARTNER_B" ? body.paidBy : null;
 
       if (skipTransfer) {
         const updated = await prisma.$transaction(async (tx) => {
@@ -29,9 +31,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
               status: "PAID",
             },
           });
+          const txUpdate: any = { paid: true, paidAt };
+          if (paidBy) txUpdate.paidByOwner = paidBy;
           await tx.finTransaction.updateMany({
             where: { householdId: household.id, invoiceId: inv.id },
-            data: { paid: true, paidAt },
+            data: txUpdate,
           });
           return inv2;
         });
@@ -49,6 +53,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         return NextResponse.json({ error: "Conta de pagamento inválida" }, { status: 400 });
       }
       const total = inv.transactions.reduce((s, t) => s + t.amount, 0);
+
+      const effectivePaidBy: "PARTNER_A" | "PARTNER_B" | null =
+        paidBy ??
+        (paymentAccount.owner === "PARTNER_A" || paymentAccount.owner === "PARTNER_B"
+          ? paymentAccount.owner
+          : null);
 
       const result = await prisma.$transaction(async (tx) => {
         const transferTx = await tx.finTransaction.create({
@@ -71,9 +81,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             status: "PAID",
           },
         });
+        const txUpdate: any = { paid: true, paidAt };
+        if (effectivePaidBy) txUpdate.paidByOwner = effectivePaidBy;
         await tx.finTransaction.updateMany({
           where: { householdId: household.id, invoiceId: inv.id },
-          data: { paid: true, paidAt },
+          data: txUpdate,
         });
         return { transferTx, invoice: updated };
       });

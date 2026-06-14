@@ -99,17 +99,22 @@ export async function GET(req: Request) {
     }
     if (accountId) invWhere.accountId = accountId;
 
-    const invoices =
-      typeFilter && typeFilter !== "INVOICE" && typeFilter !== ""
-        ? []
-        : await prisma.finCreditCardInvoice.findMany({
-            where: invWhere,
-            orderBy: [{ dueDate: "desc" }],
-            include: {
-              account: { select: { id: true, name: true, color: true, type: true } },
-              transactions: { select: { amount: true } },
-            },
-          });
+    const showInvoices =
+      !typeFilter ||
+      typeFilter === "" ||
+      typeFilter === "INVOICE" ||
+      typeFilter === "EXPENSE";
+
+    const invoices = showInvoices
+      ? await prisma.finCreditCardInvoice.findMany({
+          where: invWhere,
+          orderBy: [{ dueDate: "desc" }],
+          include: {
+            account: { select: { id: true, name: true, color: true, type: true } },
+            transactions: { select: { amount: true } },
+          },
+        })
+      : [];
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);

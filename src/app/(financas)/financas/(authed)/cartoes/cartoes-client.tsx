@@ -590,6 +590,7 @@ export function CartoesClient() {
         <PayInvoiceModal
           invoice={paying}
           accounts={allAccounts.filter((a) => a.type !== "CREDIT_CARD" && !a.archived)}
+          settings={settings}
           onClose={() => setPaying(null)}
           onPaid={() => {
             setPaying(null);
@@ -1020,25 +1021,42 @@ function EditTransactionModal({
 function PayInvoiceModal({
   invoice,
   accounts,
+  settings,
   onClose,
   onPaid,
 }: {
   invoice: Invoice;
   accounts: Account[];
+  settings: Settings | null;
   onClose: () => void;
   onPaid: () => void;
 }) {
   const [paymentAccountId, setPaymentAccountId] = useState(accounts[0]?.id || "");
+  const inferOwner = (accId: string): "PARTNER_A" | "PARTNER_B" | "COUPLE" => {
+    const a = accounts.find((x) => x.id === accId);
+    return (a?.owner as any) || "COUPLE";
+  };
+  const [paidBy, setPaidBy] = useState<"PARTNER_A" | "PARTNER_B" | "COUPLE">(
+    inferOwner(accounts[0]?.id || "")
+  );
   const [paidAt, setPaidAt] = useState(new Date().toISOString().slice(0, 10));
   const [skipTransfer, setSkipTransfer] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    setPaidBy(inferOwner(paymentAccountId));
+  }, [paymentAccountId]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    const payload: any = { action: "pay", paidAt };
+    const payload: any = {
+      action: "pay",
+      paidAt,
+      paidBy: paidBy === "COUPLE" ? null : paidBy,
+    };
     if (skipTransfer) {
       payload.skipTransfer = true;
     } else {
@@ -1108,6 +1126,34 @@ function PayInvoiceModal({
             </select>
           </div>
         )}
+        <div>
+          <label className="block text-sm font-medium mb-1">Quem pagou</label>
+          <div className="grid grid-cols-3 gap-2">
+            {(["PARTNER_A", "PARTNER_B", "COUPLE"] as const).map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => setPaidBy(o)}
+                className={`px-3 py-2 rounded-lg border text-sm ${
+                  paidBy === o
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border hover:bg-muted"
+                }`}
+              >
+                {o === "PARTNER_A"
+                  ? settings?.partnerAName ?? "Pessoa A"
+                  : o === "PARTNER_B"
+                  ? settings?.partnerBName ?? "Pessoa B"
+                  : "Casal"}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Se uma pessoa só pagou, as compras dessa fatura entram como "paguei pelo casal"
+            no Acerto.
+          </p>
+        </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Data do pagamento</label>
           <input
