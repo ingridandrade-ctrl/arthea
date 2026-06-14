@@ -133,6 +133,107 @@ export function getCostPerLandingPageView(insights: AnyInsights): number {
   return views > 0 ? spend / views : 0;
 }
 
+// ─── Funil ecommerce padrão (ViewContent → AddToCart → InitiateCheckout → AddPaymentInfo → Purchase) ──
+
+const VIEW_CONTENT_TYPES = [
+  "view_content",
+  "onsite_conversion.view_content",
+  "offsite_conversion.fb_pixel_view_content",
+  "omni_view_content",
+];
+const ADD_TO_CART_TYPES = [
+  "add_to_cart",
+  "onsite_conversion.add_to_cart",
+  "offsite_conversion.fb_pixel_add_to_cart",
+  "omni_add_to_cart",
+];
+const INITIATE_CHECKOUT_TYPES = [
+  "initiate_checkout",
+  "onsite_conversion.initiate_checkout",
+  "offsite_conversion.fb_pixel_initiate_checkout",
+  "omni_initiated_checkout",
+];
+const ADD_PAYMENT_INFO_TYPES = [
+  "add_payment_info",
+  "offsite_conversion.fb_pixel_add_payment_info",
+  "omni_add_payment_info",
+];
+const COMPLETE_REGISTRATION_TYPES = [
+  "complete_registration",
+  "onsite_conversion.complete_registration",
+  "offsite_conversion.fb_pixel_complete_registration",
+  "omni_complete_registration",
+];
+const PAGE_ENGAGEMENT_TYPES = ["page_engagement", "post_engagement"];
+
+export function getViewContent(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, VIEW_CONTENT_TYPES);
+}
+export function getCostPerViewContent(insights: AnyInsights): number {
+  const v = getViewContent(insights);
+  const spend = Number(insights.spend || 0);
+  return v > 0 ? spend / v : 0;
+}
+
+export function getAddToCart(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, ADD_TO_CART_TYPES);
+}
+export function getCostPerAddToCart(insights: AnyInsights): number {
+  const v = getAddToCart(insights);
+  const spend = Number(insights.spend || 0);
+  return v > 0 ? spend / v : 0;
+}
+
+export function getInitiateCheckout(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, INITIATE_CHECKOUT_TYPES);
+}
+export function getCostPerInitiateCheckout(insights: AnyInsights): number {
+  const v = getInitiateCheckout(insights);
+  const spend = Number(insights.spend || 0);
+  return v > 0 ? spend / v : 0;
+}
+
+export function getAddPaymentInfo(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, ADD_PAYMENT_INFO_TYPES);
+}
+
+export function getCompleteRegistration(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, COMPLETE_REGISTRATION_TYPES);
+}
+export function getCostPerCompleteRegistration(insights: AnyInsights): number {
+  const v = getCompleteRegistration(insights);
+  const spend = Number(insights.spend || 0);
+  return v > 0 ? spend / v : 0;
+}
+
+export function getPageEngagement(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, PAGE_ENGAGEMENT_TYPES);
+}
+
+export function getPostReactions(insights: AnyInsights): number {
+  return getActionValue(insights.actions, "post_reaction");
+}
+export function getPostComments(insights: AnyInsights): number {
+  return getActionValue(insights.actions, "comment");
+}
+export function getPostShares(insights: AnyInsights): number {
+  return getActionValue(insights.actions, "post");
+}
+
+// ─── CTR e CPC do link ─────────────────────────────────────────
+
+export function getLinkCtr(insights: AnyInsights): number {
+  const linkClicks = Number(insights.inline_link_clicks || 0);
+  const impressions = Number(insights.impressions || 0);
+  return impressions > 0 ? linkClicks / impressions : 0;
+}
+
+export function getLinkCpc(insights: AnyInsights): number {
+  const linkClicks = Number(insights.inline_link_clicks || 0);
+  const spend = Number(insights.spend || 0);
+  return linkClicks > 0 ? spend / linkClicks : 0;
+}
+
 // ─── Métricas de vídeo ───────────────────────────────────────────
 
 /**
@@ -261,9 +362,11 @@ export type MetaFullSummary = {
   linkClicks: number;
   // Performance
   ctr: number;
+  linkCtr: number;
   cpc: number;
+  linkCpc: number;
   cpm: number;
-  // Conversão
+  // Conversão (genérico)
   results: number;
   costPerResult: number;
   leads: number;
@@ -277,6 +380,25 @@ export type MetaFullSummary = {
   costPerConversation: number;
   landingPageViews: number;
   costPerLandingPageView: number;
+  // Funil ecommerce
+  viewContent: number;
+  costPerViewContent: number;
+  addToCart: number;
+  costPerAddToCart: number;
+  initiateCheckout: number;
+  costPerInitiateCheckout: number;
+  addPaymentInfo: number;
+  completeRegistration: number;
+  costPerCompleteRegistration: number;
+  // Taxas de conversão
+  cartConversionRate: number;       // initiate_checkout / add_to_cart
+  checkoutConversionRate: number;   // purchase / initiate_checkout
+  productPageConversionRate: number; // add_to_cart / view_content
+  // Engajamento orgânico
+  pageEngagement: number;
+  postReactions: number;
+  postComments: number;
+  postShares: number;
   // Vídeo
   video3SecWatched: number;
   hookRate: number;
@@ -302,21 +424,25 @@ export function buildMetaSummary(insights: AnyInsights | null | undefined): Meta
   const clicks = Number(insights.clicks || 0);
   const linkClicks = Number(insights.inline_link_clicks || 0);
   const frequency = Number(insights.frequency || 0) || (reach > 0 ? impressions / reach : 0);
+
+  // Funil
+  const viewContent = getViewContent(insights);
+  const addToCart = getAddToCart(insights);
+  const initiateCheckout = getInitiateCheckout(insights);
+  const purchases = getPurchases(insights);
+
   return {
-    spend,
-    impressions,
-    reach,
-    frequency,
-    clicks,
-    linkClicks,
-    ctr: Number(insights.ctr || 0) / 100, // Meta retorna em %, normalizamos pra decimal
+    spend, impressions, reach, frequency, clicks, linkClicks,
+    ctr: Number(insights.ctr || 0) / 100,
+    linkCtr: getLinkCtr(insights),
     cpc: Number(insights.cpc || 0),
+    linkCpc: getLinkCpc(insights),
     cpm: Number(insights.cpm || 0),
     results: getResults(insights),
     costPerResult: getCostPerResult(insights),
     leads: getLeads(insights),
     costPerLead: getCostPerLead(insights),
-    purchases: getPurchases(insights),
+    purchases,
     costPerPurchase: getCostPerPurchase(insights),
     purchaseValue: getPurchaseValue(insights),
     purchaseRoas: getPurchaseRoas(insights),
@@ -325,6 +451,22 @@ export function buildMetaSummary(insights: AnyInsights | null | undefined): Meta
     costPerConversation: getCostPerConversation(insights),
     landingPageViews: getLandingPageViews(insights),
     costPerLandingPageView: getCostPerLandingPageView(insights),
+    viewContent,
+    costPerViewContent: getCostPerViewContent(insights),
+    addToCart,
+    costPerAddToCart: getCostPerAddToCart(insights),
+    initiateCheckout,
+    costPerInitiateCheckout: getCostPerInitiateCheckout(insights),
+    addPaymentInfo: getAddPaymentInfo(insights),
+    completeRegistration: getCompleteRegistration(insights),
+    costPerCompleteRegistration: getCostPerCompleteRegistration(insights),
+    cartConversionRate: addToCart > 0 ? initiateCheckout / addToCart : 0,
+    checkoutConversionRate: initiateCheckout > 0 ? purchases / initiateCheckout : 0,
+    productPageConversionRate: viewContent > 0 ? addToCart / viewContent : 0,
+    pageEngagement: getPageEngagement(insights),
+    postReactions: getPostReactions(insights),
+    postComments: getPostComments(insights),
+    postShares: getPostShares(insights),
     video3SecWatched: getVideo3SecWatched(insights),
     hookRate: getHookRate(insights),
     costPer3SecView: getCostPer3SecView(insights),
@@ -344,11 +486,18 @@ export function buildMetaSummary(insights: AnyInsights | null | undefined): Meta
 
 const EMPTY_SUMMARY: MetaFullSummary = {
   spend: 0, impressions: 0, reach: 0, frequency: 0, clicks: 0, linkClicks: 0,
-  ctr: 0, cpc: 0, cpm: 0,
+  ctr: 0, linkCtr: 0, cpc: 0, linkCpc: 0, cpm: 0,
   results: 0, costPerResult: 0, leads: 0, costPerLead: 0,
   purchases: 0, costPerPurchase: 0, purchaseValue: 0, purchaseRoas: 0,
   ticketMedio: 0, conversations: 0, costPerConversation: 0,
   landingPageViews: 0, costPerLandingPageView: 0,
+  viewContent: 0, costPerViewContent: 0,
+  addToCart: 0, costPerAddToCart: 0,
+  initiateCheckout: 0, costPerInitiateCheckout: 0,
+  addPaymentInfo: 0,
+  completeRegistration: 0, costPerCompleteRegistration: 0,
+  cartConversionRate: 0, checkoutConversionRate: 0, productPageConversionRate: 0,
+  pageEngagement: 0, postReactions: 0, postComments: 0, postShares: 0,
   video3SecWatched: 0, hookRate: 0, costPer3SecView: 0,
   videoP25Watched: 0, videoP50Watched: 0, videoP75Watched: 0,
   videoP95Watched: 0, videoP100Watched: 0,
@@ -376,6 +525,15 @@ export function aggregateMetaSummaries(summaries: MetaFullSummary[]): MetaFullSu
   const purchaseValue = sum("purchaseValue");
   const conversations = sum("conversations");
   const landingPageViews = sum("landingPageViews");
+  const viewContent = sum("viewContent");
+  const addToCart = sum("addToCart");
+  const initiateCheckout = sum("initiateCheckout");
+  const addPaymentInfo = sum("addPaymentInfo");
+  const completeRegistration = sum("completeRegistration");
+  const pageEngagement = sum("pageEngagement");
+  const postReactions = sum("postReactions");
+  const postComments = sum("postComments");
+  const postShares = sum("postShares");
   const video3SecWatched = sum("video3SecWatched");
   const videoP25Watched = sum("videoP25Watched");
   const videoP50Watched = sum("videoP50Watched");
@@ -388,7 +546,9 @@ export function aggregateMetaSummaries(summaries: MetaFullSummary[]): MetaFullSu
     spend, impressions, reach, clicks, linkClicks,
     frequency: reach > 0 ? impressions / reach : 0,
     ctr: impressions > 0 ? clicks / impressions : 0,
+    linkCtr: impressions > 0 ? linkClicks / impressions : 0,
     cpc: clicks > 0 ? spend / clicks : 0,
+    linkCpc: linkClicks > 0 ? spend / linkClicks : 0,
     cpm: impressions > 0 ? (spend / impressions) * 1000 : 0,
     results,
     costPerResult: results > 0 ? spend / results : 0,
@@ -403,6 +563,19 @@ export function aggregateMetaSummaries(summaries: MetaFullSummary[]): MetaFullSu
     costPerConversation: conversations > 0 ? spend / conversations : 0,
     landingPageViews,
     costPerLandingPageView: landingPageViews > 0 ? spend / landingPageViews : 0,
+    viewContent,
+    costPerViewContent: viewContent > 0 ? spend / viewContent : 0,
+    addToCart,
+    costPerAddToCart: addToCart > 0 ? spend / addToCart : 0,
+    initiateCheckout,
+    costPerInitiateCheckout: initiateCheckout > 0 ? spend / initiateCheckout : 0,
+    addPaymentInfo,
+    completeRegistration,
+    costPerCompleteRegistration: completeRegistration > 0 ? spend / completeRegistration : 0,
+    cartConversionRate: addToCart > 0 ? initiateCheckout / addToCart : 0,
+    checkoutConversionRate: initiateCheckout > 0 ? purchases / initiateCheckout : 0,
+    productPageConversionRate: viewContent > 0 ? addToCart / viewContent : 0,
+    pageEngagement, postReactions, postComments, postShares,
     video3SecWatched,
     hookRate: impressions > 0 ? video3SecWatched / impressions : 0,
     costPer3SecView: video3SecWatched > 0 ? spend / video3SecWatched : 0,
@@ -411,7 +584,6 @@ export function aggregateMetaSummaries(summaries: MetaFullSummary[]): MetaFullSu
     thruPlayWatched,
     thruPlayRate: impressions > 0 ? thruPlayWatched / impressions : 0,
     costPerThruPlay: thruPlayWatched > 0 ? spend / thruPlayWatched : 0,
-    // Tempo médio: ponderar por impressões
     videoAvgTimeWatched:
       impressions > 0
         ? summaries.reduce((acc, s) => acc + s.videoAvgTimeWatched * s.impressions, 0) /

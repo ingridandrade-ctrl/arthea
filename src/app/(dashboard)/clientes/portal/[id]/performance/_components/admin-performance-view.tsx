@@ -412,6 +412,12 @@ export function AdminPerformanceView({
             />
           </section>
 
+          {/* Funil de Conversão Ecommerce (Meta) */}
+          <section className="fade-up" style={{ animationDelay: "0.137s", marginBottom: 40 }}>
+            <SectionTitle eyebrow="Funil de Conversão" title="ViewContent → Carrinho → Checkout → Compra" />
+            <EcommerceFunnelBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
+          </section>
+
           {/* Análise de Vídeo (Meta) — Hook Rate, Hold Rate, ThruPlay, curva de retenção */}
           <section className="fade-up" style={{ animationDelay: "0.14s", marginBottom: 40 }}>
             <SectionTitle eyebrow="Análise de Vídeo" title="Como seus criativos estão performando" />
@@ -707,7 +713,7 @@ function OrganizeButton({ onClick, hiddenCount }: { onClick: () => void; hiddenC
 type OrganizeMetric = {
   id: string;
   label: string;
-  category: "basic" | "engagement" | "conversion" | "video";
+  category: "basic" | "engagement" | "conversion" | "funnel" | "video";
 };
 
 const ORGANIZE_METRICS: OrganizeMetric[] = [
@@ -737,6 +743,16 @@ const ORGANIZE_METRICS: OrganizeMetric[] = [
   { id: "m_purchases", label: "Compras (Meta)", category: "conversion" },
   { id: "m_conversations", label: "Conversas (Meta)", category: "conversion" },
   { id: "m_lpv", label: "Visitas ao site (Conversão)", category: "conversion" },
+  // Funil ecommerce
+  { id: "f_view_content", label: "Visualizações de produto", category: "funnel" },
+  { id: "f_add_to_cart", label: "Adições ao carrinho", category: "funnel" },
+  { id: "f_initiate_checkout", label: "Inícios de checkout", category: "funnel" },
+  { id: "f_add_payment_info", label: "Info de pagamento", category: "funnel" },
+  { id: "f_purchases", label: "Compras (funil)", category: "funnel" },
+  { id: "f_complete_registration", label: "Cadastros completos", category: "funnel" },
+  { id: "f_page_conv_rate", label: "Taxa View → Carrinho", category: "funnel" },
+  { id: "f_cart_conv_rate", label: "Taxa Carrinho → Checkout", category: "funnel" },
+  { id: "f_checkout_conv_rate", label: "Taxa Checkout → Compra", category: "funnel" },
   // Vídeo
   { id: "v_hook", label: "Hook Rate", category: "video" },
   { id: "v_hold", label: "Hold Rate", category: "video" },
@@ -750,6 +766,7 @@ const CATEGORY_LABEL: Record<OrganizeMetric["category"], string> = {
   basic: "Performance",
   engagement: "Engajamento",
   conversion: "Conversão e Financeiro",
+  funnel: "Funil de Conversão (Ecommerce)",
   video: "Análise de Vídeo",
 };
 
@@ -2250,6 +2267,195 @@ function AiBanner() {
       >
         Em breve
       </button>
+    </div>
+  );
+}
+
+// ─── Ecommerce Funnel Block ─────────────────────────────────────
+
+function EcommerceFunnelBlock({
+  metaData,
+  loading,
+  hidden = new Set<string>(),
+}: {
+  metaData: MetaData | null;
+  loading: boolean;
+  hidden?: Set<string>;
+}) {
+  const t = useTokens();
+  const m = metaData?.summary as any;
+  const currency = metaData?.account?.currency || "BRL";
+
+  if (loading) return <KpiSkeletonGrid />;
+  if (!m || (m.viewContent || 0) + (m.addToCart || 0) + (m.initiateCheckout || 0) + (m.purchases || 0) === 0) {
+    return (
+      <EmptyState text="Sem eventos de funil ecommerce. Esse bloco aparece quando o pixel/CAPI registra ViewContent, AddToCart, InitiateCheckout ou Purchase." />
+    );
+  }
+
+  const tiles: Array<{
+    id: string;
+    label: string;
+    value: string;
+    sub?: string;
+    tooltip: string;
+    platformDot: string;
+    accent?: string;
+  }> = [];
+
+  if ((m.viewContent || 0) > 0) {
+    tiles.push({
+      id: "f_view_content",
+      label: "Visualizações de produto",
+      value: (m.viewContent || 0).toLocaleString("pt-BR"),
+      sub: `${fmtCurrency(m.costPerViewContent || 0, currency)} cada`,
+      tooltip: "Eventos ViewContent — pessoas que visitaram página de produto.",
+      platformDot: t.metaColor,
+    });
+  }
+  if ((m.addToCart || 0) > 0) {
+    tiles.push({
+      id: "f_add_to_cart",
+      label: "Adições ao carrinho",
+      value: (m.addToCart || 0).toLocaleString("pt-BR"),
+      sub: `${fmtCurrency(m.costPerAddToCart || 0, currency)} cada`,
+      tooltip: "Eventos AddToCart — adicionou produto ao carrinho.",
+      platformDot: t.metaColor,
+    });
+  }
+  if ((m.initiateCheckout || 0) > 0) {
+    tiles.push({
+      id: "f_initiate_checkout",
+      label: "Inícios de checkout",
+      value: (m.initiateCheckout || 0).toLocaleString("pt-BR"),
+      sub: `${fmtCurrency(m.costPerInitiateCheckout || 0, currency)} cada`,
+      tooltip: "Eventos InitiateCheckout — clicou pra finalizar compra. Sinal de alta intenção.",
+      platformDot: t.metaColor,
+    });
+  }
+  if ((m.addPaymentInfo || 0) > 0) {
+    tiles.push({
+      id: "f_add_payment_info",
+      label: "Info de pagamento",
+      value: (m.addPaymentInfo || 0).toLocaleString("pt-BR"),
+      sub: "passou da etapa cartão",
+      tooltip: "Eventos AddPaymentInfo — preencheu dados de pagamento. Último passo antes da compra.",
+      platformDot: t.metaColor,
+    });
+  }
+  if ((m.purchases || 0) > 0) {
+    tiles.push({
+      id: "f_purchases",
+      label: "Compras",
+      value: (m.purchases || 0).toLocaleString("pt-BR"),
+      sub: `${fmtCurrency(m.costPerPurchase || 0, currency)} cada`,
+      tooltip: "Eventos Purchase — compra finalizada.",
+      platformDot: t.metaColor,
+      accent: t.tealMid,
+    });
+  }
+  if ((m.completeRegistration || 0) > 0) {
+    tiles.push({
+      id: "f_complete_registration",
+      label: "Cadastros completos",
+      value: (m.completeRegistration || 0).toLocaleString("pt-BR"),
+      sub: `${fmtCurrency(m.costPerCompleteRegistration || 0, currency)} cada`,
+      tooltip: "Eventos CompleteRegistration — cadastro finalizado.",
+      platformDot: t.metaColor,
+    });
+  }
+
+  // Taxas de conversão entre etapas
+  const rates: Array<{ id: string; label: string; value: number; tooltip: string }> = [];
+  if ((m.viewContent || 0) > 0 && (m.addToCart || 0) > 0) {
+    rates.push({
+      id: "f_page_conv_rate",
+      label: "View → Carrinho",
+      value: m.productPageConversionRate || 0,
+      tooltip: "% das visitas à página de produto que viraram adição ao carrinho.",
+    });
+  }
+  if ((m.addToCart || 0) > 0 && (m.initiateCheckout || 0) > 0) {
+    rates.push({
+      id: "f_cart_conv_rate",
+      label: "Carrinho → Checkout",
+      value: m.cartConversionRate || 0,
+      tooltip: "% das adições ao carrinho que iniciaram checkout. Bom: 30-50%.",
+    });
+  }
+  if ((m.initiateCheckout || 0) > 0 && (m.purchases || 0) > 0) {
+    rates.push({
+      id: "f_checkout_conv_rate",
+      label: "Checkout → Compra",
+      value: m.checkoutConversionRate || 0,
+      tooltip: "% dos checkouts iniciados que viraram compra. Bom: 40-70%. Baixo = problema na finalização.",
+    });
+  }
+
+  const visibleTiles = tiles.filter((x) => !hidden.has(x.id));
+  const visibleRates = rates.filter((x) => !hidden.has(x.id));
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* KPIs do funil */}
+      {visibleTiles.length > 0 && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+            gap: 14,
+          }}
+        >
+          {visibleTiles.map((tile) => (
+            <SmallKpiTile key={tile.id} {...tile} />
+          ))}
+        </div>
+      )}
+
+      {/* Taxas de conversão entre etapas */}
+      {visibleRates.length > 0 && (
+        <div className="arc-card" style={{ padding: "20px 24px" }}>
+          <Eyebrow>Taxas de conversão entre etapas</Eyebrow>
+          <p style={{ fontSize: 12.5, color: t.textDim, margin: "6px 0 14px", lineHeight: 1.5 }}>
+            Onde o funil derrete. Tom em vermelho = abaixo do esperado pro mercado.
+          </p>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            {visibleRates.map((r) => {
+              const tone =
+                r.value >= 0.5 ? t.tealMid : r.value >= 0.2 ? t.amber : t.red;
+              return (
+                <div key={r.id} style={{ flex: "1 1 200px" }} title={r.tooltip}>
+                  <p
+                    style={{
+                      fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                      fontSize: 10,
+                      color: t.textMute,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      fontWeight: 600,
+                      margin: 0,
+                    }}
+                  >
+                    {r.label}
+                  </p>
+                  <p
+                    className="tabular"
+                    style={{
+                      fontSize: 26,
+                      fontWeight: 700,
+                      color: tone,
+                      margin: "6px 0 2px",
+                      letterSpacing: "-0.025em",
+                    }}
+                  >
+                    {(r.value * 100).toFixed(1)}%
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
