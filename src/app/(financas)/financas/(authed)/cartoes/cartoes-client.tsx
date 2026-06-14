@@ -1348,6 +1348,7 @@ function ImportInvoiceModal({
         categoryId: r.categoryId,
         owner: r.owner,
         paidByOwner: r.paidByOwner ?? null,
+        forceNew: reviewMode && r.matchStatus === "new",
       }));
     if (toSend.length === 0) {
       setError("Nenhuma linha selecionada para importar");
@@ -1400,11 +1401,15 @@ function ImportInvoiceModal({
   }
 
   function addManualRow() {
-    const todayStr = new Date().toISOString().slice(0, 10);
+    // Default date to the chosen invoice month's first day, fallback to today
+    const m = invoiceMonth.match(/^(\d{4})-(\d{2})$/);
+    const defaultDate = m
+      ? `${m[1]}-${m[2]}-01`
+      : new Date().toISOString().slice(0, 10);
     setRows((rs) => [
       ...rs,
       {
-        date: todayStr,
+        date: defaultDate,
         description: "",
         amount: 0,
         categoryId: null,
