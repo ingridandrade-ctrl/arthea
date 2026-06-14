@@ -59,6 +59,7 @@ const CRM_ITEMS: NavItem[] = [
 
 const CLIENTES_ITEMS: NavItem[] = [
   { name: "Portal dos clientes", href: "/clientes/portal", icon: PanelsTopLeft, roles: ["ADMIN", "MANAGER"] },
+  { name: "Projetos", href: "/projetos", icon: KanbanSquare, roles: ["ADMIN", "MANAGER"] },
   { name: "Meta Ads", href: "/clientes/meta", icon: Megaphone, roles: ["ADMIN", "MANAGER"] },
   { name: "Google Ads", href: "/clientes/google-ads", icon: BarChart3, roles: ["ADMIN", "MANAGER"] },
 ];
@@ -74,6 +75,9 @@ const SISTEMA_ITEMS: NavItem[] = [
 ];
 
 function modeForPath(pathname: string): Mode {
+  // Rotas que vivem fora do prefixo mas pertencem a um modo
+  if (pathname === "/projetos" || pathname.startsWith("/projetos/")) return "clientes";
+
   for (const m of MODES) {
     if (pathname === m.prefix || pathname.startsWith(m.prefix + "/")) return m.key;
   }
