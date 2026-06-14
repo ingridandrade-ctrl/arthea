@@ -163,7 +163,7 @@ export function PortalSidebar({
                 accent={e.accentColor}
                 emphasized={sectionActive}
               />
-              {e.type === "PAID_TRAFFIC" && (
+              {e.type === "PAID_TRAFFIC" || e.type === "STRATEGY" ? (
                 <SidebarItem
                   href={`${base}/dashboard`}
                   label="Dashboard"
@@ -171,7 +171,7 @@ export function PortalSidebar({
                   active={isUnderPath(`${base}/dashboard`)}
                   indent
                 />
-              )}
+              ) : null}
               <SidebarItem
                 href={`${base}/entregaveis`}
                 label="Entregáveis"
