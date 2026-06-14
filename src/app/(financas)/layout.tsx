@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+import { ArtheaThemeProvider } from "@/components/financas/theme-provider";
 
 export const metadata: Metadata = {
-  title: "Arthea Finanças Pessoais",
+  title: {
+    default: "Arthea Finanças",
+    template: "%s · Arthea Finanças",
+  },
   description:
-    "Finanças pessoais pra você e quem você ama — importação de fatura por IA, conta de casal, recorrências, metas e relatórios.",
+    "Arthea Finanças — finanças pessoais pra você e quem você ama. Importação de fatura por IA, conta de casal, recorrências, metas e relatórios.",
 };
 
 export default function FinancasGroupLayout({
@@ -11,5 +15,5 @@ export default function FinancasGroupLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <ArtheaThemeProvider>{children}</ArtheaThemeProvider>;
 }

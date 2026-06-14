@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PiggyBank } from "lucide-react";
+import { ArtheaLogo } from "@/components/financas/logo";
+import { ThemeToggle } from "@/components/financas/theme-toggle";
 
 export function SetupForm() {
   const router = useRouter();
@@ -39,18 +40,16 @@ export function SetupForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-background p-6 relative">
+      <div className="absolute top-6 right-6">
+        <ThemeToggle variant="icon" />
+      </div>
       <div className="w-full max-w-md bg-card rounded-2xl border border-border p-8 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-            <PiggyBank className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold leading-tight">Bem-vindos ao Arthea!</h1>
-            <p className="text-xs text-muted-foreground leading-tight">
-              Configure suas finanças pessoais
-            </p>
-          </div>
+        <div className="mb-6">
+          <ArtheaLogo size="base" href={null} />
+          <p className="mt-3 text-sm text-muted-foreground">
+            Bem-vindos! Vamos configurar suas finanças.
+          </p>
         </div>
 
         <form onSubmit={submit} className="space-y-4">

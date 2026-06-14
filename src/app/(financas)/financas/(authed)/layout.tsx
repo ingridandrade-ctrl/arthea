@@ -14,7 +14,7 @@ export default async function FinancasLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-background text-foreground">
       <FinancasSidebar />
       <div className="flex-1 ml-64">
         <main className="p-6">{children}</main>

@@ -1,26 +1,74 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
+  /* === Brand: Arthea (teal) === */
+  --color-brand: #1D7070;
+  --color-brand-dark: #0D4A4A;
+  --color-brand-soft: #E6F1F1;
+  --color-brand-foreground: #ffffff;
+
+  /* === Semantic tokens (light defaults) === */
   --color-background: #ffffff;
   --color-foreground: #0a0a0a;
   --color-muted: #f5f5f5;
   --color-muted-foreground: #737373;
   --color-border: #e5e5e5;
-  --color-primary: #6366f1;
+  --color-primary: #1D7070;
   --color-primary-foreground: #ffffff;
   --color-secondary: #f5f5f5;
   --color-secondary-foreground: #0a0a0a;
-  --color-accent: #f5f5f5;
-  --color-accent-foreground: #0a0a0a;
+  --color-accent: #1D7070;
+  --color-accent-foreground: #ffffff;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
+  --color-info: #0ea5e9;
   --color-card: #ffffff;
   --color-card-foreground: #0a0a0a;
   --color-sidebar: #fafafa;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0a0a0a;
+
+  /* Partner colors (consistent across charts and avatars) */
+  --color-partner-a: #1D7070;
+  --color-partner-b: #C2410C;
+  --color-couple: #6366f1;
+
   --radius: 0.5rem;
   --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", "Fraunces", Georgia, serif;
+}
+
+/* === Dark theme overrides === */
+.dark {
+  --color-background: #0B1414;
+  --color-foreground: #E6F1F1;
+  --color-muted: #182525;
+  --color-muted-foreground: #94A3A3;
+  --color-border: #1F2D2D;
+  --color-primary: #2BA0A0;
+  --color-primary-foreground: #04161B;
+  --color-secondary: #182525;
+  --color-secondary-foreground: #E6F1F1;
+  --color-accent: #2BA0A0;
+  --color-accent-foreground: #04161B;
+  --color-destructive: #f87171;
+  --color-destructive-foreground: #0B1414;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-info: #38bdf8;
+  --color-card: #0F1B1B;
+  --color-card-foreground: #E6F1F1;
+  --color-sidebar: #0A1212;
+  --color-popover: #131F1F;
+  --color-popover-foreground: #E6F1F1;
+
+  --color-partner-a: #2BA0A0;
+  --color-partner-b: #FB923C;
+  --color-couple: #818cf8;
 }
 
 @layer base {
@@ -28,9 +76,39 @@
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
   }
+
+  /* Prevent flash when switching themes */
+  html.dark { color-scheme: dark; }
+  html { color-scheme: light; }
 }
 
-/* Portal v2 — micro-interactions */
+/* Brand-colored skeleton */
+@keyframes arthea-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(29,112,112,0.06) 0%,
+    rgba(29,112,112,0.14) 40%,
+    rgba(29,112,112,0.06) 80%
+  );
+  background-size: 800px 100%;
+  animation: arthea-shimmer 1.6s infinite linear;
+  border-radius: 8px;
+}
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(43,160,160,0.08) 0%,
+    rgba(43,160,160,0.18) 40%,
+    rgba(43,160,160,0.08) 80%
+  );
+  background-size: 800px 100%;
+}
+
+/* === Legacy portal styles (still used outside Arthea Finanças) === */
 .portal-card-hover {
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
@@ -44,9 +122,7 @@
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.portal-fade-in {
-  animation: portal-fade-in 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-}
+.portal-fade-in { animation: portal-fade-in 0.32s cubic-bezier(0.4, 0, 0.2, 1); }
 
 @keyframes portal-rise {
   from { opacity: 0; transform: translateY(10px); }
@@ -78,24 +154,12 @@
 }
 
 @media (max-width: 768px) {
-  .portal-hamburger {
-    display: flex !important;
-  }
-  .portal-sidebar-desktop {
-    display: none !important;
-  }
-  .portal-main {
-    margin-left: 0 !important;
-    padding: 80px 20px 40px !important;
-  }
+  .portal-hamburger { display: flex !important; }
+  .portal-sidebar-desktop { display: none !important; }
+  .portal-main { margin-left: 0 !important; padding: 80px 20px 40px !important; }
 }
 
-/* Portal prose — typography for HTML embed content */
-.portal-prose {
-  font-size: 15px;
-  line-height: 1.75;
-  color: #4A4A4A;
-}
+.portal-prose { font-size: 15px; line-height: 1.75; color: #4A4A4A; }
 .portal-prose p { margin: 0 0 14px; }
 .portal-prose p:last-child { margin-bottom: 0; }
 .portal-prose strong { color: #2A2A2A; font-weight: 600; }
@@ -128,11 +192,7 @@
   border-radius: 6px;
   font-style: italic;
 }
-.portal-prose img {
-  max-width: 100%;
-  border-radius: 12px;
-  margin: 14px 0;
-}
+.portal-prose img { max-width: 100%; border-radius: 12px; margin: 14px 0; }
 .portal-prose hr {
   border: none;
   border-top: 0.5px solid rgba(13,74,74,0.15);
@@ -140,12 +200,8 @@
 }
 
 @media (max-width: 880px) {
-  .portal-progress-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .dossier-hero {
-    grid-template-columns: 1fr !important;
-  }
+  .portal-progress-grid { grid-template-columns: 1fr !important; }
+  .dossier-hero { grid-template-columns: 1fr !important; }
   .dossier-field {
     grid-template-columns: 1fr !important;
     gap: 6px !important;
@@ -160,12 +216,9 @@
     padding-right: 0 !important;
     padding-bottom: 18px !important;
   }
-  .dossier-metrics > div:nth-child(2n) {
-    border-right: none !important;
-  }
+  .dossier-metrics > div:nth-child(2n) { border-right: none !important; }
 }
 
-/* Skeleton loading shimmer */
 @keyframes portal-shimmer {
   0% { background-position: -400px 0; }
   100% { background-position: 400px 0; }
