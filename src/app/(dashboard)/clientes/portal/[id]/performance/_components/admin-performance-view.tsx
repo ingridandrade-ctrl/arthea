@@ -344,6 +344,18 @@ export function AdminPerformanceView({
             <PlatformDonut googleShare={agg.googleShare} metaShare={agg.metaShare} loading={loading} />
           </section>
 
+          {/* Métricas de Conversão (Receita, ROAS, CPL, Ticket Médio etc) */}
+          <section className="fade-up" style={{ animationDelay: "0.13s", marginBottom: 40 }}>
+            <SectionTitle eyebrow="Conversão e Financeiro" title="Receita, ROAS e custo por resultado" />
+            <ConversionMetricsGrid googleData={googleData} metaData={metaData} loading={loading} />
+          </section>
+
+          {/* Análise de Vídeo (Meta) — Hook Rate, Hold Rate, ThruPlay, curva de retenção */}
+          <section className="fade-up" style={{ animationDelay: "0.14s", marginBottom: 40 }}>
+            <SectionTitle eyebrow="Análise de Vídeo" title="Como seus criativos estão performando" />
+            <VideoAnalysisBlock metaData={metaData} loading={loading} />
+          </section>
+
           {/* Insights */}
           <section className="fade-up" style={{ animationDelay: "0.15s", marginBottom: 48 }}>
             <SectionTitle eyebrow="Insights" title="O que está acontecendo agora" />
@@ -1829,6 +1841,421 @@ function AiBanner() {
       >
         Em breve
       </button>
+    </div>
+  );
+}
+
+// ─── Conversion Metrics Grid ────────────────────────────────────
+
+function ConversionMetricsGrid({
+  googleData,
+  metaData,
+  loading,
+}: {
+  googleData: GoogleData | null;
+  metaData: MetaData | null;
+  loading: boolean;
+}) {
+  const t = useTokens();
+  const g = googleData?.summary as any;
+  const m = metaData?.summary as any;
+  const gCurr = googleData?.account?.currencyCode || "BRL";
+  const mCurr = metaData?.account?.currency || "BRL";
+
+  // Lista de tiles: [label, value, sub, tooltip, platform]
+  const tiles: Array<{
+    label: string;
+    value: string;
+    sub?: string;
+    tooltip: string;
+    platformDot: string;
+    accent?: string;
+  }> = [];
+
+  if (g && g.cost > 0) {
+    tiles.push({
+      label: "Receita (Google)",
+      value: fmtCurrency(g.conversionsValue || 0, gCurr),
+      sub: "valor das conversões",
+      tooltip: "Soma dos valores configurados no conversion tracking do Google Ads.",
+      platformDot: t.googleColor,
+    });
+    tiles.push({
+      label: "ROAS (Google)",
+      value: (g.roas || 0).toFixed(2) + "×",
+      sub: g.roas >= 2 ? "lucrativo" : g.roas >= 1 ? "borderline" : "abaixo do investido",
+      tooltip: "Retorno sobre investimento em anúncios. ROAS 3× = R$ 3 de receita pra cada R$ 1 gasto.",
+      platformDot: t.googleColor,
+      accent: g.roas >= 2 ? t.tealMid : g.roas >= 1 ? t.amber : t.red,
+    });
+    tiles.push({
+      label: "CPA (Google)",
+      value: fmtCurrency(g.costPerConversion || 0, gCurr),
+      sub: `${(g.conversions || 0).toLocaleString("pt-BR")} conversões`,
+      tooltip: "Custo médio por conversão. Quanto menor, mais eficiente.",
+      platformDot: t.googleColor,
+    });
+  }
+
+  if (m && m.spend > 0) {
+    tiles.push({
+      label: "Vendas (Meta)",
+      value: fmtCurrency(m.purchaseValue || 0, mCurr),
+      sub: "valor das compras",
+      tooltip: "Valor total das compras atribuídas às campanhas Meta (pixel + Conversion API).",
+      platformDot: t.metaColor,
+    });
+    tiles.push({
+      label: "ROAS (Meta)",
+      value: (m.purchaseRoas || 0).toFixed(2) + "×",
+      sub: m.purchaseRoas >= 2 ? "lucrativo" : m.purchaseRoas >= 1 ? "borderline" : "abaixo do investido",
+      tooltip: "Vendas Meta ÷ Investimento. ROAS 2× ou mais é considerado lucrativo.",
+      platformDot: t.metaColor,
+      accent: m.purchaseRoas >= 2 ? t.tealMid : m.purchaseRoas >= 1 ? t.amber : t.red,
+    });
+    if (m.leads > 0) {
+      tiles.push({
+        label: "Leads (Meta)",
+        value: (m.leads || 0).toLocaleString("pt-BR"),
+        sub: `${fmtCurrency(m.costPerLead || 0, mCurr)} cada`,
+        tooltip: "Leads gerados via formulário Meta ou pixel (lead event).",
+        platformDot: t.metaColor,
+      });
+    }
+    if (m.purchases > 0) {
+      tiles.push({
+        label: "Compras (Meta)",
+        value: (m.purchases || 0).toLocaleString("pt-BR"),
+        sub: `${fmtCurrency(m.costPerPurchase || 0, mCurr)} cada · ticket ${fmtCurrency(m.ticketMedio || 0, mCurr)}`,
+        tooltip: "Compras registradas pelo pixel ou Conversion API.",
+        platformDot: t.metaColor,
+      });
+    }
+    if (m.conversations > 0) {
+      tiles.push({
+        label: "Conversas (Meta)",
+        value: (m.conversations || 0).toLocaleString("pt-BR"),
+        sub: `${fmtCurrency(m.costPerConversation || 0, mCurr)} cada`,
+        tooltip: "Conversas iniciadas no WhatsApp/Messenger a partir do anúncio.",
+        platformDot: t.metaColor,
+      });
+    }
+    if (m.landingPageViews > 0) {
+      tiles.push({
+        label: "Visitas ao site (Meta)",
+        value: (m.landingPageViews || 0).toLocaleString("pt-BR"),
+        sub: `${fmtCurrency(m.costPerLandingPageView || 0, mCurr)} cada`,
+        tooltip: "Pessoas que clicaram E carregaram o site (não bounce). Mede qualidade do tráfego.",
+        platformDot: t.metaColor,
+      });
+    }
+  }
+
+  if (loading) return <KpiSkeletonGrid />;
+  if (tiles.length === 0) {
+    return (
+      <EmptyState text="Sem dados de conversão no período. Configure conversion tracking no Google e pixel/CAPI no Meta." />
+    );
+  }
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        gap: 14,
+      }}
+    >
+      {tiles.map((tile, i) => (
+        <SmallKpiTile key={i} {...tile} />
+      ))}
+    </div>
+  );
+}
+
+function SmallKpiTile({
+  label,
+  value,
+  sub,
+  tooltip,
+  platformDot,
+  accent,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  tooltip: string;
+  platformDot: string;
+  accent?: string;
+}) {
+  const t = useTokens();
+  return (
+    <div
+      className="arc-card"
+      style={{
+        padding: "16px 18px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        minHeight: 120,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ width: 7, height: 7, borderRadius: 999, background: platformDot, flexShrink: 0 }} />
+          <span
+            style={{
+              fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+              fontSize: 9.5,
+              color: t.textMute,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              fontWeight: 600,
+            }}
+          >
+            {label}
+          </span>
+        </div>
+        <InfoTooltip text={tooltip} />
+      </div>
+      <span
+        className="tabular"
+        style={{
+          fontSize: 24,
+          fontWeight: 700,
+          color: accent || t.text,
+          letterSpacing: "-0.025em",
+          lineHeight: 1.1,
+        }}
+      >
+        {value}
+      </span>
+      {sub && (
+        <span style={{ fontSize: 11, color: t.textDim, lineHeight: 1.4 }}>{sub}</span>
+      )}
+    </div>
+  );
+}
+
+function InfoTooltip({ text }: { text: string }) {
+  const t = useTokens();
+  return (
+    <span
+      title={text}
+      style={{
+        width: 16,
+        height: 16,
+        borderRadius: 999,
+        background: t.hover,
+        color: t.textMute,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 10,
+        fontWeight: 700,
+        fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+        cursor: "help",
+        flexShrink: 0,
+      }}
+    >
+      i
+    </span>
+  );
+}
+
+function KpiSkeletonGrid() {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        gap: 14,
+      }}
+    >
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i} className="arc-card" style={{ padding: "16px 18px", minHeight: 120 }}>
+          <span className="skeleton" style={{ display: "block", height: 10, width: "50%", marginBottom: 12 }} />
+          <span className="skeleton" style={{ display: "block", height: 24, width: "70%" }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function fmtCurrency(v: number, currency: string): string {
+  return v.toLocaleString("pt-BR", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: v >= 1000 ? 0 : 2,
+    minimumFractionDigits: v >= 1000 ? 0 : 2,
+  });
+}
+
+// ─── Video Analysis Block ───────────────────────────────────────
+
+function VideoAnalysisBlock({
+  metaData,
+  loading,
+}: {
+  metaData: MetaData | null;
+  loading: boolean;
+}) {
+  const t = useTokens();
+  const m = metaData?.summary as any;
+  const currency = metaData?.account?.currency || "BRL";
+
+  if (loading) return <KpiSkeletonGrid />;
+  if (!m || (m.video3SecWatched || 0) === 0) {
+    return (
+      <EmptyState text="Não há dados de vídeo no período (sem visualizações de 3 seg.). Esse bloco aparece quando há campanhas com criativo em vídeo no Meta." />
+    );
+  }
+
+  const hookRate = m.hookRate || 0;
+  const holdRate = m.holdRate || 0;
+  const thruRate = m.thruPlayRate || 0;
+
+  const hookTone = hookRate >= 0.30 ? t.tealMid : hookRate >= 0.20 ? t.amber : t.red;
+  const holdTone = holdRate >= 0.60 ? t.tealMid : holdRate >= 0.40 ? t.amber : t.red;
+  const thruTone = thruRate >= 0.15 ? t.tealMid : thruRate >= 0.05 ? t.amber : t.red;
+
+  const tiles = [
+    {
+      label: "Hook Rate",
+      value: `${(hookRate * 100).toFixed(2)}%`,
+      sub: hookRate >= 0.30 ? "criativo segura o scroll" : hookRate >= 0.20 ? "atenção" : "criativo fraco",
+      tooltip: "Taxa de Parada no Gancho. % das pessoas que pararam o scroll e viram 3 seg. Benchmark Reels: 25-35%.",
+      platformDot: t.metaColor,
+      accent: hookTone,
+    },
+    {
+      label: "Hold Rate",
+      value: `${(holdRate * 100).toFixed(2)}%`,
+      sub: holdRate >= 0.60 ? "conteúdo retém" : holdRate >= 0.40 ? "atenção" : "perde rápido",
+      tooltip: "Taxa de Retenção. % das pessoas que viram 3 seg e ficaram até 25%. Mede qualidade do conteúdo após o gancho. Bom: 50-70%.",
+      platformDot: t.metaColor,
+      accent: holdTone,
+    },
+    {
+      label: "ThruPlay Rate",
+      value: `${(thruRate * 100).toFixed(2)}%`,
+      sub: "completaram a view qualificada",
+      tooltip: "% das impressões que viraram ThruPlay (15s+ ou completo, o que vier primeiro).",
+      platformDot: t.metaColor,
+      accent: thruTone,
+    },
+    {
+      label: "Tempo Médio",
+      value:
+        (m.videoAvgTimeWatched || 0) < 60
+          ? `${(m.videoAvgTimeWatched || 0).toFixed(1)}s`
+          : `${Math.floor(m.videoAvgTimeWatched / 60)}m ${Math.round(m.videoAvgTimeWatched - Math.floor(m.videoAvgTimeWatched / 60) * 60)}s`,
+      sub: "assistido por impressão",
+      tooltip: "Segundos médios assistidos por impressão (não só por quem deu play).",
+      platformDot: t.metaColor,
+    },
+    {
+      label: "CP-Hook",
+      value: fmtCurrency(m.costPer3SecView || 0, currency),
+      sub: "custo de cada parada no scroll",
+      tooltip: "Custo por gancho. Compara força relativa de criativos.",
+      platformDot: t.metaColor,
+    },
+    {
+      label: "CP-ThruPlay",
+      value: fmtCurrency(m.costPerThruPlay || 0, currency),
+      sub: "custo de visualização qualificada",
+      tooltip: "Custo por ThruPlay (view qualificada).",
+      platformDot: t.metaColor,
+    },
+  ];
+
+  // Curva de retenção
+  const views3s = m.video3SecWatched || 0;
+  const retention = [
+    { label: "3 seg.", value: 100, count: views3s },
+    { label: "25%", value: views3s > 0 ? ((m.videoP25Watched || 0) / views3s) * 100 : 0, count: m.videoP25Watched || 0 },
+    { label: "50%", value: views3s > 0 ? ((m.videoP50Watched || 0) / views3s) * 100 : 0, count: m.videoP50Watched || 0 },
+    { label: "75%", value: views3s > 0 ? ((m.videoP75Watched || 0) / views3s) * 100 : 0, count: m.videoP75Watched || 0 },
+    { label: "95%", value: views3s > 0 ? ((m.videoP95Watched || 0) / views3s) * 100 : 0, count: m.videoP95Watched || 0 },
+    { label: "Final", value: views3s > 0 ? ((m.videoP100Watched || 0) / views3s) * 100 : 0, count: m.videoP100Watched || 0 },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 14,
+        }}
+      >
+        {tiles.map((tile, i) => (
+          <SmallKpiTile key={i} {...tile} />
+        ))}
+      </div>
+
+      {/* Curva de retenção */}
+      <div className="arc-card" style={{ padding: "22px 24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, gap: 16, flexWrap: "wrap" }}>
+          <div>
+            <Eyebrow>Curva de retenção</Eyebrow>
+            <p style={{ fontSize: 13, color: t.textDim, margin: "6px 0 0", lineHeight: 1.5, maxWidth: 480 }}>
+              De cada 100 pessoas que pararam no gancho (3 seg), quantas ficaram até cada etapa do vídeo. Queda forte cedo = problema de meio do vídeo.
+            </p>
+          </div>
+          <InfoTooltip text="Baseado em video_p25/p50/p75/p95/p100_watched_actions do Meta. Numerador é os 3 segundos." />
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 160 }}>
+          {retention.map((r, i) => {
+            const heightPct = Math.max(r.value, 2); // mínimo 2% pra visualizar barra zero
+            const isLow = r.value < 20;
+            return (
+              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                <span
+                  className="tabular"
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: isLow ? t.red : t.text,
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {r.value.toFixed(0)}%
+                </span>
+                <div
+                  style={{
+                    width: "100%",
+                    background: t.hover,
+                    borderRadius: 8,
+                    overflow: "hidden",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "flex-end",
+                    border: `1px solid ${t.border}`,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "100%",
+                      height: `${heightPct}%`,
+                      background: `linear-gradient(180deg, ${t.tealMid} 0%, ${t.mint} 100%)`,
+                      borderRadius: 6,
+                      transition: "height 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+                    }}
+                  />
+                </div>
+                <span style={{ fontSize: 10.5, color: t.textMute, fontWeight: 500 }}>
+                  {r.label}
+                </span>
+                <span className="tabular" style={{ fontSize: 10, color: t.textMute }}>
+                  {(r.count || 0).toLocaleString("pt-BR")}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
