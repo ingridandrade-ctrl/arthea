@@ -179,9 +179,21 @@ export async function computeCoupleBalance(
 
   const settlementWhere: any = { householdId };
   if (from || to) {
-    settlementWhere.date = {};
-    if (from) settlementWhere.date.gte = from;
-    if (to) settlementWhere.date.lte = to;
+    // A settlement counts in the (from,to) window if it overlaps via EITHER
+    // its date OR its periodStart..periodEnd. So an acerto paid in June
+    // referring to May still credits the May balance when filtered by May.
+    const dateClause: any = {};
+    if (from) dateClause.gte = from;
+    if (to) dateClause.lte = to;
+
+    const periodOverlap: any = {};
+    if (from) periodOverlap.periodEnd = { gte: from };
+    if (to) periodOverlap.periodStart = { lte: to };
+
+    settlementWhere.OR = [
+      { date: dateClause },
+      { AND: [{ periodStart: { not: null } }, { periodEnd: { not: null } }, periodOverlap] },
+    ];
   }
   const settlements = await prisma.finSettlement.findMany({
     where: settlementWhere,

@@ -30,17 +30,17 @@ export async function GET(req: Request) {
       year = y;
       month = m - 1;
     } else {
-      year = now.getFullYear();
-      month = now.getMonth();
+      year = now.getUTCFullYear();
+      month = now.getUTCMonth();
     }
 
-    const start = new Date(year, month, 1, 0, 0, 0, 0);
-    const end = new Date(year, month + 1, 1, 0, 0, 0, 0);
-    const prevStart = new Date(year, month - 1, 1, 0, 0, 0, 0);
-    const sixMonthsAgo = new Date(year, month - 5, 1);
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setHours(0, 0, 0, 0);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    const start = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+    const end = new Date(Date.UTC(year, month + 1, 1, 0, 0, 0, 0));
+    const prevStart = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+    const sixMonthsAgo = new Date(Date.UTC(year, month - 5, 1, 0, 0, 0, 0));
+    const sevenDaysAgo = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 6, 0, 0, 0, 0)
+    );
 
     const [accounts, balances, allTx, last6Tx] = await Promise.all([
       prisma.finAccount.findMany({
@@ -102,15 +102,15 @@ export async function GET(req: Request) {
     const dailyMap: Record<string, number> = {};
     for (let i = 6; i >= 0; i--) {
       const d = new Date(sevenDaysAgo);
-      d.setDate(d.getDate() + (6 - i));
-      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      d.setUTCDate(d.getUTCDate() + (6 - i));
+      const k = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
       dailyMap[k] = 0;
     }
     for (const t of allTx) {
       if (t.type !== "EXPENSE") continue;
       const d = effectiveDate(t);
       if (d < sevenDaysAgo) continue;
-      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const k = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
       if (k in dailyMap) dailyMap[k] += t.amount;
     }
     const dailyExpense = Object.entries(dailyMap).map(([day, amount]) => ({ day, amount }));
@@ -169,14 +169,14 @@ export async function GET(req: Request) {
 
     const monthly: Record<string, { income: number; expense: number }> = {};
     for (let i = 5; i >= 0; i--) {
-      const d = new Date(year, month - i, 1);
-      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const d = new Date(Date.UTC(year, month - i, 1));
+      const k = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
       monthly[k] = { income: 0, expense: 0 };
     }
     for (const t of last6Tx) {
       const d = effectiveDate(t);
       if (d < sixMonthsAgo || d >= end) continue;
-      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const k = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
       if (!monthly[k]) continue;
       if (t.type === "INCOME") monthly[k].income += t.amount;
       else if (t.type === "EXPENSE") monthly[k].expense += t.amount;

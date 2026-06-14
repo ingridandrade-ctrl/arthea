@@ -30,7 +30,7 @@ type MovementRow = {
 function deriveStatus(paid: boolean, dateStr: string, today: Date): "paid" | "pending" | "overdue" {
   if (paid) return "paid";
   const d = new Date(dateStr);
-  d.setHours(0, 0, 0, 0);
+  d.setUTCHours(0, 0, 0, 0);
   return d < today ? "overdue" : "pending";
 }
 
@@ -118,7 +118,7 @@ export async function GET(req: Request) {
       : [];
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
 
     const rows: MovementRow[] = [];
 
