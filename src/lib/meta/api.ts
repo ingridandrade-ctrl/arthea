@@ -190,18 +190,62 @@ export async function listCampaigns(accessToken: string, adAccountId: string): P
   return data.data || [];
 }
 
+// Action/value rows do Meta — usados em actions[], action_values[],
+// cost_per_action_type[], video_*_watched_actions[].
+export type MetaActionRow = { action_type: string; value: string };
+
 export interface MetaInsights {
   spend?: string;
   impressions?: string;
   reach?: string;
+  frequency?: string;
   clicks?: string;
+  inline_link_clicks?: string;
   cpm?: string;
   cpc?: string;
   ctr?: string;
-  actions?: { action_type: string; value: string }[];
+  actions?: MetaActionRow[];
+  action_values?: MetaActionRow[];
+  cost_per_action_type?: MetaActionRow[];
+  purchase_roas?: MetaActionRow[];
+  // Vídeo
+  video_p25_watched_actions?: MetaActionRow[];
+  video_p50_watched_actions?: MetaActionRow[];
+  video_p75_watched_actions?: MetaActionRow[];
+  video_p95_watched_actions?: MetaActionRow[];
+  video_p100_watched_actions?: MetaActionRow[];
+  video_thruplay_watched_actions?: MetaActionRow[];
+  video_avg_time_watched_actions?: MetaActionRow[];
+  cost_per_thruplay?: string;
   date_start?: string;
   date_stop?: string;
 }
+
+// Set de fields que a gente pede em todos os endpoints (account, campaign).
+// Centralizar evita drift entre endpoints e facilita extender.
+const INSIGHT_FIELDS_FULL = [
+  "spend",
+  "impressions",
+  "reach",
+  "frequency",
+  "clicks",
+  "inline_link_clicks",
+  "cpm",
+  "cpc",
+  "ctr",
+  "actions",
+  "action_values",
+  "cost_per_action_type",
+  "purchase_roas",
+  "video_p25_watched_actions",
+  "video_p50_watched_actions",
+  "video_p75_watched_actions",
+  "video_p95_watched_actions",
+  "video_p100_watched_actions",
+  "video_thruplay_watched_actions",
+  "video_avg_time_watched_actions",
+  "cost_per_thruplay",
+].join(",");
 
 export async function getAccountInsights(
   accessToken: string,
@@ -212,7 +256,7 @@ export async function getAccountInsights(
   const accountPath = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
   const { data } = await client.get(`/${accountPath}/insights`, {
     params: {
-      fields: "spend,impressions,reach,clicks,cpm,cpc,ctr,actions",
+      fields: INSIGHT_FIELDS_FULL,
       date_preset: datePreset,
     },
   });
@@ -222,11 +266,28 @@ export async function getAccountInsights(
 export interface MetaCampaignInsight {
   campaign_id: string;
   campaign_name: string;
+  objective?: string;
   spend?: string;
   impressions?: string;
+  reach?: string;
+  frequency?: string;
   clicks?: string;
+  inline_link_clicks?: string;
   cpm?: string;
+  cpc?: string;
   ctr?: string;
+  actions?: MetaActionRow[];
+  action_values?: MetaActionRow[];
+  cost_per_action_type?: MetaActionRow[];
+  purchase_roas?: MetaActionRow[];
+  video_p25_watched_actions?: MetaActionRow[];
+  video_p50_watched_actions?: MetaActionRow[];
+  video_p75_watched_actions?: MetaActionRow[];
+  video_p95_watched_actions?: MetaActionRow[];
+  video_p100_watched_actions?: MetaActionRow[];
+  video_thruplay_watched_actions?: MetaActionRow[];
+  video_avg_time_watched_actions?: MetaActionRow[];
+  cost_per_thruplay?: string;
   date_start?: string;
   date_stop?: string;
 }
@@ -272,7 +333,7 @@ export async function getCampaignInsightsForAccount(
   const { data } = await client.get(`/${accountPath}/insights`, {
     params: {
       level: "campaign",
-      fields: "campaign_id,campaign_name,spend,impressions,clicks,cpm,ctr",
+      fields: `campaign_id,campaign_name,objective,${INSIGHT_FIELDS_FULL}`,
       date_preset: datePreset,
       limit: "200",
     },

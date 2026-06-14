@@ -7,8 +7,9 @@ import {
   getCampaignInsightsForAccount,
   getAccountDailyInsights,
 } from "@/lib/meta/api";
+import { buildMetaSummary, aggregateMetaSummaries } from "@/lib/meta/resolvers";
 
-export const revalidate = 3600; // cache 1h
+export const revalidate = 3600;
 
 const VALID_PRESETS = new Set([
   "today",
@@ -24,7 +25,8 @@ const VALID_PRESETS = new Set([
 // GET /api/meta/engagement-dashboard?engagementId=X&datePreset=last_30d
 //
 // Visão Meta Ads escopada a UMA frente (engagement). Combina insights de todas
-// as MetaAdAccount linkadas àquele engagement.
+// as MetaAdAccount linkadas. Usa o resolver `buildMetaSummary` pra extrair
+// todas as ~30 métricas catalogadas (incluindo Hook Rate, Hold Rate, ThruPlay).
 export async function GET(req: NextRequest) {
   const session = (await getServerSession(authOptions)) as any;
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -66,7 +68,6 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // Pega só contas com conexão ativa
   const active = accounts.filter((a) => a.connection.status === "ACTIVE");
   if (active.length === 0) {
     return NextResponse.json({
@@ -80,23 +81,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Acumuladores cross-conta. Maioria das frentes vai ter 1 conta só,
-    // mas o schema permite N — então somamos pra ficar consistente.
-    let totalSpend = 0;
-    let totalImpressions = 0;
-    let totalReach = 0;
-    let totalClicks = 0;
-    let totalActions = 0;
-    const allCampaigns: Array<{
-      campaignId: string;
-      campaignName: string;
-      accountName: string;
-      spend: number;
-      impressions: number;
-      clicks: number;
-      ctr: number;
-      cpm: number;
-    }> = [];
+    const perAccountSummaries: ReturnType<typeof buildMetaSummary>[] = [];
+    const allCampaigns: Array<any> = [];
     const dailyMap = new Map<string, { spend: number; clicks: number }>();
 
     for (const acc of active) {
@@ -106,32 +92,16 @@ export async function GET(req: NextRequest) {
         getAccountDailyInsights(acc.connection.accessToken, acc.accountId, datePreset),
       ]);
 
-      totalSpend += Number(insights?.spend || 0);
-      totalImpressions += Number(insights?.impressions || 0);
-      totalReach += Number(insights?.reach || 0);
-      totalClicks += Number(insights?.clicks || 0);
-
-      // Soma actions que são "lead" ou conversão
-      for (const a of insights?.actions || []) {
-        if (
-          a.action_type === "lead" ||
-          a.action_type === "onsite_conversion.lead_grouped" ||
-          a.action_type.startsWith("offsite_conversion.")
-        ) {
-          totalActions += Number(a.value || 0);
-        }
-      }
+      perAccountSummaries.push(buildMetaSummary(insights));
 
       for (const c of campaigns) {
+        const cSummary = buildMetaSummary(c);
         allCampaigns.push({
           campaignId: c.campaign_id,
           campaignName: c.campaign_name,
+          objective: c.objective,
           accountName: acc.name,
-          spend: Number(c.spend || 0),
-          impressions: Number(c.impressions || 0),
-          clicks: Number(c.clicks || 0),
-          ctr: Number(c.ctr || 0) / 100, // Meta retorna em %
-          cpm: Number(c.cpm || 0),
+          ...cSummary,
         });
       }
 
@@ -145,18 +115,13 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const ctr = totalImpressions > 0 ? totalClicks / totalImpressions : 0;
-    const cpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
-    const cpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
-    const frequency = totalReach > 0 ? totalImpressions / totalReach : 0;
-    const costPerResult = totalActions > 0 ? totalSpend / totalActions : 0;
+    const summary = aggregateMetaSummaries(perAccountSummaries);
 
     allCampaigns.sort((a, b) => b.spend - a.spend);
     const daily = Array.from(dailyMap.entries())
       .map(([date, v]) => ({ date, clicks: v.clicks, cost: v.spend }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    // Usa primeira conta como representativa pra moeda/nome
     const primary = active[0];
     return NextResponse.json({
       datePreset,
@@ -165,18 +130,7 @@ export async function GET(req: NextRequest) {
         currency: primary.currency || "BRL",
         accountCount: active.length,
       },
-      summary: {
-        spend: totalSpend,
-        impressions: totalImpressions,
-        reach: totalReach,
-        clicks: totalClicks,
-        ctr,
-        cpm,
-        cpc,
-        frequency,
-        results: totalActions,
-        costPerResult,
-      },
+      summary,
       campaigns: allCampaigns,
       daily,
     });
