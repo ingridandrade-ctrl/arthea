@@ -26,7 +26,8 @@ type Contribution = {
   description: string;
   totalAmount: number;
   contributionAmount: number;
-  kind: "couple" | "direct";
+  kind: "couple" | "direct" | "invoice";
+  itemCount?: number;
   category: { id: string; name: string; color: string } | null;
 };
 
@@ -495,6 +496,12 @@ function ContributionList({
                 )}
                 {c.kind === "direct" && (
                   <span className="text-[10px] italic">(pagou pelo outro)</span>
+                )}
+                {c.kind === "invoice" && (
+                  <span className="text-[10px] italic">
+                    (fatura agrupada · {c.itemCount} compra{c.itemCount === 1 ? "" : "s"} · total{" "}
+                    {formatCurrency(c.totalAmount)})
+                  </span>
                 )}
               </div>
             </li>
