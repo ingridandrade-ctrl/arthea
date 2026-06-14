@@ -66,15 +66,13 @@ export default async function PortalClienteDetail({
             {project.accesses.length} acessos · {project.references.length} referências
           </p>
         </div>
-        {project.type === "PAID_TRAFFIC" && (
-          <Link
-            href={`/clientes/portal/${project.id}/performance`}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#0D4A4A] px-4 py-2 text-sm font-medium text-white hover:bg-[#0A3838]"
-          >
-            <BarChart3 className="w-4 h-4" />
-            Ver performance
-          </Link>
-        )}
+        <Link
+          href={`/clientes/portal/${project.id}/performance`}
+          className="inline-flex items-center gap-2 rounded-lg bg-[#0D4A4A] px-4 py-2 text-sm font-medium text-white hover:bg-[#0A3838]"
+        >
+          <BarChart3 className="w-4 h-4" />
+          Ver performance
+        </Link>
       </div>
 
       <ProjectEditor
