@@ -320,79 +320,75 @@ export function AdminPerformanceView({
               </div>
             </div>
 
-            {/* Hero */}
-            <Hero clientName={clientName} engagementName={engagementName} />
+            {/* Headline strip — nome cliente + 1 frase de veredicto + health badge */}
+            <HeadlineStrip
+              clientName={clientName}
+              engagementName={engagementName}
+              agg={agg}
+              health={health}
+              loading={loading}
+            />
           </div>
         </div>
 
         {/* Main */}
-        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "32px 40px 0" }}>
-          {/* KPI grid */}
-          <section
-            className="fade-up"
-            style={{
-              animationDelay: "0.1s",
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: 14,
-              marginBottom: 40,
-            }}
-          >
-            <HealthCard health={health} loading={loading} />
-            <KpiCard
-              label="Investimento"
-              value={loading ? "—" : fmtBRL(agg.spend)}
-              sub={agg.spend > 0 ? "BRL · total" : "sem gastos"}
-              spark={dailySpend.map((d) => d.spend)}
-              accentVar="teal"
-              icon={<DollarSign size={13} />}
+        <div style={{ maxWidth: 1320, margin: "0 auto", padding: "28px 40px 0" }}>
+          {/* Verdict bar — 1 ROAS mega + 4 mini-KPIs em linha (substitui KPI grid antiga) */}
+          <section className="fade-up" style={{ animationDelay: "0.08s", marginBottom: 28 }}>
+            <VerdictBar
+              agg={agg}
+              googleData={googleData}
+              metaData={metaData}
+              dailySpend={dailySpend}
               loading={loading}
             />
-            <KpiCard
-              label="Resultados"
-              value={loading ? "—" : agg.results.toLocaleString("pt-BR")}
-              sub={agg.costPerResult > 0 ? `${fmtBRL(agg.costPerResult)} cada` : "leads + conversões"}
-              spark={cumulativeSeries(dailySpend.map((d) => d.clicks))}
-              accentVar="mint"
-              icon={<Target size={13} />}
-              highlight
-              loading={loading}
-            />
-            <KpiCard
-              label="Cliques"
-              value={loading ? "—" : agg.clicks.toLocaleString("pt-BR")}
-              sub={`CTR ${(agg.ctr * 100).toFixed(2)}%`}
-              spark={dailySpend.map((d) => d.clicks)}
-              accentVar="tealMid"
-              icon={<MousePointerClick size={13} />}
-              loading={loading}
-            />
-            <KpiCard
-              label="Impressões"
-              value={loading ? "—" : compact(agg.impressions)}
-              sub={agg.impressions > 0 ? "alcance bruto" : "—"}
-              spark={dailySpend.map((d) => d.impressions)}
-              accentVar="teal"
-              icon={<Activity size={13} />}
-              loading={loading}
-            />
-            <PlatformDonut googleShare={agg.googleShare} metaShare={agg.metaShare} loading={loading} />
           </section>
 
-          {/* Métricas Básicas (CTR, CPC, CPM, Frequência, Alcance, link clicks) */}
-          <section className="fade-up" style={{ animationDelay: "0.12s", marginBottom: 40 }}>
-            <SectionTitle eyebrow="Performance" title="CTR, CPC, CPM e alcance" />
-            <BasicMetricsGrid
+          {/* O que merece atenção — insights, ordenados por severidade, máx 3 */}
+          {!loading && insights.length > 0 && (
+            <section className="fade-up" style={{ animationDelay: "0.12s", marginBottom: 32 }}>
+              <SubsectionHeader title="O que merece atenção" />
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                  gap: 12,
+                }}
+              >
+                {sortBySeverity(insights).slice(0, 3).map((ins, i) => (
+                  <InsightCard key={i} insight={ins} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Eficiência de mídia — matriz Google × Meta com heatmap semafórico */}
+          <section className="fade-up" style={{ animationDelay: "0.14s", marginBottom: 32 }}>
+            <SubsectionHeader title="Eficiência de mídia" hint="Cada célula colore com base no benchmark da métrica." />
+            <EficienciaMatrix
               googleData={googleData}
               metaData={metaData}
               loading={loading}
-              hidden={hiddenMetrics}
             />
           </section>
 
-          {/* Métricas de Conversão (Receita, ROAS, CPL, Ticket Médio etc) */}
-          <section className="fade-up" style={{ animationDelay: "0.13s", marginBottom: 40 }}>
-            <SectionTitle eyebrow="Conversão e Financeiro" title="Receita, ROAS e custo por resultado" />
+          {/* Funil de Conversão */}
+          <section className="fade-up" style={{ animationDelay: "0.16s", marginBottom: 32 }}>
+            <SubsectionHeader title="Funil de conversão" hint="Detectado automaticamente pelo tipo de evento da conta." />
+            <FunnelBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
+          </section>
+
+          {/* Análise de Vídeo (condicional, só quando há dados) */}
+          {!loading && metaData?.summary && ((metaData.summary as any).video3SecWatched || 0) > 0 && (
+            <section className="fade-up" style={{ animationDelay: "0.18s", marginBottom: 32 }}>
+              <SubsectionHeader title="Criativo em vídeo" hint="Hook = parada no scroll. Hold = retenção depois do gancho." />
+              <VideoAnalysisBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
+            </section>
+          )}
+
+          {/* Conversão e Financeiro (mantida — receita/ROAS detalhada por plataforma) */}
+          <section className="fade-up" style={{ animationDelay: "0.20s", marginBottom: 32 }}>
+            <SubsectionHeader title="Conversão e financeiro" hint="Receita, ROAS e custo por resultado por plataforma." />
             <ConversionMetricsGrid
               googleData={googleData}
               metaData={metaData}
@@ -401,60 +397,15 @@ export function AdminPerformanceView({
             />
           </section>
 
-          {/* Engajamento e Tráfego (link clicks, landing page views, engagements) */}
-          <section className="fade-up" style={{ animationDelay: "0.135s", marginBottom: 40 }}>
-            <SectionTitle eyebrow="Engajamento" title="Cliques no link, visitas e interações" />
-            <EngagementMetricsGrid
-              googleData={googleData}
-              metaData={metaData}
-              loading={loading}
-              hidden={hiddenMetrics}
-            />
-          </section>
-
-          {/* Funil de Conversão — auto-detectado por tipo de negócio */}
-          <section className="fade-up" style={{ animationDelay: "0.137s", marginBottom: 40 }}>
-            <SectionTitle eyebrow="Funil de Conversão" title="Onde o público entra, onde sai" />
-            <FunnelBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
-          </section>
-
-          {/* Análise de Vídeo (Meta) — Hook Rate, Hold Rate, ThruPlay, curva de retenção */}
-          <section className="fade-up" style={{ animationDelay: "0.14s", marginBottom: 40 }}>
-            <SectionTitle eyebrow="Análise de Vídeo" title="Como seus criativos estão performando" />
-            <VideoAnalysisBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
-          </section>
-
-          {/* Insights */}
-          <section className="fade-up" style={{ animationDelay: "0.15s", marginBottom: 48 }}>
-            <SectionTitle eyebrow="Insights" title="O que está acontecendo agora" />
-            {loading ? (
-              <InsightsLoading />
-            ) : insights.length === 0 ? (
-              <EmptyState text="Sem dados suficientes pra gerar insights nesse período." />
-            ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-                  gap: 14,
-                }}
-              >
-                {insights.map((ins, i) => (
-                  <InsightCard key={i} insight={ins} />
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Evolution chart spanning both platforms */}
-          <section className="fade-up" style={{ animationDelay: "0.18s", marginBottom: 48 }}>
-            <SectionTitle eyebrow="Evolução" title="Investimento e cliques por dia" />
+          {/* Evolução */}
+          <section className="fade-up" style={{ animationDelay: "0.22s", marginBottom: 32 }}>
+            <SubsectionHeader title="Evolução diária" hint="Investimento e cliques ao longo do período." />
             <EvolutionChart data={dailySpend} loading={loading} />
           </section>
 
-          {/* Detalhamento */}
-          <section className="fade-up" style={{ animationDelay: "0.22s" }}>
-            <SectionTitle eyebrow="Detalhamento" title="Por plataforma" />
+          {/* Detalhamento por plataforma */}
+          <section className="fade-up" style={{ animationDelay: "0.24s" }}>
+            <SubsectionHeader title="Detalhamento por plataforma" hint="Campanhas, keywords e termos de busca." />
             <div
               role="tablist"
               style={{
@@ -464,14 +415,13 @@ export function AdminPerformanceView({
                 borderRadius: 12,
                 padding: 4,
                 gap: 2,
-                marginBottom: 24,
+                marginBottom: 18,
                 boxShadow: tokens.shadow,
               }}
             >
               <PlatformTab active={tab === "google"} onClick={() => setTab("google")} label="Google Ads" dotColor={tokens.googleColor} />
               <PlatformTab active={tab === "meta"} onClick={() => setTab("meta")} label="Meta Ads" dotColor={tokens.metaColor} />
             </div>
-
             <div>
               {tab === "google" ? (
                 <AdminGoogleDetail data={googleData} loading={loading} />
@@ -479,11 +429,6 @@ export function AdminPerformanceView({
                 <AdminMetaDetail data={metaData} loading={loading} />
               )}
             </div>
-          </section>
-
-          {/* AI banner */}
-          <section className="fade-up" style={{ animationDelay: "0.28s", marginTop: 48 }}>
-            <AiBanner />
           </section>
         </div>
 
@@ -1010,6 +955,576 @@ function OrganizeModal({
       </div>
     </div>
   );
+}
+
+// ─── HeadlineStrip: nome cliente + frase de veredicto + health badge ──
+
+function HeadlineStrip({
+  clientName,
+  engagementName,
+  agg,
+  health,
+  loading,
+}: {
+  clientName: string;
+  engagementName: string;
+  agg: Aggregate;
+  health: Health;
+  loading: boolean;
+}) {
+  const t = useTokens();
+  const tierColor: Record<Health["tier"], string> = {
+    excellent: t.tealMid,
+    stable: t.tealMid,
+    attention: t.amber,
+    critical: t.red,
+    unknown: t.textMute,
+  };
+  const tierLabel: Record<Health["tier"], string> = {
+    excellent: "Saúde ótima",
+    stable: "Saúde estável",
+    attention: "Saúde em atenção",
+    critical: "Saúde crítica",
+    unknown: "Sem dados de saúde",
+  };
+
+  // Frase de veredicto dinâmica
+  const verdict = (() => {
+    if (loading) return "Carregando consolidação…";
+    if (agg.spend === 0) return "Sem investimento no período.";
+    const parts: string[] = [];
+    parts.push(`Investiu ${fmtBRL(agg.spend)}`);
+    if (agg.results > 0) {
+      parts.push(`gerou ${agg.results.toLocaleString("pt-BR")} resultado${agg.results > 1 ? "s" : ""}`);
+      if (agg.costPerResult > 0) parts.push(`a ${fmtBRL(agg.costPerResult)} cada`);
+    } else {
+      parts.push("sem resultados registrados");
+    }
+    return parts.join(" · ");
+  })();
+
+  return (
+    <div className="fade-up" style={{ animationDelay: "0.05s" }}>
+      <p
+        style={{
+          fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+          fontSize: 11,
+          color: t.tealMid,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          fontWeight: 600,
+          margin: 0,
+        }}
+      >
+        {engagementName} · Performance
+      </p>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          gap: 24,
+          marginTop: 12,
+          flexWrap: "wrap",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "clamp(28px, 4vw, 40px)",
+            fontWeight: 700,
+            letterSpacing: "-0.025em",
+            color: t.text,
+            margin: 0,
+            lineHeight: 1.1,
+          }}
+        >
+          {clientName}
+        </h1>
+        {!loading && (
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "5px 12px 5px 9px",
+              borderRadius: 999,
+              background: `${tierColor[health.tier]}1A`,
+              border: `1px solid ${tierColor[health.tier]}40`,
+            }}
+            title={health.reasons[0] || ""}
+          >
+            <span
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: 999,
+                background: tierColor[health.tier],
+                flexShrink: 0,
+              }}
+            />
+            <span
+              style={{
+                fontSize: 11.5,
+                fontWeight: 600,
+                color: tierColor[health.tier],
+                fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                letterSpacing: "0.06em",
+              }}
+            >
+              {tierLabel[health.tier]} · {health.score}/100
+            </span>
+          </div>
+        )}
+      </div>
+      <p
+        style={{
+          fontSize: 15.5,
+          color: t.textDim,
+          margin: "10px 0 0",
+          lineHeight: 1.55,
+          maxWidth: 760,
+        }}
+      >
+        {verdict}
+      </p>
+    </div>
+  );
+}
+
+// ─── VerdictBar: 1 ROAS mega + 4 mini-KPIs em linha (substitui KPI grid + Donut) ──
+
+function VerdictBar({
+  agg,
+  googleData,
+  metaData,
+  dailySpend,
+  loading,
+}: {
+  agg: Aggregate;
+  googleData: GoogleData | null;
+  metaData: MetaData | null;
+  dailySpend: Array<{ date: string; spend: number; clicks: number; impressions: number }>;
+  loading: boolean;
+}) {
+  const t = useTokens();
+  const g = googleData?.summary as any;
+  const m = metaData?.summary as any;
+
+  // ROAS consolidado: pondera por spend
+  const gSpend = g?.cost || 0;
+  const mSpend = m?.spend || 0;
+  const gRoas = g?.roas || 0;
+  const mRoas = m?.purchaseRoas || 0;
+  const total = gSpend + mSpend;
+  const consolidatedRoas = total > 0 ? (gRoas * gSpend + mRoas * mSpend) / total : 0;
+  const hasRoas = consolidatedRoas > 0;
+
+  const roasTone =
+    consolidatedRoas >= 2 ? t.tealMid : consolidatedRoas >= 1 ? t.amber : t.red;
+  const roasLabel =
+    consolidatedRoas >= 2 ? "lucrativo" : consolidatedRoas >= 1 ? "borderline" : "abaixo do investido";
+
+  // Mini KPIs
+  const miniKpis: Array<{ label: string; value: string; sub?: string; spark: number[] }> = [
+    {
+      label: "Investimento",
+      value: loading ? "—" : fmtBRL(agg.spend),
+      sub: "BRL · total",
+      spark: dailySpend.map((d) => d.spend),
+    },
+    {
+      label: "Resultados",
+      value: loading ? "—" : agg.results.toLocaleString("pt-BR"),
+      sub: agg.costPerResult > 0 ? `${fmtBRL(agg.costPerResult)} cada` : "leads + conversões",
+      spark: cumulativeSeries(dailySpend.map((d) => d.clicks)),
+    },
+    {
+      label: "Cliques",
+      value: loading ? "—" : agg.clicks.toLocaleString("pt-BR"),
+      sub: `CTR ${(agg.ctr * 100).toFixed(2)}%`,
+      spark: dailySpend.map((d) => d.clicks),
+    },
+    {
+      label: "Impressões",
+      value: loading ? "—" : compact(agg.impressions),
+      sub: agg.impressions > 0 ? "alcance bruto" : "—",
+      spark: dailySpend.map((d) => d.impressions),
+    },
+  ];
+
+  const googlePct = Math.round(agg.googleShare * 100);
+  const metaPct = Math.round(agg.metaShare * 100);
+
+  return (
+    <div
+      className="arc-card"
+      style={{
+        padding: "24px 28px",
+        display: "grid",
+        gridTemplateColumns: "minmax(220px, 0.9fr) 2.2fr",
+        gap: 32,
+        alignItems: "stretch",
+      }}
+    >
+      {/* Painel esquerdo: ROAS mega + distribuição */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          gap: 18,
+          paddingRight: 24,
+          borderRight: `1px solid ${t.border}`,
+        }}
+      >
+        <div>
+          <p
+            style={{
+              fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+              fontSize: 10.5,
+              color: t.textMute,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              fontWeight: 600,
+              margin: 0,
+            }}
+          >
+            ROAS consolidado
+          </p>
+          <p
+            className="tabular"
+            style={{
+              fontSize: 56,
+              fontWeight: 700,
+              color: hasRoas ? roasTone : t.textMute,
+              margin: "6px 0 4px",
+              letterSpacing: "-0.04em",
+              lineHeight: 1.0,
+            }}
+          >
+            {loading ? "—" : hasRoas ? `${consolidatedRoas.toFixed(2)}×` : "—"}
+          </p>
+          {hasRoas && (
+            <p style={{ fontSize: 12.5, color: roasTone, margin: 0, fontWeight: 500 }}>{roasLabel}</p>
+          )}
+          {!hasRoas && !loading && (
+            <p style={{ fontSize: 12, color: t.textMute, margin: 0, fontStyle: "italic" }}>
+              ROAS aparece quando há receita registrada via Google ou pixel Meta
+            </p>
+          )}
+        </div>
+
+        {/* Distribuição Google × Meta em barra empilhada */}
+        {total > 0 && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+              <span style={{ fontSize: 10.5, color: t.textMute, fontFamily: "ui-monospace, 'JetBrains Mono', monospace", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
+                Distribuição
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                width: "100%",
+                height: 6,
+                borderRadius: 999,
+                overflow: "hidden",
+                background: t.hover,
+              }}
+            >
+              <div style={{ width: `${googlePct}%`, background: t.googleColor }} />
+              <div style={{ width: `${metaPct}%`, background: t.metaColor }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+              <span style={{ fontSize: 11.5, color: t.textDim, fontWeight: 500 }}>
+                <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: 2, background: t.googleColor, marginRight: 6, verticalAlign: "middle" }} />
+                Google {googlePct}%
+              </span>
+              <span style={{ fontSize: 11.5, color: t.textDim, fontWeight: 500 }}>
+                <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: 2, background: t.metaColor, marginRight: 6, verticalAlign: "middle" }} />
+                Meta {metaPct}%
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Painel direito: 4 mini KPIs em grid */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+          gap: 24,
+          alignItems: "stretch",
+        }}
+      >
+        {miniKpis.map((k, i) => (
+          <MiniKpiTile key={i} {...k} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MiniKpiTile({ label, value, sub, spark }: { label: string; value: string; sub?: string; spark: number[] }) {
+  const t = useTokens();
+  const data = spark.length > 0 ? spark.map((v, i) => ({ i, v })) : [{ i: 0, v: 0 }];
+  const gradId = useRef(`mkpi-${Math.random().toString(36).slice(2, 9)}`).current;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+      <p
+        style={{
+          fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+          fontSize: 10,
+          color: t.textMute,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+          fontWeight: 600,
+          margin: 0,
+        }}
+      >
+        {label}
+      </p>
+      <span
+        className="tabular"
+        style={{
+          fontSize: 22,
+          fontWeight: 700,
+          color: t.text,
+          letterSpacing: "-0.025em",
+          lineHeight: 1.1,
+        }}
+      >
+        {value}
+      </span>
+      {sub && (
+        <p style={{ fontSize: 11, color: t.textMute, margin: 0 }}>{sub}</p>
+      )}
+      <div style={{ height: 22, marginTop: 2, marginLeft: -2, marginRight: -2 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data}>
+            <defs>
+              <linearGradient id={gradId} x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stopColor={t.tealMid} stopOpacity={0.4} />
+                <stop offset="100%" stopColor={t.mint} stopOpacity={1} />
+              </linearGradient>
+            </defs>
+            <Line type="monotone" dataKey="v" stroke={`url(#${gradId})`} strokeWidth={1.8} dot={false} isAnimationActive />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// ─── SubsectionHeader: header inline pequeno (nível 2) ──
+
+function SubsectionHeader({ title, hint }: { title: string; hint?: string }) {
+  const t = useTokens();
+  return (
+    <div style={{ marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, flexWrap: "wrap" }}>
+      <h3
+        style={{
+          fontSize: 16,
+          fontWeight: 600,
+          color: t.text,
+          margin: 0,
+          letterSpacing: "-0.015em",
+          lineHeight: 1.2,
+        }}
+      >
+        {title}
+      </h3>
+      {hint && (
+        <p style={{ fontSize: 12.5, color: t.textMute, margin: 0, lineHeight: 1.5 }}>{hint}</p>
+      )}
+    </div>
+  );
+}
+
+// ─── Eficiência Matrix: tabela compacta Google × Meta com heatmap ──
+
+function EficienciaMatrix({
+  googleData,
+  metaData,
+  loading,
+}: {
+  googleData: GoogleData | null;
+  metaData: MetaData | null;
+  loading: boolean;
+}) {
+  const t = useTokens();
+  const g = googleData?.summary as any;
+  const m = metaData?.summary as any;
+  const gCurr = googleData?.account?.currencyCode || "BRL";
+  const mCurr = metaData?.account?.currency || "BRL";
+
+  if (loading) {
+    return (
+      <div className="arc-card" style={{ padding: 28, minHeight: 140 }}>
+        <span className="skeleton" style={{ display: "block", height: 14, width: "30%", marginBottom: 12 }} />
+        <span className="skeleton" style={{ display: "block", height: 12, width: "60%", marginBottom: 8 }} />
+        <span className="skeleton" style={{ display: "block", height: 12, width: "50%" }} />
+      </div>
+    );
+  }
+  if (!g && !m) return <EmptyState text="Sem dados de eficiência no período." />;
+
+  // Cell helper — value, format, tone, sub
+  type Cell = { value: number; display: string; tone: "good" | "warn" | "danger" | "neutral"; sub?: string };
+
+  const ctrCell = (ctr: number, isGoogle: boolean): Cell => {
+    const benchmark = isGoogle ? 0.03 : 0.02;
+    const warn = isGoogle ? 0.01 : 0.01;
+    const tone = ctr >= benchmark ? "good" : ctr >= warn ? "warn" : "danger";
+    return { value: ctr, display: `${(ctr * 100).toFixed(2)}%`, tone };
+  };
+  const cpcCell = (cpc: number, currency: string): Cell => ({
+    value: cpc,
+    display: fmtCurrency(cpc, currency),
+    tone: "neutral",
+  });
+  const cpmCell = (cpm: number, currency: string): Cell => ({
+    value: cpm,
+    display: fmtCurrency(cpm, currency),
+    tone: "neutral",
+  });
+  const freqCell = (freq: number): Cell => {
+    if (freq === 0) return { value: 0, display: "—", tone: "neutral" };
+    const tone = freq >= 5 ? "danger" : freq >= 3 ? "warn" : "good";
+    return { value: freq, display: `${freq.toFixed(1)}×`, tone };
+  };
+  const reachCell = (reach: number): Cell => ({
+    value: reach,
+    display: reach > 0 ? compact(reach) : "—",
+    tone: "neutral",
+  });
+
+  const googleRow: { label: string; cell: Cell }[] = g && g.cost > 0 ? [
+    { label: "CTR", cell: ctrCell(g.ctr || 0, true) },
+    { label: "CPC", cell: cpcCell(g.averageCpc || 0, gCurr) },
+    { label: "CPM", cell: cpmCell(g.averageCpm || 0, gCurr) },
+    { label: "Alcance", cell: reachCell(g.impressions || 0) },
+    { label: "Frequência", cell: { value: 0, display: "—", tone: "neutral" } },
+  ] : [];
+
+  const metaRow: { label: string; cell: Cell }[] = m && m.spend > 0 ? [
+    { label: "CTR", cell: ctrCell(m.ctr || 0, false) },
+    { label: "CPC", cell: cpcCell(m.cpc || 0, mCurr) },
+    { label: "CPM", cell: cpmCell(m.cpm || 0, mCurr) },
+    { label: "Alcance", cell: reachCell(m.reach || 0) },
+    { label: "Frequência", cell: freqCell(m.frequency || 0) },
+  ] : [];
+
+  const toneBg = (tone: Cell["tone"]) =>
+    tone === "good" ? t.mintSoft : tone === "warn" ? t.amberSoft : tone === "danger" ? t.redSoft : "transparent";
+  const toneFg = (tone: Cell["tone"]) =>
+    tone === "good" ? t.tealMid : tone === "warn" ? t.amber : tone === "danger" ? t.red : t.text;
+
+  if (googleRow.length === 0 && metaRow.length === 0) {
+    return <EmptyState text="Sem dados de eficiência em nenhuma das plataformas no período." />;
+  }
+
+  return (
+    <div className="arc-card" style={{ padding: "10px 6px", overflowX: "auto" }}>
+      <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "4px 0", fontSize: 13 }}>
+        <thead>
+          <tr>
+            <th style={{ ...thBase, width: 110, textAlign: "left", color: t.textMute }}> </th>
+            {(googleRow.length > 0 ? googleRow : metaRow).map((c) => (
+              <th key={c.label} style={{ ...thBase, color: t.textMute }}>{c.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {googleRow.length > 0 && (
+            <tr>
+              <td style={{ ...tdLabel, color: t.text }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 999, background: t.googleColor }} />
+                  Google
+                </span>
+              </td>
+              {googleRow.map((c, i) => (
+                <td
+                  key={i}
+                  style={{
+                    ...tdCell,
+                    background: toneBg(c.cell.tone),
+                    color: toneFg(c.cell.tone),
+                    fontWeight: c.cell.tone === "neutral" ? 600 : 700,
+                  }}
+                >
+                  {c.cell.display}
+                </td>
+              ))}
+            </tr>
+          )}
+          {metaRow.length > 0 && (
+            <tr>
+              <td style={{ ...tdLabel, color: t.text }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 999, background: t.metaColor }} />
+                  Meta
+                </span>
+              </td>
+              {metaRow.map((c, i) => (
+                <td
+                  key={i}
+                  style={{
+                    ...tdCell,
+                    background: toneBg(c.cell.tone),
+                    color: toneFg(c.cell.tone),
+                    fontWeight: c.cell.tone === "neutral" ? 600 : 700,
+                  }}
+                >
+                  {c.cell.display}
+                </td>
+              ))}
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+const thBase: React.CSSProperties = {
+  padding: "10px 14px",
+  fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+  fontSize: 10,
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+  fontWeight: 600,
+  whiteSpace: "nowrap",
+  textAlign: "center",
+};
+const tdLabel: React.CSSProperties = {
+  padding: "14px 14px",
+  fontSize: 13,
+  fontWeight: 600,
+  whiteSpace: "nowrap",
+};
+const tdCell: React.CSSProperties = {
+  padding: "14px 14px",
+  fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+  fontSize: 13,
+  textAlign: "center",
+  borderRadius: 8,
+  whiteSpace: "nowrap",
+  letterSpacing: "-0.01em",
+};
+
+// ─── sortBySeverity (ordena insights danger > warn > neutral > good) ──
+
+function sortBySeverity(insights: Insight[]): Insight[] {
+  const order: Record<Insight["tone"], number> = {
+    danger: 0,
+    warn: 1,
+    neutral: 2,
+    good: 3,
+  };
+  return [...insights].sort((a, b) => order[a.tone] - order[b.tone]);
 }
 
 function Hero({ clientName, engagementName }: { clientName: string; engagementName: string }) {
