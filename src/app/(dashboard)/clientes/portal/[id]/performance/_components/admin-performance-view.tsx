@@ -260,6 +260,12 @@ export function AdminPerformanceView({
       setGoogleData(g);
       setMetaData(m);
       setLoading(false);
+      // Escolhe a tab default pela plataforma que tem mais gasto
+      const gSpend = g?.summary?.cost || 0;
+      const mSpend = m?.summary?.spend || 0;
+      if (gSpend === 0 && mSpend > 0) setTab("meta");
+      else if (mSpend === 0 && gSpend > 0) setTab("google");
+      else if (mSpend > gSpend) setTab("meta");
     });
 
     return () => {
@@ -274,6 +280,12 @@ export function AdminPerformanceView({
     [googleData, metaData, agg],
   );
   const dailySpend = useMemo(() => mergeDaily(googleData, metaData), [googleData, metaData]);
+
+  // Detecta quais plataformas têm dados (gasto > 0 OU pelo menos algumas impressões)
+  const hasGoogleData =
+    !!googleData?.account && ((googleData?.summary?.cost || 0) > 0 || (googleData?.summary?.impressions || 0) > 0);
+  const hasMetaData =
+    !!metaData?.account && ((metaData?.summary?.spend || 0) > 0 || (metaData?.summary?.impressions || 0) > 0);
 
   return (
     <ThemeCtx.Provider value={{ tokens, theme, setTheme }}>
@@ -320,105 +332,52 @@ export function AdminPerformanceView({
               </div>
             </div>
 
-            {/* Headline strip — Mint Aurora hero */}
+            {/* Headline strip — só nome do cliente + ROAS da plataforma ativa */}
             <HeadlineStrip
               clientName={clientName}
               engagementName={engagementName}
               agg={agg}
-              health={health}
               loading={loading}
               googleData={googleData}
               metaData={metaData}
+              activePlatform={tab}
             />
           </div>
         </div>
 
         {/* Main */}
         <div style={{ maxWidth: 1320, margin: "0 auto", padding: "28px 40px 0" }}>
-          {/* Verdict bar — 1 ROAS mega + 4 mini-KPIs em linha (substitui KPI grid antiga) */}
-          <section className="fade-up" style={{ animationDelay: "0.08s", marginBottom: 28 }}>
-            <VerdictBar
-              agg={agg}
-              googleData={googleData}
-              metaData={metaData}
-              dailySpend={dailySpend}
-              loading={loading}
-            />
-          </section>
-
-          {/* O que merece atenção — insights, ordenados por severidade, máx 3 */}
-          {!loading && insights.length > 0 && (
-            <section className="fade-up" style={{ animationDelay: "0.12s", marginBottom: 32 }}>
-              <SubsectionHeader title="O que merece atenção" />
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-                  gap: 12,
-                }}
-              >
-                {sortBySeverity(insights).slice(0, 3).map((ins, i) => (
-                  <InsightCard key={i} insight={ins} />
-                ))}
-              </div>
+          {/* Platform Tabs — dash totalmente separado por plataforma */}
+          {(hasGoogleData || hasMetaData) && (
+            <section className="fade-up" style={{ marginBottom: 28 }}>
+              <PlatformSelector
+                activePlatform={tab}
+                setActivePlatform={setTab}
+                hasGoogle={hasGoogleData}
+                hasMeta={hasMetaData}
+              />
             </section>
           )}
 
-          {/* Por objetivo de campanha — Meta agrupa por objective, cada bloco com KPIs próprias e top criativos */}
-          <section className="fade-up" style={{ animationDelay: "0.14s", marginBottom: 32 }}>
-            <SubsectionHeader title="Por objetivo de campanha" hint="Cada bloco mostra KPIs e criativos relevantes pro tipo de objetivo." />
-            <ObjectiveBlocks metaData={metaData} loading={loading} />
-          </section>
-
-          {/* Eficiência de mídia — matriz Google × Meta */}
-          <section className="fade-up" style={{ animationDelay: "0.18s", marginBottom: 32 }}>
-            <SubsectionHeader title="Eficiência de mídia" hint="CTR, CPC, CPM e Frequência por plataforma — célula colore vs benchmark." />
-            <EficienciaMatrix
+          {/* Dashboard da plataforma ativa */}
+          {tab === "google" && (
+            <GooglePlatformDashboard
               googleData={googleData}
-              metaData={metaData}
+              insights={insights}
+              dailySpend={dailySpend}
               loading={loading}
             />
-          </section>
+          )}
 
-          {/* Funil de Conversão */}
-          <section className="fade-up" style={{ animationDelay: "0.20s", marginBottom: 32 }}>
-            <SubsectionHeader title="Funil de conversão" hint="Detectado automaticamente pelo tipo de evento da conta." />
-            <FunnelBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
-          </section>
-
-          {/* Evolução */}
-          <section className="fade-up" style={{ animationDelay: "0.22s", marginBottom: 32 }}>
-            <SubsectionHeader title="Evolução diária" hint="Investimento e cliques ao longo do período." />
-            <EvolutionChart data={dailySpend} loading={loading} />
-          </section>
-
-          {/* Detalhamento por plataforma */}
-          <section className="fade-up" style={{ animationDelay: "0.24s" }}>
-            <SubsectionHeader title="Detalhamento por plataforma" hint="Campanhas, keywords e termos de busca." />
-            <div
-              role="tablist"
-              style={{
-                display: "inline-flex",
-                background: tokens.surface,
-                border: `1px solid ${tokens.border}`,
-                borderRadius: 12,
-                padding: 4,
-                gap: 2,
-                marginBottom: 18,
-                boxShadow: tokens.shadow,
-              }}
-            >
-              <PlatformTab active={tab === "google"} onClick={() => setTab("google")} label="Google Ads" dotColor={tokens.googleColor} />
-              <PlatformTab active={tab === "meta"} onClick={() => setTab("meta")} label="Meta Ads" dotColor={tokens.metaColor} />
-            </div>
-            <div>
-              {tab === "google" ? (
-                <AdminGoogleDetail data={googleData} loading={loading} />
-              ) : (
-                <AdminMetaDetail data={metaData} loading={loading} />
-              )}
-            </div>
-          </section>
+          {tab === "meta" && (
+            <MetaPlatformDashboard
+              metaData={metaData}
+              insights={insights}
+              dailySpend={dailySpend}
+              loading={loading}
+              hiddenMetrics={hiddenMetrics}
+            />
+          )}
         </div>
 
         {/* Organize Modal */}
@@ -432,6 +391,275 @@ export function AdminPerformanceView({
         )}
       </div>
     </ThemeCtx.Provider>
+  );
+}
+
+// ─── Platform Selector: tabs grandes Google / Meta ─────────────
+
+function PlatformSelector({
+  activePlatform,
+  setActivePlatform,
+  hasGoogle,
+  hasMeta,
+}: {
+  activePlatform: "google" | "meta";
+  setActivePlatform: (p: "google" | "meta") => void;
+  hasGoogle: boolean;
+  hasMeta: boolean;
+}) {
+  const t = useTokens();
+  // Se só uma plataforma tem dados, não mostra seletor
+  if (hasGoogle && !hasMeta) return null;
+  if (hasMeta && !hasGoogle) return null;
+
+  const items: Array<{ id: "google" | "meta"; label: string; sub: string; color: string }> = [
+    { id: "google", label: "Google Ads", sub: "Search · Display · YouTube · Performance Max", color: t.googleColor },
+    { id: "meta", label: "Meta Ads", sub: "Facebook · Instagram · Messenger · WhatsApp", color: t.metaColor },
+  ];
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(2, 1fr)",
+        gap: 14,
+      }}
+    >
+      {items.map((item) => {
+        const active = activePlatform === item.id;
+        return (
+          <button
+            key={item.id}
+            onClick={() => setActivePlatform(item.id)}
+            className="aurora-card focus-ring"
+            style={{
+              padding: "20px 24px",
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              cursor: "pointer",
+              border: "none",
+              textAlign: "left",
+              fontFamily: "inherit",
+              background: active ? t.surface : t.surface,
+              boxShadow: active
+                ? `0 0 0 2px ${item.color}, 0 24px 60px -24px ${item.color}55`
+                : `0 0 0 1px ${t.border}, 0 8px 24px -16px rgba(13,74,74,0.10)`,
+              opacity: active ? 1 : 0.62,
+              transform: active ? "translateY(0)" : "translateY(0)",
+              transition: "all 0.2s ease",
+            }}
+          >
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                background: `${item.color}22`,
+                color: item.color,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                fontWeight: 800,
+                fontSize: 22,
+                fontFamily: "Inter, sans-serif",
+              }}
+            >
+              {item.id === "google" ? "G" : "M"}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 16, fontWeight: 700, color: t.text, margin: 0, letterSpacing: "-0.01em" }}>
+                {item.label}
+              </p>
+              <p style={{ fontSize: 11.5, color: t.textMute, margin: "3px 0 0", letterSpacing: "0.01em" }}>
+                {item.sub}
+              </p>
+            </div>
+            {active && (
+              <span
+                style={{
+                  width: 8, height: 8, borderRadius: 999,
+                  background: item.color,
+                  boxShadow: `0 0 0 3px ${item.color}22, 0 0 10px ${item.color}80`,
+                  flexShrink: 0,
+                }}
+              />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── GooglePlatformDashboard ───────────────────────────────────
+
+function GooglePlatformDashboard({
+  googleData,
+  insights,
+  dailySpend,
+  loading,
+}: {
+  googleData: GoogleData | null;
+  insights: Insight[];
+  dailySpend: Array<{ date: string; spend: number; clicks: number; impressions: number }>;
+  loading: boolean;
+}) {
+  const t = useTokens();
+  const s = googleData?.summary as any;
+  const currency = googleData?.account?.currencyCode || "BRL";
+
+  if (!loading && !googleData?.account) {
+    return (
+      <EmptyState text="Nenhuma conta Google Ads linkada a essa frente. Vai em /clientes/google-ads pra conectar." />
+    );
+  }
+
+  // KPIs principais Google
+  const kpis = s
+    ? [
+        { label: "Investimento", value: fmtCurrency(s.cost || 0, currency), sub: "no período", spark: dailySpend.map((d) => d.spend) },
+        { label: "Conversões", value: (s.conversions || 0).toLocaleString("pt-BR"), sub: s.costPerConversion ? `${fmtCurrency(s.costPerConversion, currency)} cada` : "—", spark: [] },
+        { label: "Cliques", value: (s.clicks || 0).toLocaleString("pt-BR"), sub: `CTR ${((s.ctr || 0) * 100).toFixed(2)}%`, spark: dailySpend.map((d) => d.clicks) },
+        { label: "Impressões", value: compact(s.impressions || 0), sub: "exibições", spark: dailySpend.map((d) => d.impressions) },
+      ]
+    : [];
+
+  // Filtra insights relevantes pra Google
+  const googleInsights = insights.filter((i) =>
+    /google|search|youtube|display|pmax/i.test(i.body) || (!/(meta|hook|reels|whatsapp)/i.test(i.body) && !/(facebook|instagram)/i.test(i.body)),
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+      {/* KPIs */}
+      <section className="fade-up" style={{ animationDelay: "0.08s" }}>
+        <div className="aurora-card aurora-halo-mint" style={{ padding: "26px 28px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 28 }}>
+            {kpis.map((k) => (
+              <MiniKpiTile key={k.label} {...k} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Insights */}
+      {!loading && googleInsights.length > 0 && (
+        <section className="fade-up" style={{ animationDelay: "0.12s" }}>
+          <SubsectionHeader title="O que merece atenção" />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 12 }}>
+            {sortBySeverity(googleInsights).slice(0, 3).map((ins, i) => (
+              <InsightCard key={i} insight={ins} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Evolução */}
+      <section className="fade-up" style={{ animationDelay: "0.14s" }}>
+        <SubsectionHeader title="Evolução diária" hint="Investimento e cliques ao longo do período." />
+        <EvolutionChart data={dailySpend} loading={loading} />
+      </section>
+
+      {/* Detalhamento Google */}
+      <section className="fade-up" style={{ animationDelay: "0.16s" }}>
+        <SubsectionHeader title="Campanhas, keywords e termos de busca" />
+        <AdminGoogleDetail data={googleData} loading={loading} />
+      </section>
+    </div>
+  );
+}
+
+// ─── MetaPlatformDashboard ─────────────────────────────────────
+
+function MetaPlatformDashboard({
+  metaData,
+  insights,
+  dailySpend,
+  loading,
+  hiddenMetrics,
+}: {
+  metaData: MetaData | null;
+  insights: Insight[];
+  dailySpend: Array<{ date: string; spend: number; clicks: number; impressions: number }>;
+  loading: boolean;
+  hiddenMetrics: Set<string>;
+}) {
+  const t = useTokens();
+  const s = metaData?.summary as any;
+  const currency = metaData?.account?.currency || "BRL";
+
+  if (!loading && !metaData?.account) {
+    return (
+      <EmptyState text="Nenhuma conta Meta Ads linkada a essa frente. Vai em /clientes/meta pra conectar." />
+    );
+  }
+
+  // KPIs principais Meta
+  const kpis = s
+    ? [
+        { label: "Investimento", value: fmtCurrency(s.spend || 0, currency), sub: "no período", spark: dailySpend.map((d) => d.spend) },
+        { label: "Resultados", value: (s.results || 0).toLocaleString("pt-BR"), sub: s.costPerResult ? `${fmtCurrency(s.costPerResult, currency)} cada` : "—", spark: [] },
+        { label: "Alcance", value: compact(s.reach || 0), sub: s.frequency ? `${s.frequency.toFixed(1)}× freq.` : "—", spark: [] },
+        { label: "Impressões", value: compact(s.impressions || 0), sub: "exibições", spark: dailySpend.map((d) => d.impressions) },
+      ]
+    : [];
+
+  // Filtra insights pra Meta
+  const metaInsights = insights.filter((i) =>
+    /meta|hook|reels|whatsapp|facebook|instagram|frequência|frequencia|carrinho|checkout/i.test(i.body) || !/google|search|youtube|pmax/i.test(i.body),
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+      {/* KPIs */}
+      <section className="fade-up" style={{ animationDelay: "0.08s" }}>
+        <div className="aurora-card aurora-halo-mint" style={{ padding: "26px 28px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 28 }}>
+            {kpis.map((k) => (
+              <MiniKpiTile key={k.label} {...k} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Insights */}
+      {!loading && metaInsights.length > 0 && (
+        <section className="fade-up" style={{ animationDelay: "0.12s" }}>
+          <SubsectionHeader title="O que merece atenção" />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 12 }}>
+            {sortBySeverity(metaInsights).slice(0, 3).map((ins, i) => (
+              <InsightCard key={i} insight={ins} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Por objetivo de campanha */}
+      <section className="fade-up" style={{ animationDelay: "0.14s" }}>
+        <SubsectionHeader title="Por objetivo de campanha" hint="KPIs e criativos adaptados pro tipo de campanha." />
+        <ObjectiveBlocks metaData={metaData} loading={loading} />
+      </section>
+
+      {/* Funil de Conversão */}
+      <section className="fade-up" style={{ animationDelay: "0.18s" }}>
+        <SubsectionHeader title="Funil de conversão" hint="Detectado automaticamente pelos eventos da conta." />
+        <FunnelBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
+      </section>
+
+      {/* Evolução */}
+      <section className="fade-up" style={{ animationDelay: "0.20s" }}>
+        <SubsectionHeader title="Evolução diária" hint="Investimento e cliques ao longo do período." />
+        <EvolutionChart data={dailySpend} loading={loading} />
+      </section>
+
+      {/* Detalhamento Meta */}
+      <section className="fade-up" style={{ animationDelay: "0.22s" }}>
+        <SubsectionHeader title="Campanhas Meta detalhadas" />
+        <AdminMetaDetail data={metaData} loading={loading} />
+      </section>
+    </div>
   );
 }
 
@@ -1040,92 +1268,34 @@ function OrganizeModal({
   );
 }
 
-// ─── HeadlineStrip: Mint Aurora hero — gradient mesh + manchete + ROAS flutuante glow ──
+// ─── HeadlineStrip: hero limpo — nome do cliente + ROAS quando faz sentido ──
 
 function HeadlineStrip({
   clientName,
   engagementName,
   agg,
-  health,
   loading,
   googleData,
   metaData,
+  activePlatform,
 }: {
   clientName: string;
   engagementName: string;
   agg: Aggregate;
-  health: Health;
   loading: boolean;
   googleData: GoogleData | null;
   metaData: MetaData | null;
+  activePlatform: "google" | "meta";
 }) {
   const t = useTokens();
-  const tierColor: Record<Health["tier"], string> = {
-    excellent: t.tealMid,
-    stable: t.tealMid,
-    attention: t.amber,
-    critical: t.red,
-    unknown: t.textMute,
-  };
-  const tierLabel: Record<Health["tier"], string> = {
-    excellent: "Saúde ótima",
-    stable: "Saúde estável",
-    attention: "Em atenção",
-    critical: "Crítica",
-    unknown: "Sem dados",
-  };
 
-  // ROAS consolidado ponderado por spend
+  // ROAS da plataforma ativa (não mais consolidado)
   const g = googleData?.summary as any;
   const m = metaData?.summary as any;
-  const gSpend = g?.cost || 0;
-  const mSpend = m?.spend || 0;
-  const gRoas = g?.roas || 0;
-  const mRoas = m?.purchaseRoas || 0;
-  const totalSpend = gSpend + mSpend;
-  const consolidatedRoas = totalSpend > 0 ? (gRoas * gSpend + mRoas * mSpend) / totalSpend : 0;
-  const hasRoas = consolidatedRoas > 0;
+  const platformRoas = activePlatform === "google" ? g?.roas || 0 : m?.purchaseRoas || 0;
+  const hasRoas = platformRoas > 0;
 
-  // Verdict como duas partes: prefixo + highlight
-  // Ex: "Você investiu R$ X e teve <um ROAS de 3.7x>" — highlight é a parte que carrega significado
-  const renderVerdict = () => {
-    if (loading) {
-      return (
-        <span style={{ color: t.textMute, fontStyle: "italic" }}>Carregando consolidação…</span>
-      );
-    }
-    if (agg.spend === 0) {
-      return <span>Sem investimento registrado no período.</span>;
-    }
-    const spendStr = fmtBRL(agg.spend);
-    if (agg.results > 0) {
-      const cpr = agg.costPerResult > 0 ? fmtBRL(agg.costPerResult) : null;
-      return (
-        <>
-          Você investiu {spendStr} e gerou{" "}
-          <span className="aurora-highlight">
-            {agg.results.toLocaleString("pt-BR")} resultado{agg.results > 1 ? "s" : ""}
-            {cpr ? ` a ${cpr} cada` : ""}
-          </span>
-          {hasRoas ? (
-            <>
-              , com um <span className="aurora-highlight">ROAS de {consolidatedRoas.toFixed(2)}×</span>.
-            </>
-          ) : (
-            "."
-          )}
-        </>
-      );
-    }
-    return (
-      <>
-        Você investiu {spendStr} mas{" "}
-        <span className="aurora-highlight">ainda sem resultados registrados</span> — verifique o pixel/conversão.
-      </>
-    );
-  };
-
-  const roasTone = consolidatedRoas >= 2 ? t.tealMid : consolidatedRoas >= 1 ? t.amber : t.red;
+  const roasTone = platformRoas >= 2 ? t.tealMid : platformRoas >= 1 ? t.amber : t.red;
 
   return (
     <div
@@ -1176,58 +1346,9 @@ function HeadlineStrip({
           >
             {clientName}
           </h1>
-
-          <p
-            style={{
-              fontSize: 22,
-              fontWeight: 400,
-              color: t.text,
-              margin: "20px 0 0",
-              lineHeight: 1.45,
-              maxWidth: 720,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            {renderVerdict()}
-          </p>
-
-          {!loading && (
-            <div
-              className="aurora-glass"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "8px 16px 8px 12px",
-                borderRadius: 999,
-                marginTop: 22,
-              }}
-              title={health.reasons[0] || ""}
-            >
-              <span
-                style={{
-                  width: 8, height: 8, borderRadius: 999,
-                  background: tierColor[health.tier],
-                  boxShadow: `0 0 0 3px ${tierColor[health.tier]}22, 0 0 10px ${tierColor[health.tier]}80`,
-                }}
-              />
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: tierColor[health.tier],
-                  fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {tierLabel[health.tier]} · {health.score}/100
-              </span>
-            </div>
-          )}
         </div>
 
-        {/* Direita: ROAS gigante flutuante com glow */}
+        {/* Direita: ROAS da plataforma ativa quando faz sentido */}
         {hasRoas && !loading && (
           <div style={{ textAlign: "right", paddingLeft: 16, alignSelf: "center", minWidth: 220 }}>
             <p
@@ -1241,7 +1362,7 @@ function HeadlineStrip({
                 margin: 0,
               }}
             >
-              ROAS consolidado
+              ROAS {activePlatform === "google" ? "Google" : "Meta"}
             </p>
             <p
               className="tabular aurora-glow-text"
@@ -1254,7 +1375,7 @@ function HeadlineStrip({
                 letterSpacing: "-0.06em",
               }}
             >
-              {consolidatedRoas.toFixed(2)}
+              {platformRoas.toFixed(2)}
               <span style={{ fontSize: "0.45em", fontWeight: 600, marginLeft: 2 }}>×</span>
             </p>
           </div>
@@ -3211,6 +3332,10 @@ function ObjectiveBlock({ block, currency }: { block: ObjectiveBlockData; curren
       initiateCheckout: { label: "Checkout", format: (v) => v.toLocaleString("pt-BR") },
       results: { label: "Resultados", format: (v) => v.toLocaleString("pt-BR") },
       costPerResult: { label: "Custo por Resultado", format: (v) => fmtCurrencyShort(v) },
+      profileVisits: { label: "Visitas ao perfil", format: (v) => v.toLocaleString("pt-BR") },
+      costPerProfileVisit: { label: "Custo por visita ao perfil", format: (v) => fmtCurrencyShort(v) },
+      follows: { label: "Seguidores ganhos", format: (v) => v.toLocaleString("pt-BR") },
+      costPerFollow: { label: "Custo por seguidor", format: (v) => fmtCurrencyShort(v) },
     };
 
     const meta = META_FORMAT[id];
