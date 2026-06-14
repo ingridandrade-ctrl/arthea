@@ -320,13 +320,15 @@ export function AdminPerformanceView({
               </div>
             </div>
 
-            {/* Headline strip — nome cliente + 1 frase de veredicto + health badge */}
+            {/* Headline strip — Mint Aurora hero */}
             <HeadlineStrip
               clientName={clientName}
               engagementName={engagementName}
               agg={agg}
               health={health}
               loading={loading}
+              googleData={googleData}
+              metaData={metaData}
             />
           </div>
         </div>
@@ -465,6 +467,100 @@ function GlobalStyles({ tokens }: { tokens: Tokens }) {
       }
       .live-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
       .fade-up { animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+      /* ─── Mint Aurora — halo glow primitives ─── */
+      .aurora-card {
+        background: ${tokens.surface};
+        border: 1px solid ${tokens.border};
+        border-radius: 24px;
+        box-shadow:
+          0 0 0 1px rgba(126,212,212,0.08),
+          0 1px 2px rgba(13,74,74,0.04),
+          0 24px 60px -30px rgba(126,212,212,0.35);
+        transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+      }
+      .aurora-card:hover {
+        box-shadow:
+          0 0 0 1px rgba(126,212,212,0.22),
+          0 4px 12px rgba(13,74,74,0.05),
+          0 32px 80px -28px rgba(126,212,212,0.55);
+        transform: translateY(-1px);
+      }
+      .aurora-halo-mint {
+        box-shadow:
+          0 0 0 1px rgba(126,212,212,0.35),
+          0 1px 2px rgba(13,74,74,0.04),
+          0 24px 60px -24px rgba(126,212,212,0.55);
+      }
+      .aurora-halo-amber {
+        box-shadow:
+          0 0 0 1px rgba(245,158,11,0.30),
+          0 1px 2px rgba(13,74,74,0.04),
+          0 24px 60px -24px rgba(245,158,11,0.40);
+      }
+      .aurora-halo-red {
+        box-shadow:
+          0 0 0 1px rgba(248,113,113,0.30),
+          0 1px 2px rgba(13,74,74,0.04),
+          0 24px 60px -24px rgba(248,113,113,0.40);
+      }
+
+      /* Italic + underline mint — assinatura visual */
+      .aurora-highlight {
+        font-family: "Fraunces", Georgia, serif;
+        font-style: italic;
+        font-weight: 500;
+        color: ${tokens.teal};
+        text-decoration: underline;
+        text-decoration-color: ${tokens.mint};
+        text-decoration-thickness: 2px;
+        text-underline-offset: 5px;
+      }
+
+      /* Number with mint glow */
+      .aurora-glow-text {
+        text-shadow: 0 0 60px rgba(126,212,212,0.45), 0 0 12px rgba(126,212,212,0.25);
+      }
+
+      /* Gradient mesh background — duas elipses radiais */
+      .aurora-mesh {
+        position: relative;
+        overflow: hidden;
+      }
+      .aurora-mesh::before {
+        content: "";
+        position: absolute;
+        top: -200px;
+        left: -180px;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(126,212,212,0.40) 0%, transparent 65%);
+        filter: blur(80px);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .aurora-mesh::after {
+        content: "";
+        position: absolute;
+        bottom: -240px;
+        right: -200px;
+        width: 560px;
+        height: 560px;
+        background: radial-gradient(circle, rgba(13,74,74,0.22) 0%, transparent 65%);
+        filter: blur(90px);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* Glassmorphism pill */
+      .aurora-glass {
+        background: rgba(255,255,255,0.55);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(13,74,74,0.10);
+      }
+
+      /* Legacy classes (kept while migrating) */
       .arc-card {
         background: ${tokens.surface};
         border: 1px solid ${tokens.border};
@@ -957,7 +1053,7 @@ function OrganizeModal({
   );
 }
 
-// ─── HeadlineStrip: nome cliente + frase de veredicto + health badge ──
+// ─── HeadlineStrip: Mint Aurora hero — gradient mesh + manchete + ROAS flutuante glow ──
 
 function HeadlineStrip({
   clientName,
@@ -965,12 +1061,16 @@ function HeadlineStrip({
   agg,
   health,
   loading,
+  googleData,
+  metaData,
 }: {
   clientName: string;
   engagementName: string;
   agg: Aggregate;
   health: Health;
   loading: boolean;
+  googleData: GoogleData | null;
+  metaData: MetaData | null;
 }) {
   const t = useTokens();
   const tierColor: Record<Health["tier"], string> = {
@@ -983,115 +1083,201 @@ function HeadlineStrip({
   const tierLabel: Record<Health["tier"], string> = {
     excellent: "Saúde ótima",
     stable: "Saúde estável",
-    attention: "Saúde em atenção",
-    critical: "Saúde crítica",
-    unknown: "Sem dados de saúde",
+    attention: "Em atenção",
+    critical: "Crítica",
+    unknown: "Sem dados",
   };
 
-  // Frase de veredicto dinâmica
-  const verdict = (() => {
-    if (loading) return "Carregando consolidação…";
-    if (agg.spend === 0) return "Sem investimento no período.";
-    const parts: string[] = [];
-    parts.push(`Investiu ${fmtBRL(agg.spend)}`);
-    if (agg.results > 0) {
-      parts.push(`gerou ${agg.results.toLocaleString("pt-BR")} resultado${agg.results > 1 ? "s" : ""}`);
-      if (agg.costPerResult > 0) parts.push(`a ${fmtBRL(agg.costPerResult)} cada`);
-    } else {
-      parts.push("sem resultados registrados");
+  // ROAS consolidado ponderado por spend
+  const g = googleData?.summary as any;
+  const m = metaData?.summary as any;
+  const gSpend = g?.cost || 0;
+  const mSpend = m?.spend || 0;
+  const gRoas = g?.roas || 0;
+  const mRoas = m?.purchaseRoas || 0;
+  const totalSpend = gSpend + mSpend;
+  const consolidatedRoas = totalSpend > 0 ? (gRoas * gSpend + mRoas * mSpend) / totalSpend : 0;
+  const hasRoas = consolidatedRoas > 0;
+
+  // Verdict como duas partes: prefixo + highlight
+  // Ex: "Você investiu R$ X e teve <um ROAS de 3.7x>" — highlight é a parte que carrega significado
+  const renderVerdict = () => {
+    if (loading) {
+      return (
+        <span style={{ color: t.textMute, fontStyle: "italic" }}>Carregando consolidação…</span>
+      );
     }
-    return parts.join(" · ");
-  })();
+    if (agg.spend === 0) {
+      return <span>Sem investimento registrado no período.</span>;
+    }
+    const spendStr = fmtBRL(agg.spend);
+    if (agg.results > 0) {
+      const cpr = agg.costPerResult > 0 ? fmtBRL(agg.costPerResult) : null;
+      return (
+        <>
+          Você investiu {spendStr} e gerou{" "}
+          <span className="aurora-highlight">
+            {agg.results.toLocaleString("pt-BR")} resultado{agg.results > 1 ? "s" : ""}
+            {cpr ? ` a ${cpr} cada` : ""}
+          </span>
+          {hasRoas ? (
+            <>
+              , com um <span className="aurora-highlight">ROAS de {consolidatedRoas.toFixed(2)}×</span>.
+            </>
+          ) : (
+            "."
+          )}
+        </>
+      );
+    }
+    return (
+      <>
+        Você investiu {spendStr} mas{" "}
+        <span className="aurora-highlight">ainda sem resultados registrados</span> — verifique o pixel/conversão.
+      </>
+    );
+  };
+
+  const roasTone = consolidatedRoas >= 2 ? t.tealMid : consolidatedRoas >= 1 ? t.amber : t.red;
 
   return (
-    <div className="fade-up" style={{ animationDelay: "0.05s" }}>
-      <p
-        style={{
-          fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-          fontSize: 11,
-          color: t.tealMid,
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          fontWeight: 600,
-          margin: 0,
-        }}
-      >
-        {engagementName} · Performance
-      </p>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          gap: 24,
-          marginTop: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "clamp(28px, 4vw, 40px)",
-            fontWeight: 700,
-            letterSpacing: "-0.025em",
-            color: t.text,
-            margin: 0,
-            lineHeight: 1.1,
-          }}
-        >
-          {clientName}
-        </h1>
-        {!loading && (
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "5px 12px 5px 9px",
-              borderRadius: 999,
-              background: `${tierColor[health.tier]}1A`,
-              border: `1px solid ${tierColor[health.tier]}40`,
-            }}
-            title={health.reasons[0] || ""}
-          >
+    <div
+      className="aurora-mesh fade-up"
+      style={{
+        animationDelay: "0.05s",
+        position: "relative",
+        padding: "32px 0 12px",
+      }}
+    >
+      <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "flex-start" }}>
+        {/* Esquerda: eyebrow + manchete + verdict + badge saúde */}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
             <span
+              className="live-dot"
               style={{
-                width: 7,
-                height: 7,
-                borderRadius: 999,
-                background: tierColor[health.tier],
-                flexShrink: 0,
+                width: 7, height: 7, borderRadius: 999,
+                background: t.tealMid,
+                boxShadow: `0 0 0 4px ${t.tealMid}22, 0 0 12px ${t.tealMid}66`,
               }}
             />
-            <span
+            <p
               style={{
-                fontSize: 11.5,
-                fontWeight: 600,
-                color: tierColor[health.tier],
                 fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-                letterSpacing: "0.06em",
+                fontSize: 11,
+                color: t.tealMid,
+                letterSpacing: "0.24em",
+                textTransform: "uppercase",
+                fontWeight: 700,
+                margin: 0,
               }}
             >
-              {tierLabel[health.tier]} · {health.score}/100
-            </span>
+              {engagementName} · Relatório
+            </p>
+          </div>
+
+          <h1
+            style={{
+              fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
+              fontSize: "clamp(48px, 7vw, 88px)",
+              fontWeight: 800,
+              letterSpacing: "-0.045em",
+              color: t.teal,
+              margin: "16px 0 0",
+              lineHeight: 0.98,
+            }}
+          >
+            {clientName}
+          </h1>
+
+          <p
+            style={{
+              fontSize: 22,
+              fontWeight: 400,
+              color: t.text,
+              margin: "20px 0 0",
+              lineHeight: 1.45,
+              maxWidth: 720,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {renderVerdict()}
+          </p>
+
+          {!loading && (
+            <div
+              className="aurora-glass"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "8px 16px 8px 12px",
+                borderRadius: 999,
+                marginTop: 22,
+              }}
+              title={health.reasons[0] || ""}
+            >
+              <span
+                style={{
+                  width: 8, height: 8, borderRadius: 999,
+                  background: tierColor[health.tier],
+                  boxShadow: `0 0 0 3px ${tierColor[health.tier]}22, 0 0 10px ${tierColor[health.tier]}80`,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: tierColor[health.tier],
+                  fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                }}
+              >
+                {tierLabel[health.tier]} · {health.score}/100
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Direita: ROAS gigante flutuante com glow */}
+        {hasRoas && !loading && (
+          <div style={{ textAlign: "right", paddingLeft: 16, alignSelf: "center", minWidth: 220 }}>
+            <p
+              style={{
+                fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                fontSize: 10.5,
+                color: t.textMute,
+                letterSpacing: "0.20em",
+                textTransform: "uppercase",
+                fontWeight: 700,
+                margin: 0,
+              }}
+            >
+              ROAS consolidado
+            </p>
+            <p
+              className="tabular aurora-glow-text"
+              style={{
+                fontSize: "clamp(80px, 11vw, 140px)",
+                fontWeight: 800,
+                color: roasTone,
+                margin: "8px 0 0",
+                lineHeight: 1.0,
+                letterSpacing: "-0.06em",
+              }}
+            >
+              {consolidatedRoas.toFixed(2)}
+              <span style={{ fontSize: "0.45em", fontWeight: 600, marginLeft: 2 }}>×</span>
+            </p>
           </div>
         )}
       </div>
-      <p
-        style={{
-          fontSize: 15.5,
-          color: t.textDim,
-          margin: "10px 0 0",
-          lineHeight: 1.55,
-          maxWidth: 760,
-        }}
-      >
-        {verdict}
-      </p>
     </div>
   );
 }
 
-// ─── VerdictBar: 1 ROAS mega + 4 mini-KPIs em linha (substitui KPI grid + Donut) ──
+// ─── VerdictBar: 4 mini-KPIs com halo + distribuição na crown (ROAS está no Hero) ──
 
 function VerdictBar({
   agg,
@@ -1107,35 +1293,18 @@ function VerdictBar({
   loading: boolean;
 }) {
   const t = useTokens();
-  const g = googleData?.summary as any;
-  const m = metaData?.summary as any;
 
-  // ROAS consolidado: pondera por spend
-  const gSpend = g?.cost || 0;
-  const mSpend = m?.spend || 0;
-  const gRoas = g?.roas || 0;
-  const mRoas = m?.purchaseRoas || 0;
-  const total = gSpend + mSpend;
-  const consolidatedRoas = total > 0 ? (gRoas * gSpend + mRoas * mSpend) / total : 0;
-  const hasRoas = consolidatedRoas > 0;
-
-  const roasTone =
-    consolidatedRoas >= 2 ? t.tealMid : consolidatedRoas >= 1 ? t.amber : t.red;
-  const roasLabel =
-    consolidatedRoas >= 2 ? "lucrativo" : consolidatedRoas >= 1 ? "borderline" : "abaixo do investido";
-
-  // Mini KPIs
   const miniKpis: Array<{ label: string; value: string; sub?: string; spark: number[] }> = [
     {
       label: "Investimento",
       value: loading ? "—" : fmtBRL(agg.spend),
-      sub: "BRL · total",
+      sub: agg.spend > 0 ? "no período" : "—",
       spark: dailySpend.map((d) => d.spend),
     },
     {
       label: "Resultados",
       value: loading ? "—" : agg.results.toLocaleString("pt-BR"),
-      sub: agg.costPerResult > 0 ? `${fmtBRL(agg.costPerResult)} cada` : "leads + conversões",
+      sub: agg.costPerResult > 0 ? `${fmtBRL(agg.costPerResult)} cada` : "leads + vendas",
       spark: cumulativeSeries(dailySpend.map((d) => d.clicks)),
     },
     {
@@ -1147,114 +1316,74 @@ function VerdictBar({
     {
       label: "Impressões",
       value: loading ? "—" : compact(agg.impressions),
-      sub: agg.impressions > 0 ? "alcance bruto" : "—",
+      sub: agg.impressions > 0 ? "exibições" : "—",
       spark: dailySpend.map((d) => d.impressions),
     },
   ];
 
   const googlePct = Math.round(agg.googleShare * 100);
   const metaPct = Math.round(agg.metaShare * 100);
+  const total = (googleData?.summary?.cost || 0) + (metaData?.summary?.spend || 0);
 
   return (
     <div
-      className="arc-card"
+      className="aurora-card aurora-halo-mint"
       style={{
-        padding: "24px 28px",
-        display: "grid",
-        gridTemplateColumns: "minmax(220px, 0.9fr) 2.2fr",
-        gap: 32,
-        alignItems: "stretch",
+        padding: "26px 28px",
+        background: `linear-gradient(135deg, ${t.surface} 0%, ${t.mintSoft} 180%)`,
       }}
     >
-      {/* Painel esquerdo: ROAS mega + distribuição */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          gap: 18,
-          paddingRight: 24,
-          borderRight: `1px solid ${t.border}`,
-        }}
-      >
-        <div>
-          <p
-            style={{
-              fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-              fontSize: 10.5,
-              color: t.textMute,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              fontWeight: 600,
-              margin: 0,
-            }}
-          >
-            ROAS consolidado
-          </p>
-          <p
-            className="tabular"
-            style={{
-              fontSize: 56,
-              fontWeight: 700,
-              color: hasRoas ? roasTone : t.textMute,
-              margin: "6px 0 4px",
-              letterSpacing: "-0.04em",
-              lineHeight: 1.0,
-            }}
-          >
-            {loading ? "—" : hasRoas ? `${consolidatedRoas.toFixed(2)}×` : "—"}
-          </p>
-          {hasRoas && (
-            <p style={{ fontSize: 12.5, color: roasTone, margin: 0, fontWeight: 500 }}>{roasLabel}</p>
-          )}
-          {!hasRoas && !loading && (
-            <p style={{ fontSize: 12, color: t.textMute, margin: 0, fontStyle: "italic" }}>
-              ROAS aparece quando há receita registrada via Google ou pixel Meta
-            </p>
-          )}
-        </div>
-
-        {/* Distribuição Google × Meta em barra empilhada */}
-        {total > 0 && (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ fontSize: 10.5, color: t.textMute, fontFamily: "ui-monospace, 'JetBrains Mono', monospace", letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 600 }}>
-                Distribuição
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                width: "100%",
-                height: 6,
-                borderRadius: 999,
-                overflow: "hidden",
-                background: t.hover,
-              }}
-            >
-              <div style={{ width: `${googlePct}%`, background: t.googleColor }} />
-              <div style={{ width: `${metaPct}%`, background: t.metaColor }} />
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-              <span style={{ fontSize: 11.5, color: t.textDim, fontWeight: 500 }}>
-                <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: 2, background: t.googleColor, marginRight: 6, verticalAlign: "middle" }} />
+      {/* Crown: distribuição Google × Meta */}
+      {total > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+            <span style={{ fontSize: 10.5, color: t.textMute, fontFamily: "ui-monospace, 'JetBrains Mono', monospace", letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 700 }}>
+              Distribuição do investimento
+            </span>
+            <span style={{ display: "inline-flex", gap: 18, fontSize: 11.5, color: t.textDim, fontWeight: 600 }}>
+              <span>
+                <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: t.googleColor, marginRight: 7, verticalAlign: "middle" }} />
                 Google {googlePct}%
               </span>
-              <span style={{ fontSize: 11.5, color: t.textDim, fontWeight: 500 }}>
-                <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: 2, background: t.metaColor, marginRight: 6, verticalAlign: "middle" }} />
+              <span>
+                <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: t.metaColor, marginRight: 7, verticalAlign: "middle" }} />
                 Meta {metaPct}%
               </span>
-            </div>
+            </span>
           </div>
-        )}
-      </div>
+          <div
+            style={{
+              display: "flex",
+              width: "100%",
+              height: 8,
+              borderRadius: 999,
+              overflow: "hidden",
+              background: t.hover,
+              boxShadow: `inset 0 1px 2px rgba(13,74,74,0.06)`,
+            }}
+          >
+            <div
+              style={{
+                width: `${googlePct}%`,
+                background: `linear-gradient(90deg, ${t.googleColor}DD 0%, ${t.googleColor} 100%)`,
+              }}
+            />
+            <div
+              style={{
+                width: `${metaPct}%`,
+                background: `linear-gradient(90deg, ${t.metaColor}DD 0%, ${t.metaColor} 100%)`,
+              }}
+            />
+          </div>
+        </div>
+      )}
 
-      {/* Painel direito: 4 mini KPIs em grid */}
+      {/* 4 mini KPIs em grid */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-          gap: 24,
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          gap: 28,
           alignItems: "stretch",
         }}
       >
@@ -1271,15 +1400,15 @@ function MiniKpiTile({ label, value, sub, spark }: { label: string; value: strin
   const data = spark.length > 0 ? spark.map((v, i) => ({ i, v })) : [{ i: 0, v: 0 }];
   const gradId = useRef(`mkpi-${Math.random().toString(36).slice(2, 9)}`).current;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
       <p
         style={{
           fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
           fontSize: 10,
           color: t.textMute,
-          letterSpacing: "0.16em",
+          letterSpacing: "0.18em",
           textTransform: "uppercase",
-          fontWeight: 600,
+          fontWeight: 700,
           margin: 0,
         }}
       >
@@ -1288,28 +1417,28 @@ function MiniKpiTile({ label, value, sub, spark }: { label: string; value: strin
       <span
         className="tabular"
         style={{
-          fontSize: 22,
+          fontSize: 32,
           fontWeight: 700,
-          color: t.text,
-          letterSpacing: "-0.025em",
-          lineHeight: 1.1,
+          color: t.teal,
+          letterSpacing: "-0.035em",
+          lineHeight: 1.0,
         }}
       >
         {value}
       </span>
       {sub && (
-        <p style={{ fontSize: 11, color: t.textMute, margin: 0 }}>{sub}</p>
+        <p style={{ fontSize: 11.5, color: t.textMute, margin: 0, fontWeight: 500 }}>{sub}</p>
       )}
-      <div style={{ height: 22, marginTop: 2, marginLeft: -2, marginRight: -2 }}>
+      <div style={{ height: 32, marginTop: 4, marginLeft: -4, marginRight: -4, filter: `drop-shadow(0 0 6px ${t.mint}88)` }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <defs>
               <linearGradient id={gradId} x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0%" stopColor={t.tealMid} stopOpacity={0.4} />
+                <stop offset="0%" stopColor={t.tealMid} stopOpacity={0.5} />
                 <stop offset="100%" stopColor={t.mint} stopOpacity={1} />
               </linearGradient>
             </defs>
-            <Line type="monotone" dataKey="v" stroke={`url(#${gradId})`} strokeWidth={1.8} dot={false} isAnimationActive />
+            <Line type="monotone" dataKey="v" stroke={`url(#${gradId})`} strokeWidth={2} dot={false} isAnimationActive />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -1317,20 +1446,20 @@ function MiniKpiTile({ label, value, sub, spark }: { label: string; value: strin
   );
 }
 
-// ─── SubsectionHeader: header inline pequeno (nível 2) ──
+// ─── SubsectionHeader: header editorial Mint Aurora ──
 
 function SubsectionHeader({ title, hint }: { title: string; hint?: string }) {
   const t = useTokens();
   return (
-    <div style={{ marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, flexWrap: "wrap" }}>
+    <div style={{ marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, flexWrap: "wrap" }}>
       <h3
         style={{
-          fontSize: 16,
-          fontWeight: 600,
-          color: t.text,
+          fontSize: 28,
+          fontWeight: 700,
+          color: t.teal,
           margin: 0,
-          letterSpacing: "-0.015em",
-          lineHeight: 1.2,
+          letterSpacing: "-0.03em",
+          lineHeight: 1.15,
         }}
       >
         {title}
@@ -1840,11 +1969,11 @@ type Insight = { tone: InsightTone; title: string; body: string };
 
 function InsightCard({ insight }: { insight: Insight }) {
   const t = useTokens();
-  const palette: Record<InsightTone, { color: string; bg: string; border: string }> = {
-    good: { color: t.tealMid, bg: t.mintSoft, border: `${t.mint}88` },
-    neutral: { color: t.tealMid, bg: t.surface, border: t.border },
-    warn: { color: t.amber, bg: t.amberSoft, border: `${t.amber}55` },
-    danger: { color: t.red, bg: t.redSoft, border: `${t.red}55` },
+  const palette: Record<InsightTone, { color: string; bg: string; haloClass: string }> = {
+    good: { color: t.tealMid, bg: t.mintSoft, haloClass: "aurora-halo-mint" },
+    neutral: { color: t.tealMid, bg: t.surface, haloClass: "" },
+    warn: { color: t.amber, bg: t.amberSoft, haloClass: "aurora-halo-amber" },
+    danger: { color: t.red, bg: t.redSoft, haloClass: "aurora-halo-red" },
   };
   const p = palette[insight.tone];
   const Icon = insight.tone === "good" ? TrendingUp
@@ -1854,33 +1983,46 @@ function InsightCard({ insight }: { insight: Insight }) {
 
   return (
     <div
-      className="arc-card"
+      className={`aurora-card ${p.haloClass}`}
       style={{
-        padding: "18px 20px",
+        padding: "22px 24px",
         display: "flex",
-        gap: 14,
+        gap: 16,
         alignItems: "flex-start",
-        borderColor: p.border,
+        background: t.surface,
       }}
     >
-      <IconChip color={p.color} bg={p.bg}>
-        <Icon size={16} strokeWidth={2} />
-      </IconChip>
+      <div
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 14,
+          background: p.bg,
+          color: p.color,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          boxShadow: `0 0 24px ${p.color}33`,
+        }}
+      >
+        <Icon size={20} strokeWidth={2} />
+      </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p
           style={{
             fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
-            fontSize: 9.5,
+            fontSize: 10,
             color: p.color,
-            letterSpacing: "0.18em",
+            letterSpacing: "0.2em",
             textTransform: "uppercase",
-            fontWeight: 600,
+            fontWeight: 700,
             margin: 0,
           }}
         >
           {insight.title}
         </p>
-        <p style={{ fontSize: 13.5, color: t.text, margin: "5px 0 0", lineHeight: 1.55 }}>
+        <p style={{ fontSize: 15, color: t.text, margin: "8px 0 0", lineHeight: 1.55, fontWeight: 400 }}>
           {insight.body}
         </p>
       </div>
