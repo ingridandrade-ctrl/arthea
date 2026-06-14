@@ -123,6 +123,49 @@ export function getCostPerConversation(insights: AnyInsights): number {
   return conversations > 0 ? spend / conversations : 0;
 }
 
+/** Atendimentos — engajamento qualificado em mensagens (resposta do negócio + bloco completo). */
+export function getAtendimentos(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, [
+    "onsite_conversion.messaging_first_reply",
+    "onsite_conversion.messaging_user_depth_2_message_send",
+    "onsite_conversion.messaging_user_depth_3_message_send",
+    "onsite_conversion.messaging_user_depth_5_message_send",
+  ]);
+}
+
+export function getCostPerAtendimento(insights: AnyInsights): number {
+  const v = getAtendimentos(insights);
+  const spend = Number(insights.spend || 0);
+  return v > 0 ? spend / v : 0;
+}
+
+/** Agendamentos / appointments — eventos schedule (Brescancin, salões etc). */
+export function getSchedule(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, [
+    "schedule",
+    "offsite_conversion.fb_pixel_schedule",
+    "onsite_conversion.schedule",
+  ]);
+}
+
+/** Subscribe (assinaturas, planos recorrentes). */
+export function getSubscriptions(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, [
+    "subscribe",
+    "offsite_conversion.fb_pixel_subscribe",
+    "onsite_conversion.subscribe",
+  ]);
+}
+
+/** Trial inicio (Mindfulness, SaaS, etc). */
+export function getStartTrial(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, [
+    "start_trial",
+    "offsite_conversion.fb_pixel_start_trial",
+    "onsite_conversion.start_trial",
+  ]);
+}
+
 export function getLandingPageViews(insights: AnyInsights): number {
   return getActionValue(insights.actions, "landing_page_view");
 }
@@ -390,6 +433,13 @@ export type MetaFullSummary = {
   addPaymentInfo: number;
   completeRegistration: number;
   costPerCompleteRegistration: number;
+  // Funil mensagens / atendimento
+  atendimentos: number;
+  costPerAtendimento: number;
+  // Funil serviços
+  schedule: number;
+  subscriptions: number;
+  startTrial: number;
   // Taxas de conversão
   cartConversionRate: number;       // initiate_checkout / add_to_cart
   checkoutConversionRate: number;   // purchase / initiate_checkout
@@ -460,6 +510,11 @@ export function buildMetaSummary(insights: AnyInsights | null | undefined): Meta
     addPaymentInfo: getAddPaymentInfo(insights),
     completeRegistration: getCompleteRegistration(insights),
     costPerCompleteRegistration: getCostPerCompleteRegistration(insights),
+    atendimentos: getAtendimentos(insights),
+    costPerAtendimento: getCostPerAtendimento(insights),
+    schedule: getSchedule(insights),
+    subscriptions: getSubscriptions(insights),
+    startTrial: getStartTrial(insights),
     cartConversionRate: addToCart > 0 ? initiateCheckout / addToCart : 0,
     checkoutConversionRate: initiateCheckout > 0 ? purchases / initiateCheckout : 0,
     productPageConversionRate: viewContent > 0 ? addToCart / viewContent : 0,
@@ -496,6 +551,8 @@ const EMPTY_SUMMARY: MetaFullSummary = {
   initiateCheckout: 0, costPerInitiateCheckout: 0,
   addPaymentInfo: 0,
   completeRegistration: 0, costPerCompleteRegistration: 0,
+  atendimentos: 0, costPerAtendimento: 0,
+  schedule: 0, subscriptions: 0, startTrial: 0,
   cartConversionRate: 0, checkoutConversionRate: 0, productPageConversionRate: 0,
   pageEngagement: 0, postReactions: 0, postComments: 0, postShares: 0,
   video3SecWatched: 0, hookRate: 0, costPer3SecView: 0,
@@ -530,6 +587,10 @@ export function aggregateMetaSummaries(summaries: MetaFullSummary[]): MetaFullSu
   const initiateCheckout = sum("initiateCheckout");
   const addPaymentInfo = sum("addPaymentInfo");
   const completeRegistration = sum("completeRegistration");
+  const atendimentos = sum("atendimentos");
+  const schedule = sum("schedule");
+  const subscriptions = sum("subscriptions");
+  const startTrial = sum("startTrial");
   const pageEngagement = sum("pageEngagement");
   const postReactions = sum("postReactions");
   const postComments = sum("postComments");
@@ -572,6 +633,9 @@ export function aggregateMetaSummaries(summaries: MetaFullSummary[]): MetaFullSu
     addPaymentInfo,
     completeRegistration,
     costPerCompleteRegistration: completeRegistration > 0 ? spend / completeRegistration : 0,
+    atendimentos,
+    costPerAtendimento: atendimentos > 0 ? spend / atendimentos : 0,
+    schedule, subscriptions, startTrial,
     cartConversionRate: addToCart > 0 ? initiateCheckout / addToCart : 0,
     checkoutConversionRate: initiateCheckout > 0 ? purchases / initiateCheckout : 0,
     productPageConversionRate: viewContent > 0 ? addToCart / viewContent : 0,

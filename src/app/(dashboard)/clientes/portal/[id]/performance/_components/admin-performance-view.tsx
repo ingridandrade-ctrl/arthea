@@ -412,10 +412,10 @@ export function AdminPerformanceView({
             />
           </section>
 
-          {/* Funil de Conversão Ecommerce (Meta) */}
+          {/* Funil de Conversão — auto-detectado por tipo de negócio */}
           <section className="fade-up" style={{ animationDelay: "0.137s", marginBottom: 40 }}>
-            <SectionTitle eyebrow="Funil de Conversão" title="ViewContent → Carrinho → Checkout → Compra" />
-            <EcommerceFunnelBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
+            <SectionTitle eyebrow="Funil de Conversão" title="Onde o público entra, onde sai" />
+            <FunnelBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
           </section>
 
           {/* Análise de Vídeo (Meta) — Hook Rate, Hold Rate, ThruPlay, curva de retenção */}
@@ -743,16 +743,19 @@ const ORGANIZE_METRICS: OrganizeMetric[] = [
   { id: "m_purchases", label: "Compras (Meta)", category: "conversion" },
   { id: "m_conversations", label: "Conversas (Meta)", category: "conversion" },
   { id: "m_lpv", label: "Visitas ao site (Conversão)", category: "conversion" },
-  // Funil ecommerce
+  // Funil de Conversão (geral — ecommerce + leads + mensagens + serviços)
   { id: "f_view_content", label: "Visualizações de produto", category: "funnel" },
   { id: "f_add_to_cart", label: "Adições ao carrinho", category: "funnel" },
   { id: "f_initiate_checkout", label: "Inícios de checkout", category: "funnel" },
   { id: "f_add_payment_info", label: "Info de pagamento", category: "funnel" },
   { id: "f_purchases", label: "Compras (funil)", category: "funnel" },
   { id: "f_complete_registration", label: "Cadastros completos", category: "funnel" },
-  { id: "f_page_conv_rate", label: "Taxa View → Carrinho", category: "funnel" },
-  { id: "f_cart_conv_rate", label: "Taxa Carrinho → Checkout", category: "funnel" },
-  { id: "f_checkout_conv_rate", label: "Taxa Checkout → Compra", category: "funnel" },
+  { id: "f_leads", label: "Leads (funil)", category: "funnel" },
+  { id: "f_conversations", label: "Conversas iniciadas (funil)", category: "funnel" },
+  { id: "f_atendimentos", label: "Atendimentos", category: "funnel" },
+  { id: "f_schedule", label: "Agendamentos", category: "funnel" },
+  { id: "f_start_trial", label: "Trials iniciados", category: "funnel" },
+  { id: "f_subscriptions", label: "Assinaturas", category: "funnel" },
   // Vídeo
   { id: "v_hook", label: "Hook Rate", category: "video" },
   { id: "v_hold", label: "Hold Rate", category: "video" },
@@ -766,7 +769,7 @@ const CATEGORY_LABEL: Record<OrganizeMetric["category"], string> = {
   basic: "Performance",
   engagement: "Engajamento",
   conversion: "Conversão e Financeiro",
-  funnel: "Funil de Conversão (Ecommerce)",
+  funnel: "Funil de Conversão",
   video: "Análise de Vídeo",
 };
 
@@ -2271,9 +2274,82 @@ function AiBanner() {
   );
 }
 
-// ─── Ecommerce Funnel Block ─────────────────────────────────────
+// ─── Funnel Block (auto-detecta tipo: ecommerce / leads / mensagens / serviços) ──
 
-function EcommerceFunnelBlock({
+type FunnelStage = {
+  id: string;
+  label: string;
+  count: number;
+  cost?: number;
+  tooltip: string;
+  isFinal?: boolean;
+};
+
+function detectFunnelStages(m: any): FunnelStage[] {
+  if (!m) return [];
+
+  const impressions = m.impressions || 0;
+  const linkClicks = m.linkClicks || 0;
+  const lpv = m.landingPageViews || 0;
+  const viewContent = m.viewContent || 0;
+  const addToCart = m.addToCart || 0;
+  const initiateCheckout = m.initiateCheckout || 0;
+  const addPaymentInfo = m.addPaymentInfo || 0;
+  const purchases = m.purchases || 0;
+  const leads = m.leads || 0;
+  const completeReg = m.completeRegistration || 0;
+  const startTrial = m.startTrial || 0;
+  const subscriptions = m.subscriptions || 0;
+  const conversations = m.conversations || 0;
+  const atendimentos = m.atendimentos || 0;
+  const schedule = m.schedule || 0;
+
+  // Ecommerce: ViewContent → AddToCart → Checkout → Purchase
+  if (viewContent > 0 || addToCart > 0 || initiateCheckout > 0 || purchases > 0) {
+    const stages: FunnelStage[] = [];
+    if (lpv > 0) stages.push({ id: "lpv", label: "Visitas ao site", count: lpv, tooltip: "Pessoas que clicaram E carregaram o site." });
+    if (viewContent > 0) stages.push({ id: "view_content", label: "View produto", count: viewContent, tooltip: "Visualizações de página de produto." });
+    if (addToCart > 0) stages.push({ id: "add_to_cart", label: "Carrinho", count: addToCart, tooltip: "Adições ao carrinho." });
+    if (initiateCheckout > 0) stages.push({ id: "initiate_checkout", label: "Checkout iniciado", count: initiateCheckout, tooltip: "Cliques pra finalizar compra." });
+    if (addPaymentInfo > 0) stages.push({ id: "add_payment", label: "Pagamento", count: addPaymentInfo, tooltip: "Adicionou info de pagamento." });
+    if (purchases > 0) stages.push({ id: "purchase", label: "Compra", count: purchases, isFinal: true, tooltip: "Compras finalizadas." });
+    return stages;
+  }
+
+  // Mensagens / Atendimento (Brescancin etc): Cliques → Conversas → Atendimentos → Agendamento
+  if (conversations > 0 || atendimentos > 0 || schedule > 0) {
+    const stages: FunnelStage[] = [];
+    if (impressions > 0) stages.push({ id: "impressions", label: "Impressões", count: impressions, tooltip: "Quantas vezes seus anúncios apareceram." });
+    if (linkClicks > 0) stages.push({ id: "link_clicks", label: "Cliques no link", count: linkClicks, tooltip: "Cliques pra levar ao WhatsApp/site." });
+    if (conversations > 0) stages.push({ id: "conversations", label: "Conversas iniciadas", count: conversations, tooltip: "Conversas no WhatsApp/Messenger." });
+    if (atendimentos > 0) stages.push({ id: "atendimentos", label: "Atendimentos", count: atendimentos, tooltip: "Conversas em que o negócio respondeu/avançou." });
+    if (schedule > 0) stages.push({ id: "schedule", label: "Agendamentos", count: schedule, isFinal: true, tooltip: "Eventos schedule — agendamentos confirmados." });
+    return stages;
+  }
+
+  // Leads / Cadastros (Mindfulness, B2B, SaaS): Cliques → LPV → Lead/Trial → Cadastro/Subscription
+  if (leads > 0 || completeReg > 0 || startTrial > 0 || subscriptions > 0) {
+    const stages: FunnelStage[] = [];
+    if (impressions > 0) stages.push({ id: "impressions", label: "Impressões", count: impressions, tooltip: "Quantas vezes seus anúncios apareceram." });
+    if (linkClicks > 0) stages.push({ id: "link_clicks", label: "Cliques no link", count: linkClicks, tooltip: "Cliques que levaram a site/form." });
+    if (lpv > 0) stages.push({ id: "lpv", label: "Visitas ao site", count: lpv, tooltip: "Pessoas que carregaram o site." });
+    if (leads > 0) stages.push({ id: "leads", label: "Leads", count: leads, tooltip: "Leads gerados via form ou pixel." });
+    if (completeReg > 0) stages.push({ id: "complete_reg", label: "Cadastros", count: completeReg, tooltip: "Cadastros finalizados." });
+    if (startTrial > 0) stages.push({ id: "start_trial", label: "Trials", count: startTrial, tooltip: "Inícios de teste/trial." });
+    if (subscriptions > 0) stages.push({ id: "subscriptions", label: "Assinaturas", count: subscriptions, isFinal: true, tooltip: "Assinaturas/planos finalizados." });
+    return stages;
+  }
+
+  // Genérico: Impressões → Cliques no link → Visitas → Resultados (qualquer)
+  const stages: FunnelStage[] = [];
+  if (impressions > 0) stages.push({ id: "impressions", label: "Impressões", count: impressions, tooltip: "Exibições dos anúncios." });
+  if (linkClicks > 0) stages.push({ id: "link_clicks", label: "Cliques no link", count: linkClicks, tooltip: "Cliques pra fora do anúncio." });
+  if (lpv > 0) stages.push({ id: "lpv", label: "Visitas ao site", count: lpv, tooltip: "Carregaram o site." });
+  if ((m.results || 0) > 0) stages.push({ id: "results", label: "Resultados", count: m.results, isFinal: true, tooltip: "Resultado do objetivo da campanha." });
+  return stages;
+}
+
+function FunnelBlock({
   metaData,
   loading,
   hidden = new Set<string>(),
@@ -2287,12 +2363,15 @@ function EcommerceFunnelBlock({
   const currency = metaData?.account?.currency || "BRL";
 
   if (loading) return <KpiSkeletonGrid />;
-  if (!m || (m.viewContent || 0) + (m.addToCart || 0) + (m.initiateCheckout || 0) + (m.purchases || 0) === 0) {
+
+  const stages = detectFunnelStages(m);
+  if (stages.length < 2) {
     return (
-      <EmptyState text="Sem eventos de funil ecommerce. Esse bloco aparece quando o pixel/CAPI registra ViewContent, AddToCart, InitiateCheckout ou Purchase." />
+      <EmptyState text="Sem dados de funil. Esse bloco aparece quando há pelo menos 2 etapas de conversão registradas (cliques, conversas, leads, ViewContent, etc)." />
     );
   }
 
+  // Tiles complementares (todos os eventos com dados) — pra Organize controlar
   const tiles: Array<{
     id: string;
     label: string;
@@ -2303,100 +2382,176 @@ function EcommerceFunnelBlock({
     accent?: string;
   }> = [];
 
+  const fmtNum = (n: number) => (n || 0).toLocaleString("pt-BR");
+
   if ((m.viewContent || 0) > 0) {
     tiles.push({
-      id: "f_view_content",
-      label: "Visualizações de produto",
-      value: (m.viewContent || 0).toLocaleString("pt-BR"),
-      sub: `${fmtCurrency(m.costPerViewContent || 0, currency)} cada`,
-      tooltip: "Eventos ViewContent — pessoas que visitaram página de produto.",
-      platformDot: t.metaColor,
+      id: "f_view_content", label: "Visualizações de produto",
+      value: fmtNum(m.viewContent), sub: `${fmtCurrency(m.costPerViewContent || 0, currency)} cada`,
+      tooltip: "Eventos ViewContent — visitas em página de produto.", platformDot: t.metaColor,
     });
   }
   if ((m.addToCart || 0) > 0) {
     tiles.push({
-      id: "f_add_to_cart",
-      label: "Adições ao carrinho",
-      value: (m.addToCart || 0).toLocaleString("pt-BR"),
-      sub: `${fmtCurrency(m.costPerAddToCart || 0, currency)} cada`,
-      tooltip: "Eventos AddToCart — adicionou produto ao carrinho.",
-      platformDot: t.metaColor,
+      id: "f_add_to_cart", label: "Adições ao carrinho",
+      value: fmtNum(m.addToCart), sub: `${fmtCurrency(m.costPerAddToCart || 0, currency)} cada`,
+      tooltip: "Eventos AddToCart.", platformDot: t.metaColor,
     });
   }
   if ((m.initiateCheckout || 0) > 0) {
     tiles.push({
-      id: "f_initiate_checkout",
-      label: "Inícios de checkout",
-      value: (m.initiateCheckout || 0).toLocaleString("pt-BR"),
-      sub: `${fmtCurrency(m.costPerInitiateCheckout || 0, currency)} cada`,
-      tooltip: "Eventos InitiateCheckout — clicou pra finalizar compra. Sinal de alta intenção.",
-      platformDot: t.metaColor,
+      id: "f_initiate_checkout", label: "Inícios de checkout",
+      value: fmtNum(m.initiateCheckout), sub: `${fmtCurrency(m.costPerInitiateCheckout || 0, currency)} cada`,
+      tooltip: "Eventos InitiateCheckout — alta intenção de compra.", platformDot: t.metaColor,
     });
   }
   if ((m.addPaymentInfo || 0) > 0) {
     tiles.push({
-      id: "f_add_payment_info",
-      label: "Info de pagamento",
-      value: (m.addPaymentInfo || 0).toLocaleString("pt-BR"),
-      sub: "passou da etapa cartão",
-      tooltip: "Eventos AddPaymentInfo — preencheu dados de pagamento. Último passo antes da compra.",
-      platformDot: t.metaColor,
+      id: "f_add_payment_info", label: "Info de pagamento",
+      value: fmtNum(m.addPaymentInfo), sub: "passou da etapa cartão",
+      tooltip: "Eventos AddPaymentInfo.", platformDot: t.metaColor,
     });
   }
   if ((m.purchases || 0) > 0) {
     tiles.push({
-      id: "f_purchases",
-      label: "Compras",
-      value: (m.purchases || 0).toLocaleString("pt-BR"),
-      sub: `${fmtCurrency(m.costPerPurchase || 0, currency)} cada`,
-      tooltip: "Eventos Purchase — compra finalizada.",
-      platformDot: t.metaColor,
-      accent: t.tealMid,
+      id: "f_purchases", label: "Compras",
+      value: fmtNum(m.purchases), sub: `${fmtCurrency(m.costPerPurchase || 0, currency)} cada`,
+      tooltip: "Compras finalizadas.", platformDot: t.metaColor, accent: t.tealMid,
     });
   }
   if ((m.completeRegistration || 0) > 0) {
     tiles.push({
-      id: "f_complete_registration",
-      label: "Cadastros completos",
-      value: (m.completeRegistration || 0).toLocaleString("pt-BR"),
-      sub: `${fmtCurrency(m.costPerCompleteRegistration || 0, currency)} cada`,
-      tooltip: "Eventos CompleteRegistration — cadastro finalizado.",
+      id: "f_complete_registration", label: "Cadastros completos",
+      value: fmtNum(m.completeRegistration), sub: `${fmtCurrency(m.costPerCompleteRegistration || 0, currency)} cada`,
+      tooltip: "Cadastros finalizados.", platformDot: t.metaColor,
+    });
+  }
+  if ((m.leads || 0) > 0) {
+    tiles.push({
+      id: "f_leads", label: "Leads",
+      value: fmtNum(m.leads), sub: `${fmtCurrency(m.costPerLead || 0, currency)} cada`,
+      tooltip: "Leads gerados via formulário Meta ou pixel.", platformDot: t.metaColor,
+    });
+  }
+  if ((m.conversations || 0) > 0) {
+    tiles.push({
+      id: "f_conversations", label: "Conversas iniciadas",
+      value: fmtNum(m.conversations), sub: `${fmtCurrency(m.costPerConversation || 0, currency)} cada`,
+      tooltip: "Conversas iniciadas no WhatsApp/Messenger.", platformDot: t.metaColor,
+    });
+  }
+  if ((m.atendimentos || 0) > 0) {
+    tiles.push({
+      id: "f_atendimentos", label: "Atendimentos",
+      value: fmtNum(m.atendimentos), sub: `${fmtCurrency(m.costPerAtendimento || 0, currency)} cada`,
+      tooltip: "Conversas em que houve resposta do negócio (engajamento qualificado).",
       platformDot: t.metaColor,
     });
   }
+  if ((m.schedule || 0) > 0) {
+    tiles.push({
+      id: "f_schedule", label: "Agendamentos",
+      value: fmtNum(m.schedule), sub: "",
+      tooltip: "Eventos Schedule — agendamentos confirmados.", platformDot: t.metaColor, accent: t.tealMid,
+    });
+  }
+  if ((m.startTrial || 0) > 0) {
+    tiles.push({
+      id: "f_start_trial", label: "Trials iniciados",
+      value: fmtNum(m.startTrial), sub: "",
+      tooltip: "Eventos StartTrial.", platformDot: t.metaColor,
+    });
+  }
+  if ((m.subscriptions || 0) > 0) {
+    tiles.push({
+      id: "f_subscriptions", label: "Assinaturas",
+      value: fmtNum(m.subscriptions), sub: "",
+      tooltip: "Eventos Subscribe — assinaturas finalizadas.", platformDot: t.metaColor, accent: t.tealMid,
+    });
+  }
 
-  // Taxas de conversão entre etapas
+  // Taxas de conversão entre etapas (computadas das stages)
   const rates: Array<{ id: string; label: string; value: number; tooltip: string }> = [];
-  if ((m.viewContent || 0) > 0 && (m.addToCart || 0) > 0) {
+  for (let i = 0; i < stages.length - 1; i++) {
+    const from = stages[i];
+    const to = stages[i + 1];
+    if (from.count <= 0) continue;
     rates.push({
-      id: "f_page_conv_rate",
-      label: "View → Carrinho",
-      value: m.productPageConversionRate || 0,
-      tooltip: "% das visitas à página de produto que viraram adição ao carrinho.",
-    });
-  }
-  if ((m.addToCart || 0) > 0 && (m.initiateCheckout || 0) > 0) {
-    rates.push({
-      id: "f_cart_conv_rate",
-      label: "Carrinho → Checkout",
-      value: m.cartConversionRate || 0,
-      tooltip: "% das adições ao carrinho que iniciaram checkout. Bom: 30-50%.",
-    });
-  }
-  if ((m.initiateCheckout || 0) > 0 && (m.purchases || 0) > 0) {
-    rates.push({
-      id: "f_checkout_conv_rate",
-      label: "Checkout → Compra",
-      value: m.checkoutConversionRate || 0,
-      tooltip: "% dos checkouts iniciados que viraram compra. Bom: 40-70%. Baixo = problema na finalização.",
+      id: `f_rate_${from.id}_to_${to.id}`,
+      label: `${from.label} → ${to.label}`,
+      value: to.count / from.count,
+      tooltip: `Quantos % da etapa "${from.label}" avançaram pra "${to.label}".`,
     });
   }
 
   const visibleTiles = tiles.filter((x) => !hidden.has(x.id));
   const visibleRates = rates.filter((x) => !hidden.has(x.id));
 
+  // Funil visual: barras decrescentes proporcionais à maior etapa
+  const maxCount = Math.max(...stages.map((s) => s.count));
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Funil visual com barras decrescentes */}
+      <div className="arc-card" style={{ padding: "24px 28px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, flexWrap: "wrap", gap: 16 }}>
+          <div>
+            <Eyebrow>Funil detectado</Eyebrow>
+            <p style={{ fontSize: 13, color: t.textDim, margin: "6px 0 0", lineHeight: 1.55, maxWidth: 540 }}>
+              {stages.length} etapas detectadas. As barras mostram quantos avançaram, com queda proporcional.
+            </p>
+          </div>
+          <InfoTooltip text="Tipo de funil detectado automaticamente pelos eventos disponíveis na conta Meta (ecommerce / leads / mensagens / serviços)." />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {stages.map((s, i) => {
+            const widthPct = (s.count / maxCount) * 100;
+            const prev = i > 0 ? stages[i - 1] : null;
+            const dropPct = prev && prev.count > 0 ? (s.count / prev.count) * 100 : 100;
+            const dropTone = dropPct >= 50 ? t.tealMid : dropPct >= 20 ? t.amber : t.red;
+            return (
+              <div key={s.id} title={s.tooltip}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4, gap: 12 }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: t.text }}>{s.label}</span>
+                  <span style={{ display: "inline-flex", alignItems: "baseline", gap: 8 }}>
+                    {i > 0 && (
+                      <span className="tabular" style={{ fontSize: 11, color: dropTone, fontWeight: 600 }}>
+                        {dropPct.toFixed(1)}%
+                      </span>
+                    )}
+                    <span className="tabular" style={{ fontSize: 14, fontWeight: 700, color: s.isFinal ? t.tealMid : t.text }}>
+                      {s.count.toLocaleString("pt-BR")}
+                    </span>
+                  </span>
+                </div>
+                <div
+                  style={{
+                    height: 14,
+                    width: "100%",
+                    background: t.hover,
+                    borderRadius: 8,
+                    overflow: "hidden",
+                    border: `1px solid ${t.border}`,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${Math.max(widthPct, 2)}%`,
+                      height: "100%",
+                      background: s.isFinal
+                        ? `linear-gradient(90deg, ${t.tealMid} 0%, ${t.mint} 100%)`
+                        : `linear-gradient(90deg, ${t.tealMid}AA 0%, ${t.tealMid} 100%)`,
+                      borderRadius: 6,
+                      transition: "width 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* KPIs do funil */}
       {visibleTiles.length > 0 && (
         <div
