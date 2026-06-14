@@ -23,6 +23,9 @@ import {
   ChevronDown,
   ChevronUp,
   Eye,
+  Settings2,
+  X,
+  RotateCcw,
 } from "lucide-react";
 import {
   LineChart,
@@ -193,6 +196,11 @@ export function AdminPerformanceView({
   const [metaData, setMetaData] = useState<MetaData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Configurador "Organizar" — quais métricas ficam visíveis (persistido
+  // por engagement no localStorage).
+  const [hiddenMetrics, setHiddenMetrics] = useState<Set<string>>(new Set());
+  const [organizeOpen, setOrganizeOpen] = useState(false);
+
   // Read persisted theme + sync to localStorage
   useEffect(() => {
     try {
@@ -203,6 +211,32 @@ export function AdminPerformanceView({
   const setTheme = (t: Theme) => {
     setThemeState(t);
     try { localStorage.setItem("arthea-perf-theme", t); } catch {}
+  };
+
+  // Read/persist visibility por engagement
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`arthea-perf-hidden-${engagementId}`);
+      if (saved) setHiddenMetrics(new Set(JSON.parse(saved)));
+    } catch {}
+  }, [engagementId]);
+  const toggleMetric = (id: string) => {
+    setHiddenMetrics((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      try {
+        localStorage.setItem(
+          `arthea-perf-hidden-${engagementId}`,
+          JSON.stringify(Array.from(next)),
+        );
+      } catch {}
+      return next;
+    });
+  };
+  const resetHidden = () => {
+    setHiddenMetrics(new Set());
+    try { localStorage.removeItem(`arthea-perf-hidden-${engagementId}`); } catch {}
   };
 
   useEffect(() => {
@@ -281,6 +315,7 @@ export function AdminPerformanceView({
               <LivePill />
               <div style={{ display: "inline-flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                 <PeriodPill period={period} setPeriod={setPeriod} />
+                <OrganizeButton onClick={() => setOrganizeOpen(true)} hiddenCount={hiddenMetrics.size} />
                 <ThemeToggle theme={theme} setTheme={setTheme} />
               </div>
             </div>
@@ -347,13 +382,18 @@ export function AdminPerformanceView({
           {/* Métricas de Conversão (Receita, ROAS, CPL, Ticket Médio etc) */}
           <section className="fade-up" style={{ animationDelay: "0.13s", marginBottom: 40 }}>
             <SectionTitle eyebrow="Conversão e Financeiro" title="Receita, ROAS e custo por resultado" />
-            <ConversionMetricsGrid googleData={googleData} metaData={metaData} loading={loading} />
+            <ConversionMetricsGrid
+              googleData={googleData}
+              metaData={metaData}
+              loading={loading}
+              hidden={hiddenMetrics}
+            />
           </section>
 
           {/* Análise de Vídeo (Meta) — Hook Rate, Hold Rate, ThruPlay, curva de retenção */}
           <section className="fade-up" style={{ animationDelay: "0.14s", marginBottom: 40 }}>
             <SectionTitle eyebrow="Análise de Vídeo" title="Como seus criativos estão performando" />
-            <VideoAnalysisBlock metaData={metaData} loading={loading} />
+            <VideoAnalysisBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
           </section>
 
           {/* Insights */}
@@ -418,6 +458,16 @@ export function AdminPerformanceView({
             <AiBanner />
           </section>
         </div>
+
+        {/* Organize Modal */}
+        {organizeOpen && (
+          <OrganizeModal
+            hidden={hiddenMetrics}
+            onToggle={toggleMetric}
+            onReset={resetHidden}
+            onClose={() => setOrganizeOpen(false)}
+          />
+        )}
       </div>
     </ThemeCtx.Provider>
   );
@@ -580,6 +630,321 @@ function ThemeToggle({ theme, setTheme }: { theme: Theme; setTheme: (t: Theme) =
     >
       {theme === "light" ? <Moon size={15} strokeWidth={1.7} /> : <Sun size={16} strokeWidth={1.7} />}
     </button>
+  );
+}
+
+function OrganizeButton({ onClick, hiddenCount }: { onClick: () => void; hiddenCount: number }) {
+  const t = useTokens();
+  return (
+    <button
+      onClick={onClick}
+      title="Organizar métricas"
+      aria-label="Organizar métricas exibidas"
+      className="focus-ring"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "8px 14px 8px 12px",
+        borderRadius: 999,
+        background: t.surface,
+        border: `1px solid ${t.border}`,
+        boxShadow: t.shadow,
+        cursor: "pointer",
+        color: t.textDim,
+        fontSize: 12.5,
+        fontWeight: 500,
+        fontFamily: "inherit",
+        transition: "all 0.18s ease",
+      }}
+    >
+      <Settings2 size={14} strokeWidth={1.8} />
+      Organizar
+      {hiddenCount > 0 && (
+        <span
+          style={{
+            marginLeft: 2,
+            padding: "1px 7px",
+            borderRadius: 999,
+            background: t.tealMid,
+            color: t.theme === "dark" ? "#0A1419" : "#FFFFFF",
+            fontSize: 10,
+            fontWeight: 700,
+            fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+          }}
+        >
+          {hiddenCount}
+        </span>
+      )}
+    </button>
+  );
+}
+
+// ─── Organize Modal ─────────────────────────────────────────────
+
+type OrganizeMetric = { id: string; label: string; category: "conversion" | "video" };
+
+const ORGANIZE_METRICS: OrganizeMetric[] = [
+  // Conversão
+  { id: "g_revenue", label: "Receita (Google)", category: "conversion" },
+  { id: "g_roas", label: "ROAS (Google)", category: "conversion" },
+  { id: "g_cpa", label: "CPA (Google)", category: "conversion" },
+  { id: "m_purchase_value", label: "Vendas (Meta)", category: "conversion" },
+  { id: "m_roas", label: "ROAS (Meta)", category: "conversion" },
+  { id: "m_leads", label: "Leads (Meta)", category: "conversion" },
+  { id: "m_purchases", label: "Compras (Meta)", category: "conversion" },
+  { id: "m_conversations", label: "Conversas (Meta)", category: "conversion" },
+  { id: "m_lpv", label: "Visitas ao site (Meta)", category: "conversion" },
+  // Vídeo
+  { id: "v_hook", label: "Hook Rate", category: "video" },
+  { id: "v_hold", label: "Hold Rate", category: "video" },
+  { id: "v_thru", label: "ThruPlay Rate", category: "video" },
+  { id: "v_avg_time", label: "Tempo Médio", category: "video" },
+  { id: "v_cp_hook", label: "CP-Hook", category: "video" },
+  { id: "v_cp_thru", label: "CP-ThruPlay", category: "video" },
+];
+
+const CATEGORY_LABEL: Record<OrganizeMetric["category"], string> = {
+  conversion: "Conversão e Financeiro",
+  video: "Análise de Vídeo",
+};
+
+function OrganizeModal({
+  hidden,
+  onToggle,
+  onReset,
+  onClose,
+}: {
+  hidden: Set<string>;
+  onToggle: (id: string) => void;
+  onReset: () => void;
+  onClose: () => void;
+}) {
+  const t = useTokens();
+  const byCategory = ORGANIZE_METRICS.reduce<Record<string, OrganizeMetric[]>>((acc, m) => {
+    acc[m.category] = acc[m.category] || [];
+    acc[m.category].push(m);
+    return acc;
+  }, {});
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.5)",
+        backdropFilter: "blur(4px)",
+        zIndex: 100,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: t.theme === "dark" ? "#0D1B2A" : "#FFFFFF",
+          border: `1px solid ${t.borderHi}`,
+          borderRadius: 24,
+          boxShadow: t.shadowHi,
+          width: "100%",
+          maxWidth: 540,
+          maxHeight: "85vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            padding: "20px 24px",
+            borderBottom: `1px solid ${t.border}`,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 16,
+          }}
+        >
+          <div>
+            <p
+              style={{
+                fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                fontSize: 10.5,
+                color: t.tealMid,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                fontWeight: 600,
+                margin: 0,
+              }}
+            >
+              Organizar
+            </p>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: t.text, margin: "6px 0 0", letterSpacing: "-0.02em" }}>
+              Escolha o que aparece no painel
+            </h3>
+            <p style={{ fontSize: 12.5, color: t.textDim, margin: "4px 0 0", lineHeight: 1.5 }}>
+              Métricas desativadas ficam ocultas. Você pode reativar a qualquer momento.
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="focus-ring"
+            aria-label="Fechar"
+            style={{
+              width: 32, height: 32, borderRadius: 8,
+              background: t.hover, color: t.textDim,
+              border: "none", cursor: "pointer",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <X size={16} strokeWidth={1.8} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ overflow: "auto", padding: "16px 24px", flex: 1 }}>
+          {Object.entries(byCategory).map(([cat, items]) => (
+            <div key={cat} style={{ marginBottom: 20 }}>
+              <p
+                style={{
+                  fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                  fontSize: 10,
+                  color: t.textMute,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
+                  margin: "0 0 10px",
+                }}
+              >
+                {CATEGORY_LABEL[cat as OrganizeMetric["category"]]}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {items.map((m) => {
+                  const isHidden = hidden.has(m.id);
+                  return (
+                    <label
+                      key={m.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        padding: "10px 12px",
+                        borderRadius: 10,
+                        cursor: "pointer",
+                        background: isHidden ? "transparent" : t.hover,
+                        transition: "background 0.15s ease",
+                      }}
+                    >
+                      {/* Toggle */}
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={!isHidden}
+                        onClick={() => onToggle(m.id)}
+                        className="focus-ring"
+                        style={{
+                          width: 36,
+                          height: 20,
+                          borderRadius: 999,
+                          background: isHidden ? t.border : t.tealMid,
+                          border: "none",
+                          cursor: "pointer",
+                          position: "relative",
+                          transition: "background 0.18s ease",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: 2,
+                            left: isHidden ? 2 : 18,
+                            width: 16,
+                            height: 16,
+                            borderRadius: 999,
+                            background: "#FFFFFF",
+                            transition: "left 0.18s cubic-bezier(0.16, 1, 0.3, 1)",
+                            boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                          }}
+                        />
+                      </button>
+                      <span
+                        style={{
+                          fontSize: 13.5,
+                          color: isHidden ? t.textMute : t.text,
+                          fontWeight: 500,
+                          textDecoration: isHidden ? "line-through" : "none",
+                          textDecorationColor: t.textMute,
+                          flex: 1,
+                        }}
+                      >
+                        {m.label}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            padding: "16px 24px",
+            borderTop: `1px solid ${t.border}`,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            onClick={onReset}
+            className="focus-ring"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 14px",
+              borderRadius: 10,
+              background: "transparent",
+              border: "none",
+              color: t.textDim,
+              fontSize: 12.5,
+              fontWeight: 500,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            <RotateCcw size={13} />
+            Mostrar tudo
+          </button>
+          <button
+            onClick={onClose}
+            className="focus-ring"
+            style={{
+              padding: "9px 22px",
+              borderRadius: 10,
+              background: t.teal,
+              color: t.theme === "dark" ? "#0A1419" : "#FFFFFF",
+              border: "none",
+              fontSize: 13.5,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            Pronto
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1851,10 +2216,12 @@ function ConversionMetricsGrid({
   googleData,
   metaData,
   loading,
+  hidden = new Set<string>(),
 }: {
   googleData: GoogleData | null;
   metaData: MetaData | null;
   loading: boolean;
+  hidden?: Set<string>;
 }) {
   const t = useTokens();
   const g = googleData?.summary as any;
@@ -1862,8 +2229,9 @@ function ConversionMetricsGrid({
   const gCurr = googleData?.account?.currencyCode || "BRL";
   const mCurr = metaData?.account?.currency || "BRL";
 
-  // Lista de tiles: [label, value, sub, tooltip, platform]
+  // Lista de tiles: [id, label, value, sub, tooltip, platform]
   const tiles: Array<{
+    id: string;
     label: string;
     value: string;
     sub?: string;
@@ -1874,6 +2242,7 @@ function ConversionMetricsGrid({
 
   if (g && g.cost > 0) {
     tiles.push({
+      id: "g_revenue",
       label: "Receita (Google)",
       value: fmtCurrency(g.conversionsValue || 0, gCurr),
       sub: "valor das conversões",
@@ -1881,6 +2250,7 @@ function ConversionMetricsGrid({
       platformDot: t.googleColor,
     });
     tiles.push({
+      id: "g_roas",
       label: "ROAS (Google)",
       value: (g.roas || 0).toFixed(2) + "×",
       sub: g.roas >= 2 ? "lucrativo" : g.roas >= 1 ? "borderline" : "abaixo do investido",
@@ -1889,6 +2259,7 @@ function ConversionMetricsGrid({
       accent: g.roas >= 2 ? t.tealMid : g.roas >= 1 ? t.amber : t.red,
     });
     tiles.push({
+      id: "g_cpa",
       label: "CPA (Google)",
       value: fmtCurrency(g.costPerConversion || 0, gCurr),
       sub: `${(g.conversions || 0).toLocaleString("pt-BR")} conversões`,
@@ -1899,6 +2270,7 @@ function ConversionMetricsGrid({
 
   if (m && m.spend > 0) {
     tiles.push({
+      id: "m_purchase_value",
       label: "Vendas (Meta)",
       value: fmtCurrency(m.purchaseValue || 0, mCurr),
       sub: "valor das compras",
@@ -1906,6 +2278,7 @@ function ConversionMetricsGrid({
       platformDot: t.metaColor,
     });
     tiles.push({
+      id: "m_roas",
       label: "ROAS (Meta)",
       value: (m.purchaseRoas || 0).toFixed(2) + "×",
       sub: m.purchaseRoas >= 2 ? "lucrativo" : m.purchaseRoas >= 1 ? "borderline" : "abaixo do investido",
@@ -1915,6 +2288,7 @@ function ConversionMetricsGrid({
     });
     if (m.leads > 0) {
       tiles.push({
+        id: "m_leads",
         label: "Leads (Meta)",
         value: (m.leads || 0).toLocaleString("pt-BR"),
         sub: `${fmtCurrency(m.costPerLead || 0, mCurr)} cada`,
@@ -1924,6 +2298,7 @@ function ConversionMetricsGrid({
     }
     if (m.purchases > 0) {
       tiles.push({
+        id: "m_purchases",
         label: "Compras (Meta)",
         value: (m.purchases || 0).toLocaleString("pt-BR"),
         sub: `${fmtCurrency(m.costPerPurchase || 0, mCurr)} cada · ticket ${fmtCurrency(m.ticketMedio || 0, mCurr)}`,
@@ -1933,6 +2308,7 @@ function ConversionMetricsGrid({
     }
     if (m.conversations > 0) {
       tiles.push({
+        id: "m_conversations",
         label: "Conversas (Meta)",
         value: (m.conversations || 0).toLocaleString("pt-BR"),
         sub: `${fmtCurrency(m.costPerConversation || 0, mCurr)} cada`,
@@ -1942,6 +2318,7 @@ function ConversionMetricsGrid({
     }
     if (m.landingPageViews > 0) {
       tiles.push({
+        id: "m_lpv",
         label: "Visitas ao site (Meta)",
         value: (m.landingPageViews || 0).toLocaleString("pt-BR"),
         sub: `${fmtCurrency(m.costPerLandingPageView || 0, mCurr)} cada`,
@@ -1951,10 +2328,17 @@ function ConversionMetricsGrid({
     }
   }
 
+  const visible = tiles.filter((x) => !hidden.has(x.id));
+
   if (loading) return <KpiSkeletonGrid />;
   if (tiles.length === 0) {
     return (
       <EmptyState text="Sem dados de conversão no período. Configure conversion tracking no Google e pixel/CAPI no Meta." />
+    );
+  }
+  if (visible.length === 0) {
+    return (
+      <EmptyState text="Todas as métricas de Conversão estão ocultas. Use 'Organizar' pra ativar." />
     );
   }
 
@@ -1966,8 +2350,8 @@ function ConversionMetricsGrid({
         gap: 14,
       }}
     >
-      {tiles.map((tile, i) => (
-        <SmallKpiTile key={i} {...tile} />
+      {visible.map((tile) => (
+        <SmallKpiTile key={tile.id} {...tile} />
       ))}
     </div>
   );
@@ -2096,9 +2480,11 @@ function fmtCurrency(v: number, currency: string): string {
 function VideoAnalysisBlock({
   metaData,
   loading,
+  hidden = new Set<string>(),
 }: {
   metaData: MetaData | null;
   loading: boolean;
+  hidden?: Set<string>;
 }) {
   const t = useTokens();
   const m = metaData?.summary as any;
@@ -2121,6 +2507,7 @@ function VideoAnalysisBlock({
 
   const tiles = [
     {
+      id: "v_hook",
       label: "Hook Rate",
       value: `${(hookRate * 100).toFixed(2)}%`,
       sub: hookRate >= 0.30 ? "criativo segura o scroll" : hookRate >= 0.20 ? "atenção" : "criativo fraco",
@@ -2129,6 +2516,7 @@ function VideoAnalysisBlock({
       accent: hookTone,
     },
     {
+      id: "v_hold",
       label: "Hold Rate",
       value: `${(holdRate * 100).toFixed(2)}%`,
       sub: holdRate >= 0.60 ? "conteúdo retém" : holdRate >= 0.40 ? "atenção" : "perde rápido",
@@ -2137,6 +2525,7 @@ function VideoAnalysisBlock({
       accent: holdTone,
     },
     {
+      id: "v_thru",
       label: "ThruPlay Rate",
       value: `${(thruRate * 100).toFixed(2)}%`,
       sub: "completaram a view qualificada",
@@ -2145,6 +2534,7 @@ function VideoAnalysisBlock({
       accent: thruTone,
     },
     {
+      id: "v_avg_time",
       label: "Tempo Médio",
       value:
         (m.videoAvgTimeWatched || 0) < 60
@@ -2155,6 +2545,7 @@ function VideoAnalysisBlock({
       platformDot: t.metaColor,
     },
     {
+      id: "v_cp_hook",
       label: "CP-Hook",
       value: fmtCurrency(m.costPer3SecView || 0, currency),
       sub: "custo de cada parada no scroll",
@@ -2162,6 +2553,7 @@ function VideoAnalysisBlock({
       platformDot: t.metaColor,
     },
     {
+      id: "v_cp_thru",
       label: "CP-ThruPlay",
       value: fmtCurrency(m.costPerThruPlay || 0, currency),
       sub: "custo de visualização qualificada",
@@ -2169,6 +2561,8 @@ function VideoAnalysisBlock({
       platformDot: t.metaColor,
     },
   ];
+
+  const visibleTiles = tiles.filter((tile) => !hidden.has(tile.id));
 
   // Curva de retenção
   const views3s = m.video3SecWatched || 0;
@@ -2190,8 +2584,8 @@ function VideoAnalysisBlock({
           gap: 14,
         }}
       >
-        {tiles.map((tile, i) => (
-          <SmallKpiTile key={i} {...tile} />
+        {visibleTiles.map((tile) => (
+          <SmallKpiTile key={tile.id} {...tile} />
         ))}
       </div>
 
