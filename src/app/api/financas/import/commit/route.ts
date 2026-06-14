@@ -14,6 +14,7 @@ type Row = {
   categoryId?: string | null;
   owner?: "PARTNER_A" | "PARTNER_B" | "COUPLE";
   paidByOwner?: "PARTNER_A" | "PARTNER_B" | null;
+  forceNew?: boolean;
 };
 
 export async function POST(req: Request) {
@@ -122,6 +123,21 @@ export async function POST(req: Request) {
         }
 
         const groupId = installmentGroupId(account.id, parc.baseDescription, parc.total);
+
+        if (r.forceNew) {
+          const created = await tx.finTransaction.create({
+            data: {
+              ...baseData,
+              installmentGroupId: groupId,
+              installmentIndex: parc.index,
+              installmentTotal: parc.total,
+              installmentProjected: false,
+            },
+          });
+          createdIds.push(created.id);
+          continue;
+        }
+
         const existing = await tx.finTransaction.findFirst({
           where: {
             householdId: household.id,
