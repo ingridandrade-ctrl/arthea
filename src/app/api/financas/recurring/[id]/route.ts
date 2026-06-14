@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
 import { parseLocalDate } from "@/lib/financas/dates";
+import { ensureInvoice } from "@/lib/financas/credit-cards";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -65,6 +66,35 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             data: txData,
           });
           updatedTxs = res.count;
+        }
+
+        // If accountId changed and the new account isn't a credit card, the
+        // old invoiceId becomes stale (points to a fatura on the other card).
+        // Null it out per-tx; for credit-card targets, recompute via
+        // ensureInvoice on each row's date.
+        if (data.accountId !== undefined) {
+          const newAccount = await tx.finAccount.findFirst({
+            where: { id: data.accountId, householdId: household.id },
+            select: { id: true, type: true, closingDay: true, dueDay: true },
+          });
+          if (newAccount && newAccount.type !== "CREDIT_CARD") {
+            await tx.finTransaction.updateMany({
+              where: { householdId: household.id, recurringId: params.id },
+              data: { invoiceId: null },
+            });
+          } else if (newAccount && newAccount.type === "CREDIT_CARD") {
+            const linkedTxs = await tx.finTransaction.findMany({
+              where: { householdId: household.id, recurringId: params.id },
+              select: { id: true, date: true },
+            });
+            for (const lt of linkedTxs) {
+              const inv = await ensureInvoice(household.id, newAccount, lt.date);
+              await tx.finTransaction.update({
+                where: { id: lt.id },
+                data: { invoiceId: inv?.id ?? null },
+              });
+            }
+          }
         }
       }
 

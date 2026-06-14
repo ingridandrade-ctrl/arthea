@@ -7,9 +7,9 @@ export async function GET(req: Request) {
     const household = await requireHousehold();
     const { searchParams } = new URL(req.url);
     const yearParam = searchParams.get("year");
-    const year = yearParam && /^\d{4}$/.test(yearParam) ? parseInt(yearParam, 10) : new Date().getFullYear();
-    const start = new Date(year, 0, 1);
-    const end = new Date(year + 1, 0, 1);
+    const year = yearParam && /^\d{4}$/.test(yearParam) ? parseInt(yearParam, 10) : new Date().getUTCFullYear();
+    const start = new Date(Date.UTC(year, 0, 1));
+    const end = new Date(Date.UTC(year + 1, 0, 1));
 
     const [allYearTx, byCategory, accounts, allTimeForAccounts] = await Promise.all([
       prisma.finTransaction.findMany({
@@ -48,7 +48,7 @@ export async function GET(req: Request) {
     let totalIncome = 0;
     let totalExpense = 0;
     for (const t of allYearTx) {
-      const m = new Date(t.date).getMonth();
+      const m = new Date(t.date).getUTCMonth();
       if (t.type === "INCOME") {
         monthly[m].income += t.amount;
         totalIncome += t.amount;
@@ -101,7 +101,7 @@ export async function GET(req: Request) {
           for (let m = 0; m < 12; m++) accountEvolution[acc.id][m] += delta;
         }
       } else if (isInYear) {
-        const m = txDate.getMonth();
+        const m = txDate.getUTCMonth();
         for (const acc of accounts) {
           let delta = 0;
           if (t.accountId === acc.id) {

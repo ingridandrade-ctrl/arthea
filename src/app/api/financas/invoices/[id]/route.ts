@@ -144,16 +144,24 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         return NextResponse.json({ error: "Data inválida" }, { status: 400 });
       }
       const newDate = parseLocalDate(newDateStr);
+      // overwritePurchaseDates is OPT-IN now (was always-on, destroying real
+      // purchase dates unrecoverably). Default: only update the invoice's
+      // dueDate.
+      const overwritePurchaseDates = body?.overwritePurchaseDates === true;
       const result = await prisma.$transaction(async (tx) => {
-        const txUpdate = await tx.finTransaction.updateMany({
-          where: { householdId: household.id, invoiceId: inv.id },
-          data: { date: newDate },
-        });
+        let updatedCount = 0;
+        if (overwritePurchaseDates) {
+          const txUpdate = await tx.finTransaction.updateMany({
+            where: { householdId: household.id, invoiceId: inv.id },
+            data: { date: newDate },
+          });
+          updatedCount = txUpdate.count;
+        }
         await tx.finCreditCardInvoice.update({
           where: { id: inv.id },
           data: { dueDate: newDate },
         });
-        return { updated: txUpdate.count };
+        return { updated: updatedCount };
       });
       return NextResponse.json(result);
     }
@@ -179,6 +187,32 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     });
     if (!inv) return NextResponse.json({ error: "Não encontrada" }, { status: 404 });
     await prisma.$transaction(async (tx) => {
+      // If the invoice was paid, also delete the matching payment transfer.
+      // Otherwise the conta corrente stays debited but the expense rows are
+      // gone — silent money sink (bug #10).
+      if (inv.paidAt && inv.paymentAccountId) {
+        const total = await tx.finTransaction.aggregate({
+          where: { householdId: household.id, invoiceId: inv.id },
+          _sum: { amount: true },
+        });
+        const totalAmount = total._sum.amount ?? 0;
+        const transferCandidates = await tx.finTransaction.findMany({
+          where: {
+            householdId: household.id,
+            type: "TRANSFER",
+            toAccountId: inv.accountId,
+            accountId: inv.paymentAccountId,
+            date: inv.paidAt,
+          },
+          select: { id: true, amount: true },
+        });
+        const match = transferCandidates.find(
+          (t) => Math.abs(t.amount - totalAmount) < 0.01
+        );
+        if (match) {
+          await tx.finTransaction.delete({ where: { id: match.id } });
+        }
+      }
       await tx.finTransaction.deleteMany({
         where: { householdId: household.id, invoiceId: inv.id },
       });

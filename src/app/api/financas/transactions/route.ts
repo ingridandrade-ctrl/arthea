@@ -146,8 +146,17 @@ export async function POST(req: Request) {
       invoiceId = inv?.id ?? null;
     }
 
-    const validPaidBy: any =
+    let validPaidBy: any =
       paidByOwner === "PARTNER_A" || paidByOwner === "PARTNER_B" ? paidByOwner : null;
+    // For a couple expense without an explicit paidByOwner, fall back to the
+    // owner of the funding account. Otherwise the couple-balance code silently
+    // ignores the row (bug #6 in audit). When the account is COUPLE, keep null
+    // (truly joint, no one to credit).
+    if (!validPaidBy && type === "EXPENSE" && owner === "COUPLE") {
+      if (account.owner === "PARTNER_A" || account.owner === "PARTNER_B") {
+        validPaidBy = account.owner;
+      }
+    }
     const validSplit =
       type === "EXPENSE" && owner === "COUPLE" && typeof splitRatio === "number"
         ? Math.min(Math.max(splitRatio, 0), 1)

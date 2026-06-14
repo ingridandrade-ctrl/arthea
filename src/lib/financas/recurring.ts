@@ -105,38 +105,38 @@ export async function runRecurringForHousehold(householdId: string, until: Date 
     if (occs.length === 0) continue;
 
     for (const date of occs) {
-      const dupeExists = await prisma.finTransaction.findFirst({
-        where: {
-          householdId,
-          recurringId: rule.id,
-          date,
-        },
-        select: { id: true },
+      // Wrap the dedupe check + create in a transaction so two concurrent
+      // calls can't both insert the same (recurringId, date).
+      const result = await prisma.$transaction(async (tx) => {
+        const dupeExists = await tx.finTransaction.findFirst({
+          where: { householdId, recurringId: rule.id, date },
+          select: { id: true },
+        });
+        if (dupeExists) return false;
+        let invoiceId: string | null = null;
+        if (rule.type === "EXPENSE" && rule.account.type === "CREDIT_CARD") {
+          const inv = await ensureInvoice(householdId, rule.account, date);
+          invoiceId = inv?.id ?? null;
+        }
+        await tx.finTransaction.create({
+          data: {
+            householdId,
+            type: rule.type,
+            amount: rule.amount,
+            date,
+            description: rule.description,
+            notes: rule.notes,
+            owner: rule.owner,
+            accountId: rule.accountId,
+            toAccountId: rule.type === "TRANSFER" ? rule.toAccountId : null,
+            categoryId: rule.type === "TRANSFER" ? null : rule.categoryId,
+            recurringId: rule.id,
+            invoiceId,
+          },
+        });
+        return true;
       });
-      if (dupeExists) continue;
-
-      let invoiceId: string | null = null;
-      if (rule.type === "EXPENSE" && rule.account.type === "CREDIT_CARD") {
-        const inv = await ensureInvoice(householdId, rule.account, date);
-        invoiceId = inv?.id ?? null;
-      }
-      await prisma.finTransaction.create({
-        data: {
-          householdId,
-          type: rule.type,
-          amount: rule.amount,
-          date,
-          description: rule.description,
-          notes: rule.notes,
-          owner: rule.owner,
-          accountId: rule.accountId,
-          toAccountId: rule.type === "TRANSFER" ? rule.toAccountId : null,
-          categoryId: rule.type === "TRANSFER" ? null : rule.categoryId,
-          recurringId: rule.id,
-          invoiceId,
-        },
-      });
-      created += 1;
+      if (result) created += 1;
     }
 
     const last = occs[occs.length - 1];

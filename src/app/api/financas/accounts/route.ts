@@ -39,6 +39,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
     }
 
+    if (
+      type === "CREDIT_CARD" &&
+      typeof closingDay === "number" &&
+      typeof dueDay === "number" &&
+      closingDay === dueDay
+    ) {
+      return NextResponse.json(
+        { error: "Dia de fechamento e vencimento não podem ser o mesmo." },
+        { status: 400 }
+      );
+    }
+
     const account = await prisma.finAccount.create({
       data: {
         householdId: household.id,

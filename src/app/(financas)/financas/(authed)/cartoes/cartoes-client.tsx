@@ -774,6 +774,7 @@ function BulkDateModal({
     ? new Date(invoice.dueDate).toISOString().slice(0, 10)
     : new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(defaultDate);
+  const [overwritePurchaseDates, setOverwritePurchaseDates] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -784,7 +785,7 @@ function BulkDateModal({
     const res = await fetch(`/api/financas/invoices/${invoice.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "setAllDates", date }),
+      body: JSON.stringify({ action: "setAllDates", date, overwritePurchaseDates }),
     });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
@@ -793,21 +794,23 @@ function BulkDateModal({
       return;
     }
     const data = await res.json().catch(() => ({}));
-    alert(`${data.updated || 0} lançamento(s) atualizado(s) para ${new Date(date).toLocaleDateString("pt-BR")}.`);
+    if (overwritePurchaseDates) {
+      alert(`Vencimento ajustado e ${data.updated || 0} lançamento(s) reescrito(s) para ${new Date(date).toLocaleDateString("pt-BR")}.`);
+    } else {
+      alert(`Vencimento da fatura ajustado para ${new Date(date).toLocaleDateString("pt-BR")}. As datas de compra foram preservadas.`);
+    }
     onSaved();
   }
 
   return (
-    <Modal title="Definir data única" onClose={onClose}>
+    <Modal title="Ajustar vencimento da fatura" onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Vai mudar a <strong>data</strong> de TODOS os{" "}
-          <strong>{invoice.transactions.length} lançamento(s)</strong> desta fatura para a
-          data que você escolher. Útil quando a fatura veio com datas de compra mas você
-          quer que todos contem na mesma data (ex: vencimento real).
+          Por padrão, só ajusta o <strong>vencimento</strong> da fatura. As datas reais das
+          compras são preservadas (você precisa delas pro extrato bater).
         </p>
         <div>
-          <label className="block text-sm font-medium mb-1">Nova data</label>
+          <label className="block text-sm font-medium mb-1">Nova data de vencimento</label>
           <input
             type="date"
             required
@@ -816,6 +819,23 @@ function BulkDateModal({
             className="w-full px-3 py-2 rounded-lg border border-border bg-background"
           />
         </div>
+        <label className="flex items-start gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/5 cursor-pointer hover:bg-destructive/10">
+          <input
+            type="checkbox"
+            checked={overwritePurchaseDates}
+            onChange={(e) => setOverwritePurchaseDates(e.target.checked)}
+            className="mt-0.5"
+          />
+          <div className="text-sm">
+            <strong className="text-destructive">
+              Também sobrescrever a data das {invoice.transactions.length} compras
+            </strong>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              ⚠️ Destrutivo. As datas reais de compra serão perdidas pra sempre. Use só se
+              tem certeza que a fatura inteira deve aparecer numa data única.
+            </p>
+          </div>
+        </label>
         {error && (
           <div className="text-sm text-destructive bg-destructive/10 p-2 rounded-lg">{error}</div>
         )}
@@ -832,7 +852,7 @@ function BulkDateModal({
             disabled={saving}
             className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
           >
-            {saving ? "Aplicando..." : "Aplicar a todos"}
+            {saving ? "Aplicando..." : "Aplicar"}
           </button>
         </div>
       </form>
