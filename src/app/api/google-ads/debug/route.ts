@@ -16,7 +16,7 @@ export async function GET() {
     return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
 
-  const apiVersion = process.env.GOOGLE_ADS_API_VERSION || "v20";
+  const apiVersion = process.env.GOOGLE_ADS_API_VERSION || "v22";
   const clientId = process.env.GOOGLE_ADS_CLIENT_ID || "";
   const clientSecret = process.env.GOOGLE_ADS_CLIENT_SECRET || "";
   const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN || "";
