@@ -37,6 +37,10 @@ export type ObjectiveDefinition = {
 
 // Subset de MetaFullSummary que usamos no ranking
 type MetaSummaryShape = {
+  profileVisits: number;
+  costPerProfileVisit: number;
+  follows: number;
+  costPerFollow: number;
   spend: number;
   impressions: number;
   reach: number;
@@ -90,10 +94,10 @@ export const OBJECTIVE_DEFINITIONS: Record<ObjectiveGroup, ObjectiveDefinition> 
   traffic: {
     group: "traffic",
     label: "Tráfego",
-    description: "Você quer levar gente pro site ou WhatsApp",
+    description: "Você quer levar gente pro site, WhatsApp ou perfil",
     emoji: "🎯",
-    primaryMetrics: ["linkClicks", "linkCtr", "linkCpc", "landingPageViews"],
-    secondaryMetrics: ["clicks", "ctr", "cpc", "impressions"],
+    primaryMetrics: ["linkClicks", "linkCtr", "linkCpc", "landingPageViews", "profileVisits"],
+    secondaryMetrics: ["clicks", "ctr", "cpc", "impressions", "costPerProfileVisit"],
     rankBy: "linkClicks",
     headlineMetric: "linkClicks",
     headlineLabel: "Cliques no link",
@@ -101,10 +105,10 @@ export const OBJECTIVE_DEFINITIONS: Record<ObjectiveGroup, ObjectiveDefinition> 
   engagement: {
     group: "engagement",
     label: "Engajamento",
-    description: "Você quer curtidas, comentários, salvamentos e compartilhamentos",
+    description: "Você quer curtidas, seguidores, comentários e compartilhamentos",
     emoji: "💬",
-    primaryMetrics: ["pageEngagement", "impressions", "reach", "frequency"],
-    secondaryMetrics: ["ctr", "linkClicks"],
+    primaryMetrics: ["pageEngagement", "follows", "profileVisits", "reach"],
+    secondaryMetrics: ["impressions", "frequency", "costPerFollow", "ctr"],
     rankBy: "pageEngagement",
     headlineMetric: "pageEngagement",
     headlineLabel: "Engajamento da página",

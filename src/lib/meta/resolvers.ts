@@ -166,6 +166,49 @@ export function getStartTrial(insights: AnyInsights): number {
   ]);
 }
 
+// ─── Métricas Instagram (tráfego pra perfil, seguidores) ─────────
+
+/**
+ * Visitas ao perfil — usado em campanhas de tráfego com destino "Perfil
+ * do Instagram" ou "Página do Facebook". Vem em diferentes action_types
+ * dependendo de como a campanha foi configurada.
+ */
+export function getProfileVisits(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, [
+    "onsite_conversion.profile_visit",
+    "instagram_profile_visit",
+    "onsite_conversion.instagram_profile_visit",
+    "page_view",
+  ]);
+}
+
+export function getCostPerProfileVisit(insights: AnyInsights): number {
+  const v = getProfileVisits(insights);
+  const spend = Number(insights.spend || 0);
+  return v > 0 ? spend / v : 0;
+}
+
+/**
+ * Seguidores ganhos — campanhas de engajamento ou tráfego com
+ * "Seguir Página" como objetivo. Inclui Facebook page likes e
+ * Instagram follows.
+ */
+export function getFollows(insights: AnyInsights): number {
+  return sumActionValues(insights.actions, [
+    "follow",
+    "onsite_conversion.follow",
+    "like",
+    "page_like",
+    "onsite_conversion.page_like",
+  ]);
+}
+
+export function getCostPerFollow(insights: AnyInsights): number {
+  const v = getFollows(insights);
+  const spend = Number(insights.spend || 0);
+  return v > 0 ? spend / v : 0;
+}
+
 export function getLandingPageViews(insights: AnyInsights): number {
   return getActionValue(insights.actions, "landing_page_view");
 }
@@ -440,6 +483,11 @@ export type MetaFullSummary = {
   schedule: number;
   subscriptions: number;
   startTrial: number;
+  // Instagram / Facebook tráfego pro perfil
+  profileVisits: number;
+  costPerProfileVisit: number;
+  follows: number;
+  costPerFollow: number;
   // Taxas de conversão
   cartConversionRate: number;       // initiate_checkout / add_to_cart
   checkoutConversionRate: number;   // purchase / initiate_checkout
@@ -515,6 +563,10 @@ export function buildMetaSummary(insights: AnyInsights | null | undefined): Meta
     schedule: getSchedule(insights),
     subscriptions: getSubscriptions(insights),
     startTrial: getStartTrial(insights),
+    profileVisits: getProfileVisits(insights),
+    costPerProfileVisit: getCostPerProfileVisit(insights),
+    follows: getFollows(insights),
+    costPerFollow: getCostPerFollow(insights),
     cartConversionRate: addToCart > 0 ? initiateCheckout / addToCart : 0,
     checkoutConversionRate: initiateCheckout > 0 ? purchases / initiateCheckout : 0,
     productPageConversionRate: viewContent > 0 ? addToCart / viewContent : 0,
@@ -553,6 +605,8 @@ const EMPTY_SUMMARY: MetaFullSummary = {
   completeRegistration: 0, costPerCompleteRegistration: 0,
   atendimentos: 0, costPerAtendimento: 0,
   schedule: 0, subscriptions: 0, startTrial: 0,
+  profileVisits: 0, costPerProfileVisit: 0,
+  follows: 0, costPerFollow: 0,
   cartConversionRate: 0, checkoutConversionRate: 0, productPageConversionRate: 0,
   pageEngagement: 0, postReactions: 0, postComments: 0, postShares: 0,
   video3SecWatched: 0, hookRate: 0, costPer3SecView: 0,
@@ -591,6 +645,8 @@ export function aggregateMetaSummaries(summaries: MetaFullSummary[]): MetaFullSu
   const schedule = sum("schedule");
   const subscriptions = sum("subscriptions");
   const startTrial = sum("startTrial");
+  const profileVisits = sum("profileVisits");
+  const follows = sum("follows");
   const pageEngagement = sum("pageEngagement");
   const postReactions = sum("postReactions");
   const postComments = sum("postComments");
@@ -636,6 +692,10 @@ export function aggregateMetaSummaries(summaries: MetaFullSummary[]): MetaFullSu
     atendimentos,
     costPerAtendimento: atendimentos > 0 ? spend / atendimentos : 0,
     schedule, subscriptions, startTrial,
+    profileVisits,
+    costPerProfileVisit: profileVisits > 0 ? spend / profileVisits : 0,
+    follows,
+    costPerFollow: follows > 0 ? spend / follows : 0,
     cartConversionRate: addToCart > 0 ? initiateCheckout / addToCart : 0,
     checkoutConversionRate: initiateCheckout > 0 ? purchases / initiateCheckout : 0,
     productPageConversionRate: viewContent > 0 ? addToCart / viewContent : 0,
