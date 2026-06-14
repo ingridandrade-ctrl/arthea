@@ -364,9 +364,15 @@ export function AdminPerformanceView({
             </section>
           )}
 
-          {/* Eficiência de mídia — matriz Google × Meta com heatmap semafórico */}
+          {/* Por objetivo de campanha — Meta agrupa por objective, cada bloco com KPIs próprias e top criativos */}
           <section className="fade-up" style={{ animationDelay: "0.14s", marginBottom: 32 }}>
-            <SubsectionHeader title="Eficiência de mídia" hint="Cada célula colore com base no benchmark da métrica." />
+            <SubsectionHeader title="Por objetivo de campanha" hint="Cada bloco mostra KPIs e criativos relevantes pro tipo de objetivo." />
+            <ObjectiveBlocks metaData={metaData} loading={loading} />
+          </section>
+
+          {/* Eficiência de mídia — matriz Google × Meta */}
+          <section className="fade-up" style={{ animationDelay: "0.18s", marginBottom: 32 }}>
+            <SubsectionHeader title="Eficiência de mídia" hint="CTR, CPC, CPM e Frequência por plataforma — célula colore vs benchmark." />
             <EficienciaMatrix
               googleData={googleData}
               metaData={metaData}
@@ -375,28 +381,9 @@ export function AdminPerformanceView({
           </section>
 
           {/* Funil de Conversão */}
-          <section className="fade-up" style={{ animationDelay: "0.16s", marginBottom: 32 }}>
+          <section className="fade-up" style={{ animationDelay: "0.20s", marginBottom: 32 }}>
             <SubsectionHeader title="Funil de conversão" hint="Detectado automaticamente pelo tipo de evento da conta." />
             <FunnelBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
-          </section>
-
-          {/* Análise de Vídeo (condicional, só quando há dados) */}
-          {!loading && metaData?.summary && ((metaData.summary as any).video3SecWatched || 0) > 0 && (
-            <section className="fade-up" style={{ animationDelay: "0.18s", marginBottom: 32 }}>
-              <SubsectionHeader title="Criativo em vídeo" hint="Hook = parada no scroll. Hold = retenção depois do gancho." />
-              <VideoAnalysisBlock metaData={metaData} loading={loading} hidden={hiddenMetrics} />
-            </section>
-          )}
-
-          {/* Conversão e Financeiro (mantida — receita/ROAS detalhada por plataforma) */}
-          <section className="fade-up" style={{ animationDelay: "0.20s", marginBottom: 32 }}>
-            <SubsectionHeader title="Conversão e financeiro" hint="Receita, ROAS e custo por resultado por plataforma." />
-            <ConversionMetricsGrid
-              googleData={googleData}
-              metaData={metaData}
-              loading={loading}
-              hidden={hiddenMetrics}
-            />
           </section>
 
           {/* Evolução */}
@@ -3004,6 +2991,516 @@ function detectFunnelStages(m: any): FunnelStage[] {
   if (lpv > 0) stages.push({ id: "lpv", label: "Visitas ao site", count: lpv, tooltip: "Carregaram o site." });
   if ((m.results || 0) > 0) stages.push({ id: "results", label: "Resultados", count: m.results, isFinal: true, tooltip: "Resultado do objetivo da campanha." });
   return stages;
+}
+
+// ─── ObjectiveBlocks: bloco por objetivo de campanha (Tráfego, Vendas, Engajamento, Vídeo, Leads...) ──
+
+type ObjectiveBlockData = {
+  group: string;
+  label: string;
+  description: string;
+  emoji: string;
+  primaryMetrics: string[];
+  secondaryMetrics: string[];
+  headlineLabel: string;
+  headlineMetric: string;
+  rankBy: string;
+  spend: number;
+  sharePct: number;
+  summary: any;
+  campaigns: any[];
+  topAds: Array<{
+    adId: string;
+    adName: string;
+    campaignName: string;
+    objective?: string;
+    spend: number;
+    [k: string]: any;
+    creative?: {
+      thumbnail_url?: string;
+      image_url?: string;
+      video_id?: string;
+      body?: string;
+      title?: string;
+      object_type?: string;
+    } | null;
+  }>;
+};
+
+function ObjectiveBlocks({
+  metaData,
+  loading,
+}: {
+  metaData: MetaData | null;
+  loading: boolean;
+}) {
+  const t = useTokens();
+  const blocks: ObjectiveBlockData[] = (metaData as any)?.objectiveGroups || [];
+
+  if (loading) {
+    return (
+      <div className="aurora-card" style={{ padding: 28, minHeight: 180 }}>
+        <span className="skeleton" style={{ display: "block", height: 14, width: "40%", marginBottom: 12 }} />
+        <span className="skeleton" style={{ display: "block", height: 12, width: "60%", marginBottom: 8 }} />
+        <span className="skeleton" style={{ display: "block", height: 12, width: "50%" }} />
+      </div>
+    );
+  }
+
+  if (blocks.length === 0) {
+    return (
+      <EmptyState text="Sem dados Meta agrupados por objetivo. Esse bloco aparece quando há campanhas com qualquer objetivo (tráfego, vendas, engajamento, vídeo, leads, mensagens)." />
+    );
+  }
+
+  const currency = metaData?.account?.currency || "BRL";
+
+  // Distribuição visual no topo: barra empilhada por objetivo
+  const totalSpend = blocks.reduce((s, b) => s + b.spend, 0);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* Distribuição por objetivo (barra empilhada) */}
+      {totalSpend > 0 && blocks.length > 1 && (
+        <ObjectiveMixBar blocks={blocks} totalSpend={totalSpend} />
+      )}
+
+      {/* Um card por objetivo */}
+      {blocks.map((b) => (
+        <ObjectiveBlock key={b.group} block={b} currency={currency} />
+      ))}
+    </div>
+  );
+}
+
+const OBJECTIVE_COLORS: Record<string, string> = {
+  awareness: "#A78BFA",   // roxo
+  traffic: "#60A5FA",      // azul
+  engagement: "#F59E0B",   // amber
+  video: "#EC4899",        // rosa
+  leads: "#10B981",        // verde esmeralda
+  messages: "#14B8A6",     // teal vivo
+  app: "#8B5CF6",          // violet
+  sales: "#1D7070",        // teal Arthea (sales = casa)
+};
+
+function ObjectiveMixBar({ blocks, totalSpend }: { blocks: ObjectiveBlockData[]; totalSpend: number }) {
+  const t = useTokens();
+  return (
+    <div className="aurora-card" style={{ padding: "18px 22px", background: t.surface }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10, flexWrap: "wrap", gap: 12 }}>
+        <span
+          style={{
+            fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+            fontSize: 10.5,
+            color: t.textMute,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            fontWeight: 700,
+          }}
+        >
+          Mix de objetivos
+        </span>
+        <span style={{ fontSize: 12.5, color: t.textDim, fontWeight: 500 }}>
+          {blocks.length} objetivo{blocks.length > 1 ? "s" : ""} detectado{blocks.length > 1 ? "s" : ""}
+        </span>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          height: 10,
+          borderRadius: 999,
+          overflow: "hidden",
+          background: t.hover,
+          boxShadow: `inset 0 1px 2px rgba(13,74,74,0.06)`,
+        }}
+      >
+        {blocks.map((b) => {
+          const color = OBJECTIVE_COLORS[b.group] || t.tealMid;
+          const pct = (b.spend / totalSpend) * 100;
+          return (
+            <div
+              key={b.group}
+              title={`${b.label} · ${pct.toFixed(1)}%`}
+              style={{
+                width: `${pct}%`,
+                background: `linear-gradient(90deg, ${color}DD 0%, ${color} 100%)`,
+                transition: "width 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            />
+          );
+        })}
+      </div>
+      <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
+        {blocks.map((b) => {
+          const color = OBJECTIVE_COLORS[b.group] || t.tealMid;
+          return (
+            <span key={b.group} style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12, color: t.textDim, fontWeight: 500 }}>
+              <span style={{ width: 9, height: 9, borderRadius: 2, background: color }} />
+              <span style={{ color: t.text, fontWeight: 600 }}>{b.label}</span>
+              <span style={{ color: t.textMute }}>{Math.round(b.sharePct * 100)}%</span>
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ObjectiveBlock({ block, currency }: { block: ObjectiveBlockData; currency: string }) {
+  const t = useTokens();
+  const color = OBJECTIVE_COLORS[block.group] || t.tealMid;
+  const s = block.summary || {};
+
+  // Função pra renderizar uma métrica primária como tile
+  const renderMetric = (id: string) => {
+    const value = (s as any)[id];
+    if (value == null) return null;
+
+    const fmtCurrencyShort = (v: number) =>
+      v.toLocaleString("pt-BR", { style: "currency", currency, maximumFractionDigits: v >= 1000 ? 0 : 2 });
+
+    // Mapping das métricas → label + format
+    const META_FORMAT: Record<string, { label: string; format: (v: number) => string; tone?: "good" | "warn" | "danger" }> = {
+      reach: { label: "Alcance", format: (v) => compact(v) },
+      impressions: { label: "Impressões", format: (v) => compact(v) },
+      frequency: {
+        label: "Frequência",
+        format: (v) => `${v.toFixed(1)}×`,
+        tone: s.frequency >= 5 ? "danger" : s.frequency >= 3 ? "warn" : "good",
+      },
+      cpm: { label: "CPM", format: (v) => fmtCurrencyShort(v) },
+      cpc: { label: "CPC", format: (v) => fmtCurrencyShort(v) },
+      ctr: { label: "CTR", format: (v) => `${(v * 100).toFixed(2)}%` },
+      clicks: { label: "Cliques", format: (v) => v.toLocaleString("pt-BR") },
+      linkClicks: { label: "Cliques no link", format: (v) => v.toLocaleString("pt-BR") },
+      linkCtr: { label: "CTR (link)", format: (v) => `${(v * 100).toFixed(2)}%` },
+      linkCpc: { label: "CPC (link)", format: (v) => fmtCurrencyShort(v) },
+      landingPageViews: { label: "Visitas ao site", format: (v) => v.toLocaleString("pt-BR") },
+      pageEngagement: { label: "Engajamento da página", format: (v) => v.toLocaleString("pt-BR") },
+      video3SecWatched: { label: "Views de 3s", format: (v) => v.toLocaleString("pt-BR") },
+      hookRate: {
+        label: "Hook Rate",
+        format: (v) => `${(v * 100).toFixed(2)}%`,
+        tone: s.hookRate >= 0.30 ? "good" : s.hookRate >= 0.20 ? "warn" : "danger",
+      },
+      holdRate: {
+        label: "Hold Rate",
+        format: (v) => `${(v * 100).toFixed(2)}%`,
+        tone: s.holdRate >= 0.60 ? "good" : s.holdRate >= 0.40 ? "warn" : "danger",
+      },
+      thruPlayRate: { label: "ThruPlay Rate", format: (v) => `${(v * 100).toFixed(2)}%` },
+      costPer3SecView: { label: "CP-Hook", format: (v) => fmtCurrencyShort(v) },
+      costPerThruPlay: { label: "CP-ThruPlay", format: (v) => fmtCurrencyShort(v) },
+      videoAvgTimeWatched: { label: "Tempo médio", format: (v) => `${v.toFixed(1)}s` },
+      leads: { label: "Leads", format: (v) => v.toLocaleString("pt-BR") },
+      costPerLead: { label: "Custo por Lead", format: (v) => fmtCurrencyShort(v) },
+      conversations: { label: "Conversas", format: (v) => v.toLocaleString("pt-BR") },
+      costPerConversation: { label: "Custo por Conversa", format: (v) => fmtCurrencyShort(v) },
+      purchaseValue: { label: "Receita", format: (v) => fmtCurrencyShort(v) },
+      purchaseRoas: {
+        label: "ROAS",
+        format: (v) => `${v.toFixed(2)}×`,
+        tone: s.purchaseRoas >= 2 ? "good" : s.purchaseRoas >= 1 ? "warn" : "danger",
+      },
+      purchases: { label: "Compras", format: (v) => v.toLocaleString("pt-BR") },
+      costPerPurchase: { label: "CPA", format: (v) => fmtCurrencyShort(v) },
+      ticketMedio: { label: "Ticket médio", format: (v) => fmtCurrencyShort(v) },
+      addToCart: { label: "Carrinho", format: (v) => v.toLocaleString("pt-BR") },
+      initiateCheckout: { label: "Checkout", format: (v) => v.toLocaleString("pt-BR") },
+      results: { label: "Resultados", format: (v) => v.toLocaleString("pt-BR") },
+      costPerResult: { label: "Custo por Resultado", format: (v) => fmtCurrencyShort(v) },
+    };
+
+    const meta = META_FORMAT[id];
+    if (!meta || value === 0) return null;
+
+    const toneColor =
+      meta.tone === "good" ? t.tealMid : meta.tone === "warn" ? t.amber : meta.tone === "danger" ? t.red : t.text;
+
+    return (
+      <div key={id} style={{ minWidth: 0 }}>
+        <p
+          style={{
+            fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+            fontSize: 9.5,
+            color: t.textMute,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            fontWeight: 700,
+            margin: 0,
+          }}
+        >
+          {meta.label}
+        </p>
+        <p
+          className="tabular"
+          style={{
+            fontSize: 22,
+            fontWeight: 700,
+            color: toneColor,
+            margin: "4px 0 0",
+            letterSpacing: "-0.025em",
+            lineHeight: 1.05,
+          }}
+        >
+          {meta.format(value)}
+        </p>
+      </div>
+    );
+  };
+
+  return (
+    <div
+      className="aurora-card"
+      style={{
+        padding: "28px 32px",
+        position: "relative",
+        overflow: "hidden",
+        boxShadow: `0 0 0 1px ${color}22, 0 1px 2px rgba(13,74,74,0.04), 0 24px 60px -30px ${color}55`,
+      }}
+    >
+      {/* Glow lateral colorido pela cor do objetivo */}
+      <div
+        style={{
+          position: "absolute",
+          top: -100,
+          left: -100,
+          width: 280,
+          height: 280,
+          background: `radial-gradient(circle, ${color}33 0%, transparent 65%)`,
+          filter: "blur(70px)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {/* Header do bloco: emoji + label + spend share + descrição */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 24 }}>{block.emoji}</span>
+              <h4 style={{ fontSize: 22, fontWeight: 700, color: t.teal, margin: 0, letterSpacing: "-0.02em" }}>
+                {block.label}
+              </h4>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "3px 10px",
+                  borderRadius: 999,
+                  background: `${color}1A`,
+                  color: color,
+                  fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                }}
+              >
+                {Math.round(block.sharePct * 100)}% do gasto
+              </span>
+            </div>
+            <p style={{ fontSize: 13.5, color: t.textDim, margin: "8px 0 0", fontStyle: "italic", maxWidth: 540 }}>
+              {block.description}
+            </p>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <p style={{ fontFamily: "ui-monospace, 'JetBrains Mono', monospace", fontSize: 10, color: t.textMute, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 700, margin: 0 }}>
+              Investimento
+            </p>
+            <p className="tabular" style={{ fontSize: 26, fontWeight: 800, color: t.text, margin: "4px 0 0", letterSpacing: "-0.025em" }}>
+              {fmtCurrency(block.spend, currency)}
+            </p>
+          </div>
+        </div>
+
+        {/* KPIs relevantes do objetivo */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+            gap: 22,
+            padding: "20px 0",
+            borderTop: `1px solid ${t.divider}`,
+            borderBottom: `1px solid ${t.divider}`,
+          }}
+        >
+          {block.primaryMetrics.map(renderMetric).filter(Boolean)}
+          {block.secondaryMetrics.slice(0, 3).map(renderMetric).filter(Boolean)}
+        </div>
+
+        {/* Campanhas */}
+        {block.campaigns.length > 0 && (
+          <div style={{ marginTop: 22 }}>
+            <p style={{ fontFamily: "ui-monospace, 'JetBrains Mono', monospace", fontSize: 10, color: t.textMute, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 700, margin: "0 0 10px" }}>
+              {block.campaigns.length} campanha{block.campaigns.length > 1 ? "s" : ""} desse objetivo
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {block.campaigns.slice(0, 4).map((c: any) => (
+                <div
+                  key={c.campaignId}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "10px 14px",
+                    borderRadius: 12,
+                    background: t.hover,
+                    gap: 12,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span style={{ fontSize: 13.5, color: t.text, fontWeight: 500, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {c.campaignName}
+                  </span>
+                  <span style={{ display: "inline-flex", gap: 16, alignItems: "baseline" }}>
+                    <span className="tabular" style={{ fontSize: 12, color: t.textDim, fontWeight: 600 }}>
+                      {fmtCurrency(c.spend || 0, currency)}
+                    </span>
+                    {(c[block.rankBy] || 0) > 0 && (
+                      <span className="tabular" style={{ fontSize: 13, color: color, fontWeight: 700 }}>
+                        {formatRankValue(c[block.rankBy], block.rankBy, currency)}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Top criativos com thumbnail */}
+        {block.topAds.length > 0 && (
+          <div style={{ marginTop: 22 }}>
+            <p style={{ fontFamily: "ui-monospace, 'JetBrains Mono', monospace", fontSize: 10, color: t.textMute, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 700, margin: "0 0 12px" }}>
+              Top criativos
+            </p>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                gap: 12,
+              }}
+            >
+              {block.topAds.slice(0, 4).map((ad) => (
+                <CreativeTile key={ad.adId} ad={ad} rankBy={block.rankBy} accentColor={color} currency={currency} />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function formatRankValue(value: number, rankBy: string, currency: string): string {
+  if (rankBy === "purchaseValue") {
+    return value.toLocaleString("pt-BR", { style: "currency", currency, maximumFractionDigits: 0 });
+  }
+  if (rankBy === "purchaseRoas") return `${value.toFixed(2)}×`;
+  if (rankBy === "hookRate" || rankBy === "thruPlayRate" || rankBy === "linkCtr") {
+    return `${(value * 100).toFixed(1)}%`;
+  }
+  if (rankBy === "reach" || rankBy === "impressions") return compact(value);
+  return value.toLocaleString("pt-BR");
+}
+
+function CreativeTile({
+  ad,
+  rankBy,
+  accentColor,
+  currency,
+}: {
+  ad: ObjectiveBlockData["topAds"][number];
+  rankBy: string;
+  accentColor: string;
+  currency: string;
+}) {
+  const t = useTokens();
+  const thumb = ad.creative?.thumbnail_url || ad.creative?.image_url;
+  const isVideo = !!ad.creative?.video_id || ad.creative?.object_type === "VIDEO";
+  const rankValue = (ad as any)[rankBy] || 0;
+
+  return (
+    <div
+      style={{
+        background: t.surface,
+        border: `1px solid ${t.border}`,
+        borderRadius: 14,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        boxShadow: `0 0 0 1px ${accentColor}11, 0 8px 24px -12px ${accentColor}55`,
+      }}
+    >
+      {/* Thumbnail */}
+      <div
+        style={{
+          width: "100%",
+          aspectRatio: "1 / 1",
+          background: thumb
+            ? `url(${thumb}) center / cover no-repeat`
+            : `linear-gradient(135deg, ${accentColor}22 0%, ${accentColor}44 100%)`,
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {!thumb && (
+          <span style={{ fontSize: 32, opacity: 0.7 }}>{isVideo ? "🎬" : "📷"}</span>
+        )}
+        {isVideo && thumb && (
+          <span
+            style={{
+              position: "absolute",
+              bottom: 8,
+              left: 8,
+              padding: "3px 8px",
+              borderRadius: 999,
+              background: "rgba(0,0,0,0.6)",
+              color: "white",
+              fontSize: 10,
+              fontWeight: 600,
+              fontFamily: "ui-monospace, 'JetBrains Mono', monospace",
+              letterSpacing: "0.06em",
+            }}
+          >
+            🎬 VÍDEO
+          </span>
+        )}
+      </div>
+
+      {/* Info */}
+      <div style={{ padding: "10px 12px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
+        <span
+          style={{
+            fontSize: 12,
+            color: t.text,
+            fontWeight: 600,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+          title={ad.adName}
+        >
+          {ad.adName || "Anúncio"}
+        </span>
+        <span style={{ fontSize: 10.5, color: t.textMute, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={ad.campaignName}>
+          {ad.campaignName}
+        </span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 4 }}>
+          <span className="tabular" style={{ fontSize: 14, fontWeight: 700, color: accentColor }}>
+            {formatRankValue(rankValue, rankBy, currency)}
+          </span>
+          <span className="tabular" style={{ fontSize: 10.5, color: t.textMute, fontWeight: 500 }}>
+            {fmtCurrency(ad.spend || 0, currency)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function FunnelBlock({
