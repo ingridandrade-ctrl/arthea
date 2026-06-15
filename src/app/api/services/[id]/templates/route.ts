@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   const templates = await prisma.serviceDeliverableTemplate.findMany({
     where: { serviceId: params.id },
-    orderBy: [{ phase: "asc" }, { order: "asc" }],
+    orderBy: [{ section: "asc" }, { phase: "asc" }, { order: "asc" }],
   });
 
   return NextResponse.json(templates);
@@ -26,15 +26,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   const body = await req.json().catch(() => ({}));
-  const { title, description, kind, phase } = body as any;
+  const { title, description, kind, section, phase } = body as any;
 
   if (!title || typeof title !== "string") {
     return NextResponse.json({ error: "Título é obrigatório" }, { status: 400 });
   }
 
-  // Calcula o próximo `order` dentro da fase
-  const lastInPhase = await prisma.serviceDeliverableTemplate.findFirst({
-    where: { serviceId: params.id, phase: phase || 1 },
+  const effectiveSection = section === "ONGOING" ? "ONGOING" : "ONBOARDING";
+  const effectivePhase = effectiveSection === "ONGOING" ? 1 : phase || 1;
+
+  // Calcula o próximo `order` dentro do bucket (seção + fase no Onboarding; só seção no Ongoing)
+  const lastInBucket = await prisma.serviceDeliverableTemplate.findFirst({
+    where:
+      effectiveSection === "ONGOING"
+        ? { serviceId: params.id, section: "ONGOING" }
+        : { serviceId: params.id, section: "ONBOARDING", phase: effectivePhase },
     orderBy: { order: "desc" },
     select: { order: true },
   });
@@ -45,8 +51,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       title,
       description: description || null,
       kind: kind || "DOCUMENT",
-      phase: phase || 1,
-      order: (lastInPhase?.order ?? -1) + 1,
+      section: effectiveSection,
+      phase: effectivePhase,
+      order: (lastInBucket?.order ?? -1) + 1,
     },
   });
 
