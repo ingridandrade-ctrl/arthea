@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { PanelsTopLeft, ArrowRight, Mail, Briefcase } from "lucide-react";
+import { PanelsTopLeft, ArrowRight, Mail, Briefcase, Plus } from "lucide-react";
 import { NewClientButton } from "./_components/new-client-button";
 
 const PHASE_LABEL = ["", "Imersão", "Construção", "Rastreamento", "Entrega"];
@@ -32,7 +32,16 @@ export default async function PortalClientesPage() {
             Crie e gerencie os projetos visíveis no portal do cliente.
           </p>
         </div>
-        <NewClientButton />
+        <div className="flex gap-2">
+          <Link
+            href="/clientes/novo"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90"
+          >
+            <Plus className="w-4 h-4" />
+            Novo cliente (wizard)
+          </Link>
+          <NewClientButton />
+        </div>
       </div>
 
       {projects.length === 0 ? (
