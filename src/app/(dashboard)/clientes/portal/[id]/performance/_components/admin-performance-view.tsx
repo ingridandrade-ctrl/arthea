@@ -5,7 +5,7 @@
 // aplicado consistentemente em toda a página, incluindo as tabelas de
 // Google e Meta no detalhamento.
 
-import { useEffect, useState, useMemo, createContext, useContext, useRef } from "react";
+import { useEffect, useState, useMemo, createContext, useContext, useRef, memo } from "react";
 import {
   Calendar,
   TrendingUp,
@@ -1602,7 +1602,7 @@ function VerdictBar({
   );
 }
 
-function MiniKpiTile({ label, value, sub, spark }: { label: string; value: string; sub?: string; spark: number[] }) {
+const MiniKpiTile = memo(function MiniKpiTile({ label, value, sub, spark }: { label: string; value: string; sub?: string; spark: number[] }) {
   const t = useTokens();
   const data = spark.length > 0 ? spark.map((v, i) => ({ i, v })) : [{ i: 0, v: 0 }];
   const gradId = useRef(`mkpi-${Math.random().toString(36).slice(2, 9)}`).current;
@@ -1651,7 +1651,7 @@ function MiniKpiTile({ label, value, sub, spark }: { label: string; value: strin
       </div>
     </div>
   );
-}
+});
 
 // ─── SubsectionHeader: header editorial Mint Aurora ──
 
@@ -2174,7 +2174,7 @@ function Legend({ color, label, value }: { color: string; label: string; value: 
 type InsightTone = "good" | "neutral" | "warn" | "danger";
 type Insight = { tone: InsightTone; title: string; body: string };
 
-function InsightCard({ insight }: { insight: Insight }) {
+const InsightCard = memo(function InsightCard({ insight }: { insight: Insight }) {
   const t = useTokens();
   const palette: Record<InsightTone, { color: string; bg: string; haloClass: string }> = {
     good: { color: t.tealMid, bg: t.mintSoft, haloClass: "aurora-halo-mint" },
@@ -2235,7 +2235,7 @@ function InsightCard({ insight }: { insight: Insight }) {
       </div>
     </div>
   );
-}
+});
 
 function InsightsLoading() {
   return (
@@ -3630,7 +3630,7 @@ function formatRankValue(value: number, rankBy: string, currency: string): strin
   return value.toLocaleString("pt-BR");
 }
 
-function CreativeTile({
+const CreativeTile = memo(function CreativeTile({
   ad,
   rankBy,
   accentColor,
@@ -3658,20 +3658,30 @@ function CreativeTile({
         boxShadow: `0 0 0 1px ${accentColor}11, 0 8px 24px -12px ${accentColor}55`,
       }}
     >
-      {/* Thumbnail */}
+      {/* Thumbnail — img com lazy loading nativo */}
       <div
         style={{
           width: "100%",
           aspectRatio: "1 / 1",
-          background: thumb
-            ? `url(${thumb}) center / cover no-repeat`
-            : `linear-gradient(135deg, ${accentColor}22 0%, ${accentColor}44 100%)`,
+          background: !thumb
+            ? `linear-gradient(135deg, ${accentColor}22 0%, ${accentColor}44 100%)`
+            : t.hover,
           position: "relative",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          overflow: "hidden",
         }}
       >
+        {thumb && (
+          <img
+            src={thumb}
+            alt={ad.adName || "Anúncio"}
+            loading="lazy"
+            decoding="async"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        )}
         {!thumb && (
           <span style={{ fontSize: 32, opacity: 0.7 }}>{isVideo ? "🎬" : "📷"}</span>
         )}
@@ -3725,7 +3735,7 @@ function CreativeTile({
       </div>
     </div>
   );
-}
+});
 
 function FunnelBlock({
   metaData,
@@ -4394,7 +4404,7 @@ function ConversionMetricsGrid({
   );
 }
 
-function SmallKpiTile({
+const SmallKpiTile = memo(function SmallKpiTile({
   label,
   value,
   sub,
@@ -4456,7 +4466,7 @@ function SmallKpiTile({
       )}
     </div>
   );
-}
+});
 
 function InfoTooltip({ text }: { text: string }) {
   const t = useTokens();
