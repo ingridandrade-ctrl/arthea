@@ -113,6 +113,11 @@ model User {
   scenesEnabled   Boolean            @default(false)
   scenes          Scene[]
   sceneComments   SceneComment[]
+  // Cliente do portal pode ter vindo de um Lead do CRM (1:1 opcional)
+  leadId          String?            @unique
+  lead            Lead?              @relation("UserCreatedFromLead", fields: [leadId], references: [id])
+  // Contratos no financeiro associados a esse User (cliente do portal)
+  contracts       Contract[]         @relation("UserClientContracts")
 }
 
 model Service {
@@ -125,6 +130,9 @@ model Service {
   isActive    Boolean       @default(true)
   basePrice   Float?
   setupFee    Float?
+  // Wizard de novo cliente: tipo de frente que esse serviço cria + duração default
+  engagementType        EngagementType?
+  defaultDurationMonths Int             @default(12)
   createdAt   DateTime      @default(now())
   leads       LeadService[]
   deals       Deal[]
@@ -157,6 +165,8 @@ model Lead {
   tasks          Task[]
   contracts      Contract[]
   invoices       Invoice[]
+  // Quando o Lead vira cliente do portal, fica linkado a um User(CLIENT)
+  clientUser     User?           @relation("UserCreatedFromLead")
 
   @@index([status])
   @@index([phone])
@@ -367,6 +377,9 @@ model Contract {
   deal           Deal?          @relation(fields: [dealId], references: [id])
   leadId         String
   lead           Lead           @relation(fields: [leadId], references: [id])
+  // Cliente do portal associado (preenchido quando lead vira cliente)
+  clientUserId   String?
+  clientUser     User?          @relation("UserClientContracts", fields: [clientUserId], references: [id])
   serviceId      String?
   service        Service?       @relation(fields: [serviceId], references: [id])
   serviceIds     String[]       @default([])
@@ -390,6 +403,7 @@ model Contract {
   @@index([status])
   @@index([clientType])
   @@index([leadId])
+  @@index([clientUserId])
 }
 
 model Invoice {
