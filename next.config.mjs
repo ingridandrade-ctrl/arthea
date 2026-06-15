@@ -96,8 +96,14 @@ const nextConfig = {
       { source: "/configuracoes/usuarios/:path*", destination: "/sistema/usuarios/:path*", permanent: false },
       { source: "/portal-clientes", destination: "/clientes/portal", permanent: false },
       { source: "/portal-clientes/:path*", destination: "/clientes/portal/:path*", permanent: false },
-      { source: "/meta", destination: "/clientes/meta", permanent: false },
-      { source: "/meta/:path*", destination: "/clientes/meta/:path*", permanent: false },
+      { source: "/meta", destination: "/sistema/integracoes/meta", permanent: false },
+      { source: "/meta/:path*", destination: "/sistema/integracoes/meta/:path*", permanent: false },
+      // Integrações migradas de /clientes/* pra /sistema/integracoes/* (jun/2026)
+      // — configuração técnica de agência mora em Sistema, não em Clientes.
+      { source: "/clientes/meta", destination: "/sistema/integracoes/meta", permanent: false },
+      { source: "/clientes/meta/:path*", destination: "/sistema/integracoes/meta/:path*", permanent: false },
+      { source: "/clientes/google-ads", destination: "/sistema/integracoes/google-ads", permanent: false },
+      { source: "/clientes/google-ads/:path*", destination: "/sistema/integracoes/google-ads/:path*", permanent: false },
       { source: "/services", destination: "/sistema/servicos", permanent: false },
       { source: "/settings", destination: "/sistema", permanent: false },
     ];
