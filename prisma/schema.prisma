@@ -138,6 +138,25 @@ model Service {
   deals       Deal[]
   contracts   Contract[]
   invoices    Invoice[]
+  deliverableTemplates ServiceDeliverableTemplate[]
+}
+
+// Template de entregável atrelado a um Service.
+// Quando o wizard de novo cliente cria uma frente desse serviço, copia
+// todos os templates como ClientDeliverable reais (com defaults).
+model ServiceDeliverableTemplate {
+  id          String          @id @default(cuid())
+  serviceId   String
+  service     Service         @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  kind        DeliverableKind @default(DOCUMENT)
+  phase       Int             @default(1)
+  order       Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([serviceId, order])
 }
 
 model Lead {
