@@ -789,6 +789,11 @@ enum DeliverableCategory {
   REVIEW_RESPONSE
 }
 
+enum DeliverableSection {
+  ONBOARDING
+  ONGOING
+}
+
 enum EngagementType {
   STRATEGY
   PAID_TRAFFIC
@@ -856,7 +861,7 @@ model ClientDeliverable {
   status        DeliverableStatus     @default(PENDING)
   documentUrl   String?
   documentEmbed String?
-  section       String?
+  section       DeliverableSection?
   isVisible     Boolean               @default(true)
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
