@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import path from "path";
+import { promises as fs } from "fs";
 import { AnaliseClient } from "./AnaliseClient";
 import type { ClienteData } from "./types";
 
@@ -9,12 +11,9 @@ interface Props {
 
 async function getClienteData(slug: string): Promise<ClienteData | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/analises/data/${slug}.json`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return res.json();
+    const filePath = path.join(process.cwd(), "public", "analises", "data", `${slug}.json`);
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw);
   } catch {
     return null;
   }
