@@ -856,6 +856,7 @@ model ClientDeliverable {
   status        DeliverableStatus     @default(PENDING)
   documentUrl   String?
   documentEmbed String?
+  section       String?
   isVisible     Boolean               @default(true)
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
