@@ -88,9 +88,13 @@ export function AnaliseClient({ data }: Props) {
       {/* ═══ HERO ═══ */}
       <section className="hero">
         <div className="hero-body" style={{ paddingTop: 100 }}>
-          <h3 style={{ fontSize: "clamp(18px,3vw,22px)", fontWeight: 700, color: "white", letterSpacing: "-0.01em", marginBottom: 10 }}>
-            📍 Google Meu Negócio
-          </h3>
+          <Image
+            src="/analises/assets/logo-gmb.png"
+            alt="Google Meu Negócio"
+            width={280}
+            height={80}
+            style={{ height: "clamp(50px,8vw,70px)", width: "auto", objectFit: "contain", marginBottom: 12 }}
+          />
           <p style={{ fontSize: "clamp(14px,2.2vw,17px)", color: "rgba(245,240,235,0.7)", lineHeight: 1.6, maxWidth: 480, margin: "0 auto 28px" }}>
             Análise exclusiva do seu negócio nas buscas locais do Google.
           </p>
