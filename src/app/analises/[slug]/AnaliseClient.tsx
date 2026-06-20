@@ -63,9 +63,12 @@ export function AnaliseClient({ data }: Props) {
       {/* ═══ HERO ═══ */}
       <section className="hero">
         <div className="hero-body">
+          <h3 style={{ fontSize: "clamp(18px,3vw,22px)", fontWeight: 700, color: "white", letterSpacing: "-0.01em", marginBottom: 6 }}>
+            📍 Google Meu Negócio
+          </h3>
           <div className="hero-pill">
             <span className="hero-dot" />
-            Google Meu Negócio · Análise de Presença Local
+            Análise de Presença Local
           </div>
           <div className="hero-eyebrow">Diagnóstico exclusivo para</div>
           <h1 className="hero-h1">
