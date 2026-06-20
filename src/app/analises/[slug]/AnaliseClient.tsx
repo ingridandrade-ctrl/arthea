@@ -67,43 +67,52 @@ export function AnaliseClient({ data }: Props) {
         left: 0,
         right: 0,
         zIndex: 10,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
         padding: "20px 32px",
         background: "rgba(21,115,115,0.25)",
         borderBottom: "1px solid rgba(45,212,191,0.1)",
-      }}>
-        <Image
-          src="/analises/assets/logo-arthea-oficial.png"
-          alt="Arthea"
-          width={120}
-          height={40}
-          style={{ height: 36, width: "auto", objectFit: "contain", opacity: 0.85 }}
-          priority
-        />
-        <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(245,240,235,0.4)" }}>
-          Diagnóstico de presença digital
-        </span>
-      </header>
+        height: 20,
+      }} />
 
       {/* ═══ HERO ═══ */}
       <section className="hero">
         <div className="hero-body" style={{ paddingTop: 100 }}>
-          <Image
-            src="/analises/assets/logo-gmb-oficial.png"
-            alt="Google Meu Negócio"
-            width={480}
-            height={240}
-            style={{ height: "clamp(80px,18vw,140px)", width: "auto", objectFit: "contain", marginBottom: 20 }}
-          />
-          <h2 style={{ fontSize: "clamp(20px,3.8vw,28px)", fontWeight: 600, color: "rgba(245,240,235,0.9)", lineHeight: 1.5, maxWidth: 520, margin: "0 auto 36px", letterSpacing: "-0.01em" }}>
-            Análise exclusiva do seu negócio
+          {/* Google G + Pin */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 50, padding: "8px 20px", marginBottom: 28 }}>
+            <span style={{ fontSize: 22, fontWeight: 700 }}>
+              <span style={{ color: "#4285f4" }}>G</span>
+              <span style={{ color: "#ea4335" }}>o</span>
+              <span style={{ color: "#fbbc05" }}>o</span>
+              <span style={{ color: "#4285f4" }}>g</span>
+              <span style={{ color: "#34a853" }}>l</span>
+              <span style={{ color: "#ea4335" }}>e</span>
+            </span>
+            <span style={{ fontSize: 14, color: "rgba(245,240,235,0.6)", fontWeight: 500 }}>📍 Buscas locais</span>
+          </div>
+
+          {/* Título principal com serifa */}
+          <h2 style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(26px,5vw,42px)",
+            fontWeight: 700,
+            lineHeight: 1.25,
+            maxWidth: 540,
+            margin: "0 0 16px",
+            letterSpacing: "-0.02em",
+            textAlign: "left",
+            width: "100%",
+          }}>
+            <span style={{ color: "rgba(245,240,235,0.95)" }}>Análise exclusiva do seu</span>
             <br />
-            nas buscas locais do Google.
+            <span style={{ color: "rgba(245,240,235,0.95)" }}>negócio no </span>
+            <em style={{ color: "#2DD4BF", fontStyle: "italic" }}>Google.</em>
           </h2>
-          <div className="hero-eyebrow" style={{ textAlign: "left", fontSize: 13 }}>Preparamos um diagnóstico completo para</div>
-          <h1 className="hero-h1" style={{ textAlign: "left" }}>
+
+          <p style={{ fontSize: 14, color: "rgba(245,240,235,0.45)", marginBottom: 40, letterSpacing: "0.08em", fontWeight: 500, textAlign: "left", width: "100%" }}>
+            por Arthea · assessoria de marketing intencional
+          </p>
+
+          <div className="hero-eyebrow" style={{ textAlign: "left", fontSize: 13 }}>Diagnóstico completo para</div>
+          <h1 className="hero-h1" style={{ textAlign: "left", fontSize: "clamp(22px,4vw,34px)" }}>
             {d.nome_linha1}
             <br />
             {d.nome_linha2}
@@ -114,6 +123,15 @@ export function AnaliseClient({ data }: Props) {
           <a href="#diagnostico" className="hero-cta">
             Ver minha análise completa ↓
           </a>
+          <div style={{ marginTop: 32 }}>
+            <Image
+              src="/analises/assets/logo-arthea-oficial.png"
+              alt="Arthea"
+              width={160}
+              height={60}
+              style={{ height: 50, width: "auto", objectFit: "contain", opacity: 0.7 }}
+            />
+          </div>
         </div>
         <div className="scroll-hint">
           <span>Role para ver</span>
