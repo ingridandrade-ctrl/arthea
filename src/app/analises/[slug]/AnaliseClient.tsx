@@ -65,7 +65,7 @@ export function AnaliseClient({ data }: Props) {
         <div className="hero-body">
           <div className="hero-logo">
             <Image
-              src="/analises/assets/logo-arthea.svg"
+              src="/analises/assets/logo-arthea.png"
               alt="Arthea"
               width={200}
               height={100}
@@ -860,7 +860,7 @@ export function AnaliseClient({ data }: Props) {
 
             <div style={{ marginTop: 60, opacity: 0.15 }}>
               <Image
-                src="/analises/assets/logo-arthea.svg"
+                src="/analises/assets/logo-arthea.png"
                 alt="Arthea"
                 width={120}
                 height={60}
