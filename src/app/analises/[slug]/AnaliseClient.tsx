@@ -144,7 +144,7 @@ export function AnaliseClient({ data }: Props) {
           <h2 className="tt">
             Analisamos como o
             <br />
-            {d.nome_linha1} aparece
+            {d.nome_linha1} {d.nome_linha2} aparece
             <br />
             <em>nas buscas do Google.</em>
           </h2>
@@ -211,7 +211,7 @@ export function AnaliseClient({ data }: Props) {
                   </div>
                 </div>
               </div>
-              <div className="serp-cap">Como você aparece hoje nas buscas locais</div>
+              <div className="serp-cap">Sua posição hoje nas buscas locais do Google</div>
             </div>
           </div>
 
