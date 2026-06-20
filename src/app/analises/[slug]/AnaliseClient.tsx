@@ -93,13 +93,15 @@ export function AnaliseClient({ data }: Props) {
           <Image
             src="/analises/assets/logo-gmb-oficial.png"
             alt="Google Meu Negócio"
-            width={280}
-            height={80}
-            style={{ height: "clamp(50px,8vw,70px)", width: "auto", objectFit: "contain", marginBottom: 12 }}
+            width={480}
+            height={240}
+            style={{ height: "clamp(80px,18vw,140px)", width: "auto", objectFit: "contain", marginBottom: 20 }}
           />
-          <p style={{ fontSize: "clamp(14px,2.2vw,17px)", color: "rgba(245,240,235,0.7)", lineHeight: 1.6, maxWidth: 480, margin: "0 auto 28px" }}>
-            Análise exclusiva do seu negócio nas buscas locais do Google.
-          </p>
+          <h2 style={{ fontSize: "clamp(20px,3.8vw,28px)", fontWeight: 600, color: "rgba(245,240,235,0.9)", lineHeight: 1.5, maxWidth: 520, margin: "0 auto 36px", letterSpacing: "-0.01em" }}>
+            Análise exclusiva do seu negócio
+            <br />
+            nas buscas locais do Google.
+          </h2>
           <div className="hero-eyebrow">Preparamos um diagnóstico completo para</div>
           <h1 className="hero-h1">
             {d.nome_linha1}
