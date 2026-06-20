@@ -138,20 +138,16 @@ export function AnaliseClient({ data }: Props) {
       </section>
 
       {/* ═══ SEÇÃO 1: IMPACTO REAL ═══ */}
-      <section style={{ padding: "88px 24px 48px", background: "#FAF9F6" }}>
+      <section style={{ padding: "88px 24px 56px", background: "#FAF9F6" }}>
         <div className="wrap">
           <div className="ey">O que encontramos</div>
           <h2 className="tt">
-            Analisamos como o
-            <br />
-            {d.nome_linha1} {d.nome_linha2} aparece
-            <br />
-            <em>nas buscas do Google.</em>
+            Analisamos como o {d.nome_linha1} {d.nome_linha2} aparece <em>nas buscas do Google.</em>
           </h2>
           <p className="lead">Simulamos buscas reais na sua região e comparamos seu perfil com os concorrentes. Veja o que encontramos:</p>
 
           {/* SERP Mock */}
-          <div className="fade-up" style={{ marginBottom: 28 }}>
+          <div className="fade-up" style={{ marginBottom: 40 }}>
             <div className="serp">
               <div className="serp-bar">
                 <span className="serp-g">
@@ -212,7 +208,7 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* +N Card */}
-          <div className="fade-up" style={{ background: "#0D4A4A", borderRadius: 22, padding: "36px 32px", marginBottom: 24, position: "relative", overflow: "hidden" }}>
+          <div className="fade-up" style={{ background: "#0D4A4A", borderRadius: 22, padding: "36px 32px", marginBottom: 36, position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
             <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 24 }}>
               <div style={{ textAlign: "center", flexShrink: 0 }}>
@@ -236,7 +232,7 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* 4 Metric Cards */}
-          <div className="fade-up loss-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="fade-up loss-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {[
               {
                 label: "Sua posição",
@@ -287,13 +283,13 @@ export function AnaliseClient({ data }: Props) {
                 sub: "sem postagens e sem fotos",
               },
             ].map((card, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 18, padding: "22px 20px", border: `1.5px solid ${card.borderColor}`, position: "relative", overflow: "hidden" }}>
+              <div key={i} style={{ background: "white", borderRadius: 18, padding: "24px 22px", border: `1.5px solid ${card.borderColor}`, position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: card.barColor, borderRadius: "16px 16px 0 0" }} />
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", letterSpacing: "-0.01em" }}>{card.label}</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: card.badgeColor, background: card.badgeBg, padding: "3px 10px", borderRadius: 20, letterSpacing: "0.02em" }}>{card.badge}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{card.label}</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: card.badgeColor, background: card.badgeBg, padding: "3px 10px", borderRadius: 20 }}>{card.badge}</span>
                 </div>
-                <div {...card.valueProps} style={{ fontSize: 42, fontWeight: 800, color: card.valueColor, letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>
+                <div {...card.valueProps} style={{ fontSize: 42, fontWeight: 800, color: card.valueColor, letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 10 }}>
                   {card.valueText !== null ? card.valueText : <>{d.score}<span style={{ fontSize: 20, fontWeight: 500, color: "#9CA3AF" }}>/100</span></>}
                 </div>
                 <p style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.4, fontWeight: 500 }}>{card.sub}</p>
@@ -304,22 +300,19 @@ export function AnaliseClient({ data }: Props) {
       </section>
 
       {/* ═══ IMPACT QUESTION ═══ */}
-      <section style={{ padding: "24px 24px 80px", background: "#FAF9F6" }}>
+      <section style={{ padding: "0 24px 88px", background: "#FAF9F6" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <div className="fade-up" style={{ background: "#0D4A4A", borderRadius: 22, overflow: "hidden", position: "relative" }}>
+          <div className="fade-up" style={{ background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 100%)", borderRadius: 22, overflow: "hidden", position: "relative", padding: "48px 40px", textAlign: "center" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
-            <div style={{ padding: "32px 40px", position: "relative", zIndex: 1, textAlign: "center" }}>
-              <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3em", color: "rgba(45,212,191,0.6)", marginBottom: 20 }}>O que isso significa na prática</p>
-              <div style={{ width: 32, height: 1, background: "rgba(45,212,191,0.15)", margin: "0 auto 24px" }} />
-              <p style={{ fontSize: 16, color: "rgba(245,240,235,0.7)", lineHeight: 1.7, marginBottom: 20, fontWeight: 400 }}>
-                Se 10 pessoas pesquisam &ldquo;{d.busca_termo}&rdquo; por dia e você aparece na{" "}
-                <strong style={{ color: "#FF8080", fontWeight: 700 }}>posição {d.posicao}ª</strong>...
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <p style={{ fontSize: 16, color: "rgba(245,240,235,0.65)", lineHeight: 1.7, marginBottom: 24 }}>
+                Todos os dias, pessoas pesquisam<br />&ldquo;<strong style={{ color: "rgba(245,240,235,0.85)", fontWeight: 600 }}>{d.busca_termo}</strong>&rdquo; na sua região.
               </p>
-              <p style={{ fontSize: "clamp(24px,4vw,32px)", fontWeight: 800, color: "white", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
-                Quantas delas chegam
-                <br />
-                até você?
+              <p style={{ fontSize: "clamp(26px,4.5vw,36px)", fontWeight: 800, color: "white", lineHeight: 1.15, letterSpacing: "-0.025em", marginBottom: 16 }}>
+                Na posição {d.posicao}ª,<br />
+                quantas escolhem você?
               </p>
+              <div style={{ width: 40, height: 2, background: "rgba(45,212,191,0.3)", margin: "0 auto" }} />
             </div>
           </div>
         </div>
