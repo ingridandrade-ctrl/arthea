@@ -144,7 +144,7 @@ export function AnaliseClient({ data }: Props) {
           <h2 className="tt">
             Analisamos como o
             <br />
-            {d.nome_linha1} aparece
+            {d.nome_linha1} {d.nome_linha2} aparece
             <br />
             <em>nas buscas do Google.</em>
           </h2>
@@ -211,7 +211,7 @@ export function AnaliseClient({ data }: Props) {
                   </div>
                 </div>
               </div>
-              <div className="serp-cap">Como você aparece hoje nas buscas locais</div>
+              <div className="serp-cap">Sua posição hoje nas buscas locais do Google</div>
             </div>
           </div>
 
@@ -229,10 +229,10 @@ export function AnaliseClient({ data }: Props) {
               </div>
               <div>
                 <p style={{ fontSize: 16, color: "rgba(245,240,235,0.75)", lineHeight: 1.6, marginBottom: 10 }}>
-                  aparecem <strong style={{ color: "white", fontWeight: 700 }}>antes de você</strong> quando alguém pesquisa na sua região.
+                  aparecem <strong style={{ color: "white", fontWeight: 700 }}>antes de você</strong> no Google Maps quando alguém pesquisa na sua região.
                 </p>
                 <p style={{ fontSize: 13, color: "rgba(245,240,235,0.45)", lineHeight: 1.55 }}>
-                  Cada busca que não te encontra é um cliente que vai para o concorrente — e nem sabe que você existe.
+                  Isso significa que a maioria dos clientes nunca chega a ver seu perfil — e acaba escolhendo quem aparece primeiro.
                 </p>
               </div>
             </div>
@@ -248,30 +248,42 @@ export function AnaliseClient({ data }: Props) {
             {/* Position */}
             <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(192,57,43,0.15)", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Posição no ranking</span>
-              <div data-count={posNum} data-suffix="ª" data-from="1" style={{ fontSize: 40, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>1ª</div>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{d.posicao}ª de {d.posicao_total} {d.segmento.toLowerCase().includes("advoc") ? "escritórios" : "negócios"} na região. A maioria dos clientes nem chega a rolar até aqui.</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Sua posição</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "2px 8px", borderRadius: 20 }}>Crítico</span>
+              </div>
+              <div data-count={posNum} data-suffix="ª" data-from="1" style={{ fontSize: 44, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>1ª</div>
+              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>de {d.posicao_total} na região</p>
             </div>
-            {/* Leader */}
-            <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(13,74,74,0.12)", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,#157373,#2DD4BF)", borderRadius: "16px 16px 0 0" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Líder do segmento</span>
-              <div data-count={d.ranking[0]?.aval || 0} data-from="0" data-formatted={d.lider_aval} style={{ fontSize: 40, fontWeight: 700, color: "#157373", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>0</div>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>avaliações — o 1º lugar. Você tem {d.avaliacoes}. Essa diferença é o que define quem aparece primeiro.</p>
-            </div>
-            {/* Stars */}
+            {/* Reviews */}
             <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(192,57,43,0.15)", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Sua média de estrelas</span>
-              <div data-count-decimal={d.estrelas} data-from="5.0" data-suffix="★" style={{ fontSize: 40, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>5.0★</div>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>Abaixo da média do segmento ({d.estrelas_media_seg}★). Além da posição, as estrelas influenciam diretamente a confiança do cliente.</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Suas avaliações</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "2px 8px", borderRadius: 20 }}>Crítico</span>
+              </div>
+              <div data-count={parseInt(d.avaliacoes)} data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>0</div>
+              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>1º lugar tem {d.lider_aval}</p>
+            </div>
+            {/* Stars */}
+            <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Sua nota média</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 8px", borderRadius: 20 }}>Atenção</span>
+              </div>
+              <div data-count-decimal={d.estrelas} data-from="5.0" data-suffix="★" style={{ fontSize: 44, fontWeight: 700, color: "#C97A06", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>5.0★</div>
+              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>média do segmento: {d.estrelas_media_seg}★</p>
             </div>
             {/* Score */}
             <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Nota do perfil</span>
-              <div style={{ fontSize: 40, fontWeight: 700, color: "#C97A06", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>{d.score}/100</div>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>Perfil incompleto: sem postagens e sem fotos recentes. Isso afeta diretamente todas as métricas acima.</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Nota do perfil</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 8px", borderRadius: 20 }}>Atenção</span>
+              </div>
+              <div style={{ fontSize: 44, fontWeight: 700, color: "#C97A06", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>{d.score}<span style={{ fontSize: 20, fontWeight: 600, color: "#9CA3AF" }}>/100</span></div>
+              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>sem postagens e sem fotos</p>
             </div>
           </div>
         </div>
@@ -280,9 +292,6 @@ export function AnaliseClient({ data }: Props) {
       {/* ═══ IMPACT QUESTION ═══ */}
       <section style={{ padding: "48px 24px 72px", background: "#FAF9F6" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <p className="fade-up" style={{ fontSize: 14, color: "#374151", lineHeight: 1.7, textAlign: "center", marginBottom: 28 }}>
-            Posição {d.posicao}ª, nota {d.score}/100, {d.avaliacoes} avaliações com média {d.estrelas}★ — tudo isso junto define quantos clientes encontram você.
-          </p>
           <div className="fade-up" style={{ background: "#0D4A4A", borderRadius: 20, overflow: "hidden", position: "relative" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
             <div style={{ padding: "28px 36px 0", position: "relative", zIndex: 1, textAlign: "center" }}>
