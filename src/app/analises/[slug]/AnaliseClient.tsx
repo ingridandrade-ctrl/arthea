@@ -243,30 +243,42 @@ export function AnaliseClient({ data }: Props) {
             {/* Position */}
             <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(192,57,43,0.15)", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Sua posição no ranking</span>
-              <div data-count={posNum} data-suffix="ª" data-from="1" style={{ fontSize: 40, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>1ª</div>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{d.posicao}ª de {d.posicao_total} {d.segmento.toLowerCase().includes("advoc") ? "escritórios" : "negócios"} na região. A maioria dos clientes nem chega a rolar até aqui.</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Sua posição</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "2px 8px", borderRadius: 20 }}>Crítico</span>
+              </div>
+              <div data-count={posNum} data-suffix="ª" data-from="1" style={{ fontSize: 44, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>1ª</div>
+              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>de {d.posicao_total} na região</p>
             </div>
             {/* Reviews */}
             <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(192,57,43,0.15)", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Suas avaliações</span>
-              <div data-count={parseInt(d.avaliacoes)} data-from="0" style={{ fontSize: 40, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>0</div>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>O 1º lugar tem {d.lider_aval}. Essa diferença no volume é o que mais pesa na sua posição.</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Suas avaliações</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "2px 8px", borderRadius: 20 }}>Crítico</span>
+              </div>
+              <div data-count={parseInt(d.avaliacoes)} data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>0</div>
+              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>1º lugar tem {d.lider_aval}</p>
             </div>
             {/* Stars */}
-            <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(192,57,43,0.15)", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Sua média de estrelas</span>
-              <div data-count-decimal={d.estrelas} data-from="5.0" data-suffix="★" style={{ fontSize: 40, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>5.0★</div>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>Abaixo da média do segmento ({d.estrelas_media_seg}★). Além da posição, as estrelas influenciam diretamente a confiança do cliente.</p>
+            <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Sua nota média</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 8px", borderRadius: 20 }}>Atenção</span>
+              </div>
+              <div data-count-decimal={d.estrelas} data-from="5.0" data-suffix="★" style={{ fontSize: 44, fontWeight: 700, color: "#C97A06", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>5.0★</div>
+              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>média do segmento: {d.estrelas_media_seg}★</p>
             </div>
             {/* Score */}
             <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Nota do perfil</span>
-              <div style={{ fontSize: 40, fontWeight: 700, color: "#C97A06", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>{d.score}/100</div>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>Perfil incompleto: sem postagens e sem fotos recentes. Isso afeta diretamente todas as métricas acima.</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Nota do perfil</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 8px", borderRadius: 20 }}>Atenção</span>
+              </div>
+              <div style={{ fontSize: 44, fontWeight: 700, color: "#C97A06", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>{d.score}<span style={{ fontSize: 20, fontWeight: 600, color: "#9CA3AF" }}>/100</span></div>
+              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>sem postagens e sem fotos</p>
             </div>
           </div>
         </div>
