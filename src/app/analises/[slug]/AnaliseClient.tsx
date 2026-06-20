@@ -238,11 +238,6 @@ export function AnaliseClient({ data }: Props) {
             </div>
           </div>
 
-          {/* Connector: why this position */}
-          <p className="fade-up" style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6, textAlign: "center", marginBottom: 20, fontStyle: "italic" }}>
-            Três fatores principais explicam essa posição:
-          </p>
-
           {/* 4 Metric Cards */}
           <div className="fade-up loss-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 0 }}>
             {/* Position */}
