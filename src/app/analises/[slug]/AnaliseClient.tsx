@@ -71,6 +71,8 @@ export function AnaliseClient({ data }: Props) {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "20px 32px",
+        background: "rgba(21,115,115,0.25)",
+        borderBottom: "1px solid rgba(45,212,191,0.1)",
       }}>
         <Image
           src="/analises/assets/logo-arthea-oficial.png"
@@ -89,7 +91,7 @@ export function AnaliseClient({ data }: Props) {
       <section className="hero">
         <div className="hero-body" style={{ paddingTop: 100 }}>
           <Image
-            src="/analises/assets/logo-gmb.png"
+            src="/analises/assets/logo-gmb-oficial.png"
             alt="Google Meu Negócio"
             width={280}
             height={80}
