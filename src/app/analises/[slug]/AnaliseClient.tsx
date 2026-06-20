@@ -63,9 +63,12 @@ export function AnaliseClient({ data }: Props) {
       {/* ═══ HERO ═══ */}
       <section className="hero">
         <div className="hero-body">
+          <h3 style={{ fontSize: "clamp(18px,3vw,22px)", fontWeight: 700, color: "white", letterSpacing: "-0.01em", marginBottom: 6 }}>
+            📍 Google Meu Negócio
+          </h3>
           <div className="hero-pill">
             <span className="hero-dot" />
-            Google Meu Negócio · Análise de Presença Local
+            Análise de Presença Local
           </div>
           <div className="hero-eyebrow">Diagnóstico exclusivo para</div>
           <h1 className="hero-h1">
@@ -325,9 +328,9 @@ export function AnaliseClient({ data }: Props) {
             {/* Score */}
             <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Score do perfil</span>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Nota do perfil</span>
               <div style={{ fontSize: 40, fontWeight: 700, color: "#C97A06", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>{d.score}/100</div>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>Pontuação {d.score}/100. Postagens e fotos zeradas.</p>
+              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>Nota {d.score}/100. Postagens e fotos zeradas.</p>
             </div>
           </div>
         </div>
@@ -519,7 +522,7 @@ export function AnaliseClient({ data }: Props) {
               </div>
               <h3 style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 4 }}>Pontuação geral do perfil</h3>
               <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.55 }}>
-                Alguns itens básicos estão preenchidos, mas faltam otimizações estratégicas que fariam o Google priorizar seu perfil.
+                Alguns itens básicos estão preenchidos, mas faltam configurações estratégicas que fariam o Google mostrar você antes dos concorrentes.
               </p>
             </div>
           </div>
@@ -557,8 +560,8 @@ export function AnaliseClient({ data }: Props) {
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
                 { title: "Postagens no perfil", text: "Nenhuma postagem publicada. O Google prioriza perfis ativos com publicações regulares — postagens, ofertas e novidades." },
-                { title: "Fotos recentes do proprietário", text: "Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas aumentam engajamento e confiança." },
-                { title: "Fotos 360°", text: "Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem 2x mais interesse segundo o Google." },
+                { title: "Fotos recentes do proprietário", text: "Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas aumentam o interesse dos clientes e a confiança no perfil." },
+                { title: "Fotos 360°", text: "Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem o dobro de interesse dos clientes segundo o Google." },
               ].map((gap, i) => (
                 <div key={i} className="fade-up" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "white", borderRadius: 20, border: "2px solid rgba(192,57,43,0.15)", boxShadow: "0 4px 20px rgba(192,57,43,0.06)", position: "relative", overflow: "hidden" }}>
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
@@ -566,7 +569,7 @@ export function AnaliseClient({ data }: Props) {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
                       <strong style={{ fontSize: 14, color: "#111827" }}>{gap.title}</strong>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "2px 9px", borderRadius: 20 }}>Score 0%</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "2px 9px", borderRadius: 20 }}>Não preenchido</span>
                     </div>
                     <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>{gap.text}</p>
                   </div>
@@ -585,8 +588,8 @@ export function AnaliseClient({ data }: Props) {
               {[
                 { title: "Média de avaliações", score: "50%", text: `${d.estrelas}★ atual. Média do segmento: ${d.estrelas_media_seg}★. Precisa melhorar para competir.` },
                 { title: "Avaliações sem resposta", score: "50%", text: `${d.avaliacoes_sr} avaliações sem resposta do proprietário. Responder aumenta credibilidade e ranking.` },
-                { title: "Avaliações sem comentário", score: "50%", text: `${d.avaliacoes_sc} avaliações sem texto. Comentários detalhados pesam mais no algoritmo do Google.` },
-                { title: "Vídeos no perfil", score: "50%", text: "Nenhum vídeo adicionado. Vídeos curtos aumentam tempo de visualização e engajamento no perfil." },
+                { title: "Avaliações sem comentário", score: "50%", text: `${d.avaliacoes_sc} avaliações sem texto. Avaliações com texto detalhado fazem o Google mostrar seu perfil para mais pessoas.` },
+                { title: "Vídeos no perfil", score: "50%", text: "Nenhum vídeo adicionado. Vídeos curtos aumentam o tempo de visualização e a interação dos clientes com o perfil." },
               ].map((item, i) => (
                 <div key={i} className="fade-up" style={{ padding: "18px 20px", background: "white", borderRadius: 20, border: "1.5px solid rgba(201,122,6,0.2)", boxShadow: "0 2px 12px rgba(201,122,6,0.05)", position: "relative", overflow: "hidden" }}>
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
@@ -605,7 +608,7 @@ export function AnaliseClient({ data }: Props) {
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
                   <strong style={{ fontSize: 14, color: "#111827" }}>Descrição do negócio</strong>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 9px", borderRadius: 20 }}>Score 70%</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 9px", borderRadius: 20 }}>Nota 70%</span>
                 </div>
                 <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>
                   Descrição atual: {d.descricao_chars} caracteres. Mínimo recomendado: 125. Use palavras-chave do segmento e da região para o Google entender seu negócio.
@@ -683,7 +686,7 @@ export function AnaliseClient({ data }: Props) {
               <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
               <div>
                 <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Postagens: 0 · Fotos recentes: 0</h4>
-                <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>Score 0% nos dois itens. O Google interpreta isso como um perfil abandonado — e reduz sua visibilidade automaticamente.</p>
+                <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>Nenhuma atividade nos dois itens. O Google interpreta isso como um perfil abandonado — e reduz sua visibilidade automaticamente.</p>
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "white", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C97A06", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
@@ -718,7 +721,7 @@ export function AnaliseClient({ data }: Props) {
             <span style={{ fontSize: 18 }}>💡</span>
             <div>
               <p style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Google Meu Negócio não é Google Ads</p>
-              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.6)", lineHeight: 1.6 }}>É uma ferramenta gratuita do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil organicamente.</p>
+              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.6)", lineHeight: 1.6 }}>É uma ferramenta gratuita do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil — sem pagar por anúncios.</p>
             </div>
           </div>
 
@@ -741,7 +744,7 @@ export function AnaliseClient({ data }: Props) {
                 tag: "Semana 2",
                 badge: "Otimização",
                 title: "Perfil configurado estrategicamente",
-                text: `Todas as categorias, atributos, descrição otimizada, fotos profissionais e configurações avançadas. Score de ${d.score} para 85+ em semanas.`,
+                text: `Todas as categorias, atributos, descrição otimizada, fotos profissionais e configurações avançadas. Nota de ${d.score} para 85+ em semanas.`,
                 active: false,
               },
               {
