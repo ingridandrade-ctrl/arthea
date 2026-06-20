@@ -102,14 +102,14 @@ export function AnaliseClient({ data }: Props) {
             <br />
             nas buscas locais do Google.
           </h2>
-          <div className="hero-eyebrow">Preparamos um diagnóstico completo para</div>
-          <h1 className="hero-h1">
+          <div className="hero-eyebrow" style={{ textAlign: "left", fontSize: 13 }}>Preparamos um diagnóstico completo para</div>
+          <h1 className="hero-h1" style={{ textAlign: "left" }}>
             {d.nome_linha1}
             <br />
             {d.nome_linha2}
           </h1>
-          <div className="hero-client">
-            {d.cidade} · {d.estado} · {d.segmento} · {d.data_analise}
+          <div className="hero-client" style={{ textAlign: "left" }}>
+            {d.cidade} · {d.estado} · {d.segmento}
           </div>
           <a href="#diagnostico" className="hero-cta">
             Ver minha análise completa ↓
