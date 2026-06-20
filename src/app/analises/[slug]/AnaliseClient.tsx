@@ -96,8 +96,10 @@ export function AnaliseClient({ data }: Props) {
             fontWeight: 700,
             lineHeight: 1.25,
             maxWidth: 540,
-            margin: "0 auto 16px",
+            margin: "0 0 16px",
             letterSpacing: "-0.02em",
+            textAlign: "left",
+            width: "100%",
           }}>
             <span style={{ color: "rgba(245,240,235,0.95)" }}>Análise exclusiva do seu</span>
             <br />
@@ -105,12 +107,12 @@ export function AnaliseClient({ data }: Props) {
             <em style={{ color: "#2DD4BF", fontStyle: "italic" }}>Google.</em>
           </h2>
 
-          <p style={{ fontSize: 14, color: "rgba(245,240,235,0.45)", marginBottom: 40, letterSpacing: "0.08em", fontWeight: 500 }}>
+          <p style={{ fontSize: 14, color: "rgba(245,240,235,0.45)", marginBottom: 40, letterSpacing: "0.08em", fontWeight: 500, textAlign: "left", width: "100%" }}>
             por Arthea · assessoria de marketing intencional
           </p>
 
           <div className="hero-eyebrow" style={{ textAlign: "left", fontSize: 13 }}>Diagnóstico completo para</div>
-          <h1 className="hero-h1" style={{ textAlign: "left" }}>
+          <h1 className="hero-h1" style={{ textAlign: "left", fontSize: "clamp(22px,4vw,34px)" }}>
             {d.nome_linha1}
             <br />
             {d.nome_linha2}
