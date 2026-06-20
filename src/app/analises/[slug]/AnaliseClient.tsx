@@ -137,92 +137,7 @@ export function AnaliseClient({ data }: Props) {
         </div>
       </section>
 
-      {/* ═══ SEÇÃO 1: ENTENDENDO O CENÁRIO ═══ */}
-      <section style={{ padding: "88px 24px 72px", background: "#FAF9F6" }}>
-        <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
-          <div className="ey">Entendendo o cenário</div>
-          <h2 className="tt" style={{ fontSize: "clamp(28px,4.5vw,46px)" }}>
-            O Google Meu Negócio decide quem aparece primeiro
-            <br />
-            <em>e quem fica invisível.</em>
-          </h2>
-          <p className="lead">
-            Quando alguém pesquisa um serviço ou produto na sua cidade ou região, os primeiros resultados são perfis do
-            Google Meu Negócio. É ali que o cliente decide com quem vai falar antes de visitar qualquer site ou
-            estabelecimento.
-          </p>
-
-          {/* 4 cards */}
-          <div className="fade-up cards-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 48, textAlign: "left" }}>
-            {[
-              { n: "01", icon: "👁️", title: "Primeira impressão antes de qualquer contato", text: "O perfil aparece com fotos, avaliações e localização antes mesmo de o cliente visitar seu site." },
-              { n: "02", icon: "⭐", title: "Avaliações decidem quem é escolhido", text: "Volume, qualidade e frequência das avaliações influenciam diretamente a posição no ranking local." },
-              { n: "03", icon: "📍", title: "Buscas locais crescem 136% ao ano", text: 'Pesquisas como "perto de mim" ou "na minha região" já são maioria no Google Maps e na busca local.' },
-              { n: "04", icon: "📞", title: "Contato direto, sem etapas extras", text: "O cliente liga, pede rota ou acessa o site direto do perfil — sem passar por landing pages ou formulários." },
-            ].map((c) => (
-              <div
-                key={c.n}
-                style={{
-                  background: "white",
-                  borderRadius: 20,
-                  padding: 24,
-                  border: "1.5px solid rgba(13,74,74,0.1)",
-                  boxShadow: "0 4px 20px rgba(13,74,74,0.07)",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
-              >
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,#157373,#2DD4BF)", borderRadius: "16px 16px 0 0" }} />
-                <div style={{ fontSize: 28, marginBottom: 12 }}>{c.icon}</div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(13,74,74,0.06)", color: "#157373", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", padding: "3px 9px", borderRadius: 20, marginBottom: 10 }}>
-                  {c.n}
-                </div>
-                <h4 style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 6, letterSpacing: "-0.01em", lineHeight: 1.3 }}>{c.title}</h4>
-                <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>{c.text}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Divider */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 0", marginBottom: 28 }}>
-            <div style={{ flex: 1, height: 1, background: "rgba(13,74,74,0.08)" }} />
-            <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "#9CA3AF" }}>O comportamento do seu cliente</span>
-            <div style={{ flex: 1, height: 1, background: "rgba(13,74,74,0.08)" }} />
-          </div>
-
-          {/* 3 Stats */}
-          <div className="fade-up stat-cards-col" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div className="stat-card-inner" style={{ display: "flex", alignItems: "center", gap: 20, background: "white", borderRadius: 20, padding: "20px 24px", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 20px rgba(13,74,74,0.07)" }}>
-              <span data-count="82" data-suffix="%" data-from="0" style={{ fontSize: 40, fontWeight: 700, color: "#157373", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const }}>0%</span>
-              <div style={{ textAlign: "left" as const }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 3 }}>pesquisam online antes de contratar</p>
-                <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>Pesquisa Google/IBOPE 2023 — comportamento de decisão para serviços locais.</p>
-              </div>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(21,115,115,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18 }}>🔍</div>
-            </div>
-
-            <div className="stat-card-inner" style={{ display: "flex", alignItems: "center", gap: 20, background: "#0D4A4A", borderRadius: 20, padding: "20px 24px", boxShadow: "0 4px 20px rgba(13,74,74,0.2)" }}>
-              <span data-count="72" data-suffix="%" data-from="0" style={{ fontSize: 40, fontWeight: 700, color: "#FAF9F6", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const }}>0%</span>
-              <div style={{ textAlign: "left" as const }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "#FAF9F6", marginBottom: 3 }}>escolhem entre os 3 primeiros resultados</p>
-                <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>BrightLocal 2024 — taxa de clique em resultados do Google Maps e busca local.</p>
-              </div>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18 }}>📊</div>
-            </div>
-
-            <div className="stat-card-inner" style={{ display: "flex", alignItems: "center", gap: 20, background: "white", borderRadius: 20, padding: "20px 24px", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 20px rgba(13,74,74,0.07)" }}>
-              <span data-count="68" data-suffix="%" data-from="0" style={{ fontSize: 40, fontWeight: 700, color: "#157373", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const }}>0%</span>
-              <div style={{ textAlign: "left" as const }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 3 }}>visitam o estabelecimento após ver o perfil</p>
-                <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>Google Think Insights — taxa de conversão local para perfis otimizados.</p>
-              </div>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(21,115,115,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18 }}>⭐</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ SEÇÃO 2: IMPACTO REAL ═══ */}
+      {/* ═══ SEÇÃO 1: IMPACTO REAL ═══ */}
       <section style={{ padding: "88px 24px", background: "#FAF9F6" }}>
         <div className="wrap">
           <div className="ey">O impacto real</div>
@@ -716,6 +631,45 @@ export function AnaliseClient({ data }: Props) {
                 <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Avaliações: {d.avaliacoes} · Média: {d.estrelas}★</h4>
                 <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>Concorrente direto: {d.concorrente_aval} avaliações · média {d.concorrente_stars}★. Diferença significativa em volume e qualidade.</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ POR QUE ISSO IMPORTA ═══ */}
+      <section style={{ padding: "80px 24px", background: "#FAF9F6" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
+          <div className="ey">Por que isso importa</div>
+          <h2 className="tt" style={{ fontSize: "clamp(26px,4.5vw,40px)" }}>
+            Como o Google decide
+            <br />
+            <em>quem aparece primeiro.</em>
+          </h2>
+          <p className="lead">
+            Quando alguém pesquisa na sua cidade, o Google Meu Negócio mostra os perfis mais completos e ativos primeiro. É ali que o cliente decide com quem vai falar — antes de visitar qualquer site.
+          </p>
+
+          <div className="fade-up" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 40, textAlign: "left" }}>
+            {[
+              { icon: "👁️", title: "Primeira impressão", text: "Fotos, avaliações e localização aparecem antes de qualquer clique." },
+              { icon: "⭐", title: "Avaliações decidem", text: "Volume e qualidade das avaliações influenciam diretamente sua posição." },
+              { icon: "📞", title: "Contato direto", text: "O cliente liga, pede rota ou acessa seu site direto do perfil." },
+            ].map((c, i) => (
+              <div key={i} style={{ background: "white", borderRadius: 18, padding: "22px 20px", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 20px rgba(13,74,74,0.07)", position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,#157373,#2DD4BF)", borderRadius: "16px 16px 0 0" }} />
+                <div style={{ fontSize: 24, marginBottom: 10 }}>{c.icon}</div>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 5, lineHeight: 1.3 }}>{c.title}</h4>
+                <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.55 }}>{c.text}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Stat destaque */}
+          <div className="fade-up" style={{ display: "flex", alignItems: "center", gap: 20, background: "#0D4A4A", borderRadius: 20, padding: "20px 28px", boxShadow: "0 4px 20px rgba(13,74,74,0.2)" }}>
+            <span data-count="72" data-suffix="%" data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#FAF9F6", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const }}>0%</span>
+            <div style={{ textAlign: "left" as const }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#FAF9F6", marginBottom: 3 }}>dos clientes escolhem entre os 3 primeiros resultados</p>
+              <p style={{ fontSize: 12, color: "rgba(245,240,235,0.5)", lineHeight: 1.5 }}>Quem não está no topo, praticamente não é visto.</p>
             </div>
           </div>
         </div>
