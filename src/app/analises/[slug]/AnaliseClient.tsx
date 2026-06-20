@@ -71,6 +71,8 @@ export function AnaliseClient({ data }: Props) {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "20px 32px",
+        background: "rgba(21,115,115,0.25)",
+        borderBottom: "1px solid rgba(45,212,191,0.1)",
       }}>
         <Image
           src="/analises/assets/logo-arthea-oficial.png"
@@ -93,7 +95,7 @@ export function AnaliseClient({ data }: Props) {
             alt="Google Meu Negócio"
             width={280}
             height={80}
-            style={{ height: "clamp(50px,8vw,70px)", width: "auto", objectFit: "contain", marginBottom: 12 }}
+            style={{ height: "clamp(50px,8vw,70px)", width: "auto", objectFit: "contain", marginBottom: 12, borderRadius: 12, mixBlendMode: "screen" as const }}
           />
           <p style={{ fontSize: "clamp(14px,2.2vw,17px)", color: "rgba(245,240,235,0.7)", lineHeight: 1.6, maxWidth: 480, margin: "0 auto 28px" }}>
             Análise exclusiva do seu negócio nas buscas locais do Google.
