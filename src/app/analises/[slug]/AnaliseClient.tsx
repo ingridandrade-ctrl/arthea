@@ -229,10 +229,10 @@ export function AnaliseClient({ data }: Props) {
               </div>
               <div>
                 <p style={{ fontSize: 16, color: "rgba(245,240,235,0.75)", lineHeight: 1.6, marginBottom: 10 }}>
-                  aparecem <strong style={{ color: "white", fontWeight: 700 }}>antes de você</strong> quando alguém pesquisa na sua região.
+                  aparecem <strong style={{ color: "white", fontWeight: 700 }}>antes de você</strong> no Google Maps quando alguém pesquisa na sua região.
                 </p>
                 <p style={{ fontSize: 13, color: "rgba(245,240,235,0.45)", lineHeight: 1.55 }}>
-                  Cada busca que não te encontra é um cliente que vai para o concorrente — e nem sabe que você existe.
+                  Isso significa que a maioria dos clientes nunca chega a ver seu perfil — e acaba escolhendo quem aparece primeiro.
                 </p>
               </div>
             </div>
