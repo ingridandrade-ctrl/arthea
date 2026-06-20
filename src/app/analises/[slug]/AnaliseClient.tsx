@@ -67,25 +67,11 @@ export function AnaliseClient({ data }: Props) {
         left: 0,
         right: 0,
         zIndex: 10,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
         padding: "20px 32px",
         background: "rgba(21,115,115,0.25)",
         borderBottom: "1px solid rgba(45,212,191,0.1)",
-      }}>
-        <Image
-          src="/analises/assets/logo-arthea-oficial.png"
-          alt="Arthea"
-          width={120}
-          height={40}
-          style={{ height: 36, width: "auto", objectFit: "contain", opacity: 0.85 }}
-          priority
-        />
-        <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(245,240,235,0.4)" }}>
-          Diagnóstico de presença digital
-        </span>
-      </header>
+        height: 20,
+      }} />
 
       {/* ═══ HERO ═══ */}
       <section className="hero">
@@ -135,6 +121,15 @@ export function AnaliseClient({ data }: Props) {
           <a href="#diagnostico" className="hero-cta">
             Ver minha análise completa ↓
           </a>
+          <div style={{ marginTop: 32 }}>
+            <Image
+              src="/analises/assets/logo-arthea-oficial.png"
+              alt="Arthea"
+              width={160}
+              height={60}
+              style={{ height: 50, width: "auto", objectFit: "contain", opacity: 0.7 }}
+            />
+          </div>
         </div>
         <div className="scroll-hint">
           <span>Role para ver</span>
