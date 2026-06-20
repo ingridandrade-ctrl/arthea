@@ -247,12 +247,12 @@ export function AnaliseClient({ data }: Props) {
               <div data-count={posNum} data-suffix="ª" data-from="1" style={{ fontSize: 40, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>1ª</div>
               <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{d.posicao}ª de {d.posicao_total} {d.segmento.toLowerCase().includes("advoc") ? "escritórios" : "negócios"} na região. A maioria dos clientes nem chega a rolar até aqui.</p>
             </div>
-            {/* Leader */}
-            <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(13,74,74,0.12)", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,#157373,#2DD4BF)", borderRadius: "16px 16px 0 0" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Líder do segmento</span>
-              <div data-count={d.ranking[0]?.aval || 0} data-from="0" data-formatted={d.lider_aval} style={{ fontSize: 40, fontWeight: 700, color: "#157373", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>0</div>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>avaliações — o 1º lugar. Você tem {d.avaliacoes}. Essa diferença é o que define quem aparece primeiro.</p>
+            {/* Reviews */}
+            <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(192,57,43,0.15)", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9CA3AF", display: "block", marginBottom: 6 }}>Suas avaliações</span>
+              <div data-count={parseInt(d.avaliacoes)} data-from="0" style={{ fontSize: 40, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>0</div>
+              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>O 1º lugar tem {d.lider_aval}. Essa diferença no volume é o que mais pesa na sua posição.</p>
             </div>
             {/* Stars */}
             <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(192,57,43,0.15)", position: "relative", overflow: "hidden" }}>
