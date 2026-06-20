@@ -49,6 +49,13 @@ const nextConfig = {
           has: [{ type: "host", value: "consulta.clinicabrescancin.com.br" }],
           destination: "/clinicabrescancin/admin/:path*",
         },
+        // Subdomínio analises.arthea.com.br serve /analises/[slug] na raiz.
+        // O lead acessa analises.arthea.com.br/nome-do-cliente.
+        {
+          source: "/:slug",
+          has: [{ type: "host", value: "analises.arthea.com.br" }],
+          destination: "/analises/:slug",
+        },
         // URL limpa pras aulas estáticas em public/aulas — sem o .html no fim.
         {
           source: "/aulas/arte-da-presenca",
