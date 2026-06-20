@@ -40,6 +40,11 @@ function isBrescancinHost(host: string | null) {
   return host.startsWith("consulta.");
 }
 
+function isAnalisesHost(host: string | null) {
+  if (!host) return false;
+  return host.startsWith("analises.");
+}
+
 function isPublicPath(pathname: string) {
   return pathname === "/login" || pathname.startsWith("/api/auth");
 }
@@ -62,6 +67,11 @@ export default withAuth(
     // ── Subdomínio clínica Brescancin — formulário pré-consulta,
     // totalmente isolado do CRM/portal e com auth próprio no /admin.
     if (isBrescancinHost(host)) {
+      return NextResponse.next();
+    }
+
+    // ── Subdomínio análises GMB — páginas públicas para leads.
+    if (isAnalisesHost(host)) {
       return NextResponse.next();
     }
 
@@ -107,6 +117,8 @@ export default withAuth(
         if (isMindfulnessHost(host)) return true;
         // Subdomínio brescancin tem auth próprio (cookie HMAC) no /admin.
         if (isBrescancinHost(host)) return true;
+        // Subdomínio análises é público (leads sem login).
+        if (isAnalisesHost(host)) return true;
         if (isPublicPath(pathname)) return true;
         return !!token;
       },

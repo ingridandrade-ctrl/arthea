@@ -1,7 +1,5 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import path from "path";
-import { promises as fs } from "fs";
 import { AnaliseClient } from "./AnaliseClient";
 import type { ClienteData } from "./types";
 
@@ -11,9 +9,8 @@ interface Props {
 
 async function getClienteData(slug: string): Promise<ClienteData | null> {
   try {
-    const filePath = path.join(process.cwd(), "public", "analises", "data", `${slug}.json`);
-    const raw = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(raw);
+    const data = (await import(`../data/${slug}.json`)).default;
+    return data as ClienteData;
   } catch {
     return null;
   }
