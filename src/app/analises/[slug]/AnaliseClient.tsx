@@ -519,7 +519,7 @@ export function AnaliseClient({ data }: Props) {
               </div>
               <h3 style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 4 }}>Pontuação geral do perfil</h3>
               <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.55 }}>
-                Alguns itens básicos estão preenchidos, mas faltam configurações importantes que fariam o Google mostrar você antes dos concorrentes.
+                Alguns itens básicos estão preenchidos, mas faltam configurações estratégicas que fariam o Google mostrar você antes dos concorrentes.
               </p>
             </div>
           </div>
