@@ -287,9 +287,6 @@ export function AnaliseClient({ data }: Props) {
       {/* ═══ IMPACT QUESTION ═══ */}
       <section style={{ padding: "48px 24px 72px", background: "#FAF9F6" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <p className="fade-up" style={{ fontSize: 14, color: "#374151", lineHeight: 1.7, textAlign: "center", marginBottom: 28 }}>
-            Posição {d.posicao}ª, nota {d.score}/100, {d.avaliacoes} avaliações com média {d.estrelas}★ — tudo isso junto define quantos clientes encontram você.
-          </p>
           <div className="fade-up" style={{ background: "#0D4A4A", borderRadius: 20, overflow: "hidden", position: "relative" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
             <div style={{ padding: "28px 36px 0", position: "relative", zIndex: 1, textAlign: "center" }}>
