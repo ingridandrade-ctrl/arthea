@@ -138,7 +138,7 @@ export function AnaliseClient({ data }: Props) {
       </section>
 
       {/* ═══ SEÇÃO 1: IMPACTO REAL ═══ */}
-      <section style={{ padding: "88px 24px", background: "#FAF9F6" }}>
+      <section style={{ padding: "88px 24px 48px", background: "#FAF9F6" }}>
         <div className="wrap">
           <div className="ey">O que encontramos</div>
           <h2 className="tt">
@@ -151,7 +151,7 @@ export function AnaliseClient({ data }: Props) {
           <p className="lead">Simulamos buscas reais na sua região e comparamos seu perfil com os concorrentes. Veja o que encontramos:</p>
 
           {/* SERP Mock */}
-          <div className="fade-up" style={{ marginBottom: 32 }}>
+          <div className="fade-up" style={{ marginBottom: 28 }}>
             <div className="serp">
               <div className="serp-bar">
                 <span className="serp-g">
@@ -170,7 +170,6 @@ export function AnaliseClient({ data }: Props) {
                 <div className="smd smd-y" style={{ top: "43%", left: "50%" }} />
               </div>
               <div className="serp-rows">
-                {/* 1º */}
                 <div className="sr">
                   <div className="sr-pos pos1">1</div>
                   <div>
@@ -183,7 +182,6 @@ export function AnaliseClient({ data }: Props) {
                     </div>
                   </div>
                 </div>
-                {/* 2º */}
                 <div className="sr">
                   <div className="sr-pos pos2">2</div>
                   <div>
@@ -195,9 +193,7 @@ export function AnaliseClient({ data }: Props) {
                     </div>
                   </div>
                 </div>
-                {/* Gap */}
                 <div className="sr-gap">··· mais {gapCount} {d.segmento.toLowerCase().includes("advoc") ? "escritórios" : "negócios"} antes de você ···</div>
-                {/* You */}
                 <div className="sr sr-you">
                   <div className="sr-pos posy" data-count={posNum} data-from="1">{posNum}</div>
                   <div>
@@ -216,94 +212,110 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* +N Card */}
-          <div className="fade-up" style={{ background: "#0D4A4A", borderRadius: 20, padding: 40, marginBottom: 20, position: "relative", overflow: "hidden" }}>
+          <div className="fade-up" style={{ background: "#0D4A4A", borderRadius: 22, padding: "36px 32px", marginBottom: 24, position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
-            <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "auto 1fr", gap: 28, alignItems: "center" }}>
-              <div style={{ textAlign: "center" }}>
-                <span style={{ display: "block", fontSize: "clamp(64px,10vw,88px)", fontWeight: 700, color: "white", letterSpacing: "-0.04em", lineHeight: 1 }}>
+            <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 24 }}>
+              <div style={{ textAlign: "center", flexShrink: 0 }}>
+                <span style={{ display: "block", fontSize: "clamp(56px,9vw,76px)", fontWeight: 800, color: "white", letterSpacing: "-0.04em", lineHeight: 1 }}>
                   +{impactoNum - posNum + 1 > 0 ? posNum - 1 : impactoNum}
                 </span>
-                <span style={{ display: "block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "#2DD4BF", marginTop: 4 }}>
+                <span style={{ display: "block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "#2DD4BF", marginTop: 6 }}>
                   {d.segmento.toLowerCase().includes("advoc") ? "escritórios" : "negócios"}
                 </span>
               </div>
+              <div style={{ width: 1, height: 60, background: "rgba(255,255,255,0.12)", flexShrink: 0 }} />
               <div>
-                <p style={{ fontSize: 16, color: "rgba(245,240,235,0.75)", lineHeight: 1.6, marginBottom: 10 }}>
+                <p style={{ fontSize: 15, color: "rgba(245,240,235,0.85)", lineHeight: 1.55, fontWeight: 500 }}>
                   aparecem <strong style={{ color: "white", fontWeight: 700 }}>antes de você</strong> no Google Maps quando alguém pesquisa na sua região.
                 </p>
-                <p style={{ fontSize: 13, color: "rgba(245,240,235,0.45)", lineHeight: 1.55 }}>
-                  Isso significa que a maioria dos clientes nunca chega a ver seu perfil — e acaba escolhendo quem aparece primeiro.
+                <p style={{ fontSize: 12, color: "rgba(245,240,235,0.4)", lineHeight: 1.5, marginTop: 8 }}>
+                  A maioria dos clientes nunca chega a ver seu perfil — e acaba escolhendo quem aparece primeiro.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Connector: why this position */}
-          <p className="fade-up" style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6, textAlign: "center", marginBottom: 20, fontStyle: "italic" }}>
-            Três fatores principais explicam essa posição:
-          </p>
-
           {/* 4 Metric Cards */}
-          <div className="fade-up loss-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 0 }}>
-            {/* Position */}
-            <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(192,57,43,0.15)", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Sua posição</span>
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "2px 8px", borderRadius: 20 }}>Crítico</span>
+          <div className="fade-up loss-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            {[
+              {
+                label: "Sua posição",
+                badge: "Crítico",
+                badgeColor: "#C0392B",
+                badgeBg: "#FEE2E2",
+                borderColor: "rgba(192,57,43,0.15)",
+                barColor: "#C0392B",
+                valueProps: { "data-count": posNum, "data-suffix": "ª", "data-from": "1" },
+                valueText: "1ª",
+                valueColor: "#C0392B",
+                sub: `de ${d.posicao_total} na região`,
+              },
+              {
+                label: "Suas avaliações",
+                badge: "Crítico",
+                badgeColor: "#C0392B",
+                badgeBg: "#FEE2E2",
+                borderColor: "rgba(192,57,43,0.15)",
+                barColor: "#C0392B",
+                valueProps: { "data-count": parseInt(d.avaliacoes), "data-from": "0" },
+                valueText: "0",
+                valueColor: "#C0392B",
+                sub: `1º lugar tem ${d.lider_aval}`,
+              },
+              {
+                label: "Sua nota média",
+                badge: "Atenção",
+                badgeColor: "#C97A06",
+                badgeBg: "#FEF3C7",
+                borderColor: "rgba(201,122,6,0.15)",
+                barColor: "#C97A06",
+                valueProps: { "data-count-decimal": d.estrelas, "data-from": "5.0", "data-suffix": "★" },
+                valueText: "5.0★",
+                valueColor: "#C97A06",
+                sub: `média do segmento: ${d.estrelas_media_seg}★`,
+              },
+              {
+                label: "Nota do perfil",
+                badge: "Atenção",
+                badgeColor: "#C97A06",
+                badgeBg: "#FEF3C7",
+                borderColor: "rgba(201,122,6,0.15)",
+                barColor: "#C97A06",
+                valueProps: {},
+                valueText: null,
+                valueColor: "#C97A06",
+                sub: "sem postagens e sem fotos",
+              },
+            ].map((card, i) => (
+              <div key={i} style={{ background: "white", borderRadius: 18, padding: "22px 20px", border: `1.5px solid ${card.borderColor}`, position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: card.barColor, borderRadius: "16px 16px 0 0" }} />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", letterSpacing: "-0.01em" }}>{card.label}</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: card.badgeColor, background: card.badgeBg, padding: "3px 10px", borderRadius: 20, letterSpacing: "0.02em" }}>{card.badge}</span>
+                </div>
+                <div {...card.valueProps} style={{ fontSize: 42, fontWeight: 800, color: card.valueColor, letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>
+                  {card.valueText !== null ? card.valueText : <>{d.score}<span style={{ fontSize: 20, fontWeight: 500, color: "#9CA3AF" }}>/100</span></>}
+                </div>
+                <p style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.4, fontWeight: 500 }}>{card.sub}</p>
               </div>
-              <div data-count={posNum} data-suffix="ª" data-from="1" style={{ fontSize: 44, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>1ª</div>
-              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>de {d.posicao_total} na região</p>
-            </div>
-            {/* Reviews */}
-            <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(192,57,43,0.15)", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Suas avaliações</span>
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "2px 8px", borderRadius: 20 }}>Crítico</span>
-              </div>
-              <div data-count={parseInt(d.avaliacoes)} data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#C0392B", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>0</div>
-              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>1º lugar tem {d.lider_aval}</p>
-            </div>
-            {/* Stars */}
-            <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Sua nota média</span>
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 8px", borderRadius: 20 }}>Atenção</span>
-              </div>
-              <div data-count-decimal={d.estrelas} data-from="5.0" data-suffix="★" style={{ fontSize: 44, fontWeight: 700, color: "#C97A06", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>5.0★</div>
-              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>média do segmento: {d.estrelas_media_seg}★</p>
-            </div>
-            {/* Score */}
-            <div style={{ background: "white", borderRadius: 20, padding: "20px 22px", border: "1.5px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#374151" }}>Nota do perfil</span>
-                <span style={{ fontSize: 9, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 8px", borderRadius: 20 }}>Atenção</span>
-              </div>
-              <div style={{ fontSize: 44, fontWeight: 700, color: "#C97A06", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 6 }}>{d.score}<span style={{ fontSize: 20, fontWeight: 600, color: "#9CA3AF" }}>/100</span></div>
-              <p style={{ fontSize: 11, color: "#9CA3AF", lineHeight: 1.4 }}>sem postagens e sem fotos</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ═══ IMPACT QUESTION ═══ */}
-      <section style={{ padding: "48px 24px 72px", background: "#FAF9F6" }}>
+      <section style={{ padding: "24px 24px 80px", background: "#FAF9F6" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <div className="fade-up" style={{ background: "#0D4A4A", borderRadius: 20, overflow: "hidden", position: "relative" }}>
+          <div className="fade-up" style={{ background: "#0D4A4A", borderRadius: 22, overflow: "hidden", position: "relative" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
-            <div style={{ padding: "28px 36px 0", position: "relative", zIndex: 1, textAlign: "center" }}>
-              <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3em", color: "rgba(45,212,191,0.65)" }}>O que isso significa na prática</p>
-            </div>
-            <div style={{ height: 1, background: "rgba(45,212,191,0.1)", margin: "20px 36px", position: "relative", zIndex: 1 }} />
-            <div style={{ padding: "0 36px 36px", position: "relative", zIndex: 1, textAlign: "center" }}>
-              <p style={{ fontSize: 15, color: "rgba(245,240,235,0.65)", lineHeight: 1.7, marginBottom: 16 }}>
+            <div style={{ padding: "32px 40px", position: "relative", zIndex: 1, textAlign: "center" }}>
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3em", color: "rgba(45,212,191,0.6)", marginBottom: 20 }}>O que isso significa na prática</p>
+              <div style={{ width: 32, height: 1, background: "rgba(45,212,191,0.15)", margin: "0 auto 24px" }} />
+              <p style={{ fontSize: 16, color: "rgba(245,240,235,0.7)", lineHeight: 1.7, marginBottom: 20, fontWeight: 400 }}>
                 Se 10 pessoas pesquisam &ldquo;{d.busca_termo}&rdquo; por dia e você aparece na{" "}
-                <strong style={{ color: "#FF8080" }}>posição {d.posicao}ª</strong>...
+                <strong style={{ color: "#FF8080", fontWeight: 700 }}>posição {d.posicao}ª</strong>...
               </p>
-              <p style={{ fontSize: "clamp(22px,3.5vw,30px)", fontWeight: 700, color: "white", lineHeight: 1.2 }}>
+              <p style={{ fontSize: "clamp(24px,4vw,32px)", fontWeight: 800, color: "white", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
                 Quantas delas chegam
                 <br />
                 até você?
