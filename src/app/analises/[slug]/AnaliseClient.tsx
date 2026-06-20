@@ -63,16 +63,6 @@ export function AnaliseClient({ data }: Props) {
       {/* ═══ HERO ═══ */}
       <section className="hero">
         <div className="hero-body">
-          <div className="hero-logo">
-            <Image
-              src="/analises/assets/logo-arthea.png"
-              alt="Arthea"
-              width={200}
-              height={100}
-              style={{ height: 200, width: "auto", objectFit: "contain", mixBlendMode: "screen", opacity: 0.9 }}
-              priority
-            />
-          </div>
           <div className="hero-pill">
             <span className="hero-dot" />
             Google Meu Negócio · Análise de Presença Local
@@ -106,6 +96,16 @@ export function AnaliseClient({ data }: Props) {
           <a href="#diagnostico" className="hero-cta">
             Ver minha análise completa ↓
           </a>
+          <div className="hero-logo" style={{ marginTop: "2rem" }}>
+            <Image
+              src="/analises/assets/logo-arthea.png"
+              alt="Arthea"
+              width={200}
+              height={100}
+              style={{ height: 200, width: "auto", objectFit: "contain", mixBlendMode: "screen", opacity: 0.9 }}
+              priority
+            />
+          </div>
         </div>
         <div className="scroll-hint">
           <span>Role para ver</span>
