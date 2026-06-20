@@ -60,17 +60,45 @@ export function AnaliseClient({ data }: Props) {
 
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#FAF9F6", color: "#111827" }}>
+      {/* ═══ HEADER ═══ */}
+      <header style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "20px 32px",
+      }}>
+        <Image
+          src="/analises/assets/logo-arthea.png"
+          alt="Arthea"
+          width={120}
+          height={40}
+          style={{ height: 36, width: "auto", objectFit: "contain", opacity: 0.85 }}
+          priority
+        />
+        <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.18em", color: "rgba(245,240,235,0.4)" }}>
+          Diagnóstico de presença digital
+        </span>
+      </header>
+
       {/* ═══ HERO ═══ */}
       <section className="hero">
-        <div className="hero-body">
-          <h3 style={{ fontSize: "clamp(18px,3vw,22px)", fontWeight: 700, color: "white", letterSpacing: "-0.01em", marginBottom: 6 }}>
-            📍 Google Meu Negócio
-          </h3>
-          <div className="hero-pill">
-            <span className="hero-dot" />
-            Análise de Presença Local
-          </div>
-          <div className="hero-eyebrow">Diagnóstico exclusivo para</div>
+        <div className="hero-body" style={{ paddingTop: 100 }}>
+          <Image
+            src="/analises/assets/logo-gmb.png"
+            alt="Google Meu Negócio"
+            width={280}
+            height={80}
+            style={{ height: "clamp(50px,8vw,70px)", width: "auto", objectFit: "contain", marginBottom: 12 }}
+          />
+          <p style={{ fontSize: "clamp(14px,2.2vw,17px)", color: "rgba(245,240,235,0.7)", lineHeight: 1.6, maxWidth: 480, margin: "0 auto 28px" }}>
+            Análise exclusiva do seu negócio nas buscas locais do Google.
+          </p>
+          <div className="hero-eyebrow">Preparamos um diagnóstico completo para</div>
           <h1 className="hero-h1">
             {d.nome_linha1}
             <br />
@@ -99,16 +127,6 @@ export function AnaliseClient({ data }: Props) {
           <a href="#diagnostico" className="hero-cta">
             Ver minha análise completa ↓
           </a>
-          <div className="hero-logo" style={{ marginTop: "2rem" }}>
-            <Image
-              src="/analises/assets/logo-arthea.png"
-              alt="Arthea"
-              width={200}
-              height={100}
-              style={{ height: 200, width: "auto", objectFit: "contain", mixBlendMode: "screen", opacity: 0.9 }}
-              priority
-            />
-          </div>
         </div>
         <div className="scroll-hint">
           <span>Role para ver</span>
