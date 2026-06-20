@@ -73,7 +73,7 @@ export function AnaliseClient({ data }: Props) {
         padding: "20px 32px",
       }}>
         <Image
-          src="/analises/assets/logo-arthea.png"
+          src="/analises/assets/logo-arthea-oficial.png"
           alt="Arthea"
           width={120}
           height={40}
@@ -106,23 +106,6 @@ export function AnaliseClient({ data }: Props) {
           </h1>
           <div className="hero-client">
             {d.cidade} · {d.estado} · {d.segmento} · {d.data_analise}
-          </div>
-          <div className="hero-chips">
-            <div className="chip">
-              <span className="chip-icon">📍</span>
-              <span className="chip-val v-red">{d.posicao}ª</span>
-              <span className="chip-lbl">posição na região</span>
-            </div>
-            <div className="chip">
-              <span className="chip-icon">📊</span>
-              <span className="chip-val v-yellow">{d.score}/100</span>
-              <span className="chip-lbl">pontuação do perfil</span>
-            </div>
-            <div className="chip">
-              <span className="chip-icon">⭐</span>
-              <span className="chip-val v-yellow">{d.estrelas}</span>
-              <span className="chip-lbl">média de avaliações</span>
-            </div>
           </div>
           <a href="#diagnostico" className="hero-cta">
             Ver minha análise completa ↓
@@ -881,7 +864,7 @@ export function AnaliseClient({ data }: Props) {
 
             <div style={{ marginTop: 60, opacity: 0.15 }}>
               <Image
-                src="/analises/assets/logo-arthea.png"
+                src="/analises/assets/logo-arthea-oficial.png"
                 alt="Arthea"
                 width={120}
                 height={60}
