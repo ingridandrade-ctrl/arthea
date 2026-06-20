@@ -140,15 +140,15 @@ export function AnaliseClient({ data }: Props) {
       {/* ═══ SEÇÃO 1: IMPACTO REAL ═══ */}
       <section style={{ padding: "88px 24px", background: "#FAF9F6" }}>
         <div className="wrap">
-          <div className="ey">O impacto real</div>
+          <div className="ey">O que encontramos</div>
           <h2 className="tt">
-            Enquanto você lê isso,
+            Analisamos como o
             <br />
-            clientes estão escolhendo
+            {d.nome_linha1} aparece
             <br />
-            <em>o concorrente.</em>
+            <em>nas buscas do Google.</em>
           </h2>
-          <p className="lead">Não porque ele é melhor. Porque o perfil dele aparece primeiro — e o Google Meu Negócio já entregou nome, avaliações, fotos e localização antes de qualquer clique.</p>
+          <p className="lead">Simulamos buscas reais na sua região e comparamos seu perfil com os concorrentes. Veja o que encontramos:</p>
 
           {/* SERP Mock */}
           <div className="fade-up" style={{ marginBottom: 32 }}>
