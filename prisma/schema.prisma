@@ -109,6 +109,15 @@ model User {
   engagements     ClientEngagement[]
   dossier         ClientDossier?
   metaConnections MetaConnection[]
+  googleAdsConnection GoogleAdsConnection?
+  scenesEnabled   Boolean            @default(false)
+  scenes          Scene[]
+  sceneComments   SceneComment[]
+  // Cliente do portal pode ter vindo de um Lead do CRM (1:1 opcional)
+  leadId          String?            @unique
+  lead            Lead?              @relation("UserCreatedFromLead", fields: [leadId], references: [id])
+  // Contratos no financeiro associados a esse User (cliente do portal)
+  contracts       Contract[]         @relation("UserClientContracts")
 }
 
 model Service {
@@ -121,11 +130,33 @@ model Service {
   isActive    Boolean       @default(true)
   basePrice   Float?
   setupFee    Float?
+  // Wizard de novo cliente: tipo de frente que esse serviço cria + duração default
+  engagementType        EngagementType?
+  defaultDurationMonths Int             @default(12)
   createdAt   DateTime      @default(now())
   leads       LeadService[]
   deals       Deal[]
   contracts   Contract[]
   invoices    Invoice[]
+  deliverableTemplates ServiceDeliverableTemplate[]
+}
+
+// Template de entregável atrelado a um Service.
+// Quando o wizard de novo cliente cria uma frente desse serviço, copia
+// todos os templates como ClientDeliverable reais (com defaults).
+model ServiceDeliverableTemplate {
+  id          String          @id @default(cuid())
+  serviceId   String
+  service     Service         @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  kind        DeliverableKind @default(DOCUMENT)
+  phase       Int             @default(1)
+  order       Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([serviceId, order])
 }
 
 model Lead {
@@ -153,6 +184,8 @@ model Lead {
   tasks          Task[]
   contracts      Contract[]
   invoices       Invoice[]
+  // Quando o Lead vira cliente do portal, fica linkado a um User(CLIENT)
+  clientUser     User?           @relation("UserCreatedFromLead")
 
   @@index([status])
   @@index([phone])
@@ -363,6 +396,9 @@ model Contract {
   deal           Deal?          @relation(fields: [dealId], references: [id])
   leadId         String
   lead           Lead           @relation(fields: [leadId], references: [id])
+  // Cliente do portal associado (preenchido quando lead vira cliente)
+  clientUserId   String?
+  clientUser     User?          @relation("UserClientContracts", fields: [clientUserId], references: [id])
   serviceId      String?
   service        Service?       @relation(fields: [serviceId], references: [id])
   serviceIds     String[]       @default([])
@@ -386,6 +422,7 @@ model Contract {
   @@index([status])
   @@index([clientType])
   @@index([leadId])
+  @@index([clientUserId])
 }
 
 model Invoice {
@@ -752,6 +789,11 @@ enum DeliverableCategory {
   REVIEW_RESPONSE
 }
 
+enum DeliverableSection {
+  ONBOARDING
+  ONGOING
+}
+
 enum EngagementType {
   STRATEGY
   PAID_TRAFFIC
@@ -781,6 +823,7 @@ model ClientEngagement {
   accesses       ClientAccess[]
   references     ClientReference[]
   metaAdAccounts MetaAdAccount[]
+  googleAdsAccounts GoogleAdsAccount[]
 
   @@unique([clientId, slug])
   @@index([clientId])
@@ -818,6 +861,7 @@ model ClientDeliverable {
   status        DeliverableStatus     @default(PENDING)
   documentUrl   String?
   documentEmbed String?
+  section       DeliverableSection?
   isVisible     Boolean               @default(true)
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
@@ -947,4 +991,191 @@ model MetaLeadAdsForm {
   createdAt   DateTime      @default(now())
 
   @@unique([adAccountId, formId])
+}
+
+// =========================================================================
+// MINDFULNESS — Projeto de supervisão da Iasmim Sasseron
+// Coleta pública via /mindfulness, análise em /mindfulness/painel (com senha).
+// Totalmente isolado do CRM/portal da agência.
+// =========================================================================
+
+enum MindfulnessInstrument {
+  FFMQ
+  DASS21
+}
+
+model MindfulnessParticipant {
+  id              String                @id @default(cuid())
+  nome            String
+  email           String                @unique
+  telefone        String?
+  profissao       String?
+  idade           Int
+  escolaridade    String?
+  estadoCivil     String?
+  meditacaoPrevia Boolean               @default(false)
+  qualMeditacao   String?
+  tempoMeditacao  String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  responses       MindfulnessResponse[]
+  drafts          MindfulnessDraft[]
+
+  @@index([createdAt])
+}
+
+model MindfulnessResponse {
+  id            String                 @id @default(cuid())
+  participantId String
+  participant   MindfulnessParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  instrument    MindfulnessInstrument
+  answers       Json
+  scores        Json
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@unique([participantId, instrument])
+  @@index([instrument])
+}
+
+model MindfulnessDraft {
+  id            String                 @id @default(cuid())
+  participantId String
+  participant   MindfulnessParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  instrument    MindfulnessInstrument
+  answers       Json
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@unique([participantId, instrument])
+}
+
+// =========================================================================
+// CLÍNICA BRESCANCIN — Formulário pré-consulta
+// Coleta pública em consulta.clinicabrescancin.com.br
+// Painel /admin protegido por senha simples (HMAC cookie).
+// Totalmente isolado do CRM/portal da agência.
+// =========================================================================
+
+model BrescancinResponse {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Etapa 1 — Identificação (colunas)
+  nomeCompleto   String
+  apelido        String?
+  dataNascimento DateTime
+  genero         String
+  estadoCivil    String?
+  profissao      String
+  temFilhos      Boolean?
+  pretendeFilhos Boolean?
+  cidade         String
+  telefone       String
+  email          String
+  instagram      String?
+
+  // Etapas 2–5 (saúde, estilo de vida, cabelo, sobrancelhas, fechamento)
+  answers Json
+
+  @@index([createdAt])
+}
+
+// ─── Acervo de cenas (módulo opcional por cliente) ─────────────
+
+enum SceneTheme {
+  COMMUNICATION_FAILURE
+  SILENT_DISTANCE
+  THE_CHOICE
+  CONTROL_ROMANTICIZED
+  MASCULINE_VULNERABILITY
+  IDEALIZATION
+  LOVE_AS_PERMANENCE
+}
+
+enum SceneStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Scene {
+  id            String         @id @default(cuid())
+  clientId      String
+  client        User           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  theme         SceneTheme
+  order         Int            @default(0)
+  characters    String
+  type          String // "Filme" | "Série"
+  work          String
+  context       String
+  sceneAndQuote String
+  platform      String?
+  videoLink     String?
+  hook          String?
+  clinicalAngle String
+  status        SceneStatus    @default(PENDING)
+  scriptText    String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  comments      SceneComment[]
+
+  @@index([clientId, theme])
+  @@index([clientId, status])
+}
+
+model SceneComment {
+  id           String   @id @default(cuid())
+  sceneId      String
+  scene        Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  authorId     String
+  author       User     @relation(fields: [authorId], references: [id])
+  content      String
+  isFromArthea Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([sceneId])
+}
+
+// ─── Google Ads ─────────────────────────────────────────────────
+// Metadata operacional da conexão Google Ads. Os secrets (client_id,
+// client_secret, developer_token, refresh_token) vivem em env vars na
+// Vercel — nunca no banco.
+
+enum GoogleAdsStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
+model GoogleAdsConnection {
+  id             String          @id @default(cuid())
+  userId         String          @unique
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mccCustomerId  String
+  status         GoogleAdsStatus @default(ACTIVE)
+  // Cache do access token (Bearer) — renovado a partir do refresh token
+  // armazenado em env var. Expira em ~1h.
+  accessToken    String?
+  tokenExpiresAt DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  adAccounts     GoogleAdsAccount[]
+}
+
+model GoogleAdsAccount {
+  id            String              @id @default(cuid())
+  connectionId  String
+  connection    GoogleAdsConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  engagementId  String?
+  engagement    ClientEngagement?   @relation(fields: [engagementId], references: [id], onDelete: SetNull)
+  customerId    String
+  name          String
+  currencyCode  String              @default("BRL")
+  hidden        Boolean             @default(false)
+  createdAt     DateTime            @default(now())
+
+  @@unique([connectionId, customerId])
+  @@index([engagementId])
+  @@index([hidden])
 }

@@ -18,6 +18,9 @@ import {
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { FileUploadField } from "./file-upload-field";
+import { AcervoTab } from "./acervo-tab";
+import { ApplyTemplateMenu } from "./apply-template-menu";
+import { EmbedPreviewModal } from "./embed-preview-modal";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Em preparação" },
@@ -50,7 +53,7 @@ const REF_TYPE_OPTIONS = [
   { value: "miro", label: "Miro" },
 ];
 
-const TABS = [
+const BASE_TABS = [
   { key: "geral", label: "Geral" },
   { key: "entregaveis", label: "Entregáveis" },
   { key: "acessos", label: "Acessos" },
@@ -82,10 +85,14 @@ function useToast() {
 
 export function ProjectEditor({ project }: { project: any }) {
   const [tab, setTab] = useState("geral");
+  const scenesEnabled = !!project.client?.scenesEnabled;
+  const tabs = scenesEnabled
+    ? [...BASE_TABS, { key: "acervo", label: "Acervo de cenas" }]
+    : BASE_TABS;
   return (
     <div>
       <div className="border-b border-border mb-6 flex gap-1 overflow-x-auto">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
@@ -111,6 +118,9 @@ export function ProjectEditor({ project }: { project: any }) {
       {tab === "referencias" && <ReferenciasTab project={project} />}
       {tab === "resumo" && <ResumoTab project={project} />}
       {tab === "interno" && <InternoTab project={project} />}
+      {tab === "acervo" && scenesEnabled && (
+        <AcervoTab clientId={project.client.id} scenes={project.scenes || []} />
+      )}
     </div>
   );
 }
@@ -256,21 +266,23 @@ function ClientAccountSection({
   client,
 }: {
   projectId: string;
-  client: { id: string; name: string; email: string };
+  client: { id: string; name: string; email: string; scenesEnabled?: boolean };
 }) {
   const router = useRouter();
   const toast = useToast();
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [scenesEnabled, setScenesEnabled] = useState(!!client.scenesEnabled);
 
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
     const fd = new FormData(e.currentTarget);
     const password = (fd.get("password") as string) || "";
-    const body: Record<string, string> = {
+    const body: Record<string, unknown> = {
       name: (fd.get("name") as string) || "",
       email: (fd.get("email") as string) || "",
+      scenesEnabled,
     };
     if (password) body.password = password;
 
@@ -341,6 +353,28 @@ function ClientAccountSection({
         </div>
       </Field>
 
+      <div className="pt-4 border-t border-border space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Módulos extras
+        </p>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={scenesEnabled}
+            onChange={(e) => setScenesEnabled(e.target.checked)}
+            className="mt-0.5"
+          />
+          <div>
+            <p className="text-sm font-medium">Acervo de cenas</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Banco de cenas de filmes/séries por tema clínico. Quando ligado, o cliente vê
+              "Acervo de cenas" na sidebar do portal e você ganha uma aba "Acervo" aqui pra
+              gerenciar.
+            </p>
+          </div>
+        </label>
+      </div>
+
       <div className="flex items-center justify-end pt-4 border-t border-border">
         <button
           type="submit"
@@ -371,12 +405,15 @@ function EntregaveisTab({ project }: { project: any }) {
     router.refresh();
   }
 
-  async function applyTemplate() {
-    const hasItems = project.deliverables.length > 0;
-    if (hasItems) {
+  async function applyTemplate(phase: number | null) {
+    const scopeCount = phase
+      ? project.deliverables.filter((d: any) => d.phase === phase).length
+      : project.deliverables.length;
+    const scopeLabel = phase ? `a Fase ${phase}` : "essa frente";
+    if (scopeCount > 0) {
       if (
         !confirm(
-          `Essa frente já tem ${project.deliverables.length} entregáveis. Aplicar o template vai ADICIONAR os entregáveis padrão por cima (não substitui). Continuar?`,
+          `${scopeLabel} já tem ${scopeCount} entregáveis. Vai ADICIONAR os padrão por cima (não substitui). Continuar?`,
         )
       )
         return;
@@ -385,12 +422,13 @@ function EntregaveisTab({ project }: { project: any }) {
     const res = await fetch(`/api/admin/client-projects/${project.id}/apply-template`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ force: hasItems }),
+      body: JSON.stringify({ force: scopeCount > 0, phase: phase ?? undefined }),
     });
     setApplyingTemplate(false);
     if (res.ok) {
       const data = await res.json();
-      toast.show(`Template "${data.template}" aplicado · ${data.created} entregáveis criados`);
+      const label = phase ? `Fase ${phase}` : data.template;
+      toast.show(`${label} aplicada · ${data.created} entregáveis criados`);
       router.refresh();
     } else {
       const data = await res.json().catch(() => ({}));
@@ -444,15 +482,11 @@ function EntregaveisTab({ project }: { project: any }) {
           {project.deliverables.length} entregáveis. Mude o status pelo dropdown e a ordem com as setas.
         </p>
         <div className="flex items-center gap-2">
-          <button
-            onClick={applyTemplate}
-            disabled={applyingTemplate}
-            className="px-3.5 py-1.5 border border-border rounded-lg text-sm font-medium inline-flex items-center gap-1.5 hover:bg-muted transition disabled:opacity-60"
-            title="Cria os entregáveis padrão Arthea pro tipo dessa frente"
-          >
-            <Sparkles className="w-4 h-4" />
-            {applyingTemplate ? "Aplicando…" : "Aplicar template"}
-          </button>
+          <ApplyTemplateMenu
+            engagementType={project.type}
+            applying={applyingTemplate}
+            onApply={applyTemplate}
+          />
           <button
             onClick={() => setShowAdd(true)}
             className="px-3.5 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium inline-flex items-center gap-1.5 hover:opacity-90 transition"
@@ -578,6 +612,9 @@ function DeliverableForm({
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [embedValue, setEmbedValue] = useState<string>(editing?.documentEmbed || "");
+  const [docUrlValue, setDocUrlValue] = useState<string | null>(editing?.documentUrl || null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -677,16 +714,43 @@ function DeliverableForm({
           accept=".pdf,image/*"
           hint="Até 10 MB. Aparece no portal do cliente como botão 'Abrir documento' ou preview."
           initialUrl={editing?.documentUrl}
+          onChange={(u) => setDocUrlValue(u)}
         />
-        <Field label="Conteúdo HTML embed (opcional, aparece dentro do portal)">
+        <Field
+          label={
+            <div className="flex items-center justify-between gap-2">
+              <span>Conteúdo HTML embed (opcional, aparece dentro do portal)</span>
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                disabled={!embedValue.trim() && !docUrlValue}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-border text-[11px] font-medium hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Ver como o cliente vai enxergar"
+              >
+                <Eye className="w-3 h-3" /> Pré-visualizar
+              </button>
+            </div>
+          }
+        >
           <textarea
             name="documentEmbed"
             rows={6}
-            defaultValue={editing?.documentEmbed || ""}
+            value={embedValue}
+            onChange={(e) => setEmbedValue(e.target.value)}
             placeholder="<p>Texto, imagens, links...</p>"
             className={input}
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            Cole apenas o conteúdo do documento (parágrafos, imagens, listas). Não cole URLs do portal nem HTML de páginas inteiras — vai criar um loop visual.
+          </p>
         </Field>
+        {previewOpen && (
+          <EmbedPreviewModal
+            url={docUrlValue}
+            embed={embedValue.trim() ? embedValue : null}
+            onClose={() => setPreviewOpen(false)}
+          />
+        )}
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -1245,6 +1309,12 @@ function InternoTab({ project }: { project: any }) {
   const initial = (project.internalData || {}) as Record<string, any>;
 
   const [contractUrl, setContractUrl] = useState<string | null>(initial.contractUrl || null);
+  const [contractFileUrl, setContractFileUrl] = useState<string | null>(
+    initial.contractFileUrl || null,
+  );
+  const [contractFileName, setContractFileName] = useState<string | null>(
+    initial.contractFileName || null,
+  );
   const [contractStartDate, setContractStartDate] = useState(initial.contractStartDate || "");
   const [contractEndDate, setContractEndDate] = useState(initial.contractEndDate || "");
   const [contractValue, setContractValue] = useState(
@@ -1262,6 +1332,8 @@ function InternoTab({ project }: { project: any }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contractUrl: contractUrl || null,
+        contractFileUrl: contractFileUrl || null,
+        contractFileName: contractFileName || null,
         contractStartDate: contractStartDate || null,
         contractEndDate: contractEndDate || null,
         contractValue: contractValue === "" ? null : Number(contractValue),
@@ -1298,10 +1370,11 @@ function InternoTab({ project }: { project: any }) {
             Contrato
           </p>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Link pro contrato (Drive, Dropbox, etc.) e janela vigente.
+            Cole o link (Drive, Dropbox, etc.) <strong>ou</strong> envie o arquivo direto.
+            Pode usar os dois.
           </p>
         </div>
-        <Field label="URL do contrato">
+        <Field label="URL do contrato (link externo)">
           <input
             value={contractUrl ?? ""}
             onChange={(e) => setContractUrl(e.target.value || null)}
@@ -1309,6 +1382,17 @@ function InternoTab({ project }: { project: any }) {
             className={input}
           />
         </Field>
+        <FileUploadField
+          label="Arquivo do contrato (PDF ou imagem)"
+          name="contractFile"
+          accept=".pdf,image/*"
+          hint="Até 10 MB. Fica salvo nos servidores da Arthea."
+          initialUrl={contractFileUrl}
+          onChange={(url, fname) => {
+            setContractFileUrl(url);
+            setContractFileName(fname);
+          }}
+        />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Início do contrato">
             <input
@@ -1387,10 +1471,16 @@ function InternoTab({ project }: { project: any }) {
 const input =
   "w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary";
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1 text-muted-foreground">{label}</label>
+      <div className="block text-xs font-medium mb-1 text-muted-foreground">{label}</div>
       {children}
     </div>
   );

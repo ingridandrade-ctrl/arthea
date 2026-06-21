@@ -52,16 +52,38 @@ export function CategoriasClient() {
     load();
   }
 
+  async function seedDefaults() {
+    const res = await fetch("/api/financas/categories/seed-defaults", { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      if (data.created === 0) {
+        alert("Você já tem todas as categorias padrão.");
+      } else {
+        alert(`Criadas ${data.created} categorias: ${(data.names || []).join(", ")}.`);
+      }
+      load();
+    }
+  }
+
   const incomes = categories.filter((c) => c.kind === "INCOME" && !c.archived);
   const expenses = categories.filter((c) => c.kind === "EXPENSE" && !c.archived);
   const archived = categories.filter((c) => c.archived);
 
   return (
     <div>
-      <PageHeader
-        title="Categorias"
-        description="Organize seus lançamentos para entender para onde o dinheiro vai."
-      />
+      <div className="flex items-start justify-between flex-wrap gap-3">
+        <PageHeader
+          title="Categorias"
+          description="Organize seus lançamentos para entender para onde o dinheiro vai."
+        />
+        <button
+          onClick={seedDefaults}
+          className="text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-muted text-muted-foreground"
+          title="Cria as categorias padrão que ainda não existem (não duplica as suas)"
+        >
+          Sincronizar categorias padrão
+        </button>
+      </div>
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>

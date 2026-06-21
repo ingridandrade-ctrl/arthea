@@ -5,7 +5,17 @@ import { prisma } from "@/lib/prisma";
 import { PortalSidebar } from "./_components/portal-sidebar";
 
 export const metadata = {
-  title: "Portal Arthea",
+  title: "Portal do cliente",
+  description:
+    "Seu projeto com a Arthea — entregáveis, acessos e tudo o que importa em um só lugar.",
+  openGraph: {
+    title: "Portal Arthea",
+    description:
+      "Seu projeto com a Arthea — entregáveis, acessos e tudo o que importa em um só lugar.",
+    siteName: "Arthea",
+    locale: "pt_BR",
+    type: "website",
+  },
 };
 
 export default async function PortalLayout({
@@ -18,18 +28,25 @@ export default async function PortalLayout({
   if ((session.user as any).role !== "CLIENT") redirect("/inicio");
 
   const userId = (session.user as any).id;
-  const engagements = await prisma.clientEngagement.findMany({
-    where: { clientId: userId, isActive: true },
-    orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      type: true,
-      accentColor: true,
-      logoUrl: true,
-    },
-  });
+  const [engagements, currentUser] = await Promise.all([
+    prisma.clientEngagement.findMany({
+      where: { clientId: userId, isActive: true },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        type: true,
+        accentColor: true,
+        logoUrl: true,
+      },
+    }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { scenesEnabled: true },
+    }),
+  ]);
+  const scenesEnabled = !!currentUser?.scenesEnabled;
 
   const primary = engagements[0];
   const accent = primary?.accentColor || "#1D7070";
@@ -57,6 +74,7 @@ export default async function PortalLayout({
         accent={accent}
         logoUrl={primary?.logoUrl || null}
         userName={session.user?.name || ""}
+        scenesEnabled={scenesEnabled}
         engagements={engagements.map((e) => ({
           slug: e.slug,
           name: e.name,

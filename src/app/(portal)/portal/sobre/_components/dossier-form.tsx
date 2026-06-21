@@ -4,7 +4,17 @@ import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Plus, Trash2, Save, X, Check } from "lucide-react";
-import type { Dossier, Contact, PaletteColor } from "@/lib/dossier";
+import type {
+  Dossier,
+  Contact,
+  ContactChannel,
+  ContactChannelKind,
+  PaletteColor,
+  LogoFile,
+  BrandFont,
+  BrandManual,
+} from "@/lib/dossier";
+import { FileUploadField } from "@/app/(dashboard)/clientes/portal/[id]/_components/file-upload-field";
 import { SECTIONS } from "@/lib/dossier";
 
 export function DossierForm({ initialData }: { initialData: Dossier }) {
@@ -601,7 +611,12 @@ function MarketForm({
 
 // ─── 05 Contacts ─────────────────────────────────────────────────
 
-const CHANNEL_OPTIONS = ["whatsapp", "email", "telefone", "instagram"];
+const CHANNEL_OPTIONS: { kind: ContactChannelKind; label: string; placeholder: string }[] = [
+  { kind: "whatsapp", label: "whatsapp", placeholder: "+55 11 9 8765-4321" },
+  { kind: "email", label: "email", placeholder: "nome@empresa.com" },
+  { kind: "telefone", label: "telefone", placeholder: "+55 11 3456-7890" },
+  { kind: "instagram", label: "instagram", placeholder: "@usuario" },
+];
 
 function ContactsForm({
   value,
@@ -616,11 +631,17 @@ function ContactsForm({
   function removeAt(i: number) {
     onChange(value.filter((_, idx) => idx !== i));
   }
-  function toggleChannel(i: number, channel: string) {
+  function toggleChannel(i: number, kind: ContactChannelKind) {
     const current = value[i].channels || [];
-    const next = current.includes(channel)
-      ? current.filter((c) => c !== channel)
-      : [...current, channel];
+    const exists = current.some((c) => c.kind === kind);
+    const next = exists
+      ? current.filter((c) => c.kind !== kind)
+      : [...current, { kind, value: null }];
+    updateAt(i, { channels: next });
+  }
+  function setChannelValue(i: number, kind: ContactChannelKind, raw: string) {
+    const current = value[i].channels || [];
+    const next = current.map((c) => (c.kind === kind ? { ...c, value: raw || null } : c));
     updateAt(i, { channels: next });
   }
   return (
@@ -666,12 +687,12 @@ function ContactsForm({
               </button>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {CHANNEL_OPTIONS.map((ch) => {
-                const on = (c.channels || []).includes(ch);
+              {CHANNEL_OPTIONS.map((opt) => {
+                const on = (c.channels || []).some((ch) => ch.kind === opt.kind);
                 return (
                   <button
-                    key={ch}
-                    onClick={() => toggleChannel(i, ch)}
+                    key={opt.kind}
+                    onClick={() => toggleChannel(i, opt.kind)}
                     style={{
                       padding: "4px 10px",
                       borderRadius: 999,
@@ -685,11 +706,42 @@ function ContactsForm({
                       border: `0.5px solid ${on ? "rgba(29,112,112,0.30)" : "rgba(13,74,74,0.15)"}`,
                     }}
                   >
-                    {ch}
+                    {opt.label}
                   </button>
                 );
               })}
             </div>
+            {(c.channels || []).length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {(c.channels || []).map((ch) => {
+                  const opt = CHANNEL_OPTIONS.find((o) => o.kind === ch.kind);
+                  return (
+                    <div
+                      key={ch.kind}
+                      style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: 8, alignItems: "center" }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontFamily: "ui-monospace, 'JetBrains Mono', Menlo, monospace",
+                          color: "#8B867B",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.06em",
+                        }}
+                      >
+                        {opt?.label || ch.kind}
+                      </span>
+                      <input
+                        value={ch.value || ""}
+                        onChange={(e) => setChannelValue(i, ch.kind, e.target.value)}
+                        placeholder={opt?.placeholder || ""}
+                        style={{ ...inputStyle, fontSize: 13 }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -970,16 +1022,183 @@ function BrandIdentityForm({
           </button>
         </div>
       </Field>
-      <Field label="Logos (links)">
-        <ArchiveItemListEditor
-          items={(value.logos || []).map((l) => ({ title: l.name, url: l.url }))}
-          onChange={(arr) =>
-            onChange({ ...value, logos: arr.map((a) => ({ name: a.title, url: a.url || "" })) })
-          }
+      <Field label="Logos">
+        <FileItemList
+          items={value.logos || []}
+          onChange={(items) => onChange({ ...value, logos: items })}
+          renderExtraField={null}
+          uploadAccept=".png,.jpg,.jpeg,.svg,.webp,image/*"
+          uploadHint="PNG, JPG, SVG ou WebP — até 10 MB"
           placeholder="Adicionar logo"
+          urlPlaceholder="https://link.do/logo.svg"
+          namePlaceholder="Logo principal"
+        />
+      </Field>
+      <Field label="Fontes">
+        <FileItemList<BrandFont>
+          items={value.fonts || []}
+          onChange={(items) => onChange({ ...value, fonts: items })}
+          renderExtraField={(item, set) => (
+            <input
+              value={item.usage || ""}
+              onChange={(e) => set({ usage: e.target.value || null })}
+              placeholder="Uso (Títulos, Corpo…)"
+              style={{ ...inputStyle, fontSize: 13 }}
+            />
+          )}
+          uploadAccept=".otf,.ttf,.woff,.woff2,font/*"
+          uploadHint="OTF, TTF, WOFF, WOFF2 — até 10 MB"
+          placeholder="Adicionar fonte"
+          urlPlaceholder="https://fonts.google.com/specimen/..."
+          namePlaceholder="Inter"
+          defaultExtraValue={{ usage: null }}
+        />
+      </Field>
+      <Field label="Documentos da marca">
+        <FileItemList<BrandManual>
+          items={value.manuals || []}
+          onChange={(items) => onChange({ ...value, manuals: items })}
+          renderExtraField={null}
+          uploadAccept=".pdf,image/*"
+          uploadHint="Manual de marca, brandbook etc. — PDF até 10 MB"
+          placeholder="Adicionar documento"
+          urlPlaceholder="https://link.do/manual.pdf"
+          namePlaceholder="Manual de Marca v1"
         />
       </Field>
     </>
+  );
+}
+
+// Lista genérica de itens { name, url, ...extra } com input de nome + URL
+// + botão de upload (Vercel Blob via /api/portal/upload). Aceita
+// `renderExtraField` opcional pra incluir um campo a mais por item (ex:
+// "uso" pra fontes). Retrocompatível com BrandFont/LogoFile/BrandManual.
+type ItemWithUrl = { name: string; url: string; [k: string]: any };
+function FileItemList<T extends ItemWithUrl = ItemWithUrl>({
+  items,
+  onChange,
+  renderExtraField,
+  uploadAccept,
+  uploadHint,
+  placeholder,
+  urlPlaceholder,
+  namePlaceholder,
+  defaultExtraValue,
+}: {
+  items: T[];
+  onChange: (items: T[]) => void;
+  renderExtraField: ((item: T, set: (patch: Partial<T>) => void) => React.ReactNode) | null;
+  uploadAccept: string;
+  uploadHint: string;
+  placeholder: string;
+  urlPlaceholder: string;
+  namePlaceholder: string;
+  defaultExtraValue?: Partial<T>;
+}) {
+  function updateAt(i: number, patch: Partial<T>) {
+    onChange(items.map((x, idx) => (idx === i ? ({ ...x, ...patch } as T) : x)));
+  }
+  function removeAt(i: number) {
+    onChange(items.filter((_, idx) => idx !== i));
+  }
+  function add() {
+    onChange([
+      ...items,
+      ({ name: "", url: "", ...(defaultExtraValue || {}) } as unknown) as T,
+    ]);
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {items.map((item, i) => (
+        <div
+          key={i}
+          style={{
+            padding: 14,
+            border: "0.5px solid rgba(13,74,74,0.10)",
+            borderRadius: 10,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: renderExtraField ? "1fr 1fr auto" : "1fr auto",
+              gap: 8,
+            }}
+          >
+            <input
+              value={item.name}
+              onChange={(e) => updateAt(i, { name: e.target.value } as Partial<T>)}
+              placeholder={namePlaceholder}
+              style={inputStyle}
+            />
+            {renderExtraField && renderExtraField(item, (p) => updateAt(i, p))}
+            <button
+              onClick={() => removeAt(i)}
+              style={{
+                padding: "0 12px",
+                borderRadius: 8,
+                background: "white",
+                border: "0.5px solid rgba(13,74,74,0.18)",
+                cursor: "pointer",
+                color: "#9F1239",
+              }}
+              type="button"
+            >
+              <Trash2 size={14} strokeWidth={1.8} />
+            </button>
+          </div>
+          <input
+            value={item.url}
+            onChange={(e) => updateAt(i, { url: e.target.value } as Partial<T>)}
+            placeholder={urlPlaceholder}
+            style={{
+              ...inputStyle,
+              fontFamily: "ui-monospace, 'JetBrains Mono', Menlo, monospace",
+              fontSize: 13,
+            }}
+          />
+          <FileUploadField
+            label="Ou envie o arquivo"
+            name={`file-${i}`}
+            accept={uploadAccept}
+            hint={uploadHint}
+            initialUrl={null}
+            uploadUrl="/api/portal/upload"
+            onChange={(url, fname) => {
+              if (url) {
+                updateAt(i, {
+                  url,
+                  ...(item.name ? {} : { name: fname || item.name }),
+                } as Partial<T>);
+              }
+            }}
+          />
+        </div>
+      ))}
+      <button
+        onClick={add}
+        type="button"
+        style={{
+          padding: "8px 12px",
+          borderRadius: 8,
+          background: "white",
+          border: "0.5px dashed rgba(13,74,74,0.25)",
+          cursor: "pointer",
+          fontSize: 12.5,
+          color: "var(--accent-deep)",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          alignSelf: "flex-start",
+        }}
+      >
+        <Plus size={13} strokeWidth={1.8} /> {placeholder}
+      </button>
+    </div>
   );
 }
 

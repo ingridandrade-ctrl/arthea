@@ -5,10 +5,10 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import {
-  PHASE_NAMES,
+  phaseNamesFor,
   STATUS_BG,
   STATUS_FG,
-  STATUS_LABEL,
+  statusLabelFor,
   type DeliverableStatus,
 } from "../../../../_components/deliverable-status";
 import { ValidationForm } from "../../../../_components/validation-form";
@@ -16,6 +16,7 @@ import { SimpleApprove } from "../../../../_components/simple-approve";
 import { CommentsSection } from "../../../../_components/comments-section";
 import { DocumentViewer } from "../../../../_components/document-viewer";
 import { FormRespondAction } from "../../../../_components/form-respond-action";
+import { TaskStatusCard } from "../../../../_components/task-status-card";
 
 export default async function DeliverableDetail({
   params,
@@ -29,7 +30,7 @@ export default async function DeliverableDetail({
   const deliverable = await prisma.clientDeliverable.findUnique({
     where: { id: params.id },
     include: {
-      engagement: { select: { clientId: true, name: true, slug: true } },
+      engagement: { select: { clientId: true, name: true, slug: true, type: true } },
       questions: { orderBy: { order: "asc" } },
       responses: true,
       comments: { orderBy: { createdAt: "asc" } },
@@ -49,6 +50,7 @@ export default async function DeliverableDetail({
 
   const status = deliverable.status as DeliverableStatus;
   const responsesByQuestion = new Map(deliverable.responses.map((r) => [r.questionId, r.answer]));
+  const phaseNames = phaseNamesFor(deliverable.engagement.type);
 
   return (
     <div className="portal-fade-in" style={{ display: "flex", flexDirection: "column", gap: 28 }}>
@@ -86,7 +88,7 @@ export default async function DeliverableDetail({
               margin: 0,
             }}
           >
-            Fase {deliverable.phase} · {PHASE_NAMES[deliverable.phase]}
+            Fase {deliverable.phase} · {phaseNames[deliverable.phase] || ""}
           </p>
           <h1
             style={{
@@ -118,7 +120,7 @@ export default async function DeliverableDetail({
             whiteSpace: "nowrap",
           }}
         >
-          {STATUS_LABEL[status]}
+          {statusLabelFor(status, deliverable.kind)}
         </span>
       </header>
 
@@ -135,7 +137,7 @@ export default async function DeliverableDetail({
         </>
       ) : deliverable.kind === "TASK" ? (
         // Setup que a Arthea executa — cliente só acompanha, não aprova
-        <DocumentViewer url={deliverable.documentUrl} embed={deliverable.documentEmbed} />
+        <TaskStatusCard status={status} documentUrl={deliverable.documentUrl} />
       ) : (
         // DOCUMENT (fluxo padrão de revisão + aprovação)
         <>

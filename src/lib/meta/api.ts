@@ -190,18 +190,62 @@ export async function listCampaigns(accessToken: string, adAccountId: string): P
   return data.data || [];
 }
 
+// Action/value rows do Meta — usados em actions[], action_values[],
+// cost_per_action_type[], video_*_watched_actions[].
+export type MetaActionRow = { action_type: string; value: string };
+
 export interface MetaInsights {
   spend?: string;
   impressions?: string;
   reach?: string;
+  frequency?: string;
   clicks?: string;
+  inline_link_clicks?: string;
   cpm?: string;
   cpc?: string;
   ctr?: string;
-  actions?: { action_type: string; value: string }[];
+  actions?: MetaActionRow[];
+  action_values?: MetaActionRow[];
+  cost_per_action_type?: MetaActionRow[];
+  purchase_roas?: MetaActionRow[];
+  // Vídeo
+  video_p25_watched_actions?: MetaActionRow[];
+  video_p50_watched_actions?: MetaActionRow[];
+  video_p75_watched_actions?: MetaActionRow[];
+  video_p95_watched_actions?: MetaActionRow[];
+  video_p100_watched_actions?: MetaActionRow[];
+  video_thruplay_watched_actions?: MetaActionRow[];
+  video_avg_time_watched_actions?: MetaActionRow[];
+  cost_per_thruplay?: string;
   date_start?: string;
   date_stop?: string;
 }
+
+// Set de fields que a gente pede em todos os endpoints (account, campaign).
+// Centralizar evita drift entre endpoints e facilita extender.
+const INSIGHT_FIELDS_FULL = [
+  "spend",
+  "impressions",
+  "reach",
+  "frequency",
+  "clicks",
+  "inline_link_clicks",
+  "cpm",
+  "cpc",
+  "ctr",
+  "actions",
+  "action_values",
+  "cost_per_action_type",
+  "purchase_roas",
+  "video_p25_watched_actions",
+  "video_p50_watched_actions",
+  "video_p75_watched_actions",
+  "video_p95_watched_actions",
+  "video_p100_watched_actions",
+  "video_thruplay_watched_actions",
+  "video_avg_time_watched_actions",
+  "cost_per_thruplay",
+].join(",");
 
 export async function getAccountInsights(
   accessToken: string,
@@ -212,7 +256,7 @@ export async function getAccountInsights(
   const accountPath = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
   const { data } = await client.get(`/${accountPath}/insights`, {
     params: {
-      fields: "spend,impressions,reach,clicks,cpm,cpc,ctr,actions",
+      fields: INSIGHT_FIELDS_FULL,
       date_preset: datePreset,
     },
   });
@@ -222,13 +266,61 @@ export async function getAccountInsights(
 export interface MetaCampaignInsight {
   campaign_id: string;
   campaign_name: string;
+  objective?: string;
+  spend?: string;
+  impressions?: string;
+  reach?: string;
+  frequency?: string;
+  clicks?: string;
+  inline_link_clicks?: string;
+  cpm?: string;
+  cpc?: string;
+  ctr?: string;
+  actions?: MetaActionRow[];
+  action_values?: MetaActionRow[];
+  cost_per_action_type?: MetaActionRow[];
+  purchase_roas?: MetaActionRow[];
+  video_p25_watched_actions?: MetaActionRow[];
+  video_p50_watched_actions?: MetaActionRow[];
+  video_p75_watched_actions?: MetaActionRow[];
+  video_p95_watched_actions?: MetaActionRow[];
+  video_p100_watched_actions?: MetaActionRow[];
+  video_thruplay_watched_actions?: MetaActionRow[];
+  video_avg_time_watched_actions?: MetaActionRow[];
+  cost_per_thruplay?: string;
+  date_start?: string;
+  date_stop?: string;
+}
+
+export interface MetaDailyInsight {
+  date_start: string;
+  date_stop: string;
   spend?: string;
   impressions?: string;
   clicks?: string;
-  cpm?: string;
-  ctr?: string;
-  date_start?: string;
-  date_stop?: string;
+  reach?: string;
+}
+
+/**
+ * Insights diários (time_increment=1) pra montar gráfico de evolução.
+ * Retorna uma linha por dia dentro do datePreset.
+ */
+export async function getAccountDailyInsights(
+  accessToken: string,
+  adAccountId: string,
+  datePreset: string = "last_30d",
+): Promise<MetaDailyInsight[]> {
+  const client = createMetaClient(accessToken);
+  const accountPath = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
+  const { data } = await client.get(`/${accountPath}/insights`, {
+    params: {
+      fields: "spend,impressions,clicks,reach",
+      date_preset: datePreset,
+      time_increment: 1,
+      limit: "200",
+    },
+  });
+  return data.data || [];
 }
 
 export async function getCampaignInsightsForAccount(
@@ -241,12 +333,132 @@ export async function getCampaignInsightsForAccount(
   const { data } = await client.get(`/${accountPath}/insights`, {
     params: {
       level: "campaign",
-      fields: "campaign_id,campaign_name,spend,impressions,clicks,cpm,ctr",
+      fields: `campaign_id,campaign_name,objective,${INSIGHT_FIELDS_FULL}`,
       date_preset: datePreset,
       limit: "200",
     },
   });
   return data.data || [];
+}
+
+export interface MetaAdInsight {
+  ad_id: string;
+  ad_name: string;
+  campaign_id: string;
+  campaign_name: string;
+  objective?: string;
+  adset_id?: string;
+  adset_name?: string;
+  spend?: string;
+  impressions?: string;
+  clicks?: string;
+  inline_link_clicks?: string;
+  ctr?: string;
+  cpc?: string;
+  cpm?: string;
+  reach?: string;
+  frequency?: string;
+  actions?: MetaActionRow[];
+  action_values?: MetaActionRow[];
+  cost_per_action_type?: MetaActionRow[];
+  purchase_roas?: MetaActionRow[];
+  video_p25_watched_actions?: MetaActionRow[];
+  video_p50_watched_actions?: MetaActionRow[];
+  video_p75_watched_actions?: MetaActionRow[];
+  video_p95_watched_actions?: MetaActionRow[];
+  video_p100_watched_actions?: MetaActionRow[];
+  video_thruplay_watched_actions?: MetaActionRow[];
+  video_avg_time_watched_actions?: MetaActionRow[];
+  cost_per_thruplay?: string;
+}
+
+/** Insights por anúncio (level=ad) — necessário pra ranking de criativos. */
+export async function getAdInsightsForAccount(
+  accessToken: string,
+  adAccountId: string,
+  datePreset: string = "last_30d",
+  limit = 300,
+): Promise<MetaAdInsight[]> {
+  const client = createMetaClient(accessToken);
+  const accountPath = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
+  const { data } = await client.get(`/${accountPath}/insights`, {
+    params: {
+      level: "ad",
+      fields: `ad_id,ad_name,campaign_id,campaign_name,adset_id,adset_name,${INSIGHT_FIELDS_FULL}`,
+      date_preset: datePreset,
+      limit: String(limit),
+    },
+  });
+  return data.data || [];
+}
+
+export interface MetaAdCreative {
+  ad_id: string;
+  ad_name?: string;
+  thumbnail_url?: string;
+  image_url?: string;
+  video_id?: string;
+  body?: string;
+  title?: string;
+  call_to_action_type?: string;
+  object_type?: string; // PHOTO | VIDEO | SHARE | etc
+}
+
+/**
+ * Busca criativos (thumbnail, copy, etc) pra um conjunto de ad_ids específico.
+ * Usado pra renderizar o card de criativo no dashboard com imagem real.
+ * Cada chamada de batch traz até 50 ids — fazemos em chunks.
+ */
+export async function getAdCreatives(
+  accessToken: string,
+  adIds: string[],
+): Promise<Record<string, MetaAdCreative>> {
+  if (adIds.length === 0) return {};
+  const client = createMetaClient(accessToken);
+  const result: Record<string, MetaAdCreative> = {};
+
+  // Chunks de 50 (limite da batch API)
+  const chunks: string[][] = [];
+  for (let i = 0; i < adIds.length; i += 50) chunks.push(adIds.slice(i, i + 50));
+
+  for (const chunk of chunks) {
+    try {
+      // Batch API do Meta — uma chamada que executa várias subrequests
+      const batch = chunk.map((id) => ({
+        method: "GET",
+        relative_url: `${id}?fields=id,name,creative{thumbnail_url,image_url,video_id,body,title,call_to_action_type,object_type}`,
+      }));
+      const { data } = await client.post("/", {
+        batch: JSON.stringify(batch),
+      });
+
+      for (let i = 0; i < chunk.length; i++) {
+        const id = chunk[i];
+        const item = data[i];
+        if (!item || item.code !== 200) continue;
+        try {
+          const body = JSON.parse(item.body);
+          const c = body.creative || {};
+          result[id] = {
+            ad_id: id,
+            ad_name: body.name,
+            thumbnail_url: c.thumbnail_url,
+            image_url: c.image_url,
+            video_id: c.video_id,
+            body: c.body,
+            title: c.title,
+            call_to_action_type: c.call_to_action_type,
+            object_type: c.object_type,
+          };
+        } catch {
+          // Skip ad with bad body
+        }
+      }
+    } catch {
+      // Batch falhou — continua com os que já temos
+    }
+  }
+  return result;
 }
 
 export interface MetaLeadForm {

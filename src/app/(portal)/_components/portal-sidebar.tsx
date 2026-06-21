@@ -9,6 +9,7 @@ import {
   ListChecks,
   KeyRound,
   BookmarkCheck,
+  Film,
   UserCircle,
   LogOut,
   Menu,
@@ -18,6 +19,7 @@ import {
   Megaphone,
   Globe,
   MapPin,
+  BarChart3,
 } from "lucide-react";
 import { ArtheaStar } from "./arthea-star";
 
@@ -49,11 +51,13 @@ export function PortalSidebar({
   logoUrl,
   userName,
   engagements,
+  scenesEnabled,
 }: {
   accent: string;
   logoUrl: string | null;
   userName: string;
   engagements: EngagementSummary[];
+  scenesEnabled?: boolean;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -159,6 +163,15 @@ export function PortalSidebar({
                 accent={e.accentColor}
                 emphasized={sectionActive}
               />
+              {e.type === "PAID_TRAFFIC" || e.type === "STRATEGY" ? (
+                <SidebarItem
+                  href={`${base}/dashboard`}
+                  label="Dashboard"
+                  icon={BarChart3}
+                  active={isUnderPath(`${base}/dashboard`)}
+                  indent
+                />
+              ) : null}
               <SidebarItem
                 href={`${base}/entregaveis`}
                 label="Entregáveis"
@@ -180,6 +193,15 @@ export function PortalSidebar({
                 active={isUnderPath(`${base}/referencias`)}
                 indent
               />
+              {scenesEnabled && (
+                <SidebarItem
+                  href={`${base}/acervo`}
+                  label="Acervo de cenas"
+                  icon={Film}
+                  active={isUnderPath(`${base}/acervo`)}
+                  indent
+                />
+              )}
             </div>
           );
         })}

@@ -22,6 +22,7 @@ import {
   Briefcase,
   UserCog,
   LogOut,
+  Link2,
 } from "lucide-react";
 
 type Mode = "crm" | "clientes" | "financeiro";
@@ -59,7 +60,7 @@ const CRM_ITEMS: NavItem[] = [
 
 const CLIENTES_ITEMS: NavItem[] = [
   { name: "Portal dos clientes", href: "/clientes/portal", icon: PanelsTopLeft, roles: ["ADMIN", "MANAGER"] },
-  { name: "Meta Ads", href: "/clientes/meta", icon: Megaphone, roles: ["ADMIN", "MANAGER"] },
+  { name: "Projetos", href: "/projetos", icon: KanbanSquare, roles: ["ADMIN", "MANAGER"] },
 ];
 
 const FINANCEIRO_ITEMS: NavItem[] = [
@@ -67,12 +68,16 @@ const FINANCEIRO_ITEMS: NavItem[] = [
 ];
 
 const SISTEMA_ITEMS: NavItem[] = [
+  { name: "Integrações", href: "/sistema/integracoes", icon: Link2, roles: ["ADMIN", "MANAGER"] },
   { name: "Serviços", href: "/sistema/servicos", icon: Briefcase, roles: ["ADMIN", "MANAGER"] },
   { name: "Usuários", href: "/sistema/usuarios", icon: UserCog, roles: ["ADMIN"] },
   { name: "Configurações", href: "/sistema", icon: Settings, match: "/sistema", roles: ["ADMIN"] },
 ];
 
 function modeForPath(pathname: string): Mode {
+  // Rotas que vivem fora do prefixo mas pertencem a um modo
+  if (pathname === "/projetos" || pathname.startsWith("/projetos/")) return "clientes";
+
   for (const m of MODES) {
     if (pathname === m.prefix || pathname.startsWith(m.prefix + "/")) return m.key;
   }

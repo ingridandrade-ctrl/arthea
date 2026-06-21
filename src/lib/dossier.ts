@@ -28,11 +28,69 @@ export type Market = {
   notes: string | null;
 };
 
+export type ContactChannelKind = "whatsapp" | "email" | "telefone" | "instagram";
+
+export type ContactChannel = {
+  kind: ContactChannelKind;
+  value: string | null;
+};
+
 export type Contact = {
   name: string;
   role: string | null;
-  channels: string[]; // e.g. ["whatsapp", "email"]
+  channels: ContactChannel[];
 };
+
+// Normaliza o array de channels — aceita formato antigo (string[]) ou novo
+// (ContactChannel[]). Usado tanto no parser do dossier quanto na UI.
+export function normalizeChannels(raw: unknown): ContactChannel[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item): ContactChannel | null => {
+      if (typeof item === "string") {
+        if (!isValidChannelKind(item)) return null;
+        return { kind: item, value: null };
+      }
+      if (item && typeof item === "object") {
+        const o = item as { kind?: unknown; value?: unknown };
+        if (typeof o.kind !== "string" || !isValidChannelKind(o.kind)) return null;
+        return {
+          kind: o.kind,
+          value: typeof o.value === "string" && o.value.trim() ? o.value.trim() : null,
+        };
+      }
+      return null;
+    })
+    .filter((c): c is ContactChannel => c !== null);
+}
+
+function isValidChannelKind(s: string): s is ContactChannelKind {
+  return s === "whatsapp" || s === "email" || s === "telefone" || s === "instagram";
+}
+
+// Constrói o href clicável pra cada canal. Retorna null se faltar valor.
+export function channelHref(channel: ContactChannel): string | null {
+  if (!channel.value) return null;
+  const v = channel.value.trim();
+  if (!v) return null;
+  switch (channel.kind) {
+    case "whatsapp": {
+      // Mantém só dígitos pra wa.me. Se não tem dígitos, ignora.
+      const digits = v.replace(/\D/g, "");
+      return digits ? `https://wa.me/${digits}` : null;
+    }
+    case "email":
+      return `mailto:${v}`;
+    case "telefone":
+      return `tel:${v.replace(/[^\d+]/g, "")}`;
+    case "instagram": {
+      const handle = v.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "");
+      return handle ? `https://instagram.com/${handle}` : null;
+    }
+    default:
+      return null;
+  }
+}
 
 export type Commercial = {
   monthlyValue: number | null;
@@ -50,9 +108,17 @@ export type Archive = {
 
 export type PaletteColor = { name: string; hex: string };
 export type LogoFile = { name: string; url: string };
+export type BrandFont = {
+  name: string;
+  usage: string | null; // ex: "Títulos", "Corpo", "Destaque"
+  url: string;
+};
+export type BrandManual = { name: string; url: string };
 export type BrandIdentity = {
   palette: PaletteColor[];
   logos: LogoFile[];
+  fonts: BrandFont[];
+  manuals: BrandManual[];
 };
 
 export type Performance = {
@@ -103,7 +169,7 @@ export const DOSSIER_DEFAULTS: Dossier = {
     deliveryDate: null,
   },
   archive: { meetingTranscripts: [], relevantFiles: [], adScripts: [] },
-  brandIdentity: { palette: [], logos: [] },
+  brandIdentity: { palette: [], logos: [], fonts: [], manuals: [] },
   performance: {
     cpaTarget: null,
     minRoas: null,
@@ -126,7 +192,13 @@ export function parseDossier(raw: unknown): Dossier {
     brandContext: obj("brandContext"),
     voice: obj("voice"),
     market: obj("market"),
-    contacts: Array.isArray(r.contacts) ? r.contacts : [],
+    contacts: Array.isArray(r.contacts)
+      ? r.contacts.map((c: any) => ({
+          name: typeof c?.name === "string" ? c.name : "",
+          role: typeof c?.role === "string" ? c.role : null,
+          channels: normalizeChannels(c?.channels),
+        }))
+      : [],
     commercial: obj("commercial"),
     archive: obj("archive"),
     brandIdentity: obj("brandIdentity"),

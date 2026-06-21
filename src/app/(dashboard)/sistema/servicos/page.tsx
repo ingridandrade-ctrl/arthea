@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
-import { Target, MapPin, Users, Layout, Pencil } from "lucide-react";
+import { Target, MapPin, Users, Layout, Pencil, ArrowRight, ListChecks } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 
 const iconMap: Record<string, any> = {
@@ -98,6 +99,16 @@ export default function ServicosPage() {
                   </div>
                 </div>
               </div>
+              <Link
+                href={`/sistema/servicos/${service.id}`}
+                className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground hover:text-[var(--accent)] transition"
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <ListChecks className="w-3.5 h-3.5" />
+                  Configurar templates de entregáveis
+                </span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           );
         })}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Trash2, ArrowRight, Users, Scale, HandCoins, TrendingDown, BarChart3 } from "lucide-react";
+import { Plus, Trash2, ArrowRight, Users, Scale, HandCoins, TrendingDown, BarChart3, Receipt } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { PageHeader } from "@/components/financas/page-header";
 import { formatCurrency } from "@/lib/utils";
@@ -20,6 +20,17 @@ type Settlement = {
   periodEnd: string | null;
 };
 
+type Contribution = {
+  id: string;
+  date: string;
+  description: string;
+  totalAmount: number;
+  contributionAmount: number;
+  kind: "couple" | "direct" | "invoice";
+  itemCount?: number;
+  category: { id: string; name: string; color: string } | null;
+};
+
 type Balance = {
   netBalance: number;
   whoOwes: "PARTNER_A" | "PARTNER_B" | null;
@@ -31,6 +42,10 @@ type Balance = {
     bPaidForA: number;
     settlementsAtoB: number;
     settlementsBtoA: number;
+  };
+  contributions: {
+    aOwesB: Contribution[];
+    bOwesA: Contribution[];
   };
 };
 
@@ -52,13 +67,39 @@ export function CasalClient() {
   const [dash, setDash] = useState<DashboardLite | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const today = new Date();
+  const [period, setPeriod] = useState<string>(
+    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`
+  );
+
+  function periodRange(): { from: string | null; to: string | null } {
+    if (!period) return { from: null, to: null };
+    const m = period.match(/^(\d{4})-(\d{2})$/);
+    if (!m) return { from: null, to: null };
+    const y = parseInt(m[1], 10);
+    const mo = parseInt(m[2], 10) - 1;
+    const fromDate = new Date(Date.UTC(y, mo, 1));
+    const toDate = new Date(Date.UTC(y, mo + 1, 0));
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return {
+      from: `${fromDate.getUTCFullYear()}-${pad(fromDate.getUTCMonth() + 1)}-${pad(fromDate.getUTCDate())}`,
+      to: `${toDate.getUTCFullYear()}-${pad(toDate.getUTCMonth() + 1)}-${pad(toDate.getUTCDate())}`,
+    };
+  }
 
   async function load() {
     setLoading(true);
+    const { from, to } = periodRange();
+    const settlementUrl = period
+      ? `/api/financas/settlements?from=${from}&to=${to}`
+      : "/api/financas/settlements";
+    const dashUrl = period
+      ? `/api/financas/dashboard?owner=COUPLE&month=${period}`
+      : `/api/financas/dashboard?owner=COUPLE`;
     const [s, d, dashRes] = await Promise.all([
       fetch("/api/financas/settings").then((r) => r.json()),
-      fetch("/api/financas/settlements").then((r) => r.json()),
-      fetch("/api/financas/dashboard?owner=COUPLE").then((r) => r.json()),
+      fetch(settlementUrl).then((r) => r.json()),
+      fetch(dashUrl).then((r) => r.json()),
     ]);
     setSettings(s);
     setSettlements(d.settlements || []);
@@ -73,7 +114,7 @@ export function CasalClient() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [period]);
 
   async function remove(id: string) {
     if (!confirm("Excluir este acerto?")) return;
@@ -99,6 +140,31 @@ export function CasalClient() {
           </button>
         }
       />
+
+      <div className="flex flex-wrap items-end gap-3 mb-4 p-3 bg-muted/30 border border-border rounded-lg">
+        <div>
+          <label className="block text-[10px] font-medium text-muted-foreground mb-1 uppercase tracking-wide">
+            Mês
+          </label>
+          <input
+            type="month"
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className="px-2 py-1.5 rounded border border-border bg-background text-sm"
+          />
+        </div>
+        {period && (
+          <button
+            onClick={() => setPeriod("")}
+            className="text-xs text-muted-foreground hover:text-foreground underline mb-1.5"
+          >
+            ver tudo
+          </button>
+        )}
+        <p className="text-xs text-muted-foreground ml-auto mb-1.5">
+          Filtra Saldo, Origem dos repasses e Histórico
+        </p>
+      </div>
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Carregando...</p>
@@ -191,18 +257,9 @@ export function CasalClient() {
               {balance && (
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {(() => {
-                    const aOwesB = Math.max(
-                      0,
-                      balance.details.bPaidForCouple +
-                        balance.details.bPaidForA -
-                        balance.details.settlementsAtoB
-                    );
-                    const bOwesA = Math.max(
-                      0,
-                      balance.details.aPaidForCouple +
-                        balance.details.aPaidForB -
-                        balance.details.settlementsBtoA
-                    );
+                    const net = balance.netBalance;
+                    const aOwesB = net < 0 ? Math.abs(net) : 0;
+                    const bOwesA = net > 0 ? net : 0;
                     return (
                       <>
                         <div className="rounded-lg border border-border p-4">
@@ -290,14 +347,18 @@ export function CasalClient() {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <div className="p-4 border-b border-border flex items-center gap-2">
-              <Users className="w-4 h-4 text-muted-foreground" />
-              <h2 className="text-sm font-semibold">Histórico de acertos</h2>
+          <div className="bg-card border-2 border-primary/20 rounded-xl overflow-hidden mb-4 shadow-sm">
+            <div className="p-4 border-b border-border flex items-center gap-2 bg-primary/5">
+              <Users className="w-4 h-4 text-primary" />
+              <h2 className="text-base font-semibold">Histórico de acertos</h2>
+              <span className="text-xs text-muted-foreground ml-auto">
+                {settlements.length} acerto{settlements.length === 1 ? "" : "s"}{" "}
+                {period ? "no mês" : "no total"}
+              </span>
             </div>
             {settlements.length === 0 ? (
               <p className="p-6 text-sm text-muted-foreground text-center">
-                Nenhum acerto registrado.
+                Nenhum acerto registrado {period ? "neste mês" : "ainda"}.
               </p>
             ) : (
               <table className="w-full text-sm">
@@ -335,6 +396,30 @@ export function CasalClient() {
               </table>
             )}
           </div>
+
+          {balance && (balance.contributions.aOwesB.length > 0 || balance.contributions.bOwesA.length > 0) && (
+            <div className="bg-card border border-border rounded-xl overflow-hidden mb-4">
+              <div className="p-4 border-b border-border flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold">Origem dos repasses</h2>
+                <span className="text-xs text-muted-foreground ml-auto">
+                  Despesas que cada um pagou e ainda precisa receber de volta
+                </span>
+              </div>
+              <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
+                <ContributionList
+                  title={`${ownerName("PARTNER_A")} → ${ownerName("PARTNER_B")}`}
+                  subtitle={`Coisas que ${ownerName("PARTNER_B")} pagou e ${ownerName("PARTNER_A")} deve devolver`}
+                  items={balance.contributions.aOwesB}
+                />
+                <ContributionList
+                  title={`${ownerName("PARTNER_B")} → ${ownerName("PARTNER_A")}`}
+                  subtitle={`Coisas que ${ownerName("PARTNER_A")} pagou e ${ownerName("PARTNER_B")} deve devolver`}
+                  items={balance.contributions.bOwesA}
+                />
+              </div>
+            </div>
+          )}
         </>
       )}
 
@@ -348,6 +433,71 @@ export function CasalClient() {
             load();
           }}
         />
+      )}
+    </div>
+  );
+}
+
+function ContributionList({
+  title,
+  subtitle,
+  items,
+}: {
+  title: string;
+  subtitle: string;
+  items: Contribution[];
+}) {
+  const total = items.reduce((s, i) => s + i.contributionAmount, 0);
+  return (
+    <div className="p-4">
+      <div className="mb-3">
+        <div className="flex items-baseline justify-between">
+          <h3 className="text-sm font-semibold">{title}</h3>
+          <span className="text-sm font-semibold tabular-nums">{formatCurrency(total)}</span>
+        </div>
+        <p className="text-[11px] text-muted-foreground">{subtitle}</p>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-xs text-muted-foreground italic">Nenhuma despesa nessa direção.</p>
+      ) : (
+        <ul className="space-y-2 max-h-72 overflow-y-auto pr-1">
+          {items.map((c) => (
+            <li key={c.id} className="text-xs border border-border rounded-md p-2">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="font-medium truncate">{c.description}</span>
+                <span className="tabular-nums whitespace-nowrap">
+                  {formatCurrency(c.contributionAmount)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground mt-1">
+                <span>{new Date(c.date).toLocaleDateString("pt-BR")}</span>
+                {c.category && (
+                  <span className="inline-flex items-center gap-1">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: c.category.color }}
+                    />
+                    {c.category.name}
+                  </span>
+                )}
+                {c.kind === "couple" && c.totalAmount !== c.contributionAmount && (
+                  <span className="text-[10px] italic">
+                    (parte do casal de {formatCurrency(c.totalAmount)})
+                  </span>
+                )}
+                {c.kind === "direct" && (
+                  <span className="text-[10px] italic">(pagou pelo outro)</span>
+                )}
+                {c.kind === "invoice" && (
+                  <span className="text-[10px] italic">
+                    (fatura agrupada · {c.itemCount} compra{c.itemCount === 1 ? "" : "s"} · total{" "}
+                    {formatCurrency(c.totalAmount)})
+                  </span>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

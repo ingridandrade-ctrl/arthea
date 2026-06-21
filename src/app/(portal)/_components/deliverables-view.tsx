@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, Sparkles, Clock, RotateCcw, FileText } from "lucide-react";
 import {
-  PHASE_NAMES,
+  phaseNamesFor,
   STATUS_BG,
   STATUS_FG,
   STATUS_LABEL,
+  statusLabelFor,
   type DeliverableStatus,
 } from "./deliverable-status";
 
@@ -17,6 +18,7 @@ type Item = {
   description: string | null;
   phase: number;
   status: string;
+  kind?: string | null;
 };
 
 const STATUS_FILTERS: { key: "ALL" | DeliverableStatus; label: string }[] = [
@@ -39,10 +41,13 @@ const STATUS_ICON: Record<string, any> = {
 export function DeliverablesView({
   items,
   engagementSlug,
+  engagementType,
 }: {
   items: Item[];
   engagementSlug: string;
+  engagementType?: string | null;
 }) {
+  const phaseNames = phaseNamesFor(engagementType);
   const [activeStatus, setActiveStatus] = useState<"ALL" | DeliverableStatus>("ALL");
 
   const counts = useMemo(() => {
@@ -184,7 +189,7 @@ export function DeliverablesView({
                     letterSpacing: "-0.01em",
                   }}
                 >
-                  {PHASE_NAMES[phase]}
+                  {phaseNames[phase] || ""}
                 </h2>
                 <span
                   style={{
@@ -338,7 +343,7 @@ export function DeliverablesView({
                             }}
                           >
                             <Icon size={11} strokeWidth={2} />
-                            {STATUS_LABEL[status]}
+                            {statusLabelFor(status, d.kind)}
                           </span>
                           <ArrowRight size={14} strokeWidth={1.6} color="#A0A0A0" />
                         </div>

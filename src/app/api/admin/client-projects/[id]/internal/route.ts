@@ -18,6 +18,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const incoming = body as Record<string, unknown>;
   const allowed = [
     "contractUrl",
+    "contractFileUrl",
+    "contractFileName",
     "contractStartDate",
     "contractEndDate",
     "contractValue",

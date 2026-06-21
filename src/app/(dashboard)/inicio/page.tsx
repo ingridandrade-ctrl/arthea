@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { greetingPtBr } from "@/lib/time";
 
 export const metadata = { title: "Início · Portal Agência Arthea" };
 
@@ -27,12 +28,7 @@ export default async function InicioPage() {
       prisma.clientEngagement.count({ where: { isActive: true } }),
     ]);
 
-  const greeting = (() => {
-    const h = new Date().getHours();
-    if (h < 12) return "Bom dia";
-    if (h < 18) return "Boa tarde";
-    return "Boa noite";
-  })();
+  const greeting = greetingPtBr();
 
   return (
     <div
