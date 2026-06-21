@@ -292,23 +292,20 @@ export function AnaliseClient({ data }: Props) {
       {/* ═══ IMPACT QUESTION ═══ */}
       <section style={{ padding: "0 24px 88px", background: "#FAF9F6" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <div className="fade-up" style={{ background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 100%)", borderRadius: 22, overflow: "hidden", position: "relative", padding: "56px 40px", textAlign: "center" }}>
+          <div className="fade-up" style={{ background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 100%)", borderRadius: 22, overflow: "hidden", position: "relative", padding: "52px 40px", textAlign: "center" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
             <div style={{ position: "relative", zIndex: 1 }}>
-              <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3em", color: "rgba(45,212,191,0.6)", marginBottom: 20 }}>
-                Buscas diárias na sua região
+              <p style={{ fontSize: 15, color: "rgba(245,240,235,0.6)", lineHeight: 1.7, marginBottom: 6 }}>
+                Isso significa que todos os dias, quando pessoas pesquisam
               </p>
-              <p style={{ fontSize: 15, color: "rgba(245,240,235,0.5)", lineHeight: 1.7, marginBottom: 8 }}>
-                Pessoas pesquisam
+              <p style={{ fontSize: "clamp(18px,3vw,24px)", fontWeight: 700, color: "white", letterSpacing: "-0.01em", marginBottom: 24 }}>
+                &ldquo;{d.busca_termo}&rdquo; <span style={{ fontWeight: 400, color: "rgba(245,240,235,0.6)" }}>na sua região</span>
               </p>
-              <p style={{ fontSize: "clamp(20px,3.5vw,26px)", fontWeight: 700, color: "white", letterSpacing: "-0.01em", marginBottom: 28 }}>
-                &ldquo;{d.busca_termo}&rdquo;
+              <div style={{ width: 32, height: 1, background: "rgba(245,240,235,0.12)", margin: "0 auto 24px" }} />
+              <p style={{ fontSize: 15, color: "rgba(245,240,235,0.6)", lineHeight: 1.7, marginBottom: 6 }}>
+                Você aparece na <strong style={{ color: "#FF8080", fontWeight: 700 }}>{d.posicao}ª posição</strong>. Nessa posição,
               </p>
-              <div style={{ width: 32, height: 1, background: "rgba(245,240,235,0.12)", margin: "0 auto 28px" }} />
-              <p style={{ fontSize: "clamp(30px,5.5vw,44px)", fontWeight: 800, color: "white", lineHeight: 1.1, letterSpacing: "-0.03em", marginBottom: 10 }}>
-                Na posição {d.posicao}ª,
-              </p>
-              <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(26px,4.5vw,38px)", fontWeight: 400, color: "#2DD4BF", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
+              <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(24px,4vw,34px)", fontWeight: 400, color: "#2DD4BF", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
                 quantas escolhem você?
               </p>
             </div>
