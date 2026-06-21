@@ -61,6 +61,18 @@ const nextConfig = {
           source: "/aulas/arte-da-presenca",
           destination: "/aulas/arte-da-presenca.html",
         },
+        // Subdomínio propostagmb.arthea.com.br serve a proposta comercial
+        // estática de Google Meu Negócio em public/propostas/gmb.html na raiz.
+        {
+          source: "/",
+          has: [{ type: "host", value: "propostagmb.arthea.com.br" }],
+          destination: "/propostas/gmb.html",
+        },
+        // URL limpa pra proposta no domínio principal — sem o .html no fim.
+        {
+          source: "/propostas/gmb",
+          destination: "/propostas/gmb.html",
+        },
       ],
     };
   },
@@ -69,6 +81,13 @@ const nextConfig = {
     return [
       {
         source: "/aulas/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        // Propostas comerciais são acessadas por link — fora de buscadores.
+        source: "/propostas/:path*",
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
