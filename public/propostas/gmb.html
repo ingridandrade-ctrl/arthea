@@ -28,9 +28,15 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 .container{max-width:1060px;margin:0 auto;padding:0 32px;}
 .container-sm{max-width:720px;margin:0 auto;padding:0 32px;}
 
-/* ── FADE ── */
-.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);}
+/* ── FADE / SURGIMENTO ── */
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1);will-change:opacity,transform;}
 .reveal.in{opacity:1;transform:none;}
+/* Quebra forçada em títulos some no celular — o texto flui naturalmente. */
+@media(max-width:560px){ .brk{display:none;} }
+/* Acessibilidade: respeita quem prefere menos animação. */
+@media(prefers-reduced-motion:reduce){
+  .reveal{opacity:1!important;transform:none!important;transition:none!important;}
+}
 
 /* ════════════════════════════
    HERO
@@ -87,7 +93,7 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
   font-size:clamp(30px,5.5vw,64px);
   font-weight:700;color:#fff;
   line-height:1.06;letter-spacing:-.035em;
-  margin-bottom:10px;
+  margin-bottom:10px;text-wrap:balance;
 }
 .hero h1 .display{
   display:block;font-size:clamp(34px,6.5vw,76px);
@@ -97,7 +103,7 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 .hero-sub{
   font-size:16px;font-weight:500;color:rgba(245,240,235,.92);
   line-height:1.75;margin:24px auto 48px;
-  max-width:520px;
+  max-width:520px;text-wrap:pretty;
 }
 
 .hero-brand{height:160px;object-fit:contain;mix-blend-mode:screen;opacity:.9;}
@@ -173,15 +179,15 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 
 /* ── HEADINGS ── */
 .h2{
-  font-size:clamp(28px,3.5vw,44px);
-  font-weight:700;letter-spacing:-.025em;line-height:1.1;
-  color:var(--ink);margin-bottom:16px;
+  font-size:clamp(26px,3.5vw,44px);
+  font-weight:700;letter-spacing:-.025em;line-height:1.12;
+  color:var(--ink);margin-bottom:16px;text-wrap:balance;
 }
 .h2 em{font-family:'Playfair Display',serif;font-style:italic;color:var(--teal-light);}
 .h2-light{color:#fff;}
 .h2-light em{color:#2DD4BF;}
 
-.lead{font-size:16px;font-weight:500;color:#374151;line-height:1.75;max-width:540px;}
+.lead{font-size:16px;font-weight:500;color:#374151;line-height:1.75;max-width:540px;text-wrap:pretty;}
 .lead-light{color:rgba(245,240,235,.82);font-weight:500;}
 
 /* ════════════════════════════
@@ -202,6 +208,27 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
   letter-spacing:-.04em;line-height:1;margin-bottom:10px;
 }
 .stat-desc{font-size:13px;color:var(--muted);line-height:1.55;}
+
+/* Cards da seção "82%" — número e texto reequilibrados, sem moldura. */
+.prob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px;}
+.prob-card{
+  position:relative;overflow:hidden;text-align:center;
+  background:#fff;border-radius:20px;
+  border:1.5px solid var(--border);
+  box-shadow:0 10px 36px rgba(13,74,74,.07);
+  padding:34px 26px 30px;
+}
+.prob-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#0D4A4A,#2DD4BF);}
+.prob-ico{
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(21,115,115,.08);
+  display:flex;align-items:center;justify-content:center;
+  margin:2px auto 16px;font-size:20px;
+}
+.prob-num{font-size:46px;font-weight:700;color:var(--teal-light);letter-spacing:-.04em;line-height:1;margin-bottom:6px;}
+.prob-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#2DD4BF;margin-bottom:12px;}
+.prob-desc{font-size:14px;color:var(--muted);line-height:1.65;}
+.prob-desc strong{color:var(--ink);font-weight:700;}
 
 .bridge{
   background:var(--teal);color:#fff;
@@ -385,9 +412,9 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 }
 .cta-inner{position:relative;z-index:1;max-width:580px;margin:0 auto;}
 .cta-sec h2{
-  font-size:clamp(30px,4.5vw,52px);
+  font-size:clamp(28px,4.5vw,52px);
   font-weight:700;color:#fff;letter-spacing:-.03em;
-  line-height:1.1;margin-bottom:18px;
+  line-height:1.12;margin-bottom:18px;text-wrap:balance;
 }
 .cta-sec h2 em{
   font-family:'Playfair Display',serif;
@@ -406,6 +433,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   .stat-row{grid-template-columns:1fr!important;gap:0;}
   .stat-cell:not(:last-child){border-right:none;border-bottom:1.5px solid var(--border);}
   .phases,.plans,.sobre-grid,.faq-grid,.results-grid{grid-template-columns:1fr;}
+  .prob-grid{grid-template-columns:1fr;gap:14px;}
   .container{padding:0 20px;}
   .container-sm{padding:0 20px;}
   .sec{padding:72px 0;}
@@ -437,6 +465,8 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   .hero-brand{height:108px;}
   .hero-kicker{font-size:10px;letter-spacing:.16em;}
   .cta-logo img{height:104px;}
+  .prob-card{padding:28px 22px 26px;}
+  .prob-num{font-size:42px;}
 }
 
 /* ════════════════════════════
@@ -503,7 +533,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   </nav>
 
   <div class="hero-body">
-    <div class="fade-up" style="margin-bottom:-4px;">
+    <div class="reveal" style="margin-bottom:-4px;">
       <img class="hero-brand" src="/analises/assets/logo-arthea.svg" alt="Arthea">
     </div>
 
@@ -532,35 +562,32 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 <!-- ════ PROBLEMA ════ -->
 <section class="sec">
   <div class="container-sm" style="text-align:center;">
-    <h2 class="h2 reveal">82% dos clientes pesquisam online<br><em>antes de qualquer contato.</em></h2>
+    <h2 class="h2 reveal">82% dos clientes pesquisam online<br class="brk"><em>antes de qualquer contato.</em></h2>
     <p class="lead reveal" style="margin:0 auto 48px;">Os 3 primeiros perfis do Google Maps concentram quase todos os cliques. Quem está abaixo raramente é encontrado, independente de quanto tempo está no mercado ou da qualidade do serviço.</p>
   </div>
 
   <div class="container">
-    <div class="reveal stat-row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+    <div class="prob-grid">
 
-      <div style="background:#fff;border-radius:24px;border:1.5px solid rgba(13,74,74,0.1);box-shadow:0 8px 40px rgba(13,74,74,0.09);padding:36px 28px;text-align:center;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:#157373;"></div>
-        <div style="width:48px;height:48px;border-radius:50%;background:rgba(13,74,74,0.07);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:22px;">🔍</div>
-        <div style="font-size:56px;font-weight:700;color:#157373;letter-spacing:-.04em;line-height:1;margin-bottom:6px;">72%</div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:#2DD4BF;margin-bottom:14px;">dos cliques</div>
-        <div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">vão para os <strong style="color:#111827;">3 primeiros resultados</strong> locais. Quem está abaixo quase não é encontrado.</div>
+      <div class="prob-card reveal">
+        <div class="prob-ico">🔍</div>
+        <div class="prob-num">72%</div>
+        <div class="prob-label">dos cliques</div>
+        <p class="prob-desc">vão para os <strong>3 primeiros resultados</strong> locais. Quem está abaixo quase não é encontrado.</p>
       </div>
 
-      <div style="background:#fff;border-radius:24px;border:1.5px solid rgba(13,74,74,0.1);box-shadow:0 8px 40px rgba(13,74,74,0.09);padding:36px 28px;text-align:center;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:#157373;"></div>
-        <div style="width:48px;height:48px;border-radius:50%;background:rgba(13,74,74,0.07);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:22px;">⭐</div>
-        <div style="font-size:56px;font-weight:700;color:#157373;letter-spacing:-.04em;line-height:1;margin-bottom:6px;">68%</div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:#2DD4BF;margin-bottom:14px;">das decisões</div>
-        <div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">são tomadas com base nas <strong style="color:#111827;">avaliações do perfil</strong>, antes mesmo de qualquer contato.</div>
+      <div class="prob-card reveal">
+        <div class="prob-ico">⭐</div>
+        <div class="prob-num">68%</div>
+        <div class="prob-label">das decisões</div>
+        <p class="prob-desc">são tomadas com base nas <strong>avaliações do perfil</strong>, antes mesmo de qualquer contato.</p>
       </div>
 
-      <div style="background:#fff;border-radius:24px;border:1.5px solid rgba(13,74,74,0.1);box-shadow:0 8px 40px rgba(13,74,74,0.09);padding:36px 28px;text-align:center;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:#157373;"></div>
-        <div style="width:48px;height:48px;border-radius:50%;background:rgba(13,74,74,0.07);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:22px;">📈</div>
-        <div style="font-size:56px;font-weight:700;color:#157373;letter-spacing:-.04em;line-height:1;margin-bottom:6px;">+3×</div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:#2DD4BF;margin-bottom:14px;">mais visibilidade</div>
-        <div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Perfis otimizados recebem <strong style="color:#111827;">até 3 vezes mais visualizações</strong> do que perfis abandonados na mesma região.</div>
+      <div class="prob-card reveal">
+        <div class="prob-ico">📈</div>
+        <div class="prob-num">+3×</div>
+        <div class="prob-label">mais visibilidade</div>
+        <p class="prob-desc">Perfis otimizados recebem <strong>até 3 vezes mais visualizações</strong> do que perfis abandonados na mesma região.</p>
       </div>
 
     </div>
@@ -583,7 +610,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   <div class="rel">
     <div class="container-sm" style="text-align:center;">
       <div class="ey ey-light reveal" style="justify-content:center;">Como funciona</div>
-      <h2 class="h2 h2-light reveal">Dois passos para o seu perfil<br><em>trabalhar por você.</em></h2>
+      <h2 class="h2 h2-light reveal">Dois passos para o seu perfil<br class="brk"><em>trabalhar por você.</em></h2>
       <p class="lead lead-light reveal" style="margin:0 auto;max-width:520px;">Primeiro a Arthea estrutura o perfil do zero com estratégia. Depois mantém tudo ativo, mês a mês, para o Google continuar reconhecendo e recomendando você.</p>
     </div>
 
@@ -750,7 +777,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 <section class="sec" style="background:#F7F5F1;">
   <div class="container-sm" style="text-align:center;">
     <div class="ey ey-dark reveal" style="justify-content:center;">Investimento</div>
-    <h2 class="h2 reveal">Escolha o plano<br><em>certo para o seu momento.</em></h2>
+    <h2 class="h2 reveal">Escolha o plano<br class="brk"><em>certo para o seu momento.</em></h2>
     <p class="lead reveal" style="margin:0 auto;">Quem fecha a Gestão Mensal recebe a Otimização Principal gratuitamente. Seu perfil já começa estruturado desde o primeiro dia.</p>
   </div>
 
@@ -900,7 +927,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   <div class="cta-inner">
     <div class="ey ey-light reveal" style="justify-content:center;">Próximo passo</div>
     <h2 class="reveal">
-      Vamos posicionar o seu<br>
+      Vamos posicionar o seu<br class="brk">
       <em>negócio no Google?</em>
     </h2>
     <p class="reveal" style="font-size:18px;color:rgba(245,240,235,.88);font-weight:500;">Fale com a Arthea pelo WhatsApp e comece agora mesmo o plano ideal para a sua empresa.</p>
