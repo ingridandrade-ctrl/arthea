@@ -403,22 +403,36 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
-  .stat-row{grid-template-columns:1fr;gap:0;}
+  .stat-row{grid-template-columns:1fr!important;gap:0;}
   .stat-cell:not(:last-child){border-right:none;border-bottom:1.5px solid var(--border);}
   .phases,.plans,.sobre-grid,.faq-grid,.results-grid{grid-template-columns:1fr;}
   .container{padding:0 20px;}
+  .container-sm{padding:0 20px;}
   .sec{padding:72px 0;}
   /* Hero no mobile: menos respiro lateral pro título não quebrar feio
      e logo proporcionalmente menor. */
   .hero-body{padding:28px 20px 56px;}
   .hero-brand{height:112px;}
   .hero-sub{margin:20px auto 40px;}
+  /* CTA: logo proporcional e menos respiro lateral. */
+  .cta-sec{padding:72px 20px;}
+  .cta-logo{margin-top:48px;}
+  .cta-logo img{height:132px;}
+}
+
+@media(max-width:600px){
+  /* Texto justificado vira alinhado à esquerda no celular (evita "rios"
+     de espaço entre palavras em colunas estreitas). */
+  [style*="text-align:justify"]{text-align:left!important;}
+  /* Grids internos de 2 colunas empilham em telas estreitas. */
+  [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important;}
 }
 
 @media(max-width:480px){
   .hero-body{padding:24px 16px 52px;}
   .hero-brand{height:92px;}
   .hero-kicker{font-size:10px;letter-spacing:.16em;}
+  .cta-logo img{height:104px;}
 }
 
 /* ════════════════════════════
