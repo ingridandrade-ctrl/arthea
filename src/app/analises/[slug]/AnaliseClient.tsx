@@ -295,15 +295,8 @@ export function AnaliseClient({ data }: Props) {
           <div className="fade-up impact-question-card" style={{ background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 100%)", borderRadius: 22, overflow: "hidden", position: "relative", padding: "52px 40px", textAlign: "center" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
             <div style={{ position: "relative", zIndex: 1 }}>
-              <p style={{ fontSize: 15, color: "rgba(245,240,235,0.6)", lineHeight: 1.7, marginBottom: 6 }}>
-                Isso significa que todos os dias, quando pessoas pesquisam
-              </p>
-              <p style={{ fontSize: "clamp(18px,3vw,24px)", fontWeight: 700, color: "white", letterSpacing: "-0.01em", marginBottom: 24 }}>
-                &ldquo;{d.busca_termo}&rdquo; <span style={{ fontWeight: 400, color: "rgba(245,240,235,0.6)" }}>na sua região</span>
-              </p>
-              <div style={{ width: 32, height: 1, background: "rgba(245,240,235,0.12)", margin: "0 auto 24px" }} />
-              <p style={{ fontSize: 15, color: "rgba(245,240,235,0.6)", lineHeight: 1.7, marginBottom: 6 }}>
-                Você aparece na <strong style={{ color: "#FF8080", fontWeight: 700 }}>{d.posicao}ª posição</strong>. Nessa posição,
+              <p style={{ fontSize: 15, color: "rgba(245,240,235,0.75)", lineHeight: 1.7, marginBottom: 16 }}>
+                Isso significa que todos os dias, quando pessoas pesquisam &ldquo;{d.busca_termo}&rdquo; na sua região, você aparece na <strong style={{ color: "#FF8080", fontWeight: 700 }}>{d.posicao}ª posição</strong>. Nessa posição,
               </p>
               <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(24px,4vw,34px)", fontWeight: 400, color: "#2DD4BF", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
                 quantas escolhem você?
@@ -318,7 +311,6 @@ export function AnaliseClient({ data }: Props) {
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
         <div style={{ maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
-            <span style={{ display: "inline-block", width: 18, height: 1.5, background: "rgba(45,212,191,0.4)" }} />
             Diagnóstico do perfil
           </div>
           <h2 className="tt" style={{ color: "white" }}>
@@ -326,12 +318,12 @@ export function AnaliseClient({ data }: Props) {
             <br />
             resultado acima
           </h2>
-          <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
+          <p className="lead" style={{ color: "rgba(245,240,235,0.75)" }}>
             Já vimos onde você aparece e qual sua posição. Abaixo, detalhamos <strong>item por item</strong> do seu perfil — o que está funcionando e o que <strong>precisa de atenção</strong> para subir no ranking.
           </p>
 
           {/* Score Gauge */}
-          <div className="fade-up score-gauge-wrap" style={{ background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: 32, border: "1px solid rgba(255,255,255,0.12)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32 }}>
+          <div className="fade-up score-gauge-wrap" style={{ background: "rgba(255,255,255,0.1)", borderRadius: 20, padding: 32, border: "1px solid rgba(255,255,255,0.18)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32 }}>
             <div style={{ position: "relative", width: 120, height: 120, flexShrink: 0 }}>
               <svg width="120" height="120" style={{ transform: "rotate(-90deg)" }}>
                 <defs>
@@ -365,14 +357,14 @@ export function AnaliseClient({ data }: Props) {
                 ⚡ Razoável · Abaixo do potencial
               </div>
               <h3 style={{ fontSize: 15, fontWeight: 700, color: "white", marginBottom: 4 }}>Pontuação geral do perfil</h3>
-              <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.55 }}>
+              <p style={{ fontSize: 12, color: "rgba(245,240,235,0.7)", lineHeight: 1.55 }}>
                 Alguns itens básicos estão preenchidos, mas faltam <strong>configurações estratégicas</strong> que fariam o Google mostrar você <strong>antes dos concorrentes</strong>.
               </p>
             </div>
           </div>
 
           {/* Checklist: Exists */}
-          <div className="fade-up" style={{ background: "rgba(255,255,255,0.06)", borderRadius: 20, border: "1px solid rgba(255,255,255,0.12)", overflow: "hidden", marginBottom: 24 }}>
+          <div className="fade-up" style={{ background: "rgba(255,255,255,0.1)", borderRadius: 20, border: "1px solid rgba(255,255,255,0.18)", overflow: "hidden", marginBottom: 24 }}>
             <div style={{ padding: "12px 18px", background: "rgba(45,212,191,0.08)", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", gap: 8 }}>
               <span>ℹ️</span>
               <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(45,212,191,0.85)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Preenchidos · requerem gestão contínua</span>
@@ -387,7 +379,7 @@ export function AnaliseClient({ data }: Props) {
                 <div key={i} className="checklist-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
                   <div>
                     <span style={{ fontSize: 13, color: "rgba(245,240,235,0.85)", fontWeight: 500 }}>{row.item}</span>
-                    <span style={{ fontSize: 11, color: "rgba(245,240,235,0.4)", marginLeft: 8 }}>· {row.note}</span>
+                    <span style={{ fontSize: 11, color: "rgba(245,240,235,0.55)", marginLeft: 8 }}>· {row.note}</span>
                   </div>
                   <span style={{ fontSize: 11, fontWeight: 700, color: row.color, background: row.bg, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>{row.badge}</span>
                 </div>
@@ -407,7 +399,7 @@ export function AnaliseClient({ data }: Props) {
                 { title: "Fotos recentes do proprietário", text: <>Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas <strong style={{ color: "rgba(245,240,235,0.75)" }}>aumentam o interesse dos clientes</strong> e a confiança no perfil.</> },
                 { title: "Fotos 360°", text: <>Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem <strong style={{ color: "rgba(245,240,235,0.75)" }}>o dobro de interesse</strong> dos clientes segundo o Google.</> },
               ].map((gap, i) => (
-                <div key={i} className="fade-up gap-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "rgba(192,57,43,0.08)", borderRadius: 20, border: "1px solid rgba(192,57,43,0.25)", position: "relative", overflow: "hidden" }}>
+                <div key={i} className="fade-up gap-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "rgba(192,57,43,0.14)", borderRadius: 20, border: "1px solid rgba(192,57,43,0.25)", position: "relative", overflow: "hidden" }}>
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
                   <div className="gap-icon" style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(192,57,43,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#FF8080", flexShrink: 0, marginTop: 1 }}>✗</div>
                   <div style={{ flex: 1 }}>
@@ -415,7 +407,7 @@ export function AnaliseClient({ data }: Props) {
                       <strong style={{ fontSize: 14, color: "white" }}>{gap.title}</strong>
                       <span style={{ fontSize: 10, fontWeight: 700, color: "#FF8080", background: "rgba(192,57,43,0.2)", padding: "2px 9px", borderRadius: 20 }}>Não preenchido</span>
                     </div>
-                    <p style={{ fontSize: 13, color: "rgba(245,240,235,0.55)", lineHeight: 1.55 }}>{gap.text}</p>
+                    <p style={{ fontSize: 13, color: "rgba(245,240,235,0.7)", lineHeight: 1.55 }}>{gap.text}</p>
                   </div>
                 </div>
               ))}
@@ -435,18 +427,18 @@ export function AnaliseClient({ data }: Props) {
                 { title: "Avaliações sem comentário", score: "50%", text: <>{d.avaliacoes_sc} avaliações sem texto. Avaliações com texto detalhado fazem o Google <strong style={{ color: "rgba(245,240,235,0.75)" }}>mostrar seu perfil para mais pessoas</strong>.</> },
                 { title: "Vídeos no perfil", score: "50%", text: <>Nenhum vídeo adicionado. Vídeos curtos <strong style={{ color: "rgba(245,240,235,0.75)" }}>aumentam o tempo de visualização</strong> e a interação dos clientes com o perfil.</> },
               ].map((item, i) => (
-                <div key={i} className="fade-up" style={{ padding: "18px 20px", background: "rgba(201,122,6,0.08)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.25)", position: "relative", overflow: "hidden" }}>
+                <div key={i} className="fade-up" style={{ padding: "18px 20px", background: "rgba(201,122,6,0.14)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.25)", position: "relative", overflow: "hidden" }}>
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 7 }}>
                     <strong style={{ fontSize: 13, color: "white", lineHeight: 1.3, flex: 1 }}>{item.title}</strong>
                     <span style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B", background: "rgba(201,122,6,0.2)", padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap", marginLeft: 8 }}>{item.score}</span>
                   </div>
-                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>{item.text}</p>
+                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.7)", lineHeight: 1.5 }}>{item.text}</p>
                 </div>
               ))}
             </div>
             {/* Description full-width */}
-            <div className="fade-up desc-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 22px", background: "rgba(201,122,6,0.08)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
+            <div className="fade-up desc-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 22px", background: "rgba(201,122,6,0.14)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,#C97A06,#F59E0B)", borderRadius: "16px 16px 0 0" }} />
               <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(201,122,6,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#F59E0B", flexShrink: 0, marginTop: 1 }}>!</div>
               <div style={{ flex: 1 }}>
@@ -454,7 +446,7 @@ export function AnaliseClient({ data }: Props) {
                   <strong style={{ fontSize: 14, color: "white" }}>Descrição do negócio</strong>
                   <span style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B", background: "rgba(201,122,6,0.2)", padding: "2px 9px", borderRadius: 20 }}>Nota 70%</span>
                 </div>
-                <p style={{ fontSize: 13, color: "rgba(245,240,235,0.55)", lineHeight: 1.55 }}>
+                <p style={{ fontSize: 13, color: "rgba(245,240,235,0.7)", lineHeight: 1.55 }}>
                   Descrição atual: <strong style={{ color: "rgba(245,240,235,0.75)" }}>{d.descricao_chars} caracteres</strong>. Mínimo recomendado: 125. Use <strong style={{ color: "rgba(245,240,235,0.75)" }}>palavras-chave do segmento e da região</strong> para o Google entender seu negócio.
                 </p>
               </div>
@@ -463,7 +455,6 @@ export function AnaliseClient({ data }: Props) {
 
           {/* Compare: Você vs. Concorrente */}
           <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
-            <span style={{ display: "inline-block", width: 18, height: 1.5, background: "rgba(45,212,191,0.4)" }} />
             Comparação direta
           </div>
           <h2 className="tt" style={{ color: "white" }}>
@@ -471,13 +462,13 @@ export function AnaliseClient({ data }: Props) {
             <br />
             <em style={{ color: "#2DD4BF" }}>que o cliente vê</em>
           </h2>
-          <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
+          <p className="lead" style={{ color: "rgba(245,240,235,0.75)" }}>
             Todas essas lacunas ficam claras quando colocamos <strong>seu perfil ao lado de um concorrente</strong> da mesma região — {d.concorrente_nome}, que aparece no {d.concorrente_pos}:
           </p>
 
-          <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(255,255,255,0.12)", marginBottom: 24 }}>
+          <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(255,255,255,0.18)", marginBottom: 24 }}>
             {/* Headers */}
-            <div className="cmp-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(255,255,255,0.06)" }}>
+            <div className="cmp-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(255,255,255,0.1)" }}>
               <div style={{ background: "rgba(192,57,43,0.15)", padding: "14px 20px" }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: "#FF8080", marginBottom: 2 }}>⚠️ Você · {d.nome_linha1}</p>
                 <p style={{ fontSize: 10, color: "rgba(245,240,235,0.4)" }}>Matriz · {d.cidade}, {d.estado.split(",")[1]?.trim() || "SP"}</p>
@@ -527,25 +518,25 @@ export function AnaliseClient({ data }: Props) {
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
             </div>
             <div className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(192,57,43,0.1)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(192,57,43,0.16)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
                 <div>
                   <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Perfil inativo: sem postagens e sem fotos recentes</h4>
-                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>O Google interpreta isso como <strong style={{ color: "rgba(245,240,235,0.7)" }}>perfil abandonado</strong> e reduz a visibilidade automaticamente. É o principal motivo da nota {d.score}/100.</p>
+                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.7)", lineHeight: 1.5 }}>O Google interpreta isso como <strong style={{ color: "rgba(245,240,235,0.7)" }}>perfil abandonado</strong> e reduz a visibilidade automaticamente. É o principal motivo da nota {d.score}/100.</p>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(192,57,43,0.1)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(192,57,43,0.16)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
                 <div>
                   <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Volume de avaliações muito abaixo do necessário</h4>
-                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}><strong style={{ color: "rgba(245,240,235,0.7)" }}>{d.avaliacoes} avaliações</strong> contra {d.concorrente_aval} do concorrente direto e {d.lider_aval} do líder. Isso explica a posição <strong style={{ color: "rgba(245,240,235,0.7)" }}>{d.posicao}ª no ranking</strong>.</p>
+                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.7)", lineHeight: 1.5 }}><strong style={{ color: "rgba(245,240,235,0.7)" }}>{d.avaliacoes} avaliações</strong> contra {d.concorrente_aval} do concorrente direto e {d.lider_aval} do líder. Isso explica a posição <strong style={{ color: "rgba(245,240,235,0.7)" }}>{d.posicao}ª no ranking</strong>.</p>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(201,122,6,0.1)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C97A06" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(201,122,6,0.16)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C97A06" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🟡</span>
                 <div>
                   <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Média de estrelas abaixo do segmento</h4>
-                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>{d.estrelas}★ contra {d.estrelas_media_seg}★ da média. Combinado com {d.avaliacoes_sr} avaliações sem resposta, passa uma <strong style={{ color: "rgba(245,240,235,0.7)" }}>impressão de descuido</strong> para quem pesquisa.</p>
+                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.7)", lineHeight: 1.5 }}>{d.estrelas}★ contra {d.estrelas_media_seg}★ da média. Combinado com {d.avaliacoes_sr} avaliações sem resposta, passa uma <strong style={{ color: "rgba(245,240,235,0.7)" }}>impressão de descuido</strong> para quem pesquisa.</p>
                 </div>
               </div>
             </div>
@@ -656,14 +647,13 @@ export function AnaliseClient({ data }: Props) {
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
         <div style={{ maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
-            <span style={{ display: "inline-block", width: 18, height: 1.5, background: "rgba(45,212,191,0.4)" }} />
             Como a Arthea transforma
           </div>
           <h2 className="tt" style={{ color: "white" }}>
             O plano para colocar o<br />
             <em style={{ color: "#2DD4BF" }}>{d.nome_linha1}</em> no topo
           </h2>
-          <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
+          <p className="lead" style={{ color: "rgba(245,240,235,0.75)" }}>
             Um processo <strong>testado e comprovado</strong> que já transformou a presença local de dezenas de negócios.
           </p>
 
@@ -672,7 +662,7 @@ export function AnaliseClient({ data }: Props) {
             <span style={{ fontSize: 18 }}>💡</span>
             <div>
               <p style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Google Meu Negócio não é Google Ads</p>
-              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.6)", lineHeight: 1.6 }}>É uma <strong style={{ color: "rgba(245,240,235,0.8)" }}>ferramenta gratuita</strong> do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil — <strong style={{ color: "rgba(245,240,235,0.8)" }}>sem pagar por anúncios</strong>.</p>
+              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.6 }}>É uma <strong style={{ color: "rgba(245,240,235,0.8)" }}>ferramenta gratuita</strong> do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil — <strong style={{ color: "rgba(245,240,235,0.8)" }}>sem pagar por anúncios</strong>.</p>
             </div>
           </div>
 
@@ -757,7 +747,7 @@ export function AnaliseClient({ data }: Props) {
                     <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(45,212,191,0.7)", background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.18)", padding: "3px 10px", borderRadius: 20 }}>{step.badge}</span>
                   </div>
                   <h3 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 7, letterSpacing: "-0.01em" }}>{step.title}</h3>
-                  <p style={{ fontSize: 13, color: "rgba(245,240,235,0.6)", lineHeight: 1.65 }}>{step.text}</p>
+                  <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.65 }}>{step.text}</p>
                 </div>
               </div>
             ))}
@@ -777,7 +767,6 @@ export function AnaliseClient({ data }: Props) {
           {/* CTA */}
           <div className="fade-up" style={{ textAlign: "center", marginTop: 56 }}>
             <div className="ey" style={{ color: "rgba(45,212,191,0.7)", marginBottom: 16 }}>
-              <span style={{ display: "inline-block", width: 18, height: 1.5, background: "rgba(45,212,191,0.4)" }} />
               Próximo passo
             </div>
             <h2 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 700, color: "white", lineHeight: 1.15, letterSpacing: "-0.02em", marginBottom: 14 }}>
@@ -785,7 +774,7 @@ export function AnaliseClient({ data }: Props) {
               <br />
               <em style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", color: "#2DD4BF" }}>feitos para o seu negócio.</em>
             </h2>
-            <p style={{ fontSize: 15, color: "rgba(245,240,235,0.6)", lineHeight: 1.7, marginBottom: 36 }}>
+            <p style={{ fontSize: 15, color: "rgba(245,240,235,0.75)", lineHeight: 1.7, marginBottom: 36 }}>
               Preparamos <strong>planos de otimização exclusivos</strong>
               <br />
               para o {d.nome}.
