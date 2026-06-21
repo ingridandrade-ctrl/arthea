@@ -132,9 +132,9 @@ export function AnaliseClient({ data }: Props) {
         <div className="wrap">
           <div className="ey">O que encontramos</div>
           <h2 className="tt">
-            Analisamos como o {d.nome_linha1} {d.nome_linha2} aparece <em>nas buscas do Google.</em>
+            Analisamos como seu negócio aparece <em>nas buscas do Google.</em>
           </h2>
-          <p className="lead">Simulamos buscas reais na sua região e comparamos seu perfil com os concorrentes. Veja o que encontramos:</p>
+          <p className="lead">Simulamos buscas reais na sua região através de ferramentas especializadas e comparamos o perfil do Google Meu Negócio do {d.nome} com os concorrentes. Veja o que encontramos:</p>
 
           {/* SERP Mock */}
           <div className="fade-up" style={{ marginBottom: 40 }}>
