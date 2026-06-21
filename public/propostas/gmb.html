@@ -288,6 +288,22 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
   100%{box-shadow:0 0 0 0 rgba(45,212,191,0);}
 }
 @media(prefers-reduced-motion:reduce){ .deliv-btn{animation:none;} }
+/* Painel de bônus em destaque */
+.deliv-bonus{
+  margin-top:24px;
+  background:linear-gradient(135deg,rgba(21,115,115,.07),rgba(45,212,191,.08));
+  border:1.5px solid rgba(21,115,115,.22);
+  border-radius:16px;padding:20px;
+}
+.deliv-bonus-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.deliv-bonus-ic{font-size:20px;line-height:1;}
+.deliv-bonus-title{font-size:12px;font-weight:800;color:#0D4A4A;text-transform:uppercase;letter-spacing:.12em;flex:1;}
+.deliv-bonus-tag{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:#157373;padding:4px 11px;border-radius:20px;}
+.deliv-bonus-list{display:flex;flex-direction:column;gap:14px;}
+.deliv-bonus-item{display:flex;gap:12px;align-items:flex-start;}
+.deliv-bonus-item .bstar{color:#157373;font-weight:700;font-size:16px;flex-shrink:0;margin-top:1px;}
+.deliv-bonus-item .bt{font-size:14px;font-weight:700;color:#111827;margin-bottom:3px;}
+.deliv-bonus-item .bd{font-size:13px;color:#6B7280;line-height:1.6;}
 
 .bridge{
   background:var(--teal);color:#fff;
@@ -776,27 +792,21 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
             </button>
 
             <!-- Bônus -->
-            <div style="border-top:1px dashed rgba(13,74,74,0.2);padding-top:20px;margin-bottom:24px;">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;margin-bottom:16px;">🎁 Bônus inclusos</div>
-              <div style="display:flex;flex-direction:column;gap:14px;">
-                <div style="display:flex;gap:14px;align-items:flex-start;">
-                  <span style="color:#157373;font-weight:700;font-size:16px;flex-shrink:0;margin-top:1px;">✦</span>
-                  <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Plano estratégico de captação de avaliações</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Estratégia para aumentar o volume e a qualidade das avaliações do seu negócio.</div></div>
-                </div>
-                <div style="display:flex;gap:14px;align-items:flex-start;">
-                  <span style="color:#157373;font-weight:700;font-size:16px;flex-shrink:0;margin-top:1px;">✦</span>
-                  <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Design de placa de avaliações</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Para imprimir ou enviar digitalmente aos seus clientes.</div></div>
-                </div>
+            <div class="deliv-bonus">
+              <div class="deliv-bonus-head">
+                <span class="deliv-bonus-ic">🎁</span>
+                <span class="deliv-bonus-title">Bônus inclusos</span>
+                <span class="deliv-bonus-tag">Grátis</span>
               </div>
-            </div>
-
-            <!-- O que você ganha -->
-            <div style="border-top:1px solid rgba(13,74,74,0.08);padding-top:20px;">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;margin-bottom:16px;">O que você ganha</div>
-              <div style="display:flex;flex-direction:column;gap:10px;">
-                <div style="display:flex;gap:12px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:#157373;flex-shrink:0;margin-top:6px;"></div><div style="font-size:14px;color:#374151;font-weight:500;text-align:justify;">Posição crescente no Google Maps ao longo do tempo.</div></div>
-                <div style="display:flex;gap:12px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:#157373;flex-shrink:0;margin-top:6px;"></div><div style="font-size:14px;color:#374151;font-weight:500;text-align:justify;">Perfil que transmite confiança e converte visita em contato.</div></div>
-                <div style="display:flex;gap:12px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:#157373;flex-shrink:0;margin-top:6px;"></div><div style="font-size:14px;color:#374151;font-weight:500;text-align:justify;">Visibilidade constante no Google sem depender de investimento em anúncio.</div></div>
+              <div class="deliv-bonus-list">
+                <div class="deliv-bonus-item">
+                  <span class="bstar">✦</span>
+                  <div><div class="bt">Plano estratégico de captação de avaliações</div><div class="bd">Estratégia para aumentar o volume e a qualidade das avaliações do seu negócio.</div></div>
+                </div>
+                <div class="deliv-bonus-item">
+                  <span class="bstar">✦</span>
+                  <div><div class="bt">Design de placa de avaliações</div><div class="bd">Para imprimir ou enviar digitalmente aos seus clientes.</div></div>
+                </div>
               </div>
             </div>
 
