@@ -276,10 +276,18 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
   background:#0D4A4A;color:#fff;border:none;cursor:pointer;
   font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:.02em;
   padding:14px 18px;border-radius:12px;transition:background .2s;
+  animation:delivPulse 2.2s ease-out infinite;
 }
-.deliv-btn:hover{background:#157373;}
+.deliv-btn:hover{background:#157373;animation:none;}
+.deliv-btn.open{animation:none;}
 .deliv-btn svg{transition:transform .3s;}
 .deliv-btn.open svg{transform:rotate(180deg);}
+@keyframes delivPulse{
+  0%{box-shadow:0 0 0 0 rgba(45,212,191,.45);}
+  70%{box-shadow:0 0 0 12px rgba(45,212,191,0);}
+  100%{box-shadow:0 0 0 0 rgba(45,212,191,0);}
+}
+@media(prefers-reduced-motion:reduce){ .deliv-btn{animation:none;} }
 
 .bridge{
   background:var(--teal);color:#fff;
