@@ -89,4 +89,33 @@ h2.tt em{font-family:'Playfair Display',serif;font-style:italic;font-weight:700;
   .stat-cards-col .stat-card-inner{flex-direction:column;text-align:center}
   .ranking-context-grid{grid-template-columns:1fr!important}
   .por-que-grid{grid-template-columns:1fr!important}
+  .score-gauge-wrap{flex-direction:column!important;text-align:center;gap:20px!important}
+  .score-gauge-wrap>div:last-child{text-align:center}
+  .impacto-card-inner{flex-direction:column!important;text-align:center;gap:16px!important}
+  .impacto-card-inner .impacto-divider{width:40px!important;height:1px!important;margin:0 auto}
+  .impact-question-card{padding:36px 24px!important}
+  .impact-phrase-card{padding:36px 24px!important}
+  .checklist-row{flex-wrap:wrap!important;gap:6px!important}
+  .checklist-row>div:first-child{width:100%}
+  .checklist-row>div:first-child span:last-child{display:block;margin-left:0!important;margin-top:2px}
+  .ranking-name{width:90px!important}
+  .stat-72-wrap{flex-direction:column!important;text-align:center!important;gap:12px!important}
+  .stat-72-wrap span:first-child{min-width:auto!important;text-align:center!important}
+  .stat-72-wrap>div{text-align:center!important}
+  .cmp-header-grid{gap:0!important}
+  .cmp-header-grid>div{padding:10px 14px!important}
+  .cmp-rows-grid>div{padding:0 14px!important}
+  .gap-card{flex-direction:column!important;text-align:center;gap:10px!important}
+  .gap-card .gap-icon{margin-top:0!important}
+  .gap-card .gap-badge-row{justify-content:center!important}
+  .gap-card p{text-align:center}
+  .desc-card{flex-direction:column!important;text-align:center;gap:10px!important}
+  .desc-card .desc-badge-row{justify-content:center!important}
+  .desc-card p{text-align:center}
+  .tl-step{gap:14px!important}
+  .tl-step>div:first-child{width:40px!important;height:40px!important;font-size:14px!important}
+  .tl-line{left:19px!important}
+  .hero-cta{padding:16px 36px!important;font-size:14px!important}
+  .cta-final{padding:16px 36px!important;font-size:14px!important}
+  .summary-alert{flex-direction:row!important}
 }

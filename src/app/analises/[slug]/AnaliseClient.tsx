@@ -200,7 +200,7 @@ export function AnaliseClient({ data }: Props) {
           {/* +N Card */}
           <div className="fade-up" style={{ background: "#0D4A4A", borderRadius: 22, padding: "36px 32px", marginBottom: 36, position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
-            <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 24 }}>
+            <div className="impacto-card-inner" style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 24 }}>
               <div style={{ textAlign: "center", flexShrink: 0 }}>
                 <span style={{ display: "block", fontSize: "clamp(56px,9vw,76px)", fontWeight: 800, color: "white", letterSpacing: "-0.04em", lineHeight: 1 }}>
                   +{impactoNum - posNum + 1 > 0 ? posNum - 1 : impactoNum}
@@ -209,7 +209,7 @@ export function AnaliseClient({ data }: Props) {
                   {d.segmento.toLowerCase().includes("advoc") ? "escritórios" : "negócios"}
                 </span>
               </div>
-              <div style={{ width: 1, height: 60, background: "rgba(255,255,255,0.12)", flexShrink: 0 }} />
+              <div className="impacto-divider" style={{ width: 1, height: 60, background: "rgba(255,255,255,0.12)", flexShrink: 0 }} />
               <div>
                 <p style={{ fontSize: 15, color: "rgba(245,240,235,0.85)", lineHeight: 1.55, fontWeight: 500 }}>
                   aparecem <strong style={{ color: "white", fontWeight: 700 }}>antes de você</strong> no Google Maps quando alguém pesquisa na sua região.
@@ -292,7 +292,7 @@ export function AnaliseClient({ data }: Props) {
       {/* ═══ IMPACT QUESTION ═══ */}
       <section style={{ padding: "0 24px 88px", background: "#FAF9F6" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <div className="fade-up" style={{ background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 100%)", borderRadius: 22, overflow: "hidden", position: "relative", padding: "52px 40px", textAlign: "center" }}>
+          <div className="fade-up impact-question-card" style={{ background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 100%)", borderRadius: 22, overflow: "hidden", position: "relative", padding: "52px 40px", textAlign: "center" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
             <div style={{ position: "relative", zIndex: 1 }}>
               <p style={{ fontSize: 15, color: "rgba(245,240,235,0.6)", lineHeight: 1.7, marginBottom: 6 }}>
@@ -331,7 +331,7 @@ export function AnaliseClient({ data }: Props) {
           </p>
 
           {/* Score Gauge */}
-          <div className="fade-up" style={{ background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: 32, border: "1px solid rgba(255,255,255,0.12)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32 }}>
+          <div className="fade-up score-gauge-wrap" style={{ background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: 32, border: "1px solid rgba(255,255,255,0.12)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32 }}>
             <div style={{ position: "relative", width: 120, height: 120, flexShrink: 0 }}>
               <svg width="120" height="120" style={{ transform: "rotate(-90deg)" }}>
                 <defs>
@@ -384,7 +384,7 @@ export function AnaliseClient({ data }: Props) {
                 { item: "Imagem do logotipo", note: "presente, mas sem atualização recente de fotos", badge: "Existe", color: "#2DD4BF", bg: "rgba(45,212,191,0.12)" },
                 { item: "Nome, telefone e website", note: "configurados corretamente", badge: "✓ Ok", color: "#34D399", bg: "rgba(52,211,153,0.15)" },
               ].map((row, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                <div key={i} className="checklist-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
                   <div>
                     <span style={{ fontSize: 13, color: "rgba(245,240,235,0.85)", fontWeight: 500 }}>{row.item}</span>
                     <span style={{ fontSize: 11, color: "rgba(245,240,235,0.4)", marginLeft: 8 }}>· {row.note}</span>
@@ -407,11 +407,11 @@ export function AnaliseClient({ data }: Props) {
                 { title: "Fotos recentes do proprietário", text: "Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas aumentam o interesse dos clientes e a confiança no perfil." },
                 { title: "Fotos 360°", text: "Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem o dobro de interesse dos clientes segundo o Google." },
               ].map((gap, i) => (
-                <div key={i} className="fade-up" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "rgba(192,57,43,0.08)", borderRadius: 20, border: "1px solid rgba(192,57,43,0.25)", position: "relative", overflow: "hidden" }}>
+                <div key={i} className="fade-up gap-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "rgba(192,57,43,0.08)", borderRadius: 20, border: "1px solid rgba(192,57,43,0.25)", position: "relative", overflow: "hidden" }}>
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
-                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(192,57,43,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#FF8080", flexShrink: 0, marginTop: 1 }}>✗</div>
+                  <div className="gap-icon" style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(192,57,43,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#FF8080", flexShrink: 0, marginTop: 1 }}>✗</div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                    <div className="gap-badge-row" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
                       <strong style={{ fontSize: 14, color: "white" }}>{gap.title}</strong>
                       <span style={{ fontSize: 10, fontWeight: 700, color: "#FF8080", background: "rgba(192,57,43,0.2)", padding: "2px 9px", borderRadius: 20 }}>Não preenchido</span>
                     </div>
@@ -446,11 +446,11 @@ export function AnaliseClient({ data }: Props) {
               ))}
             </div>
             {/* Description full-width */}
-            <div className="fade-up" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 22px", background: "rgba(201,122,6,0.08)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
+            <div className="fade-up desc-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 22px", background: "rgba(201,122,6,0.08)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,#C97A06,#F59E0B)", borderRadius: "16px 16px 0 0" }} />
               <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(201,122,6,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#F59E0B", flexShrink: 0, marginTop: 1 }}>!</div>
               <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                <div className="desc-badge-row" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
                   <strong style={{ fontSize: 14, color: "white" }}>Descrição do negócio</strong>
                   <span style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B", background: "rgba(201,122,6,0.2)", padding: "2px 9px", borderRadius: 20 }}>Nota 70%</span>
                 </div>
@@ -477,7 +477,7 @@ export function AnaliseClient({ data }: Props) {
 
           <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(255,255,255,0.12)", marginBottom: 24 }}>
             {/* Headers */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(255,255,255,0.06)" }}>
+            <div className="cmp-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(255,255,255,0.06)" }}>
               <div style={{ background: "rgba(192,57,43,0.15)", padding: "14px 20px" }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: "#FF8080", marginBottom: 2 }}>⚠️ Você · {d.nome_linha1}</p>
                 <p style={{ fontSize: 10, color: "rgba(245,240,235,0.4)" }}>Matriz · {d.cidade}, {d.estado.split(",")[1]?.trim() || "SP"}</p>
@@ -488,7 +488,7 @@ export function AnaliseClient({ data }: Props) {
               </div>
             </div>
             {/* Rows */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(255,255,255,0.04)" }}>
+            <div className="cmp-rows-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(255,255,255,0.04)" }}>
               <div style={{ background: "rgba(255,255,255,0.04)", padding: "0 20px" }}>
                 {[
                   { label: "Avaliações", val: d.avaliacoes, color: "#FF8080" },
@@ -580,7 +580,7 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* 72% stat */}
-          <div className="fade-up" style={{ display: "flex", alignItems: "center", gap: 20, background: "#0D4A4A", borderRadius: 20, padding: "20px 28px", marginBottom: 56, position: "relative", overflow: "hidden" }}>
+          <div className="fade-up stat-72-wrap" style={{ display: "flex", alignItems: "center", gap: 20, background: "#0D4A4A", borderRadius: 20, padding: "20px 28px", marginBottom: 56, position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
             <span data-count="72" data-suffix="%" data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#FAF9F6", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const, position: "relative", zIndex: 1 }}>0%</span>
             <div style={{ textAlign: "left" as const, position: "relative", zIndex: 1 }}>
@@ -610,7 +610,7 @@ export function AnaliseClient({ data }: Props) {
               {d.ranking.map((r, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ width: 24, fontSize: 10, fontWeight: 700, color: "#9CA3AF", textAlign: "right", flexShrink: 0 }}>{r.pos}</span>
-                  <span style={{ fontSize: 12, width: 130, flexShrink: 0, fontWeight: 600, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.nome}</span>
+                  <span className="ranking-name" style={{ fontSize: 12, width: 130, flexShrink: 0, fontWeight: 600, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.nome}</span>
                   <div style={{ flex: 1, background: "rgba(13,74,74,0.08)", borderRadius: 4, height: 22, overflow: "hidden" }}>
                     <div className="rank-bar" data-width={r.pct} style={{ background: "linear-gradient(90deg,#157373,rgba(21,115,115,0.5))" }}>
                       {r.aval.toLocaleString("pt-BR")}
@@ -627,7 +627,7 @@ export function AnaliseClient({ data }: Props) {
               {/* You */}
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ width: 24, fontSize: 10, fontWeight: 700, color: "#C0392B", textAlign: "right", flexShrink: 0 }}>{d.posicao}º</span>
-                <span style={{ fontSize: 12, width: 130, flexShrink: 0, fontWeight: 700, color: "#C0392B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.nome_linha1}</span>
+                <span className="ranking-name" style={{ fontSize: 12, width: 130, flexShrink: 0, fontWeight: 700, color: "#C0392B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.nome_linha1}</span>
                 <div style={{ flex: 1, background: "rgba(13,74,74,0.08)", borderRadius: 4, height: 22, overflow: "hidden" }}>
                   <div className="rank-bar" data-width={youPct} data-you="true" style={{ background: "#E74C3C", transition: "width 1.8s cubic-bezier(0.4,0,0.2,1) 0.8s" }}>
                     {parseInt(d.avaliacoes).toLocaleString("pt-BR")}
@@ -678,7 +678,7 @@ export function AnaliseClient({ data }: Props) {
 
           {/* Timeline */}
           <div style={{ position: "relative" }}>
-            <div style={{ position: "absolute", left: 25, top: 52, bottom: 52, width: 1.5, background: "linear-gradient(to bottom,rgba(45,212,191,0.35),rgba(45,212,191,0.04))" }} />
+            <div className="tl-line" style={{ position: "absolute", left: 25, top: 52, bottom: 52, width: 1.5, background: "linear-gradient(to bottom,rgba(45,212,191,0.35),rgba(45,212,191,0.04))" }} />
             {[
               {
                 n: 1,
@@ -764,7 +764,7 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* Impact phrase */}
-          <div className="fade-up" style={{ marginTop: 72, padding: "52px 40px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center" }}>
+          <div className="fade-up impact-phrase-card" style={{ marginTop: 72, padding: "52px 40px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center" }}>
             <h2 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 700, color: "white", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
               Quer que o próximo cliente
               <br />
@@ -792,6 +792,7 @@ export function AnaliseClient({ data }: Props) {
             </p>
             <a
               href="https://arthea.com.br/gmb"
+              className="cta-final"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
