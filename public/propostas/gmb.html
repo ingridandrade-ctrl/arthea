@@ -276,10 +276,34 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
   background:#0D4A4A;color:#fff;border:none;cursor:pointer;
   font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:.02em;
   padding:14px 18px;border-radius:12px;transition:background .2s;
+  animation:delivPulse 2.2s ease-out infinite;
 }
-.deliv-btn:hover{background:#157373;}
+.deliv-btn:hover{background:#157373;animation:none;}
+.deliv-btn.open{animation:none;}
 .deliv-btn svg{transition:transform .3s;}
 .deliv-btn.open svg{transform:rotate(180deg);}
+@keyframes delivPulse{
+  0%{box-shadow:0 0 0 0 rgba(45,212,191,.45);}
+  70%{box-shadow:0 0 0 12px rgba(45,212,191,0);}
+  100%{box-shadow:0 0 0 0 rgba(45,212,191,0);}
+}
+@media(prefers-reduced-motion:reduce){ .deliv-btn{animation:none;} }
+/* Painel de bônus em destaque */
+.deliv-bonus{
+  margin-top:24px;
+  background:linear-gradient(135deg,rgba(21,115,115,.07),rgba(45,212,191,.08));
+  border:1.5px solid rgba(21,115,115,.22);
+  border-radius:16px;padding:20px;
+}
+.deliv-bonus-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.deliv-bonus-ic{font-size:20px;line-height:1;}
+.deliv-bonus-title{font-size:12px;font-weight:800;color:#0D4A4A;text-transform:uppercase;letter-spacing:.12em;flex:1;}
+.deliv-bonus-tag{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:#157373;padding:4px 11px;border-radius:20px;}
+.deliv-bonus-list{display:flex;flex-direction:column;gap:14px;}
+.deliv-bonus-item{display:flex;gap:12px;align-items:flex-start;}
+.deliv-bonus-item .bstar{color:#157373;font-weight:700;font-size:16px;flex-shrink:0;margin-top:1px;}
+.deliv-bonus-item .bt{font-size:14px;font-weight:700;color:#111827;margin-bottom:3px;}
+.deliv-bonus-item .bd{font-size:13px;color:#6B7280;line-height:1.6;}
 
 .bridge{
   background:var(--teal);color:#fff;
@@ -686,7 +710,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
               <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:rgba(45,212,191,0.75);">A base · Otimização Principal</span>
             </div>
             <h3 style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:12px;">Seu perfil pronto para ser encontrado e escolhido</h3>
-            <p style="font-size:14px;color:rgba(245,240,235,.9);line-height:1.75;font-weight:500;text-align:justify;">Começamos pela <strong style="color:#fff;font-weight:700;">análise da sua posição atual</strong>, dos <strong style="color:#fff;font-weight:700;">concorrentes no Maps</strong> e do mercado em que você atua. Só então <strong style="color:#fff;font-weight:700;">configuramos o perfil do zero</strong>, com estratégia alinhada ao seu posicionamento.</p>
+            <p style="font-size:14px;color:rgba(245,240,235,.9);line-height:1.75;font-weight:500;text-align:justify;">Começamos pela <strong style="font-weight:700;">análise da sua posição atual</strong>, dos <strong style="font-weight:700;">concorrentes no Maps</strong> e do mercado em que você atua. Só então <strong style="font-weight:700;">configuramos o perfil do zero</strong>, com estratégia alinhada ao seu posicionamento.</p>
           </div>
 
           <!-- Entregáveis — fundo claro -->
@@ -742,7 +766,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
               <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:rgba(45,212,191,0.75);">O que potencializa · Gestão Contínua</span>
             </div>
             <h3 style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:12px;">A Arthea mantém você no topo</h3>
-            <p style="font-size:14px;color:rgba(245,240,235,.9);line-height:1.75;font-weight:500;text-align:justify;">Ranqueamento no Google <strong style="color:#fff;font-weight:700;">não se mantém sozinho</strong>. A Arthea <strong style="color:#fff;font-weight:700;">cuida do perfil todo mês</strong> para que seu negócio <strong style="color:#fff;font-weight:700;">continue aparecendo</strong> para quem está procurando o que você oferece.</p>
+            <p style="font-size:14px;color:rgba(245,240,235,.9);line-height:1.75;font-weight:500;text-align:justify;">Ranqueamento no Google <strong style="font-weight:700;">não se mantém sozinho</strong>. A Arthea <strong style="font-weight:700;">cuida do perfil todo mês</strong> para que seu negócio <strong style="font-weight:700;">continue aparecendo</strong> para quem está procurando o que você oferece.</p>
           </div>
 
           <!-- Body cream -->
@@ -768,27 +792,21 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
             </button>
 
             <!-- Bônus -->
-            <div style="border-top:1px dashed rgba(13,74,74,0.2);padding-top:20px;margin-bottom:24px;">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;margin-bottom:16px;">🎁 Bônus inclusos</div>
-              <div style="display:flex;flex-direction:column;gap:14px;">
-                <div style="display:flex;gap:14px;align-items:flex-start;">
-                  <span style="color:#157373;font-weight:700;font-size:16px;flex-shrink:0;margin-top:1px;">✦</span>
-                  <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Plano estratégico de captação de avaliações</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Estratégia para aumentar o volume e a qualidade das avaliações do seu negócio.</div></div>
-                </div>
-                <div style="display:flex;gap:14px;align-items:flex-start;">
-                  <span style="color:#157373;font-weight:700;font-size:16px;flex-shrink:0;margin-top:1px;">✦</span>
-                  <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Design de placa de avaliações</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Para imprimir ou enviar digitalmente aos seus clientes.</div></div>
-                </div>
+            <div class="deliv-bonus">
+              <div class="deliv-bonus-head">
+                <span class="deliv-bonus-ic">🎁</span>
+                <span class="deliv-bonus-title">Bônus inclusos</span>
+                <span class="deliv-bonus-tag">Grátis</span>
               </div>
-            </div>
-
-            <!-- O que você ganha -->
-            <div style="border-top:1px solid rgba(13,74,74,0.08);padding-top:20px;">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;margin-bottom:16px;">O que você ganha</div>
-              <div style="display:flex;flex-direction:column;gap:10px;">
-                <div style="display:flex;gap:12px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:#157373;flex-shrink:0;margin-top:6px;"></div><div style="font-size:14px;color:#374151;font-weight:500;text-align:justify;">Posição crescente no Google Maps ao longo do tempo.</div></div>
-                <div style="display:flex;gap:12px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:#157373;flex-shrink:0;margin-top:6px;"></div><div style="font-size:14px;color:#374151;font-weight:500;text-align:justify;">Perfil que transmite confiança e converte visita em contato.</div></div>
-                <div style="display:flex;gap:12px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:#157373;flex-shrink:0;margin-top:6px;"></div><div style="font-size:14px;color:#374151;font-weight:500;text-align:justify;">Visibilidade constante no Google sem depender de investimento em anúncio.</div></div>
+              <div class="deliv-bonus-list">
+                <div class="deliv-bonus-item">
+                  <span class="bstar">✦</span>
+                  <div><div class="bt">Plano estratégico de captação de avaliações</div><div class="bd">Estratégia para aumentar o volume e a qualidade das avaliações do seu negócio.</div></div>
+                </div>
+                <div class="deliv-bonus-item">
+                  <span class="bstar">✦</span>
+                  <div><div class="bt">Design de placa de avaliações</div><div class="bd">Para imprimir ou enviar digitalmente aos seus clientes.</div></div>
+                </div>
               </div>
             </div>
 
