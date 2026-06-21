@@ -134,7 +134,7 @@ export function AnaliseClient({ data }: Props) {
           <h2 className="tt">
             Analisamos como seu negócio aparece <em>nas buscas do Google.</em>
           </h2>
-          <p className="lead">Simulamos buscas reais na sua região através de ferramentas especializadas e comparamos o perfil do Google Meu Negócio do {d.nome} com os concorrentes. Veja o que encontramos:</p>
+          <p className="lead">Simulamos <strong>buscas reais na sua região</strong> através de ferramentas especializadas e comparamos o perfil do <strong>Google Meu Negócio</strong> do {d.nome} com os concorrentes.<br />Veja o que encontramos:</p>
 
           {/* SERP Mock */}
           <div className="fade-up" style={{ marginBottom: 40 }}>
@@ -215,7 +215,7 @@ export function AnaliseClient({ data }: Props) {
                   aparecem <strong style={{ color: "white", fontWeight: 700 }}>antes de você</strong> no Google Maps quando alguém pesquisa na sua região.
                 </p>
                 <p style={{ fontSize: 12, color: "rgba(245,240,235,0.4)", lineHeight: 1.5, marginTop: 8 }}>
-                  A maioria dos clientes nunca chega a ver seu perfil. Eles escolhem quem aparece primeiro.
+                  A maioria dos clientes <strong style={{ color: "rgba(245,240,235,0.7)" }}>nunca chega a ver seu perfil</strong>. Eles escolhem quem aparece primeiro.
                 </p>
               </div>
             </div>
@@ -327,7 +327,7 @@ export function AnaliseClient({ data }: Props) {
             resultado acima
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
-            Já vimos onde você aparece e qual sua posição. Abaixo, detalhamos item por item do seu perfil — o que está funcionando e o que precisa de atenção para subir no ranking.
+            Já vimos onde você aparece e qual sua posição. Abaixo, detalhamos <strong>item por item</strong> do seu perfil — o que está funcionando e o que <strong>precisa de atenção</strong> para subir no ranking.
           </p>
 
           {/* Score Gauge */}
@@ -366,7 +366,7 @@ export function AnaliseClient({ data }: Props) {
               </div>
               <h3 style={{ fontSize: 15, fontWeight: 700, color: "white", marginBottom: 4 }}>Pontuação geral do perfil</h3>
               <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.55 }}>
-                Alguns itens básicos estão preenchidos, mas faltam configurações estratégicas que fariam o Google mostrar você antes dos concorrentes.
+                Alguns itens básicos estão preenchidos, mas faltam <strong>configurações estratégicas</strong> que fariam o Google mostrar você <strong>antes dos concorrentes</strong>.
               </p>
             </div>
           </div>
@@ -403,9 +403,9 @@ export function AnaliseClient({ data }: Props) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
-                { title: "Postagens no perfil", text: "Nenhuma postagem publicada. O Google prioriza perfis ativos com publicações regulares — postagens, ofertas e novidades." },
-                { title: "Fotos recentes do proprietário", text: "Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas aumentam o interesse dos clientes e a confiança no perfil." },
-                { title: "Fotos 360°", text: "Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem o dobro de interesse dos clientes segundo o Google." },
+                { title: "Postagens no perfil", text: <>Nenhuma postagem publicada. O Google <strong style={{ color: "rgba(245,240,235,0.75)" }}>prioriza perfis ativos</strong> com publicações regulares — postagens, ofertas e novidades.</> },
+                { title: "Fotos recentes do proprietário", text: <>Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas <strong style={{ color: "rgba(245,240,235,0.75)" }}>aumentam o interesse dos clientes</strong> e a confiança no perfil.</> },
+                { title: "Fotos 360°", text: <>Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem <strong style={{ color: "rgba(245,240,235,0.75)" }}>o dobro de interesse</strong> dos clientes segundo o Google.</> },
               ].map((gap, i) => (
                 <div key={i} className="fade-up gap-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "rgba(192,57,43,0.08)", borderRadius: 20, border: "1px solid rgba(192,57,43,0.25)", position: "relative", overflow: "hidden" }}>
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
@@ -430,10 +430,10 @@ export function AnaliseClient({ data }: Props) {
             </div>
             <div className="improve-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
               {[
-                { title: "Média de avaliações", score: "50%", text: `${d.estrelas}★ atual. Média do segmento: ${d.estrelas_media_seg}★. Precisa melhorar para competir.` },
-                { title: "Avaliações sem resposta", score: "50%", text: `${d.avaliacoes_sr} avaliações sem resposta do proprietário. Responder aumenta credibilidade e ranking.` },
-                { title: "Avaliações sem comentário", score: "50%", text: `${d.avaliacoes_sc} avaliações sem texto. Avaliações com texto detalhado fazem o Google mostrar seu perfil para mais pessoas.` },
-                { title: "Vídeos no perfil", score: "50%", text: "Nenhum vídeo adicionado. Vídeos curtos aumentam o tempo de visualização e a interação dos clientes com o perfil." },
+                { title: "Média de avaliações", score: "50%", text: <>{d.estrelas}★ atual. Média do segmento: {d.estrelas_media_seg}★. <strong style={{ color: "rgba(245,240,235,0.75)" }}>Precisa melhorar</strong> para competir.</> },
+                { title: "Avaliações sem resposta", score: "50%", text: <><strong style={{ color: "rgba(245,240,235,0.75)" }}>{d.avaliacoes_sr} avaliações sem resposta</strong> do proprietário. Responder aumenta credibilidade e ranking.</> },
+                { title: "Avaliações sem comentário", score: "50%", text: <>{d.avaliacoes_sc} avaliações sem texto. Avaliações com texto detalhado fazem o Google <strong style={{ color: "rgba(245,240,235,0.75)" }}>mostrar seu perfil para mais pessoas</strong>.</> },
+                { title: "Vídeos no perfil", score: "50%", text: <>Nenhum vídeo adicionado. Vídeos curtos <strong style={{ color: "rgba(245,240,235,0.75)" }}>aumentam o tempo de visualização</strong> e a interação dos clientes com o perfil.</> },
               ].map((item, i) => (
                 <div key={i} className="fade-up" style={{ padding: "18px 20px", background: "rgba(201,122,6,0.08)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.25)", position: "relative", overflow: "hidden" }}>
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
@@ -455,7 +455,7 @@ export function AnaliseClient({ data }: Props) {
                   <span style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B", background: "rgba(201,122,6,0.2)", padding: "2px 9px", borderRadius: 20 }}>Nota 70%</span>
                 </div>
                 <p style={{ fontSize: 13, color: "rgba(245,240,235,0.55)", lineHeight: 1.55 }}>
-                  Descrição atual: {d.descricao_chars} caracteres. Mínimo recomendado: 125. Use palavras-chave do segmento e da região para o Google entender seu negócio.
+                  Descrição atual: <strong style={{ color: "rgba(245,240,235,0.75)" }}>{d.descricao_chars} caracteres</strong>. Mínimo recomendado: 125. Use <strong style={{ color: "rgba(245,240,235,0.75)" }}>palavras-chave do segmento e da região</strong> para o Google entender seu negócio.
                 </p>
               </div>
             </div>
@@ -472,7 +472,7 @@ export function AnaliseClient({ data }: Props) {
             <em style={{ color: "#2DD4BF" }}>que o cliente vê</em>
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
-            Todas essas lacunas ficam claras quando colocamos seu perfil ao lado de um concorrente da mesma região — {d.concorrente_nome}, que aparece no {d.concorrente_pos}:
+            Todas essas lacunas ficam claras quando colocamos <strong>seu perfil ao lado de um concorrente</strong> da mesma região — {d.concorrente_nome}, que aparece no {d.concorrente_pos}:
           </p>
 
           <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(255,255,255,0.12)", marginBottom: 24 }}>
@@ -531,21 +531,21 @@ export function AnaliseClient({ data }: Props) {
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
                 <div>
                   <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Perfil inativo: sem postagens e sem fotos recentes</h4>
-                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>O Google interpreta isso como perfil abandonado e reduz a visibilidade automaticamente. É o principal motivo da nota {d.score}/100.</p>
+                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>O Google interpreta isso como <strong style={{ color: "rgba(245,240,235,0.7)" }}>perfil abandonado</strong> e reduz a visibilidade automaticamente. É o principal motivo da nota {d.score}/100.</p>
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(192,57,43,0.1)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
                 <div>
                   <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Volume de avaliações muito abaixo do necessário</h4>
-                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>{d.avaliacoes} avaliações contra {d.concorrente_aval} do concorrente direto e {d.lider_aval} do líder. Isso explica a posição {d.posicao}ª no ranking.</p>
+                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}><strong style={{ color: "rgba(245,240,235,0.7)" }}>{d.avaliacoes} avaliações</strong> contra {d.concorrente_aval} do concorrente direto e {d.lider_aval} do líder. Isso explica a posição <strong style={{ color: "rgba(245,240,235,0.7)" }}>{d.posicao}ª no ranking</strong>.</p>
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(201,122,6,0.1)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C97A06" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🟡</span>
                 <div>
                   <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Média de estrelas abaixo do segmento</h4>
-                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>{d.estrelas}★ contra {d.estrelas_media_seg}★ da média. Combinado com {d.avaliacoes_sr} avaliações sem resposta, passa uma impressão de descuido para quem pesquisa.</p>
+                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>{d.estrelas}★ contra {d.estrelas_media_seg}★ da média. Combinado com {d.avaliacoes_sr} avaliações sem resposta, passa uma <strong style={{ color: "rgba(245,240,235,0.7)" }}>impressão de descuido</strong> para quem pesquisa.</p>
                 </div>
               </div>
             </div>
@@ -561,15 +561,15 @@ export function AnaliseClient({ data }: Props) {
             O que acontece quando alguém <em>pesquisa na sua região</em>
           </h2>
           <p className="lead">
-            Quando alguém pesquisa &ldquo;{d.busca_termo}&rdquo;, os perfis mais completos aparecem primeiro. O cliente decide ali mesmo, sem visitar outro site.
+            Quando alguém pesquisa &ldquo;{d.busca_termo}&rdquo;, os <strong>perfis mais completos aparecem primeiro</strong>. O cliente decide ali mesmo, sem visitar outro site.
           </p>
 
           {/* 3 info cards */}
           <div className="fade-up por-que-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 24, textAlign: "left" }}>
             {[
-              { icon: "👁️", title: "Primeira impressão", text: "Fotos, avaliações e estrelas aparecem antes de qualquer clique. É ali que o cliente decide." },
-              { icon: "⭐", title: "Volume de avaliações", text: `O líder tem ${d.lider_aval}. Você tem ${d.avaliacoes}. Essa diferença define quem aparece primeiro.` },
-              { icon: "📞", title: "Contato direto", text: "O cliente liga, pede rota ou acessa seu site direto do perfil, sem visitar nenhum outro." },
+              { icon: "👁️", title: "Primeira impressão", text: <>Fotos, avaliações e estrelas aparecem <strong>antes de qualquer clique</strong>. É ali que o cliente decide.</> },
+              { icon: "⭐", title: "Volume de avaliações", text: <>O líder tem <strong>{d.lider_aval}</strong>. Você tem <strong>{d.avaliacoes}</strong>. Essa diferença define quem aparece primeiro.</> },
+              { icon: "📞", title: "Contato direto", text: <>O cliente liga, pede rota ou acessa seu site <strong>direto do perfil</strong>, sem visitar nenhum outro.</> },
             ].map((c, i) => (
               <div key={i} style={{ background: "white", borderRadius: 18, padding: "22px 20px", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 2px 12px rgba(13,74,74,0.06)" }}>
                 <div style={{ fontSize: 24, marginBottom: 10 }}>{c.icon}</div>
@@ -584,8 +584,8 @@ export function AnaliseClient({ data }: Props) {
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
             <span data-count="72" data-suffix="%" data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#FAF9F6", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const, position: "relative", zIndex: 1 }}>0%</span>
             <div style={{ textAlign: "left" as const, position: "relative", zIndex: 1 }}>
-              <p style={{ fontSize: 15, fontWeight: 700, color: "#FAF9F6", marginBottom: 3 }}>dos clientes escolhem entre os 3 primeiros resultados</p>
-              <p style={{ fontSize: 12, color: "rgba(245,240,235,0.5)", lineHeight: 1.5 }}>Na posição {d.posicao}ª, seu perfil fica fora dessa faixa de decisão.</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#FAF9F6", marginBottom: 3 }}>dos clientes escolhem entre os <strong>3 primeiros resultados</strong></p>
+              <p style={{ fontSize: 12, color: "rgba(245,240,235,0.5)", lineHeight: 1.5 }}>Na posição {d.posicao}ª, seu perfil fica <strong style={{ color: "rgba(245,240,235,0.7)" }}>fora dessa faixa de decisão</strong>.</p>
             </div>
           </div>
 
@@ -595,7 +595,7 @@ export function AnaliseClient({ data }: Props) {
             Avaliações definem <em>quem aparece primeiro</em>
           </h2>
           <p className="lead">
-            Avaliações são o fator nº 1 no ranking local. Veja a diferença entre quem lidera e a sua posição atual em {d.cidade}:
+            Avaliações são o <strong>fator nº 1</strong> no ranking local. Veja a diferença entre quem lidera e a sua posição atual em {d.cidade}:
           </p>
 
           {/* Ranking Chart */}
@@ -641,11 +641,11 @@ export function AnaliseClient({ data }: Props) {
           <div className="fade-up ranking-context-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, textAlign: "left" }}>
             <div style={{ background: "white", border: "1.5px solid rgba(13,74,74,0.1)", borderRadius: 18, padding: "20px 22px", boxShadow: "0 2px 12px rgba(13,74,74,0.06)" }}>
               <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#157373", marginBottom: 8 }}>Sua situação atual</p>
-              <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>Com {d.avaliacoes} avaliações, você está {(d.ranking[0]?.aval || 0) - parseInt(d.avaliacoes)} avaliações atrás do líder. Essa distância se reflete diretamente na posição.</p>
+              <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>Com {d.avaliacoes} avaliações, você está <strong style={{ color: "#374151" }}>{(d.ranking[0]?.aval || 0) - parseInt(d.avaliacoes)} avaliações atrás</strong> do líder. Essa distância se reflete diretamente na posição.</p>
             </div>
             <div style={{ background: "white", border: "1.5px solid rgba(13,74,74,0.1)", borderRadius: 18, padding: "20px 22px", boxShadow: "0 2px 12px rgba(13,74,74,0.06)" }}>
               <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#157373", marginBottom: 8 }}>O que pode mudar</p>
-              <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>Você não precisa alcançar o 1º lugar para ganhar visibilidade. Entrar no top 3 já muda completamente quantos clientes te encontram.</p>
+              <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>Você não precisa alcançar o 1º lugar para ganhar visibilidade. <strong style={{ color: "#374151" }}>Entrar no top 3</strong> já muda completamente quantos clientes te encontram.</p>
             </div>
           </div>
         </div>
@@ -664,7 +664,7 @@ export function AnaliseClient({ data }: Props) {
             <em style={{ color: "#2DD4BF" }}>{d.nome_linha1}</em> no topo
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
-            Um processo testado e comprovado que já transformou a presença local de dezenas de negócios.
+            Um processo <strong>testado e comprovado</strong> que já transformou a presença local de dezenas de negócios.
           </p>
 
           {/* GMB note */}
@@ -672,7 +672,7 @@ export function AnaliseClient({ data }: Props) {
             <span style={{ fontSize: 18 }}>💡</span>
             <div>
               <p style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Google Meu Negócio não é Google Ads</p>
-              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.6)", lineHeight: 1.6 }}>É uma ferramenta gratuita do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil — sem pagar por anúncios.</p>
+              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.6)", lineHeight: 1.6 }}>É uma <strong style={{ color: "rgba(245,240,235,0.8)" }}>ferramenta gratuita</strong> do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil — <strong style={{ color: "rgba(245,240,235,0.8)" }}>sem pagar por anúncios</strong>.</p>
             </div>
           </div>
 
@@ -686,7 +686,7 @@ export function AnaliseClient({ data }: Props) {
                 tag: "Primeiros dias",
                 badge: "Imersão",
                 title: "Imersão no negócio e estratégia completa",
-                text: "Entendemos seu mercado, seus diferenciais, seus concorrentes diretos e a região de atuação. O plano de ação é feito sob medida.",
+                text: <>Entendemos seu mercado, seus diferenciais, seus concorrentes diretos e a região de atuação. O plano de ação é <strong style={{ color: "rgba(245,240,235,0.8)" }}>feito sob medida</strong>.</>,
                 active: true,
               },
               {
@@ -695,7 +695,7 @@ export function AnaliseClient({ data }: Props) {
                 tag: "Semana 2",
                 badge: "Otimização",
                 title: "Perfil configurado estrategicamente",
-                text: `Todas as categorias, atributos, descrição otimizada, fotos profissionais e configurações avançadas. Nota de ${d.score} para 85+ em semanas.`,
+                text: <>Todas as categorias, atributos, descrição otimizada, fotos profissionais e configurações avançadas. <strong style={{ color: "rgba(245,240,235,0.8)" }}>Nota de {d.score} para 85+</strong> em semanas.</>,
                 active: false,
               },
               {
@@ -704,7 +704,7 @@ export function AnaliseClient({ data }: Props) {
                 tag: "Meses 1 e 2",
                 badge: "Gestão mensal inclusa",
                 title: "Estratégia de avaliações e acompanhamento contínuo",
-                text: "Implementamos processo para obter avaliações reais, respondemos cada uma estrategicamente e publicamos conteúdo regular no perfil.",
+                text: <>Implementamos processo para obter <strong style={{ color: "rgba(245,240,235,0.8)" }}>avaliações reais</strong>, respondemos cada uma estrategicamente e publicamos conteúdo regular no perfil.</>,
                 active: false,
               },
               {
@@ -713,7 +713,7 @@ export function AnaliseClient({ data }: Props) {
                 tag: "A partir do mês 3",
                 badge: "Gestão mensal",
                 title: "Perfil sempre ativo, sempre bem posicionado",
-                text: "Monitoramento de ranking, relatórios mensais, ajustes de estratégia e gestão completa do perfil — você não precisa fazer nada.",
+                text: <>Monitoramento de ranking, relatórios mensais, ajustes de estratégia e <strong style={{ color: "rgba(245,240,235,0.8)" }}>gestão completa do perfil</strong> — você não precisa fazer nada.</>,
                 active: false,
               },
             ].map((step) => (
@@ -786,7 +786,7 @@ export function AnaliseClient({ data }: Props) {
               <em style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", color: "#2DD4BF" }}>feitos para o seu negócio.</em>
             </h2>
             <p style={{ fontSize: 15, color: "rgba(245,240,235,0.6)", lineHeight: 1.7, marginBottom: 36 }}>
-              Preparamos planos de otimização exclusivos
+              Preparamos <strong>planos de otimização exclusivos</strong>
               <br />
               para o {d.nome}.
             </p>
