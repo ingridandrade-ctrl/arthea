@@ -53,7 +53,7 @@ export function AnaliseClient({ data }: Props) {
       <section className="hero">
         <div className="hero-body">
           {/* Google pill */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 50, padding: "8px 20px", marginBottom: 32 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 50, padding: "8px 20px", marginBottom: 48 }}>
             <span style={{ fontSize: 20, fontWeight: 700 }}>
               <span style={{ color: "#4285f4" }}>G</span>
               <span style={{ color: "#ea4335" }}>o</span>
@@ -68,7 +68,7 @@ export function AnaliseClient({ data }: Props) {
 
           {/* Título principal */}
           <h2 style={{
-            fontFamily: "'Playfair Display', serif",
+            fontFamily: "'DM Sans', sans-serif",
             fontSize: "clamp(28px,5.5vw,44px)",
             fontWeight: 700,
             lineHeight: 1.2,
@@ -79,7 +79,7 @@ export function AnaliseClient({ data }: Props) {
             <span style={{ color: "rgba(245,240,235,0.95)" }}>Análise exclusiva do seu</span>
             <br />
             <span style={{ color: "rgba(245,240,235,0.95)" }}>negócio no </span>
-            <em style={{ color: "#2DD4BF", fontStyle: "italic" }}>Google.</em>
+            <em style={{ fontFamily: "'Playfair Display', serif", color: "#2DD4BF", fontStyle: "italic" }}>Google.</em>
           </h2>
 
           <p style={{ fontSize: 13, color: "rgba(245,240,235,0.4)", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 48, textTransform: "none" }}>
