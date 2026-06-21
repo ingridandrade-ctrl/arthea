@@ -193,7 +193,7 @@ export function AnaliseClient({ data }: Props) {
                   </div>
                 </div>
               </div>
-              <div className="serp-cap">Sua posição hoje nas buscas locais do Google</div>
+              <div className="serp-cap">Sua posição hoje: <span style={{ color: "#C0392B" }}>{d.posicao}ª de {d.posicao_total}</span> nas buscas locais do Google</div>
             </div>
           </div>
 

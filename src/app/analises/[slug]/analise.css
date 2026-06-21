@@ -68,7 +68,7 @@ h2.tt em{font-family:'Playfair Display',serif;font-style:italic;font-weight:700;
 .sr-badge{font-size:9px;font-weight:700;background:#FEE2E2;color:#C0392B;padding:1px 6px;border-radius:8px}
 .sr-open{color:#0F6B3A;font-weight:600}
 .sr-gap{text-align:center;font-size:9px;color:#9ca3af;padding:6px;font-style:italic}
-.serp-cap{text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:#9ca3af;padding:9px;border-top:1px solid #f0f0f0}
+.serp-cap{text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:#374151;padding:12px;border-top:1px solid #f0f0f0;background:rgba(13,74,74,0.03)}
 
 .rank-bar{height:100%;width:0%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:white;transition:width 1.2s cubic-bezier(0.4,0,0.2,1)}
 
