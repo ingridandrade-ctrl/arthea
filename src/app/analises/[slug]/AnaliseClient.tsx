@@ -323,7 +323,7 @@ export function AnaliseClient({ data }: Props) {
           </p>
 
           {/* Score Gauge */}
-          <div className="fade-up score-gauge-wrap" style={{ background: "rgba(255,255,255,0.1)", borderRadius: 20, padding: 32, border: "1px solid rgba(255,255,255,0.18)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32 }}>
+          <div className="fade-up score-gauge-wrap" style={{ background: "#FAF9F6", borderRadius: 20, padding: 32, border: "1px solid rgba(13,74,74,0.12)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
             <div style={{ position: "relative", width: 120, height: 120, flexShrink: 0 }}>
               <svg width="120" height="120" style={{ transform: "rotate(-90deg)" }}>
                 <defs>
@@ -332,7 +332,7 @@ export function AnaliseClient({ data }: Props) {
                     <stop offset="100%" style={{ stopColor: "#F59E0B" }} />
                   </linearGradient>
                 </defs>
-                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="10" />
+                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(13,74,74,0.08)" strokeWidth="10" />
                 <circle
                   className="score-gauge-fill"
                   cx="60"
@@ -348,38 +348,38 @@ export function AnaliseClient({ data }: Props) {
                 />
               </svg>
               <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 32, fontWeight: 700, color: "white", lineHeight: 1 }}>{d.score}</span>
-                <span style={{ fontSize: 10, color: "rgba(245,240,235,0.45)", fontWeight: 600, marginTop: 2 }}>de 100</span>
+                <span style={{ fontSize: 32, fontWeight: 700, color: "#111827", lineHeight: 1 }}>{d.score}</span>
+                <span style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 600, marginTop: 2 }}>de 100</span>
               </div>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(201,122,6,0.2)", color: "#F59E0B", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 20, marginBottom: 6 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#FEF3C7", color: "#C97A06", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 20, marginBottom: 6 }}>
                 ⚡ Razoável · Abaixo do potencial
               </div>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: "white", marginBottom: 4 }}>Pontuação geral do perfil</h3>
-              <p style={{ fontSize: 12, color: "rgba(245,240,235,0.7)", lineHeight: 1.55 }}>
-                Alguns itens básicos estão preenchidos, mas faltam <strong>configurações estratégicas</strong> que fariam o Google mostrar você <strong>antes dos concorrentes</strong>.
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 4 }}>Pontuação geral do perfil</h3>
+              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.55 }}>
+                Alguns itens básicos estão preenchidos, mas faltam <strong style={{ color: "#374151" }}>configurações estratégicas</strong> que fariam o Google mostrar você <strong style={{ color: "#374151" }}>antes dos concorrentes</strong>.
               </p>
             </div>
           </div>
 
           {/* Checklist: Exists */}
-          <div className="fade-up" style={{ background: "rgba(255,255,255,0.1)", borderRadius: 20, border: "1px solid rgba(255,255,255,0.18)", overflow: "hidden", marginBottom: 24 }}>
-            <div style={{ padding: "12px 18px", background: "rgba(45,212,191,0.08)", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="fade-up" style={{ background: "#FAF9F6", borderRadius: 20, border: "1px solid rgba(13,74,74,0.12)", overflow: "hidden", marginBottom: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <div style={{ padding: "12px 18px", background: "rgba(13,74,74,0.04)", borderBottom: "1px solid rgba(13,74,74,0.08)", display: "flex", alignItems: "center", gap: 8 }}>
               <span>ℹ️</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(45,212,191,0.85)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Preenchidos · requerem gestão contínua</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#157373", textTransform: "uppercase", letterSpacing: "0.1em" }}>Preenchidos · requerem gestão contínua</span>
             </div>
             <div style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 0 }}>
               {[
-                { item: "Horário de funcionamento", note: "precisa ser atualizado em feriados e datas especiais", badge: "Existe", color: "#2DD4BF", bg: "rgba(45,212,191,0.12)" },
-                { item: `Quantidade de avaliações`, note: `${d.avaliacoes} avaliações, volume abaixo da média do segmento`, badge: "Existe", color: "#2DD4BF", bg: "rgba(45,212,191,0.12)" },
-                { item: "Imagem do logotipo", note: "presente, mas sem atualização recente de fotos", badge: "Existe", color: "#2DD4BF", bg: "rgba(45,212,191,0.12)" },
-                { item: "Nome, telefone e website", note: "configurados corretamente", badge: "✓ Ok", color: "#34D399", bg: "rgba(52,211,153,0.15)" },
+                { item: "Horário de funcionamento", note: "precisa ser atualizado em feriados e datas especiais", badge: "Existe", color: "#157373", bg: "rgba(21,115,115,0.1)" },
+                { item: `Quantidade de avaliações`, note: `${d.avaliacoes} avaliações, volume abaixo da média do segmento`, badge: "Existe", color: "#157373", bg: "rgba(21,115,115,0.1)" },
+                { item: "Imagem do logotipo", note: "presente, mas sem atualização recente de fotos", badge: "Existe", color: "#157373", bg: "rgba(21,115,115,0.1)" },
+                { item: "Nome, telefone e website", note: "configurados corretamente", badge: "✓ Ok", color: "#0F6B3A", bg: "rgba(15,107,58,0.1)" },
               ].map((row, i) => (
-                <div key={i} className="checklist-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                <div key={i} className="checklist-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < 3 ? "1px solid rgba(13,74,74,0.08)" : "none" }}>
                   <div>
-                    <span style={{ fontSize: 13, color: "rgba(245,240,235,0.85)", fontWeight: 500 }}>{row.item}</span>
-                    <span style={{ fontSize: 11, color: "rgba(245,240,235,0.55)", marginLeft: 8 }}>· {row.note}</span>
+                    <span style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>{row.item}</span>
+                    <span style={{ fontSize: 11, color: "#9CA3AF", marginLeft: 8 }}>· {row.note}</span>
                   </div>
                   <span style={{ fontSize: 11, fontWeight: 700, color: row.color, background: row.bg, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>{row.badge}</span>
                 </div>
@@ -395,19 +395,19 @@ export function AnaliseClient({ data }: Props) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
-                { title: "Postagens no perfil", text: <>Nenhuma postagem publicada. O Google <strong style={{ color: "rgba(245,240,235,0.75)" }}>prioriza perfis ativos</strong> com publicações regulares — postagens, ofertas e novidades.</> },
-                { title: "Fotos recentes do proprietário", text: <>Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas <strong style={{ color: "rgba(245,240,235,0.75)" }}>aumentam o interesse dos clientes</strong> e a confiança no perfil.</> },
-                { title: "Fotos 360°", text: <>Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem <strong style={{ color: "rgba(245,240,235,0.75)" }}>o dobro de interesse</strong> dos clientes segundo o Google.</> },
+                { title: "Postagens no perfil", text: <>Nenhuma postagem publicada. O Google <strong style={{ color: "#991B1B" }}>prioriza perfis ativos</strong> com publicações regulares — postagens, ofertas e novidades.</> },
+                { title: "Fotos recentes do proprietário", text: <>Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas <strong style={{ color: "#991B1B" }}>aumentam o interesse dos clientes</strong> e a confiança no perfil.</> },
+                { title: "Fotos 360°", text: <>Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem <strong style={{ color: "#991B1B" }}>o dobro de interesse</strong> dos clientes segundo o Google.</> },
               ].map((gap, i) => (
-                <div key={i} className="fade-up gap-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "rgba(192,57,43,0.14)", borderRadius: 20, border: "1px solid rgba(192,57,43,0.25)", position: "relative", overflow: "hidden" }}>
+                <div key={i} className="fade-up gap-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "#FEF2F2", borderRadius: 20, border: "1px solid rgba(192,57,43,0.2)", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
-                  <div className="gap-icon" style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(192,57,43,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#FF8080", flexShrink: 0, marginTop: 1 }}>✗</div>
+                  <div className="gap-icon" style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(192,57,43,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#C0392B", flexShrink: 0, marginTop: 1 }}>✗</div>
                   <div style={{ flex: 1 }}>
                     <div className="gap-badge-row" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                      <strong style={{ fontSize: 14, color: "white" }}>{gap.title}</strong>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "#FF8080", background: "rgba(192,57,43,0.2)", padding: "2px 9px", borderRadius: 20 }}>Não preenchido</span>
+                      <strong style={{ fontSize: 14, color: "#111827" }}>{gap.title}</strong>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "2px 9px", borderRadius: 20 }}>Não preenchido</span>
                     </div>
-                    <p style={{ fontSize: 13, color: "rgba(245,240,235,0.7)", lineHeight: 1.55 }}>{gap.text}</p>
+                    <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>{gap.text}</p>
                   </div>
                 </div>
               ))}
@@ -422,32 +422,32 @@ export function AnaliseClient({ data }: Props) {
             </div>
             <div className="improve-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
               {[
-                { title: "Média de avaliações", score: "50%", text: <>{d.estrelas}★ atual. Média do segmento: {d.estrelas_media_seg}★. <strong style={{ color: "rgba(245,240,235,0.75)" }}>Precisa melhorar</strong> para competir.</> },
-                { title: "Avaliações sem resposta", score: "50%", text: <><strong style={{ color: "rgba(245,240,235,0.75)" }}>{d.avaliacoes_sr} avaliações sem resposta</strong> do proprietário. Responder aumenta credibilidade e ranking.</> },
-                { title: "Avaliações sem comentário", score: "50%", text: <>{d.avaliacoes_sc} avaliações sem texto. Avaliações com texto detalhado fazem o Google <strong style={{ color: "rgba(245,240,235,0.75)" }}>mostrar seu perfil para mais pessoas</strong>.</> },
-                { title: "Vídeos no perfil", score: "50%", text: <>Nenhum vídeo adicionado. Vídeos curtos <strong style={{ color: "rgba(245,240,235,0.75)" }}>aumentam o tempo de visualização</strong> e a interação dos clientes com o perfil.</> },
+                { title: "Média de avaliações", score: "50%", text: <>{d.estrelas}★ atual. Média do segmento: {d.estrelas_media_seg}★. <strong style={{ color: "#92400E" }}>Precisa melhorar</strong> para competir.</> },
+                { title: "Avaliações sem resposta", score: "50%", text: <><strong style={{ color: "#92400E" }}>{d.avaliacoes_sr} avaliações sem resposta</strong> do proprietário. Responder aumenta credibilidade e ranking.</> },
+                { title: "Avaliações sem comentário", score: "50%", text: <>{d.avaliacoes_sc} avaliações sem texto. Avaliações com texto detalhado fazem o Google <strong style={{ color: "#92400E" }}>mostrar seu perfil para mais pessoas</strong>.</> },
+                { title: "Vídeos no perfil", score: "50%", text: <>Nenhum vídeo adicionado. Vídeos curtos <strong style={{ color: "#92400E" }}>aumentam o tempo de visualização</strong> e a interação dos clientes com o perfil.</> },
               ].map((item, i) => (
-                <div key={i} className="fade-up" style={{ padding: "18px 20px", background: "rgba(201,122,6,0.14)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.25)", position: "relative", overflow: "hidden" }}>
+                <div key={i} className="fade-up" style={{ padding: "18px 20px", background: "#FFFBEB", borderRadius: 20, border: "1px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 7 }}>
-                    <strong style={{ fontSize: 13, color: "white", lineHeight: 1.3, flex: 1 }}>{item.title}</strong>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B", background: "rgba(201,122,6,0.2)", padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap", marginLeft: 8 }}>{item.score}</span>
+                    <strong style={{ fontSize: 13, color: "#111827", lineHeight: 1.3, flex: 1 }}>{item.title}</strong>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap", marginLeft: 8 }}>{item.score}</span>
                   </div>
-                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.7)", lineHeight: 1.5 }}>{item.text}</p>
+                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{item.text}</p>
                 </div>
               ))}
             </div>
             {/* Description full-width */}
-            <div className="fade-up desc-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 22px", background: "rgba(201,122,6,0.14)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
+            <div className="fade-up desc-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 22px", background: "#FFFBEB", borderRadius: 20, border: "1px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,#C97A06,#F59E0B)", borderRadius: "16px 16px 0 0" }} />
-              <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(201,122,6,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#F59E0B", flexShrink: 0, marginTop: 1 }}>!</div>
+              <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(201,122,6,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#C97A06", flexShrink: 0, marginTop: 1 }}>!</div>
               <div style={{ flex: 1 }}>
                 <div className="desc-badge-row" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                  <strong style={{ fontSize: 14, color: "white" }}>Descrição do negócio</strong>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B", background: "rgba(201,122,6,0.2)", padding: "2px 9px", borderRadius: 20 }}>Nota 70%</span>
+                  <strong style={{ fontSize: 14, color: "#111827" }}>Descrição do negócio</strong>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 9px", borderRadius: 20 }}>Nota 70%</span>
                 </div>
-                <p style={{ fontSize: 13, color: "rgba(245,240,235,0.7)", lineHeight: 1.55 }}>
-                  Descrição atual: <strong style={{ color: "rgba(245,240,235,0.75)" }}>{d.descricao_chars} caracteres</strong>. Mínimo recomendado: 125. Use <strong style={{ color: "rgba(245,240,235,0.75)" }}>palavras-chave do segmento e da região</strong> para o Google entender seu negócio.
+                <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>
+                  Descrição atual: <strong style={{ color: "#92400E" }}>{d.descricao_chars} caracteres</strong>. Mínimo recomendado: 125. Use <strong style={{ color: "#92400E" }}>palavras-chave do segmento e da região</strong> para o Google entender seu negócio.
                 </p>
               </div>
             </div>
@@ -466,44 +466,44 @@ export function AnaliseClient({ data }: Props) {
             Todas essas lacunas ficam claras quando colocamos <strong>seu perfil ao lado de um concorrente</strong> da mesma região — {d.concorrente_nome}, que aparece no {d.concorrente_pos}:
           </p>
 
-          <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(255,255,255,0.18)", marginBottom: 24 }}>
+          <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(13,74,74,0.12)", marginBottom: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
             {/* Headers */}
-            <div className="cmp-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(255,255,255,0.1)" }}>
-              <div style={{ background: "rgba(192,57,43,0.15)", padding: "14px 20px" }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#FF8080", marginBottom: 2 }}>⚠️ Você · {d.nome_linha1}</p>
-                <p style={{ fontSize: 10, color: "rgba(245,240,235,0.4)" }}>Matriz · {d.cidade}, {d.estado.split(",")[1]?.trim() || "SP"}</p>
+            <div className="cmp-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "#FAF9F6" }}>
+              <div style={{ background: "#FEF2F2", padding: "14px 20px" }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#C0392B", marginBottom: 2 }}>⚠️ Você · {d.nome_linha1}</p>
+                <p style={{ fontSize: 10, color: "#9CA3AF" }}>Matriz · {d.cidade}, {d.estado.split(",")[1]?.trim() || "SP"}</p>
               </div>
-              <div style={{ background: "rgba(52,211,153,0.12)", padding: "14px 20px" }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#34D399", marginBottom: 2 }}>✓ Concorrente direto</p>
-                <p style={{ fontSize: 10, color: "rgba(245,240,235,0.4)" }}>{d.concorrente_nome.split(" ").slice(0, 2).join(" ")} · mesma região</p>
+              <div style={{ background: "#ECFDF5", padding: "14px 20px" }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#0F6B3A", marginBottom: 2 }}>✓ Concorrente direto</p>
+                <p style={{ fontSize: 10, color: "#9CA3AF" }}>{d.concorrente_nome.split(" ").slice(0, 2).join(" ")} · mesma região</p>
               </div>
             </div>
             {/* Rows */}
-            <div className="cmp-rows-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(255,255,255,0.04)" }}>
-              <div style={{ background: "rgba(255,255,255,0.04)", padding: "0 20px" }}>
+            <div className="cmp-rows-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "#FAF9F6" }}>
+              <div style={{ background: "white", padding: "0 20px" }}>
                 {[
-                  { label: "Avaliações", val: d.avaliacoes, color: "#FF8080" },
-                  { label: "Média ★", val: d.estrelas, color: "#FF8080" },
-                  { label: "Categorias", val: "1 de 3", color: "#F59E0B" },
-                  { label: "Postagens", val: "Inativo", color: "#FF8080" },
-                  { label: "Posição", val: `${d.posicao}ª de ${d.posicao_total}`, color: "#FF8080" },
+                  { label: "Avaliações", val: d.avaliacoes, color: "#C0392B" },
+                  { label: "Média ★", val: d.estrelas, color: "#C0392B" },
+                  { label: "Categorias", val: "1 de 3", color: "#C97A06" },
+                  { label: "Postagens", val: "Inativo", color: "#C0392B" },
+                  { label: "Posição", val: `${d.posicao}ª de ${d.posicao_total}`, color: "#C0392B" },
                 ].map((row, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.06)" : "none", fontSize: 11.5 }}>
-                    <span style={{ color: "rgba(245,240,235,0.5)" }}>{row.label}</span>
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(13,74,74,0.06)" : "none", fontSize: 11.5 }}>
+                    <span style={{ color: "#9CA3AF" }}>{row.label}</span>
                     <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
                   </div>
                 ))}
               </div>
-              <div style={{ background: "rgba(255,255,255,0.04)", padding: "0 20px" }}>
+              <div style={{ background: "white", padding: "0 20px" }}>
                 {[
-                  { label: "Avaliações", val: d.concorrente_aval, color: "#34D399" },
-                  { label: "Média ★", val: d.concorrente_stars, color: "#34D399" },
-                  { label: "Categorias", val: "3 ativas", color: "#34D399" },
-                  { label: "Postagens", val: "Ativo", color: "#34D399" },
-                  { label: "Posição", val: d.concorrente_pos, color: "#34D399" },
+                  { label: "Avaliações", val: d.concorrente_aval, color: "#0F6B3A" },
+                  { label: "Média ★", val: d.concorrente_stars, color: "#0F6B3A" },
+                  { label: "Categorias", val: "3 ativas", color: "#0F6B3A" },
+                  { label: "Postagens", val: "Ativo", color: "#0F6B3A" },
+                  { label: "Posição", val: d.concorrente_pos, color: "#0F6B3A" },
                 ].map((row, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.06)" : "none", fontSize: 11.5 }}>
-                    <span style={{ color: "rgba(245,240,235,0.5)" }}>{row.label}</span>
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(13,74,74,0.06)" : "none", fontSize: 11.5 }}>
+                    <span style={{ color: "#9CA3AF" }}>{row.label}</span>
                     <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
                   </div>
                 ))}
@@ -518,25 +518,25 @@ export function AnaliseClient({ data }: Props) {
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
             </div>
             <div className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(192,57,43,0.16)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B" }}>
+              <div className="summary-alert" style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "#FEF2F2", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
                 <div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Perfil inativo: sem postagens e sem fotos recentes</h4>
-                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.7)", lineHeight: 1.5 }}>O Google interpreta isso como <strong style={{ color: "rgba(245,240,235,0.7)" }}>perfil abandonado</strong> e reduz a visibilidade automaticamente. É o principal motivo da nota {d.score}/100.</p>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Perfil inativo: sem postagens e sem fotos recentes</h4>
+                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>O Google interpreta isso como <strong style={{ color: "#991B1B" }}>perfil abandonado</strong> e reduz a visibilidade automaticamente. É o principal motivo da nota {d.score}/100.</p>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(192,57,43,0.16)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B" }}>
+              <div className="summary-alert" style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "#FEF2F2", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
                 <div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Volume de avaliações muito abaixo do necessário</h4>
-                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.7)", lineHeight: 1.5 }}><strong style={{ color: "rgba(245,240,235,0.7)" }}>{d.avaliacoes} avaliações</strong> contra {d.concorrente_aval} do concorrente direto e {d.lider_aval} do líder. Isso explica a posição <strong style={{ color: "rgba(245,240,235,0.7)" }}>{d.posicao}ª no ranking</strong>.</p>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Volume de avaliações muito abaixo do necessário</h4>
+                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}><strong style={{ color: "#991B1B" }}>{d.avaliacoes} avaliações</strong> contra {d.concorrente_aval} do concorrente direto e {d.lider_aval} do líder. Isso explica a posição <strong style={{ color: "#991B1B" }}>{d.posicao}ª no ranking</strong>.</p>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(201,122,6,0.16)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C97A06" }}>
+              <div className="summary-alert" style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "#FFFBEB", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C97A06", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🟡</span>
                 <div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Média de estrelas abaixo do segmento</h4>
-                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.7)", lineHeight: 1.5 }}>{d.estrelas}★ contra {d.estrelas_media_seg}★ da média. Combinado com {d.avaliacoes_sr} avaliações sem resposta, passa uma <strong style={{ color: "rgba(245,240,235,0.7)" }}>impressão de descuido</strong> para quem pesquisa.</p>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Média de estrelas abaixo do segmento</h4>
+                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{d.estrelas}★ contra {d.estrelas_media_seg}★ da média. Combinado com {d.avaliacoes_sr} avaliações sem resposta, passa uma <strong style={{ color: "#92400E" }}>impressão de descuido</strong> para quem pesquisa.</p>
                 </div>
               </div>
             </div>
