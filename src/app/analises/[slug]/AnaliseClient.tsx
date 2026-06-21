@@ -82,12 +82,12 @@ export function AnaliseClient({ data }: Props) {
             <em style={{ fontFamily: "'Playfair Display', serif", color: "#2DD4BF", fontStyle: "italic" }}>Google.</em>
           </h2>
 
-          <p style={{ fontSize: 13, color: "rgba(245,240,235,0.4)", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 48, textTransform: "none" }}>
+          <p style={{ fontSize: 13, color: "rgba(245,240,235,0.4)", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 28, textTransform: "none" }}>
             por Arthea · Assessoria de Marketing Intencional
           </p>
 
           {/* Separador */}
-          <div style={{ width: 40, height: 1, background: "rgba(45,212,191,0.3)", marginBottom: 48 }} />
+          <div style={{ width: 40, height: 1, background: "rgba(45,212,191,0.3)", marginBottom: 28 }} />
 
           {/* Bloco do cliente */}
           <p style={{ fontSize: "clamp(17px,2.5vw,22px)", fontWeight: 500, color: "rgba(245,240,235,0.7)", marginBottom: 8 }}>
@@ -115,9 +115,9 @@ export function AnaliseClient({ data }: Props) {
             <Image
               src="/analises/assets/logo-arthea-oficial.png"
               alt="Arthea"
-              width={140}
-              height={50}
-              style={{ height: 44, width: "auto", objectFit: "contain" }}
+              width={280}
+              height={100}
+              style={{ height: 88, width: "auto", objectFit: "contain" }}
             />
           </div>
         </div>
