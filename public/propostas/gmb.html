@@ -230,6 +230,11 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 .prob-desc{font-size:14px;color:var(--muted);line-height:1.65;}
 .prob-desc strong{color:var(--ink);font-weight:700;}
 
+/* Caixa de transição (escura) com as duas frases. */
+.prob-bridge{background:#0D4A4A;border-radius:20px;overflow:hidden;}
+.prob-bridge-row{padding:26px 36px;text-align:center;}
+.prob-bridge-row p{font-size:17px;line-height:1.6;max-width:480px;margin:0 auto;text-wrap:pretty;}
+
 .bridge{
   background:var(--teal);color:#fff;
   border-radius:16px;padding:22px 28px;
@@ -458,6 +463,10 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   [style*="text-align:justify"]{text-align:left!important;}
   /* Grids internos de 2 colunas empilham em telas estreitas. */
   [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important;}
+  /* Caixa escura das duas frases: menos padding e fonte no celular,
+     pra não virar muitas linhas curtas. */
+  .prob-bridge-row{padding:20px 20px;}
+  .prob-bridge-row p{font-size:15px;}
 }
 
 @media(max-width:480px){
@@ -562,7 +571,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 <!-- ════ PROBLEMA ════ -->
 <section class="sec">
   <div class="container-sm" style="text-align:center;">
-    <h2 class="h2 reveal">82% dos clientes pesquisam online<br class="brk"><em>antes de qualquer contato.</em></h2>
+    <h2 class="h2 reveal">82% dos clientes pesquisam online <br class="brk"><em>antes de qualquer contato.</em></h2>
     <p class="lead reveal" style="margin:0 auto 48px;">Os 3 primeiros perfis do Google Maps concentram quase todos os cliques. Quem está abaixo raramente é encontrado, independente de quanto tempo está no mercado ou da qualidade do serviço.</p>
   </div>
 
@@ -593,12 +602,12 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
     </div>
 
     <div class="container-sm" style="margin-top:56px;">
-      <div class="reveal" style="background:#0D4A4A;border-radius:20px;overflow:hidden;">
-        <div style="padding:28px 36px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.07);">
-          <p style="font-size:17px;color:rgba(245,240,235,.88);line-height:1.65;font-weight:500;max-width:480px;margin:0 auto;">O Google decide quem aparece e quem some. Se o seu perfil não está bem configurado, você fica de fora e o cliente vai para o concorrente.</p>
+      <div class="reveal prob-bridge">
+        <div class="prob-bridge-row" style="border-bottom:1px solid rgba(255,255,255,0.07);">
+          <p style="color:rgba(245,240,235,.88);font-weight:500;">O Google decide quem aparece e quem some. Se o seu perfil não está bem configurado, você fica de fora e o cliente vai para o concorrente.</p>
         </div>
-        <div style="padding:24px 36px;text-align:center;background:rgba(0,0,0,0.1);">
-          <p style="font-size:17px;font-weight:600;color:#2DD4BF;line-height:1.55;letter-spacing:-.01em;max-width:480px;margin:0 auto;">A Arthea garante que o seu negócio seja encontrado por quem já está procurando o que você oferece na sua cidade.</p>
+        <div class="prob-bridge-row" style="background:rgba(0,0,0,0.1);">
+          <p style="font-weight:600;color:#2DD4BF;letter-spacing:-.01em;">A Arthea garante que o seu negócio seja encontrado por quem já está procurando o que você oferece na sua cidade.</p>
         </div>
       </div>
     </div>
@@ -610,7 +619,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   <div class="rel">
     <div class="container-sm" style="text-align:center;">
       <div class="ey ey-light reveal" style="justify-content:center;">Como funciona</div>
-      <h2 class="h2 h2-light reveal">Dois passos para o seu perfil<br class="brk"><em>trabalhar por você.</em></h2>
+      <h2 class="h2 h2-light reveal">Dois passos para o seu perfil <br class="brk"><em>trabalhar por você.</em></h2>
       <p class="lead lead-light reveal" style="margin:0 auto;max-width:520px;">Primeiro a Arthea estrutura o perfil do zero com estratégia. Depois mantém tudo ativo, mês a mês, para o Google continuar reconhecendo e recomendando você.</p>
     </div>
 
@@ -777,7 +786,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 <section class="sec" style="background:#F7F5F1;">
   <div class="container-sm" style="text-align:center;">
     <div class="ey ey-dark reveal" style="justify-content:center;">Investimento</div>
-    <h2 class="h2 reveal">Escolha o plano<br class="brk"><em>certo para o seu momento.</em></h2>
+    <h2 class="h2 reveal">Escolha o plano <br class="brk"><em>certo para o seu momento.</em></h2>
     <p class="lead reveal" style="margin:0 auto;">Quem fecha a Gestão Mensal recebe a Otimização Principal gratuitamente. Seu perfil já começa estruturado desde o primeiro dia.</p>
   </div>
 
@@ -927,7 +936,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   <div class="cta-inner">
     <div class="ey ey-light reveal" style="justify-content:center;">Próximo passo</div>
     <h2 class="reveal">
-      Vamos posicionar o seu<br class="brk">
+      Vamos posicionar o seu <br class="brk">
       <em>negócio no Google?</em>
     </h2>
     <p class="reveal" style="font-size:18px;color:rgba(245,240,235,.88);font-weight:500;">Fale com a Arthea pelo WhatsApp e comece agora mesmo o plano ideal para a sua empresa.</p>
