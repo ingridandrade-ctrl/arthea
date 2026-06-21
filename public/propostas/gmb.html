@@ -441,6 +441,16 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 @keyframes badgeShine{0%{left:-60%;}45%,100%{left:135%;}}
 /* Glow sutil no preço do plano em destaque */
 .price-num{text-shadow:0 0 26px rgba(45,212,191,.40);}
+/* Otimização Principal — destaque próprio (sem competir com o featured) */
+.plan:not(.plan-featured){border-color:rgba(21,115,115,.30);box-shadow:0 12px 44px rgba(13,74,74,.10),0 0 22px rgba(45,212,191,.12);}
+.plan:not(.plan-featured) .plan-price{text-shadow:0 0 24px rgba(45,212,191,.30);}
+.plan-badge-soft{
+  position:relative;
+  background:rgba(21,115,115,.08);color:#157373;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;
+  padding:9px 20px;text-align:center;
+  border-bottom:1px solid rgba(21,115,115,.14);
+}
 @media(prefers-reduced-motion:reduce){
   .plan-featured{animation:none;}
   .plan-badge::after{display:none;}
@@ -889,7 +899,8 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 
       <!-- Otimização Principal -->
       <div class="plan reveal" style="position:relative;overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#0D4A4A,#2DD4BF,#0D4A4A);"></div>
+        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#0D4A4A,#2DD4BF,#0D4A4A);z-index:1;"></div>
+        <div class="plan-badge-soft">Pagamento único</div>
         <div class="plan-header">
           <!-- Título com destaque -->
           <div style="margin-bottom:6px;">
