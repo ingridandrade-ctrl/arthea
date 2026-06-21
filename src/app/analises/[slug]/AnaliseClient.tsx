@@ -68,21 +68,22 @@ export function AnaliseClient({ data }: Props) {
 
           {/* Título principal */}
           <h2 style={{
+            fontFamily: "'Playfair Display', serif",
             fontSize: "clamp(28px,5.5vw,44px)",
             fontWeight: 700,
-            lineHeight: 1.15,
+            lineHeight: 1.2,
             letterSpacing: "-0.02em",
-            marginBottom: 14,
+            marginBottom: 12,
             textAlign: "center",
-            color: "white",
           }}>
-            Seu negócio no Google,
+            <span style={{ color: "rgba(245,240,235,0.95)" }}>Análise exclusiva do seu</span>
             <br />
-            <em style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#2DD4BF" }}>analisado em detalhe.</em>
+            <span style={{ color: "rgba(245,240,235,0.95)" }}>negócio no </span>
+            <em style={{ color: "#2DD4BF", fontStyle: "italic" }}>Google.</em>
           </h2>
 
-          <p style={{ fontSize: 13, color: "rgba(245,240,235,0.4)", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 48 }}>
-            por Arthea · assessoria de marketing intencional
+          <p style={{ fontSize: 13, color: "rgba(245,240,235,0.4)", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 48, textTransform: "none" }}>
+            por Arthea · Assessoria de Marketing Intencional
           </p>
 
           {/* Separador */}
