@@ -27,8 +27,8 @@ body{font-family:'DM Sans',sans-serif;background:#FAF9F6;color:#111827;-webkit-f
 .chip-val.v-yellow{color:#FFE066}
 .chip-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.18em;color:rgba(245,240,235,0.45);line-height:1.4}
 
-.hero-cta{display:inline-flex;align-items:center;gap:12px;background:#FAF9F6;color:#0D4A4A;text-decoration:none;padding:18px 44px;border-radius:50px;font-size:15px;font-weight:700;letter-spacing:0.02em;box-shadow:0 20px 60px rgba(0,0,0,0.3);transition:all .25s ease}
-.hero-cta:hover{transform:translateY(-3px);box-shadow:0 24px 70px rgba(0,0,0,0.38)}
+.hero-cta{display:inline-flex;align-items:center;gap:12px;background:#2DD4BF;color:#082E2E;text-decoration:none;padding:18px 44px;border-radius:50px;font-size:15px;font-weight:700;letter-spacing:0.02em;box-shadow:0 20px 60px rgba(0,0,0,0.3);transition:all .25s ease}
+.hero-cta:hover{transform:translateY(-3px);box-shadow:0 24px 70px rgba(45,212,191,0.25)}
 
 .scroll-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:6;animation:bob 2.2s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}

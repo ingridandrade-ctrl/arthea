@@ -90,14 +90,15 @@ export function AnaliseClient({ data }: Props) {
           <div style={{ width: 40, height: 1, background: "rgba(45,212,191,0.3)", marginBottom: 48 }} />
 
           {/* Bloco do cliente */}
-          <div className="hero-eyebrow" style={{ fontSize: 14 }}>Diagnóstico completo para</div>
+          <p style={{ fontSize: "clamp(17px,2.5vw,22px)", fontWeight: 500, color: "rgba(245,240,235,0.7)", marginBottom: 8 }}>
+            Diagnóstico completo para
+          </p>
           <h1 style={{
-            fontSize: "clamp(20px,3.5vw,28px)",
+            fontSize: "clamp(17px,2.5vw,22px)",
             fontWeight: 700,
             color: "white",
-            lineHeight: 1.15,
-            letterSpacing: "0.02em",
-            textTransform: "uppercase",
+            lineHeight: 1.2,
+            letterSpacing: "0.01em",
             marginBottom: 10,
           }}>
             {d.nome_linha1} {d.nome_linha2}
