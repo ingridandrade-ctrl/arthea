@@ -10,7 +10,6 @@ import {
   initSerpPositionObserver,
   initRankingBarsObserver,
   initGaugeObserver,
-  initHeatmapObserver,
   initSerpRowsObserver,
 } from "./animations";
 import "./analise.css";
@@ -18,14 +17,6 @@ import "./analise.css";
 interface Props {
   data: ClienteData;
 }
-
-const HEATMAP_GRID = [
-  ["h2","h3","h4","h3","h2","h1","h0"],
-  ["h3","h5","h5","h4","h3","h2","h1"],
-  ["h2","h4","hy","h5","h4","h2","h1"],
-  ["h1","h3","h4","h3","h2","h1","h0"],
-  ["h0","h1","h2","h1","h0","h0","h0"],
-];
 
 export function AnaliseClient({ data }: Props) {
   const d = data;
@@ -44,7 +35,6 @@ export function AnaliseClient({ data }: Props) {
     const obs4 = initSerpPositionObserver();
     const obs5 = initRankingBarsObserver();
     const obs6 = initGaugeObserver();
-    const obs7 = initHeatmapObserver();
     const obs8 = initSerpRowsObserver();
     return () => {
       obs1?.disconnect();
@@ -53,7 +43,6 @@ export function AnaliseClient({ data }: Props) {
       obs4?.disconnect();
       obs5?.disconnect();
       obs6?.disconnect();
-      obs7?.disconnect();
       obs8?.forEach((o) => o.disconnect());
     };
   }, []);
@@ -325,7 +314,7 @@ export function AnaliseClient({ data }: Props) {
         </div>
       </section>
 
-      {/* ═══ SEÇÃO 3: RANKING + HEATMAP ═══ */}
+      {/* ═══ SEÇÃO 3: RANKING ═══ */}
       <section style={{ padding: "72px 24px", background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 45%,#0A3A3A 100%)", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
         <div style={{ maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 }}>
@@ -393,53 +382,6 @@ export function AnaliseClient({ data }: Props) {
             </div>
           </div>
 
-          {/* Heatmap */}
-          <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
-            <span style={{ display: "inline-block", width: 18, height: 1.5, background: "rgba(45,212,191,0.4)" }} />
-            Além da posição
-          </div>
-          <h2 className="tt" style={{ color: "white", marginBottom: 12 }}>
-            Onde você aparece
-            <br />
-            <em style={{ color: "#2DD4BF" }}>e onde não aparece</em>
-          </h2>
-          <p className="lead" style={{ color: "rgba(245,240,235,0.5)", marginBottom: 32 }}>
-            O ranking mostra sua posição geral. O mapa abaixo mostra em quais áreas da cidade você é encontrado — e em quais você é invisível.
-          </p>
-
-          <div className="fade-up" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, overflow: "hidden", marginBottom: 24 }}>
-            <div style={{ padding: "14px 18px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-              <h4 style={{ fontSize: 13, fontWeight: 700, color: "rgba(245,240,235,0.9)" }}>&ldquo;{d.busca_termo_longo}&rdquo;</h4>
-              <p style={{ fontSize: 11, color: "rgba(245,240,235,0.4)", marginTop: 3 }}>Análise de visibilidade por área · região do {d.cidade}</p>
-            </div>
-            <div className="hmap-grid">
-              {HEATMAP_GRID.flat().map((cls, i) => (
-                <div key={i} className={`hc ${cls}`} />
-              ))}
-            </div>
-            {/* Legend */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 18px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-              <span style={{ fontSize: 10, color: "rgba(245,240,235,0.4)", fontWeight: 600, whiteSpace: "nowrap" }}>Pouca visibilidade</span>
-              <div style={{ display: "flex", gap: 3, flex: 1 }}>
-                <div style={{ flex: 1, height: 7, borderRadius: 2, background: "#D5DDD6", opacity: 0.5 }} />
-                <div style={{ flex: 1, height: 7, borderRadius: 2, background: "#A8D5B5", opacity: 0.7 }} />
-                <div style={{ flex: 1, height: 7, borderRadius: 2, background: "#3DAD64", opacity: 0.85 }} />
-                <div style={{ flex: 1, height: 7, borderRadius: 2, background: "#0F6B3A" }} />
-              </div>
-              <span style={{ fontSize: 10, color: "rgba(245,240,235,0.4)", fontWeight: 600, whiteSpace: "nowrap" }}>Alta visibilidade</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: 8 }}>
-                <div style={{ width: 10, height: 10, borderRadius: 2, background: "#C0392B" }} />
-                <span style={{ fontSize: 10, color: "rgba(245,240,235,0.4)", fontWeight: 600 }}>Você</span>
-              </div>
-            </div>
-            {/* Red alert */}
-            <div style={{ background: "rgba(192,57,43,0.15)", borderTop: "1px solid rgba(192,57,43,0.25)", padding: "14px 18px", display: "flex", alignItems: "flex-start", gap: 10 }}>
-              <span>🔴</span>
-              <p style={{ fontSize: 12, color: "#FF8080", fontWeight: 600, lineHeight: 1.45 }}>
-                Você está cercado de concorrentes bem posicionados. Mesmo quem pesquisa perto de você encontra outros perfis antes.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
