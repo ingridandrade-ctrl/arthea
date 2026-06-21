@@ -84,13 +84,13 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 }
 
 .hero h1{
-  font-size:clamp(36px,5.5vw,64px);
+  font-size:clamp(27px,5.5vw,64px);
   font-weight:700;color:#fff;
   line-height:1.06;letter-spacing:-.035em;
   margin-bottom:10px;
 }
 .hero h1 .display{
-  display:block;font-size:clamp(42px,6.5vw,76px);
+  display:block;font-size:clamp(31px,6.5vw,76px);
   color:#2DD4BF;line-height:1;
 }
 
@@ -99,6 +99,8 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
   line-height:1.75;margin:24px auto 48px;
   max-width:520px;
 }
+
+.hero-brand{height:160px;object-fit:contain;mix-blend-mode:screen;opacity:.9;}
 
 .btn-primary{
   display:inline-flex;align-items:center;gap:12px;
@@ -406,6 +408,16 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   .phases,.plans,.sobre-grid,.faq-grid,.results-grid{grid-template-columns:1fr;}
   .container{padding:0 20px;}
   .sec{padding:72px 0;}
+  /* Hero no mobile: menos respiro lateral pro título não quebrar feio
+     e logo proporcionalmente menor. */
+  .hero-body{padding:28px 20px 56px;}
+  .hero-brand{height:112px;}
+  .hero-sub{margin:20px auto 40px;}
+}
+
+@media(max-width:480px){
+  .hero-body{padding:24px 16px 52px;}
+  .hero-brand{height:92px;}
 }
 
 /* ════════════════════════════
@@ -473,7 +485,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 
   <div class="hero-body">
     <div class="fade-up" style="margin-bottom:-4px;">
-      <img src="/analises/assets/logo-arthea.svg" alt="Arthea" style="height:160px;object-fit:contain;mix-blend-mode:screen;opacity:0.9;">
+      <img class="hero-brand" src="/analises/assets/logo-arthea.svg" alt="Arthea">
     </div>
 
     <p class="hero-kicker reveal">Presença local · Resultado orgânico</p>
