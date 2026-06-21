@@ -225,7 +225,7 @@ export function AnaliseClient({ data }: Props) {
                   aparecem <strong style={{ color: "white", fontWeight: 700 }}>antes de você</strong> no Google Maps quando alguém pesquisa na sua região.
                 </p>
                 <p style={{ fontSize: 12, color: "rgba(245,240,235,0.4)", lineHeight: 1.5, marginTop: 8 }}>
-                  A maioria dos clientes nunca chega a ver seu perfil — e acaba escolhendo quem aparece primeiro.
+                  A maioria dos clientes nunca chega a ver seu perfil. Eles escolhem quem aparece primeiro.
                 </p>
               </div>
             </div>
@@ -332,7 +332,7 @@ export function AnaliseClient({ data }: Props) {
             <em style={{ color: "#2DD4BF" }}>quem aparece primeiro</em>
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
-            O Google usa o volume de avaliações como critério nº 1 para rankear perfis locais. Veja a diferença entre quem lidera e a sua posição atual em {d.cidade}:
+            Avaliações são o fator nº 1 no ranking local. Veja a diferença entre quem lidera e a sua posição atual em {d.cidade}:
           </p>
 
           {/* Ranking Chart */}
@@ -392,7 +392,7 @@ export function AnaliseClient({ data }: Props) {
             Além da posição
           </div>
           <h2 className="tt" style={{ color: "white", marginBottom: 12 }}>
-            Onde você aparece —
+            Onde você aparece
             <br />
             <em style={{ color: "#2DD4BF" }}>e onde não aparece</em>
           </h2>
@@ -646,7 +646,7 @@ export function AnaliseClient({ data }: Props) {
               <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "white", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
                 <div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Perfil inativo — sem postagens e sem fotos recentes</h4>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Perfil inativo: sem postagens e sem fotos recentes</h4>
                   <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>O Google interpreta isso como perfil abandonado e reduz a visibilidade automaticamente. É o principal motivo da nota {d.score}/100.</p>
                 </div>
               </div>
@@ -670,35 +670,38 @@ export function AnaliseClient({ data }: Props) {
       </section>
 
       {/* ═══ POR QUE ISSO IMPORTA ═══ */}
-      <section style={{ padding: "80px 24px", background: "#FAF9F6" }}>
-        <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
-          <div className="ey">Para contextualizar</div>
-          <h2 className="tt" style={{ fontSize: "clamp(26px,4.5vw,40px)" }}>
-            Como o Google decide
+      <section style={{ padding: "80px 24px", background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 45%,#0A3A3A 100%)", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
+        <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1 }}>
+          <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
+            <span style={{ display: "inline-block", width: 18, height: 1.5, background: "rgba(45,212,191,0.4)" }} />
+            Para contextualizar
+          </div>
+          <h2 className="tt" style={{ color: "white", fontSize: "clamp(26px,4.5vw,40px)" }}>
+            O que acontece quando alguém
             <br />
-            <em>quem o cliente vê primeiro</em>
+            <em style={{ color: "#2DD4BF" }}>pesquisa na sua região</em>
           </h2>
-          <p className="lead">
-            Quando alguém pesquisa &ldquo;{d.busca_termo}&rdquo;, o Google Meu Negócio mostra os perfis mais completos e ativos primeiro. O cliente decide com quem vai falar ali mesmo — antes de visitar qualquer site.
+          <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
+            Quando alguém pesquisa &ldquo;{d.busca_termo}&rdquo;, os perfis mais completos aparecem primeiro. O cliente decide ali mesmo, sem visitar outro site.
           </p>
 
-          <div className="fade-up" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 40, textAlign: "left" }}>
+          <div className="fade-up por-que-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 40, textAlign: "left" }}>
             {[
               { icon: "👁️", title: "Primeira impressão", text: "Fotos, avaliações e estrelas aparecem antes de qualquer clique. É ali que o cliente decide." },
-              { icon: "⭐", title: "Avaliações são o critério nº 1", text: `O líder tem ${d.lider_aval} avaliações. Você tem ${d.avaliacoes}. O Google entende isso como relevância.` },
-              { icon: "📞", title: "Contato direto", text: "O cliente liga, pede rota ou acessa seu site direto do perfil — sem visitar nenhum outro site." },
+              { icon: "⭐", title: "Volume de avaliações", text: `O líder tem ${d.lider_aval}. Você tem ${d.avaliacoes}. Essa diferença define quem aparece primeiro.` },
+              { icon: "📞", title: "Contato direto", text: "O cliente liga, pede rota ou acessa seu site direto do perfil, sem visitar nenhum outro." },
             ].map((c, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 18, padding: "22px 20px", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 20px rgba(13,74,74,0.07)", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,#157373,#2DD4BF)", borderRadius: "16px 16px 0 0" }} />
+              <div key={i} style={{ background: "rgba(255,255,255,0.06)", borderRadius: 18, padding: "22px 20px", border: "1px solid rgba(255,255,255,0.12)" }}>
                 <div style={{ fontSize: 24, marginBottom: 10 }}>{c.icon}</div>
-                <h4 style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 5, lineHeight: 1.3 }}>{c.title}</h4>
-                <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.55 }}>{c.text}</p>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 5, lineHeight: 1.3 }}>{c.title}</h4>
+                <p style={{ fontSize: 12, color: "rgba(245,240,235,0.6)", lineHeight: 1.55 }}>{c.text}</p>
               </div>
             ))}
           </div>
 
           {/* Stat destaque */}
-          <div className="fade-up" style={{ display: "flex", alignItems: "center", gap: 20, background: "#0D4A4A", borderRadius: 20, padding: "20px 28px", boxShadow: "0 4px 20px rgba(13,74,74,0.2)" }}>
+          <div className="fade-up" style={{ display: "flex", alignItems: "center", gap: 20, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "20px 28px" }}>
             <span data-count="72" data-suffix="%" data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#FAF9F6", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const }}>0%</span>
             <div style={{ textAlign: "left" as const }}>
               <p style={{ fontSize: 15, fontWeight: 700, color: "#FAF9F6", marginBottom: 3 }}>dos clientes escolhem entre os 3 primeiros resultados</p>
