@@ -313,22 +313,62 @@ export function AnaliseClient({ data }: Props) {
         </div>
       </section>
 
-      {/* ═══ SEÇÃO 3: RANKING ═══ */}
+      {/* ═══ SEÇÃO 3: COMO FUNCIONA + RANKING ═══ */}
       <section style={{ padding: "72px 24px", background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 45%,#0A3A3A 100%)", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
         <div style={{ maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
             <span style={{ display: "inline-block", width: 18, height: 1.5, background: "rgba(45,212,191,0.4)" }} />
-            Entenda a posição {d.posicao}ª
+            Como funciona a busca local
           </div>
-          <h2 className="tt" style={{ color: "white" }}>
-            O principal fator que define
+          <h2 className="tt" style={{ color: "white", fontSize: "clamp(26px,4.5vw,40px)" }}>
+            O que acontece quando alguém
             <br />
-            <em style={{ color: "#2DD4BF" }}>quem aparece primeiro</em>
+            <em style={{ color: "#2DD4BF" }}>pesquisa na sua região</em>
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
-            Avaliações são o fator nº 1 no ranking local. Veja a diferença entre quem lidera e a sua posição atual em {d.cidade}:
+            Quando alguém pesquisa &ldquo;{d.busca_termo}&rdquo;, os perfis mais completos aparecem primeiro. O cliente decide ali mesmo, sem visitar outro site.
           </p>
+
+          {/* 3 info cards */}
+          <div className="fade-up por-que-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 24, textAlign: "left" }}>
+            {[
+              { icon: "👁️", title: "Primeira impressão", text: "Fotos, avaliações e estrelas aparecem antes de qualquer clique. É ali que o cliente decide." },
+              { icon: "⭐", title: "Volume de avaliações", text: `O líder tem ${d.lider_aval}. Você tem ${d.avaliacoes}. Essa diferença define quem aparece primeiro.` },
+              { icon: "📞", title: "Contato direto", text: "O cliente liga, pede rota ou acessa seu site direto do perfil, sem visitar nenhum outro." },
+            ].map((c, i) => (
+              <div key={i} style={{ background: "rgba(255,255,255,0.06)", borderRadius: 18, padding: "22px 20px", border: "1px solid rgba(255,255,255,0.12)" }}>
+                <div style={{ fontSize: 24, marginBottom: 10 }}>{c.icon}</div>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 5, lineHeight: 1.3 }}>{c.title}</h4>
+                <p style={{ fontSize: 12, color: "rgba(245,240,235,0.6)", lineHeight: 1.55 }}>{c.text}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* 72% stat */}
+          <div className="fade-up" style={{ display: "flex", alignItems: "center", gap: 20, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "20px 28px", marginBottom: 56 }}>
+            <span data-count="72" data-suffix="%" data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#FAF9F6", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const }}>0%</span>
+            <div style={{ textAlign: "left" as const }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#FAF9F6", marginBottom: 3 }}>dos clientes escolhem entre os 3 primeiros resultados</p>
+              <p style={{ fontSize: 12, color: "rgba(245,240,235,0.5)", lineHeight: 1.5 }}>Na posição {d.posicao}ª, seu perfil fica fora dessa faixa de decisão.</p>
+            </div>
+          </div>
+
+          {/* Transição para ranking */}
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 56, marginBottom: 0 }}>
+            <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
+              <span style={{ display: "inline-block", width: 18, height: 1.5, background: "rgba(45,212,191,0.4)" }} />
+              Sua posição hoje
+            </div>
+            <h2 className="tt" style={{ color: "white" }}>
+              Avaliações definem
+              <br />
+              <em style={{ color: "#2DD4BF" }}>quem aparece primeiro</em>
+            </h2>
+            <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
+              Avaliações são o fator nº 1 no ranking local. Veja a diferença entre quem lidera e a sua posição atual em {d.cidade}:
+            </p>
+          </div>
 
           {/* Ranking Chart */}
           <div className="fade-up" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, overflow: "hidden", marginBottom: 24, textAlign: "left" }}>
@@ -370,7 +410,7 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* Context cards */}
-          <div className="fade-up ranking-context-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 52, textAlign: "left" }}>
+          <div className="fade-up ranking-context-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 0, textAlign: "left" }}>
             <div style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 18, padding: "20px 22px" }}>
               <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(45,212,191,0.75)", marginBottom: 8 }}>Sua situação atual</p>
               <p style={{ fontSize: 13, color: "rgba(245,240,235,0.6)", lineHeight: 1.6 }}>Com {d.avaliacoes} avaliações, você está {(d.ranking[0]?.aval || 0) - parseInt(d.avaliacoes)} avaliações atrás do líder. Essa distância se reflete diretamente na posição.</p>
@@ -381,279 +421,240 @@ export function AnaliseClient({ data }: Props) {
             </div>
           </div>
 
-        </div>
-      </section>
+          {/* ═══ DIAGNÓSTICO (integrado na seção escura) ═══ */}
+          <div id="diagnostico" style={{ marginTop: 72, paddingTop: 56, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
+              <span style={{ display: "inline-block", width: 18, height: 1.5, background: "rgba(45,212,191,0.4)" }} />
+              Diagnóstico do perfil
+            </div>
+            <h2 className="tt" style={{ color: "white" }}>
+              O <em style={{ color: "#2DD4BF" }}>porquê</em> de cada
+              <br />
+              resultado acima
+            </h2>
+            <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
+              Já vimos onde você aparece e qual sua posição. Abaixo, detalhamos item por item do seu perfil — o que está funcionando e o que precisa de atenção para subir no ranking.
+            </p>
 
-      {/* ═══ SEÇÃO 4: DIAGNÓSTICO ═══ */}
-      <section id="diagnostico" style={{ padding: "96px 24px 104px", background: "#FAF9F6", position: "relative", overflow: "hidden" }}>
-        <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <div className="ey">Diagnóstico do perfil</div>
-          <h2 className="tt">
-            Agora, o <em>porquê</em>
-            <br />
-            de cada resultado acima
-          </h2>
-          <p className="lead">
-            Já vimos onde você aparece e qual sua posição. Abaixo, detalhamos item por item do seu perfil — o que está funcionando e o que precisa de atenção para subir no ranking.
-          </p>
-
-          {/* Score Gauge */}
-          <div className="fade-up" style={{ background: "white", borderRadius: 20, padding: 32, border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 20px rgba(13,74,74,0.07)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32 }}>
-            <div style={{ position: "relative", width: 120, height: 120, flexShrink: 0 }}>
-              <svg width="120" height="120" style={{ transform: "rotate(-90deg)" }}>
-                <defs>
-                  <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style={{ stopColor: "#D97706" }} />
-                    <stop offset="100%" style={{ stopColor: "#F59E0B" }} />
-                  </linearGradient>
-                </defs>
-                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(13,74,74,0.08)" strokeWidth="10" />
-                <circle
-                  className="score-gauge-fill"
-                  cx="60"
-                  cy="60"
-                  r="50"
-                  fill="none"
-                  stroke="url(#scoreGrad)"
-                  strokeWidth="10"
-                  strokeLinecap="round"
-                  strokeDasharray="314"
-                  strokeDashoffset="314"
-                  data-target-offset={gaugeOffset}
-                />
-              </svg>
-              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 32, fontWeight: 700, color: "#111827", lineHeight: 1 }}>{d.score}</span>
-                <span style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 600, marginTop: 2 }}>de 100</span>
+            {/* Score Gauge */}
+            <div className="fade-up" style={{ background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: 32, border: "1px solid rgba(255,255,255,0.12)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32 }}>
+              <div style={{ position: "relative", width: 120, height: 120, flexShrink: 0 }}>
+                <svg width="120" height="120" style={{ transform: "rotate(-90deg)" }}>
+                  <defs>
+                    <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" style={{ stopColor: "#D97706" }} />
+                      <stop offset="100%" style={{ stopColor: "#F59E0B" }} />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="10" />
+                  <circle
+                    className="score-gauge-fill"
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    fill="none"
+                    stroke="url(#scoreGrad)"
+                    strokeWidth="10"
+                    strokeLinecap="round"
+                    strokeDasharray="314"
+                    strokeDashoffset="314"
+                    data-target-offset={gaugeOffset}
+                  />
+                </svg>
+                <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 32, fontWeight: 700, color: "white", lineHeight: 1 }}>{d.score}</span>
+                  <span style={{ fontSize: 10, color: "rgba(245,240,235,0.45)", fontWeight: 600, marginTop: 2 }}>de 100</span>
+                </div>
               </div>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#FEF3C7", color: "#C97A06", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 20, marginBottom: 6 }}>
-                ⚡ Razoável · Abaixo do potencial
-              </div>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 4 }}>Pontuação geral do perfil</h3>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.55 }}>
-                Alguns itens básicos estão preenchidos, mas faltam configurações estratégicas que fariam o Google mostrar você antes dos concorrentes.
-              </p>
-            </div>
-          </div>
-
-          {/* Checklist: Exists */}
-          <div className="fade-up" style={{ background: "white", borderRadius: 20, border: "1.5px solid rgba(13,74,74,0.15)", overflow: "hidden", marginBottom: 24 }}>
-            <div style={{ padding: "12px 18px", background: "rgba(21,115,115,0.07)", borderBottom: "1.5px solid rgba(13,74,74,0.08)", display: "flex", alignItems: "center", gap: 8 }}>
-              <span>ℹ️</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#157373", textTransform: "uppercase", letterSpacing: "0.1em" }}>Preenchidos · requerem gestão contínua</span>
-            </div>
-            <div style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 0 }}>
-              {[
-                { item: "Horário de funcionamento", note: "precisa ser atualizado em feriados e datas especiais", badge: "Existe", color: "#157373", bg: "rgba(21,115,115,0.08)" },
-                { item: `Quantidade de avaliações`, note: `${d.avaliacoes} avaliações, volume abaixo da média do segmento`, badge: "Existe", color: "#157373", bg: "rgba(21,115,115,0.08)" },
-                { item: "Imagem do logotipo", note: "presente, mas sem atualização recente de fotos", badge: "Existe", color: "#157373", bg: "rgba(21,115,115,0.08)" },
-                { item: "Nome, telefone e website", note: "configurados corretamente", badge: "✓ Ok", color: "#15803D", bg: "#DCFCE7" },
-              ].map((row, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < 3 ? "1px solid rgba(13,74,74,0.05)" : "none" }}>
-                  <div>
-                    <span style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>{row.item}</span>
-                    <span style={{ fontSize: 11, color: "#9CA3AF", marginLeft: 8 }}>· {row.note}</span>
-                  </div>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: row.color, background: row.bg, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>{row.badge}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Critical Gaps */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#C0392B" }}>Lacunas críticas</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(192,57,43,0.15)" }} />
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {[
-                { title: "Postagens no perfil", text: "Nenhuma postagem publicada. O Google prioriza perfis ativos com publicações regulares — postagens, ofertas e novidades." },
-                { title: "Fotos recentes do proprietário", text: "Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas aumentam o interesse dos clientes e a confiança no perfil." },
-                { title: "Fotos 360°", text: "Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem o dobro de interesse dos clientes segundo o Google." },
-              ].map((gap, i) => (
-                <div key={i} className="fade-up" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "white", borderRadius: 20, border: "2px solid rgba(192,57,43,0.15)", boxShadow: "0 4px 20px rgba(192,57,43,0.06)", position: "relative", overflow: "hidden" }}>
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
-                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#FEE2E2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#C0392B", flexShrink: 0, marginTop: 1 }}>✗</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                      <strong style={{ fontSize: 14, color: "#111827" }}>{gap.title}</strong>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "2px 9px", borderRadius: 20 }}>Não preenchido</span>
-                    </div>
-                    <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>{gap.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Improvement Points */}
-          <div style={{ marginBottom: 32 }}>
-            <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#C97A06" }}>Pontos de melhoria</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(201,122,6,0.15)" }} />
-            </div>
-            <div className="improve-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-              {[
-                { title: "Média de avaliações", score: "50%", text: `${d.estrelas}★ atual. Média do segmento: ${d.estrelas_media_seg}★. Precisa melhorar para competir.` },
-                { title: "Avaliações sem resposta", score: "50%", text: `${d.avaliacoes_sr} avaliações sem resposta do proprietário. Responder aumenta credibilidade e ranking.` },
-                { title: "Avaliações sem comentário", score: "50%", text: `${d.avaliacoes_sc} avaliações sem texto. Avaliações com texto detalhado fazem o Google mostrar seu perfil para mais pessoas.` },
-                { title: "Vídeos no perfil", score: "50%", text: "Nenhum vídeo adicionado. Vídeos curtos aumentam o tempo de visualização e a interação dos clientes com o perfil." },
-              ].map((item, i) => (
-                <div key={i} className="fade-up" style={{ padding: "18px 20px", background: "white", borderRadius: 20, border: "1.5px solid rgba(201,122,6,0.2)", boxShadow: "0 2px 12px rgba(201,122,6,0.05)", position: "relative", overflow: "hidden" }}>
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 7 }}>
-                    <strong style={{ fontSize: 13, color: "#111827", lineHeight: 1.3, flex: 1 }}>{item.title}</strong>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap", marginLeft: 8 }}>{item.score}</span>
-                  </div>
-                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{item.text}</p>
-                </div>
-              ))}
-            </div>
-            {/* Description full-width */}
-            <div className="fade-up" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 22px", background: "white", borderRadius: 20, border: "1.5px solid rgba(201,122,6,0.15)", boxShadow: "0 2px 12px rgba(201,122,6,0.05)", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,#C97A06,#F59E0B)", borderRadius: "16px 16px 0 0" }} />
-              <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#FEF3C7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#C97A06", flexShrink: 0, marginTop: 1 }}>!</div>
               <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                  <strong style={{ fontSize: 14, color: "#111827" }}>Descrição do negócio</strong>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 9px", borderRadius: 20 }}>Nota 70%</span>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(201,122,6,0.2)", color: "#F59E0B", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 20, marginBottom: 6 }}>
+                  ⚡ Razoável · Abaixo do potencial
                 </div>
-                <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>
-                  Descrição atual: {d.descricao_chars} caracteres. Mínimo recomendado: 125. Use palavras-chave do segmento e da região para o Google entender seu negócio.
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "white", marginBottom: 4 }}>Pontuação geral do perfil</h3>
+                <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.55 }}>
+                  Alguns itens básicos estão preenchidos, mas faltam configurações estratégicas que fariam o Google mostrar você antes dos concorrentes.
                 </p>
               </div>
             </div>
-          </div>
 
-          {/* Compare: Você vs. Concorrente */}
-          <div className="ey">Comparação direta</div>
-          <h2 className="tt">
-            Na prática, é isso
-            <br />
-            <em>que o cliente vê</em>
-          </h2>
-          <p className="lead">
-            Todas essas lacunas ficam claras quando colocamos seu perfil ao lado de um concorrente da mesma região — {d.concorrente_nome}, que aparece no {d.concorrente_pos}:
-          </p>
-
-          <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 20px rgba(13,74,74,0.07)", marginBottom: 24 }}>
-            {/* Headers */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(13,74,74,0.08)" }}>
-              <div style={{ background: "#FEE2E2", padding: "14px 20px" }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#C0392B", marginBottom: 2 }}>⚠️ Você · {d.nome_linha1}</p>
-                <p style={{ fontSize: 10, color: "#9CA3AF" }}>Matriz · {d.cidade}, {d.estado.split(",")[1]?.trim() || "SP"}</p>
+            {/* Checklist: Exists */}
+            <div className="fade-up" style={{ background: "rgba(255,255,255,0.06)", borderRadius: 20, border: "1px solid rgba(255,255,255,0.12)", overflow: "hidden", marginBottom: 24 }}>
+              <div style={{ padding: "12px 18px", background: "rgba(45,212,191,0.08)", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", gap: 8 }}>
+                <span>ℹ️</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(45,212,191,0.85)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Preenchidos · requerem gestão contínua</span>
               </div>
-              <div style={{ background: "#DCFCE7", padding: "14px 20px" }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#15803D", marginBottom: 2 }}>✓ Concorrente direto</p>
-                <p style={{ fontSize: 10, color: "#9CA3AF" }}>{d.concorrente_nome.split(" ").slice(0, 2).join(" ")} · mesma região</p>
-              </div>
-            </div>
-            {/* Rows */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(13,74,74,0.06)" }}>
-              <div style={{ background: "white", padding: "0 20px" }}>
+              <div style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 0 }}>
                 {[
-                  { label: "Avaliações", val: d.avaliacoes, color: "#C0392B" },
-                  { label: "Média ★", val: d.estrelas, color: "#C0392B" },
-                  { label: "Categorias", val: "1 de 3", color: "#C97A06" },
-                  { label: "Postagens", val: "Inativo", color: "#C0392B" },
-                  { label: "Posição", val: `${d.posicao}ª de ${d.posicao_total}`, color: "#C0392B" },
+                  { item: "Horário de funcionamento", note: "precisa ser atualizado em feriados e datas especiais", badge: "Existe", color: "#2DD4BF", bg: "rgba(45,212,191,0.12)" },
+                  { item: `Quantidade de avaliações`, note: `${d.avaliacoes} avaliações, volume abaixo da média do segmento`, badge: "Existe", color: "#2DD4BF", bg: "rgba(45,212,191,0.12)" },
+                  { item: "Imagem do logotipo", note: "presente, mas sem atualização recente de fotos", badge: "Existe", color: "#2DD4BF", bg: "rgba(45,212,191,0.12)" },
+                  { item: "Nome, telefone e website", note: "configurados corretamente", badge: "✓ Ok", color: "#34D399", bg: "rgba(52,211,153,0.15)" },
                 ].map((row, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(13,74,74,0.05)" : "none", fontSize: 11.5 }}>
-                    <span style={{ color: "#6B7280" }}>{row.label}</span>
-                    <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ background: "white", padding: "0 20px" }}>
-                {[
-                  { label: "Avaliações", val: d.concorrente_aval, color: "#15803D" },
-                  { label: "Média ★", val: d.concorrente_stars, color: "#15803D" },
-                  { label: "Categorias", val: "3 ativas", color: "#15803D" },
-                  { label: "Postagens", val: "Ativo", color: "#15803D" },
-                  { label: "Posição", val: d.concorrente_pos, color: "#15803D" },
-                ].map((row, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(13,74,74,0.05)" : "none", fontSize: 11.5 }}>
-                    <span style={{ color: "#6B7280" }}>{row.label}</span>
-                    <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                    <div>
+                      <span style={{ fontSize: 13, color: "rgba(245,240,235,0.85)", fontWeight: 500 }}>{row.item}</span>
+                      <span style={{ fontSize: 11, color: "rgba(245,240,235,0.4)", marginLeft: 8 }}>· {row.note}</span>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: row.color, background: row.bg, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>{row.badge}</span>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
 
-          {/* Summary: key takeaways */}
-          <div style={{ marginTop: 32, marginBottom: 0 }}>
-            <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#374151" }}>Resumo da análise</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(17,24,39,0.1)" }} />
-            </div>
-            <div className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "white", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
-                <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
-                <div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Perfil inativo: sem postagens e sem fotos recentes</h4>
-                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>O Google interpreta isso como perfil abandonado e reduz a visibilidade automaticamente. É o principal motivo da nota {d.score}/100.</p>
-                </div>
+            {/* Critical Gaps */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#FF8080" }}>Lacunas críticas</span>
+                <div style={{ flex: 1, height: 1, background: "rgba(255,128,128,0.2)" }} />
               </div>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "white", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
-                <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
-                <div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Volume de avaliações muito abaixo do necessário</h4>
-                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{d.avaliacoes} avaliações contra {d.concorrente_aval} do concorrente direto e {d.lider_aval} do líder. Isso explica a posição {d.posicao}ª no ranking.</p>
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "white", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C97A06", boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}>
-                <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🟡</span>
-                <div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Média de estrelas abaixo do segmento</h4>
-                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{d.estrelas}★ contra {d.estrelas_media_seg}★ da média. Combinado com {d.avaliacoes_sr} avaliações sem resposta, passa uma impressão de descuido para quem pesquisa.</p>
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {[
+                  { title: "Postagens no perfil", text: "Nenhuma postagem publicada. O Google prioriza perfis ativos com publicações regulares — postagens, ofertas e novidades." },
+                  { title: "Fotos recentes do proprietário", text: "Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas aumentam o interesse dos clientes e a confiança no perfil." },
+                  { title: "Fotos 360°", text: "Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem o dobro de interesse dos clientes segundo o Google." },
+                ].map((gap, i) => (
+                  <div key={i} className="fade-up" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "rgba(192,57,43,0.08)", borderRadius: 20, border: "1px solid rgba(192,57,43,0.25)", position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(192,57,43,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#FF8080", flexShrink: 0, marginTop: 1 }}>✗</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                        <strong style={{ fontSize: 14, color: "white" }}>{gap.title}</strong>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: "#FF8080", background: "rgba(192,57,43,0.2)", padding: "2px 9px", borderRadius: 20 }}>Não preenchido</span>
+                      </div>
+                      <p style={{ fontSize: 13, color: "rgba(245,240,235,0.55)", lineHeight: 1.55 }}>{gap.text}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ═══ POR QUE ISSO IMPORTA ═══ */}
-      <section style={{ padding: "80px 24px", background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 45%,#0A3A3A 100%)", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
-        <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1 }}>
-          <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
-            <span style={{ display: "inline-block", width: 18, height: 1.5, background: "rgba(45,212,191,0.4)" }} />
-            Para contextualizar
-          </div>
-          <h2 className="tt" style={{ color: "white", fontSize: "clamp(26px,4.5vw,40px)" }}>
-            O que acontece quando alguém
-            <br />
-            <em style={{ color: "#2DD4BF" }}>pesquisa na sua região</em>
-          </h2>
-          <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
-            Quando alguém pesquisa &ldquo;{d.busca_termo}&rdquo;, os perfis mais completos aparecem primeiro. O cliente decide ali mesmo, sem visitar outro site.
-          </p>
-
-          <div className="fade-up por-que-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 40, textAlign: "left" }}>
-            {[
-              { icon: "👁️", title: "Primeira impressão", text: "Fotos, avaliações e estrelas aparecem antes de qualquer clique. É ali que o cliente decide." },
-              { icon: "⭐", title: "Volume de avaliações", text: `O líder tem ${d.lider_aval}. Você tem ${d.avaliacoes}. Essa diferença define quem aparece primeiro.` },
-              { icon: "📞", title: "Contato direto", text: "O cliente liga, pede rota ou acessa seu site direto do perfil, sem visitar nenhum outro." },
-            ].map((c, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.06)", borderRadius: 18, padding: "22px 20px", border: "1px solid rgba(255,255,255,0.12)" }}>
-                <div style={{ fontSize: 24, marginBottom: 10 }}>{c.icon}</div>
-                <h4 style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 5, lineHeight: 1.3 }}>{c.title}</h4>
-                <p style={{ fontSize: 12, color: "rgba(245,240,235,0.6)", lineHeight: 1.55 }}>{c.text}</p>
+            {/* Improvement Points */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#F59E0B" }}>Pontos de melhoria</span>
+                <div style={{ flex: 1, height: 1, background: "rgba(245,158,11,0.2)" }} />
               </div>
-            ))}
-          </div>
+              <div className="improve-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                {[
+                  { title: "Média de avaliações", score: "50%", text: `${d.estrelas}★ atual. Média do segmento: ${d.estrelas_media_seg}★. Precisa melhorar para competir.` },
+                  { title: "Avaliações sem resposta", score: "50%", text: `${d.avaliacoes_sr} avaliações sem resposta do proprietário. Responder aumenta credibilidade e ranking.` },
+                  { title: "Avaliações sem comentário", score: "50%", text: `${d.avaliacoes_sc} avaliações sem texto. Avaliações com texto detalhado fazem o Google mostrar seu perfil para mais pessoas.` },
+                  { title: "Vídeos no perfil", score: "50%", text: "Nenhum vídeo adicionado. Vídeos curtos aumentam o tempo de visualização e a interação dos clientes com o perfil." },
+                ].map((item, i) => (
+                  <div key={i} className="fade-up" style={{ padding: "18px 20px", background: "rgba(201,122,6,0.08)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.25)", position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 7 }}>
+                      <strong style={{ fontSize: 13, color: "white", lineHeight: 1.3, flex: 1 }}>{item.title}</strong>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B", background: "rgba(201,122,6,0.2)", padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap", marginLeft: 8 }}>{item.score}</span>
+                    </div>
+                    <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>{item.text}</p>
+                  </div>
+                ))}
+              </div>
+              {/* Description full-width */}
+              <div className="fade-up" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 22px", background: "rgba(201,122,6,0.08)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,#C97A06,#F59E0B)", borderRadius: "16px 16px 0 0" }} />
+                <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(201,122,6,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#F59E0B", flexShrink: 0, marginTop: 1 }}>!</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                    <strong style={{ fontSize: 14, color: "white" }}>Descrição do negócio</strong>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B", background: "rgba(201,122,6,0.2)", padding: "2px 9px", borderRadius: 20 }}>Nota 70%</span>
+                  </div>
+                  <p style={{ fontSize: 13, color: "rgba(245,240,235,0.55)", lineHeight: 1.55 }}>
+                    Descrição atual: {d.descricao_chars} caracteres. Mínimo recomendado: 125. Use palavras-chave do segmento e da região para o Google entender seu negócio.
+                  </p>
+                </div>
+              </div>
+            </div>
 
-          {/* Stat destaque */}
-          <div className="fade-up" style={{ display: "flex", alignItems: "center", gap: 20, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "20px 28px" }}>
-            <span data-count="72" data-suffix="%" data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#FAF9F6", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const }}>0%</span>
-            <div style={{ textAlign: "left" as const }}>
-              <p style={{ fontSize: 15, fontWeight: 700, color: "#FAF9F6", marginBottom: 3 }}>dos clientes escolhem entre os 3 primeiros resultados</p>
-              <p style={{ fontSize: 12, color: "rgba(245,240,235,0.5)", lineHeight: 1.5 }}>Na posição {d.posicao}ª, seu perfil fica fora dessa faixa de decisão.</p>
+            {/* Compare: Você vs. Concorrente */}
+            <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
+              <span style={{ display: "inline-block", width: 18, height: 1.5, background: "rgba(45,212,191,0.4)" }} />
+              Comparação direta
+            </div>
+            <h2 className="tt" style={{ color: "white" }}>
+              Na prática, é isso
+              <br />
+              <em style={{ color: "#2DD4BF" }}>que o cliente vê</em>
+            </h2>
+            <p className="lead" style={{ color: "rgba(245,240,235,0.6)" }}>
+              Todas essas lacunas ficam claras quando colocamos seu perfil ao lado de um concorrente da mesma região — {d.concorrente_nome}, que aparece no {d.concorrente_pos}:
+            </p>
+
+            <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(255,255,255,0.12)", marginBottom: 24 }}>
+              {/* Headers */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(255,255,255,0.06)" }}>
+                <div style={{ background: "rgba(192,57,43,0.15)", padding: "14px 20px" }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: "#FF8080", marginBottom: 2 }}>⚠️ Você · {d.nome_linha1}</p>
+                  <p style={{ fontSize: 10, color: "rgba(245,240,235,0.4)" }}>Matriz · {d.cidade}, {d.estado.split(",")[1]?.trim() || "SP"}</p>
+                </div>
+                <div style={{ background: "rgba(52,211,153,0.12)", padding: "14px 20px" }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: "#34D399", marginBottom: 2 }}>✓ Concorrente direto</p>
+                  <p style={{ fontSize: 10, color: "rgba(245,240,235,0.4)" }}>{d.concorrente_nome.split(" ").slice(0, 2).join(" ")} · mesma região</p>
+                </div>
+              </div>
+              {/* Rows */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "rgba(255,255,255,0.04)" }}>
+                <div style={{ background: "rgba(255,255,255,0.04)", padding: "0 20px" }}>
+                  {[
+                    { label: "Avaliações", val: d.avaliacoes, color: "#FF8080" },
+                    { label: "Média ★", val: d.estrelas, color: "#FF8080" },
+                    { label: "Categorias", val: "1 de 3", color: "#F59E0B" },
+                    { label: "Postagens", val: "Inativo", color: "#FF8080" },
+                    { label: "Posição", val: `${d.posicao}ª de ${d.posicao_total}`, color: "#FF8080" },
+                  ].map((row, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.06)" : "none", fontSize: 11.5 }}>
+                      <span style={{ color: "rgba(245,240,235,0.5)" }}>{row.label}</span>
+                      <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ background: "rgba(255,255,255,0.04)", padding: "0 20px" }}>
+                  {[
+                    { label: "Avaliações", val: d.concorrente_aval, color: "#34D399" },
+                    { label: "Média ★", val: d.concorrente_stars, color: "#34D399" },
+                    { label: "Categorias", val: "3 ativas", color: "#34D399" },
+                    { label: "Postagens", val: "Ativo", color: "#34D399" },
+                    { label: "Posição", val: d.concorrente_pos, color: "#34D399" },
+                  ].map((row, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.06)" : "none", fontSize: 11.5 }}>
+                      <span style={{ color: "rgba(245,240,235,0.5)" }}>{row.label}</span>
+                      <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Summary: key takeaways */}
+            <div style={{ marginTop: 32, marginBottom: 0 }}>
+              <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(245,240,235,0.5)" }}>Resumo da análise</span>
+                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
+              </div>
+              <div className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(192,57,43,0.1)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B" }}>
+                  <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
+                  <div>
+                    <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Perfil inativo: sem postagens e sem fotos recentes</h4>
+                    <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>O Google interpreta isso como perfil abandonado e reduz a visibilidade automaticamente. É o principal motivo da nota {d.score}/100.</p>
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(192,57,43,0.1)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B" }}>
+                  <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
+                  <div>
+                    <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Volume de avaliações muito abaixo do necessário</h4>
+                    <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>{d.avaliacoes} avaliações contra {d.concorrente_aval} do concorrente direto e {d.lider_aval} do líder. Isso explica a posição {d.posicao}ª no ranking.</p>
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(201,122,6,0.1)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C97A06" }}>
+                  <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🟡</span>
+                  <div>
+                    <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Média de estrelas abaixo do segmento</h4>
+                    <p style={{ fontSize: 12, color: "rgba(245,240,235,0.55)", lineHeight: 1.5 }}>{d.estrelas}★ contra {d.estrelas_media_seg}★ da média. Combinado com {d.avaliacoes_sr} avaliações sem resposta, passa uma impressão de descuido para quem pesquisa.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
