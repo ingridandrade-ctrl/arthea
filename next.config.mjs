@@ -61,8 +61,14 @@ const nextConfig = {
           source: "/aulas/arte-da-presenca",
           destination: "/aulas/arte-da-presenca.html",
         },
-        // Subdomínio propostagmb.arthea.com.br serve a proposta comercial
-        // estática de Google Meu Negócio em public/propostas/gmb.html na raiz.
+        // Subdomínio da proposta comercial de Google Meu Negócio serve
+        // public/propostas/gmb.html na raiz. Cobre as duas grafias:
+        // propostagmn (sigla PT — Google Meu Negócio) e propostagmb (sigla EN).
+        {
+          source: "/",
+          has: [{ type: "host", value: "propostagmn.arthea.com.br" }],
+          destination: "/propostas/gmb.html",
+        },
         {
           source: "/",
           has: [{ type: "host", value: "propostagmb.arthea.com.br" }],
