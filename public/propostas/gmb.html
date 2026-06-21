@@ -84,9 +84,18 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 }
 
 .hero-kicker{
+  display:inline-flex;align-items:center;gap:8px;
   font-size:11px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.28em;color:rgba(45,212,191,.7);
-  margin-bottom:16px;
+  letter-spacing:.18em;color:#2DD4BF;
+  background:rgba(45,212,191,.08);
+  border:1px solid rgba(45,212,191,.25);
+  padding:8px 16px;border-radius:50px;
+  margin-bottom:22px;
+}
+.hero-kicker::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:#2DD4BF;box-shadow:0 0 0 3px rgba(45,212,191,.18);
+  flex-shrink:0;
 }
 
 .hero h1{
@@ -188,7 +197,9 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 .h2-light em{color:#2DD4BF;}
 
 .lead{font-size:16px;font-weight:500;color:#374151;line-height:1.75;max-width:540px;text-wrap:pretty;}
+.lead strong{color:#111827;font-weight:700;}
 .lead-light{color:rgba(245,240,235,.82);font-weight:500;}
+.lead-light strong{color:#fff;font-weight:700;}
 
 /* ════════════════════════════
    PROBLEMA — stats
@@ -549,7 +560,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
     <p class="hero-kicker reveal">Gestão de Google Meu Negócio</p>
 
     <h1 class="reveal">
-      Sua empresa aparece<br>quando alguém pesquisa<br>
+      Quer sua empresa aparecendo estrategicamente
       <em class="display">no Google?</em>
     </h1>
 
@@ -572,7 +583,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 <section class="sec">
   <div class="container-sm" style="text-align:center;">
     <h2 class="h2 reveal">82% dos clientes pesquisam online <br class="brk"><em>antes de qualquer contato.</em></h2>
-    <p class="lead reveal" style="margin:0 auto 48px;">Os 3 primeiros perfis do Google Maps concentram quase todos os cliques. Quem está abaixo raramente é encontrado, independente de quanto tempo está no mercado ou da qualidade do serviço.</p>
+    <p class="lead reveal" style="margin:0 auto 48px;">E <strong>quase todos os cliques</strong> de uma pesquisa vão para os <strong>3 primeiros perfis</strong> do Google Meu Negócio. A empresa que está abaixo <strong>raramente é encontrada</strong>, independente de quanto tempo está no mercado ou da qualidade do serviço.</p>
   </div>
 
   <div class="container">
@@ -620,7 +631,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
     <div class="container-sm" style="text-align:center;">
       <div class="ey ey-light reveal" style="justify-content:center;">Como funciona</div>
       <h2 class="h2 h2-light reveal">Dois passos para o seu perfil <br class="brk"><em>trabalhar por você.</em></h2>
-      <p class="lead lead-light reveal" style="margin:0 auto;max-width:520px;">Primeiro a Arthea estrutura o perfil do zero com estratégia. Depois mantém tudo ativo, mês a mês, para o Google continuar reconhecendo e recomendando você.</p>
+      <p class="lead lead-light reveal" style="margin:0 auto;max-width:520px;">Primeiro a Arthea <strong>estrutura o perfil do zero</strong> com estratégia. Depois <strong>mantém tudo ativo, mês a mês</strong>, para o Google continuar <strong>reconhecendo e recomendando você</strong>.</p>
     </div>
 
     <div class="container-sm" style="margin-top:48px;">
