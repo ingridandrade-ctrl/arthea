@@ -79,18 +79,17 @@ export function AnaliseClient({ data }: Props) {
 
           {/* Título principal */}
           <h2 style={{
-            fontFamily: "'Playfair Display', serif",
             fontSize: "clamp(28px,5.5vw,44px)",
             fontWeight: 700,
-            lineHeight: 1.2,
+            lineHeight: 1.15,
             letterSpacing: "-0.02em",
-            marginBottom: 12,
+            marginBottom: 14,
             textAlign: "center",
+            color: "white",
           }}>
-            <span style={{ color: "rgba(245,240,235,0.95)" }}>Análise exclusiva do seu</span>
+            Seu negócio no Google,
             <br />
-            <span style={{ color: "rgba(245,240,235,0.95)" }}>negócio no </span>
-            <em style={{ color: "#2DD4BF", fontStyle: "italic" }}>Google.</em>
+            <em style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#2DD4BF" }}>analisado em detalhe.</em>
           </h2>
 
           <p style={{ fontSize: 13, color: "rgba(245,240,235,0.4)", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 48 }}>
