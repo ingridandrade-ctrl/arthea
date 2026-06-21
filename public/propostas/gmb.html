@@ -84,13 +84,13 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 }
 
 .hero h1{
-  font-size:clamp(27px,5.5vw,64px);
+  font-size:clamp(30px,5.5vw,64px);
   font-weight:700;color:#fff;
   line-height:1.06;letter-spacing:-.035em;
   margin-bottom:10px;
 }
 .hero h1 .display{
-  display:block;font-size:clamp(31px,6.5vw,76px);
+  display:block;font-size:clamp(34px,6.5vw,76px);
   color:#2DD4BF;line-height:1;
 }
 
@@ -409,11 +409,15 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   .container{padding:0 20px;}
   .container-sm{padding:0 20px;}
   .sec{padding:72px 0;}
-  /* Hero no mobile: menos respiro lateral pro título não quebrar feio
-     e logo proporcionalmente menor. */
-  .hero-body{padding:28px 20px 56px;}
-  .hero-brand{height:112px;}
-  .hero-sub{margin:20px auto 40px;}
+  /* Hero no mobile: sem 100vh (que criava vãos enormes em cima/embaixo
+     ao centralizar um bloco pequeno). Passa a ter altura do conteúdo com
+     respiro controlado; o indicador "Role para ver" é escondido. */
+  .hero{min-height:auto;}
+  .hero-nav{display:none;}
+  .hero-body{padding:52px 22px 60px;justify-content:flex-start;}
+  .hero-brand{height:124px;}
+  .hero-sub{margin:18px auto 0;}
+  .hero-scroll{display:none;}
   /* CTA: logo proporcional e menos respiro lateral. */
   .cta-sec{padding:72px 20px;}
   .cta-logo{margin-top:48px;}
@@ -429,8 +433,8 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 }
 
 @media(max-width:480px){
-  .hero-body{padding:24px 16px 52px;}
-  .hero-brand{height:92px;}
+  .hero-body{padding:44px 18px 52px;}
+  .hero-brand{height:108px;}
   .hero-kicker{font-size:10px;letter-spacing:.16em;}
   .cta-logo img{height:104px;}
 }
