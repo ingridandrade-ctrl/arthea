@@ -383,11 +383,11 @@ export function AnaliseClient({ data }: Props) {
 
           {/* ── GRUPO 1: O QUE JÁ ESTÁ PREENCHIDO ── */}
           <div className="fade-up" style={{ background: "white", borderRadius: 24, border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", overflow: "hidden", marginBottom: 48 }}>
-            <div style={{ padding: "18px 24px", background: "rgba(21,128,61,0.04)", borderBottom: "1px solid rgba(13,74,74,0.08)", display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(21,128,61,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>✓</div>
+            <div style={{ padding: "18px 24px", background: "rgba(21,128,61,0.04)", borderBottom: "1px solid rgba(13,74,74,0.08)", display: "flex", alignItems: "flex-start", gap: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(21,128,61,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0, marginTop: 1 }}>✓</div>
               <div>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#15803D", textTransform: "uppercase", letterSpacing: "0.1em" }}>Já preenchidos</span>
-                <span style={{ fontSize: 11, color: "#9CA3AF", marginLeft: 8 }}>Existem, mas precisam de gestão contínua</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#15803D", display: "block", marginBottom: 3 }}>Já preenchidos</span>
+                <span style={{ fontSize: 13, color: "#9CA3AF", lineHeight: 1.5 }}>Existem, mas precisam de gestão contínua</span>
               </div>
             </div>
             <div style={{ padding: "8px 24px 16px" }}>
