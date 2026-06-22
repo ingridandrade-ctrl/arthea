@@ -112,7 +112,7 @@ export function AnaliseClient({ data }: Props) {
           </p>
 
           {/* Botão CTA */}
-          <a href="#diagnostico" style={{
+          <a href="#analise" style={{
             display: "inline-flex",
             alignItems: "center",
             gap: 12,
@@ -134,7 +134,7 @@ export function AnaliseClient({ data }: Props) {
       </section>
 
       {/* ═══ SEÇÃO 1: IMPACTO REAL ═══ */}
-      <section style={{ padding: "96px 24px 56px", background: "#F7F5F1" }}>
+      <section id="analise" style={{ padding: "96px 24px 56px", background: "#F7F5F1" }}>
         <div className="wrap">
           <div className="ey">O que encontramos</div>
           <h2 className="tt">
