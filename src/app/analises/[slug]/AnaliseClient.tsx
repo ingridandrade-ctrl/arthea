@@ -291,6 +291,47 @@ export function AnaliseClient({ data }: Props) {
         </div>
       </section>
 
+      {/* ═══ COMO FUNCIONA (regra do jogo) ═══ */}
+      <section style={{ padding: "64px 24px 72px", background: "#F7F5F1" }}>
+        <div className="wrap">
+          <div className="ey">A regra do jogo</div>
+          <h2 className="tt">
+            Como o Google decide <em>quem aparece primeiro</em>
+          </h2>
+
+          {/* Mini-fluxo 3 passos */}
+          <div className="fade-up flow-steps" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, margin: "32px auto 36px", maxWidth: 520 }}>
+            {[
+              { icon: "🔎", label: "Cliente pesquisa", delay: 0 },
+              { icon: "📍", label: "Vê os 3 primeiros", delay: 200 },
+              { icon: "👆", label: "Escolhe ali mesmo", delay: 400 },
+            ].map((step, i) => (
+              <div key={i} style={{ display: "contents" }}>
+                <div className="fade-up flow-step" data-delay={step.delay} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, flex: 1 }}>
+                  <div style={{ width: 56, height: 56, borderRadius: 16, background: "linear-gradient(135deg, #0D4A4A, #157373)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, boxShadow: "0 4px 16px rgba(13,74,74,0.2)" }}>
+                    {step.icon}
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", textAlign: "center", lineHeight: 1.3 }}>{step.label}</span>
+                </div>
+                {i < 2 && (
+                  <div className="flow-arrow" style={{ fontSize: 16, color: "#9CA3AF", flexShrink: 0, padding: "0 6px", marginBottom: 20 }}>→</div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* 72% stat */}
+          <div className="fade-up stat-72-wrap" style={{ display: "flex", alignItems: "center", gap: 20, background: "#0D4A4A", borderRadius: 20, padding: "20px 28px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
+            <span data-count="72" data-suffix="%" data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#FAF9F6", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const, position: "relative", zIndex: 1 }}>0%</span>
+            <div style={{ textAlign: "left" as const, position: "relative", zIndex: 1 }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#FAF9F6", marginBottom: 3 }}>escolhem entre os <strong>3 primeiros resultados</strong></p>
+              <p style={{ fontSize: 12, color: "rgba(245,240,235,0.5)", lineHeight: 1.5 }}>Na {d.posicao}ª posição, você fica <strong style={{ color: "rgba(245,240,235,0.7)" }}>fora dessa faixa de decisão</strong>.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ IMPACT QUESTION ═══ */}
       <section style={{ padding: "0 24px 96px", background: "#F7F5F1" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
@@ -543,43 +584,9 @@ export function AnaliseClient({ data }: Props) {
         </div>
       </section>
 
-      {/* ═══ SEÇÃO 4: COMO FUNCIONA + RANKING (fundo claro) ═══ */}
+      {/* ═══ SEÇÃO 4: RANKING (fundo claro) ═══ */}
       <section style={{ padding: "96px 24px 72px", background: "#F7F5F1" }}>
         <div className="wrap">
-          <div className="ey">Como funciona a busca local</div>
-          <h2 className="tt">
-            O que acontece quando alguém <em>pesquisa na sua região</em>
-          </h2>
-          <p className="lead">
-            Quando alguém pesquisa &ldquo;{d.busca_termo}&rdquo;, os <strong>perfis mais completos aparecem primeiro</strong>. O cliente decide ali mesmo, sem visitar outro site.
-          </p>
-
-          {/* 3 info cards */}
-          <div className="fade-up por-que-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 24, textAlign: "left" }}>
-            {[
-              { icon: "👁️", title: "Primeira impressão", text: <>Fotos, avaliações e estrelas aparecem <strong>antes de qualquer clique</strong>. É ali que o cliente decide.</> },
-              { icon: "⭐", title: "Volume de avaliações", text: <>O líder tem <strong>{d.lider_aval}</strong>. Você tem <strong>{d.avaliacoes}</strong>. Essa diferença define quem aparece primeiro.</> },
-              { icon: "📞", title: "Contato direto", text: <>O cliente liga, pede rota ou acessa seu site <strong>direto do perfil</strong>, sem visitar nenhum outro.</> },
-            ].map((c, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 18, padding: "22px 20px", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 24px rgba(13,74,74,0.06)" }}>
-                <div style={{ fontSize: 24, marginBottom: 10 }}>{c.icon}</div>
-                <h4 style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 5, lineHeight: 1.3 }}>{c.title}</h4>
-                <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.55 }}>{c.text}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* 72% stat */}
-          <div className="fade-up stat-72-wrap" style={{ display: "flex", alignItems: "center", gap: 20, background: "#0D4A4A", borderRadius: 20, padding: "20px 28px", marginBottom: 56, position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
-            <span data-count="72" data-suffix="%" data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#FAF9F6", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const, position: "relative", zIndex: 1 }}>0%</span>
-            <div style={{ textAlign: "left" as const, position: "relative", zIndex: 1 }}>
-              <p style={{ fontSize: 15, fontWeight: 700, color: "#FAF9F6", marginBottom: 3 }}>dos clientes escolhem entre os <strong>3 primeiros resultados</strong></p>
-              <p style={{ fontSize: 12, color: "rgba(245,240,235,0.5)", lineHeight: 1.5 }}>Na posição {d.posicao}ª, seu perfil fica <strong style={{ color: "rgba(245,240,235,0.7)" }}>fora dessa faixa de decisão</strong>.</p>
-            </div>
-          </div>
-
-          {/* Sub-section: Ranking */}
           <div className="ey">Sua posição hoje</div>
           <h2 className="tt">
             Avaliações definem <em>quem aparece primeiro</em>

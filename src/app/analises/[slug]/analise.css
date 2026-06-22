@@ -101,6 +101,9 @@ h2.tt em{font-family:'Playfair Display',serif;font-style:italic;font-weight:700;
   .ranking-context-grid{grid-template-columns:1fr!important}
   .por-que-grid{grid-template-columns:1fr!important}
   .pilares-grid{grid-template-columns:1fr!important}
+  .flow-steps{flex-direction:column!important;gap:0!important;max-width:280px!important}
+  .flow-step{flex:none!important}
+  .flow-arrow{transform:rotate(90deg)!important;padding:4px 0!important;margin-bottom:0!important}
   .score-gauge-wrap{flex-direction:column!important;text-align:center;gap:20px!important}
   .score-gauge-wrap>div:last-child{text-align:center}
   .impacto-card{padding:32px 24px!important}
