@@ -735,7 +735,7 @@ export function AnaliseClient({ data }: Props) {
       {/* ═══ FOOTER ═══ */}
       <footer style={{ background: "#082E2E", padding: "28px 32px", textAlign: "center" }}>
         <p style={{ fontSize: 10, color: "rgba(245,240,235,0.4)", letterSpacing: "0.18em", fontWeight: 600 }}>
-          ARTHEA · Dados coletados em {d.data_analise} por ferramenta especializada da agência · Uso exclusivo e confidencial
+          ARTHEA · Dados coletados por ferramenta especializada da agência · Uso exclusivo e confidencial
         </p>
       </footer>
     </div>
