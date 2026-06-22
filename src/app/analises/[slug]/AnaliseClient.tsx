@@ -464,69 +464,119 @@ export function AnaliseClient({ data }: Props) {
             </div>
           </div>
 
-          {/* ── COMPARAÇÃO DIRETA ── */}
-          <div className="ey">
-            Comparação direta
-          </div>
-          <h2 className="tt">
-            Na prática, é isso
-            <br />
-            <em>que o cliente vê</em>
-          </h2>
-          <p className="lead">
-            Todas essas lacunas ficam claras quando colocamos <strong>seu perfil ao lado de um concorrente</strong> da mesma região, {d.concorrente_nome}, que aparece no {d.concorrente_pos}:
-          </p>
+          {/* ── PROVA COMPARATIVA ── */}
+          <div style={{ marginBottom: 48 }}>
+            <div className="ey">Prova comparativa</div>
+            <h2 className="tt">
+              Avaliações e atividade são o <em>fator nº 1</em>
+              <br />no ranking local
+            </h2>
+            <p className="lead">Veja por quê:</p>
 
-          <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", background: "white" }}>
-            {/* Headers */}
-            <div className="cmp-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
-              <div style={{ background: "rgba(192,57,43,0.05)", padding: "16px 22px", borderRight: "1px solid rgba(13,74,74,0.06)" }}>
-                <p style={{ fontSize: 12, fontWeight: 700, color: "#C0392B", marginBottom: 3 }}>⚠️ Você · {d.nome_linha1}</p>
-                <p style={{ fontSize: 11, color: "#9CA3AF" }}>Matriz · {d.cidade}, {d.estado.split(",")[1]?.trim() || "SP"}</p>
+            {/* 📊 Gráfico de ranking — o tamanho da distância */}
+            <div style={{ marginBottom: 36 }}>
+              <div style={{ marginBottom: 14 }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 4 }}>📊 O tamanho da diferença</p>
+                <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>Você tem <strong style={{ color: "#C0392B" }}>{d.avaliacoes}</strong> avaliações. Os líderes passam de <strong style={{ color: "#157373" }}>{d.lider_aval}</strong>.</p>
               </div>
-              <div style={{ background: "rgba(21,128,61,0.04)", padding: "16px 22px" }}>
-                <p style={{ fontSize: 12, fontWeight: 700, color: "#15803D", marginBottom: 3 }}>✓ Concorrente direto</p>
-                <p style={{ fontSize: 11, color: "#9CA3AF" }}>{d.concorrente_nome.split(" ").slice(0, 2).join(" ")} · mesma região</p>
+              <div className="fade-up" style={{ background: "white", border: "1.5px solid rgba(13,74,74,0.1)", borderRadius: 20, overflow: "hidden", textAlign: "left", boxShadow: "0 4px 20px rgba(13,74,74,0.07)" }}>
+                <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(13,74,74,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
+                    {d.segmento === "Escritório de Advocacia" ? "Escritórios de advocacia" : d.segmento} — {d.estado.split(",")[0]}
+                  </h4>
+                  <span style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 600 }}>{d.posicao_total} perfis analisados</span>
+                </div>
+                <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+                  {d.ranking.map((r, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ width: 24, fontSize: 10, fontWeight: 700, color: "#9CA3AF", textAlign: "right", flexShrink: 0 }}>{r.pos}</span>
+                      <span className="ranking-name" style={{ fontSize: 12, width: 130, flexShrink: 0, fontWeight: 600, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.nome}</span>
+                      <div style={{ flex: 1, background: "rgba(13,74,74,0.08)", borderRadius: 4, height: 22, overflow: "hidden" }}>
+                        <div className="rank-bar" data-width={r.pct} style={{ background: "linear-gradient(90deg,#157373,rgba(21,115,115,0.5))" }}>
+                          {r.aval.toLocaleString("pt-BR")}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ display: "flex", justifyContent: "center", gap: 3, padding: "3px 0" }}>
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} style={{ width: 3, height: 3, borderRadius: "50%", background: "#9ca3af", opacity: 0.35 }} />
+                    ))}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ width: 24, fontSize: 10, fontWeight: 700, color: "#C0392B", textAlign: "right", flexShrink: 0 }}>{d.posicao}º</span>
+                    <span className="ranking-name" style={{ fontSize: 12, width: 130, flexShrink: 0, fontWeight: 700, color: "#C0392B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.nome_linha1}</span>
+                    <div style={{ flex: 1, background: "rgba(13,74,74,0.08)", borderRadius: 4, height: 22, overflow: "hidden" }}>
+                      <div className="rank-bar" data-width={youPct} data-you="true" style={{ background: "#E74C3C", transition: "width 1.8s cubic-bezier(0.4,0,0.2,1) 0.8s" }}>
+                        {parseInt(d.avaliacoes).toLocaleString("pt-BR")}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            {/* Rows */}
-            <div className="cmp-rows-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
-              <div style={{ background: "rgba(192,57,43,0.02)", padding: "0 22px", borderRight: "1px solid rgba(13,74,74,0.06)" }}>
-                {[
-                  { label: "Avaliações", val: d.avaliacoes, color: "#C0392B" },
-                  { label: "Média ★", val: d.estrelas, color: "#C0392B" },
-                  { label: "Categorias", val: "1 de 3", color: "#B45309" },
-                  { label: "Postagens", val: "Inativo", color: "#C0392B" },
-                  { label: "Posição", val: `${d.posicao}ª de ${d.posicao_total}`, color: "#C0392B" },
-                ].map((row, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 0", borderBottom: i < 4 ? "1px solid rgba(13,74,74,0.06)" : "none", fontSize: 12.5 }}>
-                    <span style={{ color: "#9CA3AF" }}>{row.label}</span>
-                    <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
-                  </div>
-                ))}
+
+            {/* 📋 Tabela comparativa — a amplitude */}
+            <div style={{ marginBottom: 36 }}>
+              <div style={{ marginBottom: 14 }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 4 }}>📋 E não é só volume</p>
+                <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>Mesmo ao lado de um concorrente comum (não o líder), a diferença aparece em tudo:</p>
               </div>
-              <div style={{ background: "rgba(21,128,61,0.02)", padding: "0 22px" }}>
-                {[
-                  { label: "Avaliações", val: d.concorrente_aval, color: "#15803D" },
-                  { label: "Média ★", val: d.concorrente_stars, color: "#15803D" },
-                  { label: "Categorias", val: "3 ativas", color: "#15803D" },
-                  { label: "Postagens", val: "Ativo", color: "#15803D" },
-                  { label: "Posição", val: d.concorrente_pos, color: "#15803D" },
-                ].map((row, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 0", borderBottom: i < 4 ? "1px solid rgba(13,74,74,0.06)" : "none", fontSize: 12.5 }}>
-                    <span style={{ color: "#9CA3AF" }}>{row.label}</span>
-                    <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
+              <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", background: "white" }}>
+                <div className="cmp-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
+                  <div style={{ background: "rgba(192,57,43,0.05)", padding: "16px 22px", borderRight: "1px solid rgba(13,74,74,0.06)" }}>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: "#C0392B", marginBottom: 3 }}>⚠️ Você · {d.nome_linha1}</p>
+                    <p style={{ fontSize: 11, color: "#9CA3AF" }}>Matriz · {d.cidade}, {d.estado.split(",")[1]?.trim() || "SP"}</p>
                   </div>
-                ))}
+                  <div style={{ background: "rgba(21,128,61,0.04)", padding: "16px 22px" }}>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: "#15803D", marginBottom: 3 }}>✓ Concorrente direto</p>
+                    <p style={{ fontSize: 11, color: "#9CA3AF" }}>{d.concorrente_nome.split(" ").slice(0, 2).join(" ")} · mesma região</p>
+                  </div>
+                </div>
+                <div className="cmp-rows-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
+                  <div style={{ background: "rgba(192,57,43,0.02)", padding: "0 22px", borderRight: "1px solid rgba(13,74,74,0.06)" }}>
+                    {[
+                      { label: "Categorias", val: "1 de 3", color: "#C0392B", highlight: true },
+                      { label: "Postagens", val: "Inativo", color: "#C0392B", highlight: true },
+                      { label: "Avaliações", val: d.avaliacoes, color: "#C0392B", highlight: false },
+                      { label: "Média ★", val: d.estrelas, color: "#C0392B", highlight: false },
+                      { label: "Posição", val: `${d.posicao}ª de ${d.posicao_total}`, color: "#C0392B", highlight: false },
+                    ].map((row, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: row.highlight ? "11px 22px" : "11px 0", borderBottom: i < 4 ? "1px solid rgba(13,74,74,0.06)" : "none", fontSize: 12.5, background: row.highlight ? "rgba(192,57,43,0.03)" : "transparent", margin: row.highlight ? "0 -22px" : 0 }}>
+                        <span style={{ color: row.highlight ? "#374151" : "#9CA3AF", fontWeight: row.highlight ? 600 : 400 }}>{row.label}</span>
+                        <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ background: "rgba(21,128,61,0.02)", padding: "0 22px" }}>
+                    {[
+                      { label: "Categorias", val: "3 ativas", color: "#15803D", highlight: true },
+                      { label: "Postagens", val: "Ativo", color: "#15803D", highlight: true },
+                      { label: "Avaliações", val: d.concorrente_aval, color: "#15803D", highlight: false },
+                      { label: "Média ★", val: d.concorrente_stars, color: "#15803D", highlight: false },
+                      { label: "Posição", val: d.concorrente_pos, color: "#15803D", highlight: false },
+                    ].map((row, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: row.highlight ? "11px 22px" : "11px 0", borderBottom: i < 4 ? "1px solid rgba(13,74,74,0.06)" : "none", fontSize: 12.5, background: row.highlight ? "rgba(21,128,61,0.03)" : "transparent", margin: row.highlight ? "0 -22px" : 0 }}>
+                        <span style={{ color: row.highlight ? "#374151" : "#9CA3AF", fontWeight: row.highlight ? 600 : 400 }}>{row.label}</span>
+                        <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ═══ PONTE EMOCIONAL ═══ */}
-      <section style={{ padding: "0 24px 96px", background: "#F7F5F1" }}>
-        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+            {/* 🎯 Conclusão do diagnóstico */}
+            <div className="fade-up" style={{ background: "white", border: "1.5px solid rgba(13,74,74,0.1)", borderRadius: 20, padding: "24px 28px", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", textAlign: "center" }}>
+              <p style={{ fontSize: 14, color: "#374151", lineHeight: 1.65 }}>
+                Volume baixo de avaliações + perfil inativo + dados incompletos.
+                <br />
+                Somados, <strong style={{ color: "#C0392B" }}>é isso que te mantém na {d.posicao}ª posição</strong>.
+              </p>
+            </div>
+          </div>
+
+          {/* ── PONTE EMOCIONAL (fecho do diagnóstico) ── */}
           <div className="fade-up impact-question-card" style={{ background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 100%)", borderRadius: 22, overflow: "hidden", position: "relative", padding: "52px 40px", textAlign: "center" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
             <div style={{ position: "relative", zIndex: 1 }}>
@@ -536,70 +586,6 @@ export function AnaliseClient({ data }: Props) {
               <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(24px,4vw,34px)", fontWeight: 400, color: "#2DD4BF", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
                 quantas escolhem você?
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ SEÇÃO 4: RANKING (fundo claro) ═══ */}
-      <section style={{ padding: "96px 24px 72px", background: "#F7F5F1" }}>
-        <div className="wrap">
-          <div className="ey">Sua posição hoje</div>
-          <h2 className="tt">
-            Avaliações definem <em>quem aparece primeiro</em>
-          </h2>
-          <p className="lead">
-            Avaliações são o <strong>fator nº 1</strong> no ranking local. Veja a diferença entre quem lidera e a sua posição atual em {d.cidade}:
-          </p>
-
-          {/* Ranking Chart */}
-          <div className="fade-up" style={{ background: "white", border: "1.5px solid rgba(13,74,74,0.1)", borderRadius: 20, overflow: "hidden", marginBottom: 24, textAlign: "left", boxShadow: "0 4px 20px rgba(13,74,74,0.07)" }}>
-            <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(13,74,74,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
-                {d.segmento === "Escritório de Advocacia" ? "Escritórios de advocacia" : d.segmento} — {d.estado.split(",")[0]}
-              </h4>
-              <span style={{ fontSize: 11, color: "#9CA3AF", fontWeight: 600 }}>{d.posicao_total} perfis analisados</span>
-            </div>
-            <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
-              {d.ranking.map((r, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ width: 24, fontSize: 10, fontWeight: 700, color: "#9CA3AF", textAlign: "right", flexShrink: 0 }}>{r.pos}</span>
-                  <span className="ranking-name" style={{ fontSize: 12, width: 130, flexShrink: 0, fontWeight: 600, color: "#374151", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.nome}</span>
-                  <div style={{ flex: 1, background: "rgba(13,74,74,0.08)", borderRadius: 4, height: 22, overflow: "hidden" }}>
-                    <div className="rank-bar" data-width={r.pct} style={{ background: "linear-gradient(90deg,#157373,rgba(21,115,115,0.5))" }}>
-                      {r.aval.toLocaleString("pt-BR")}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {/* Dots separator */}
-              <div style={{ display: "flex", justifyContent: "center", gap: 3, padding: "3px 0" }}>
-                {[0, 1, 2].map((i) => (
-                  <div key={i} style={{ width: 3, height: 3, borderRadius: "50%", background: "#9ca3af", opacity: 0.35 }} />
-                ))}
-              </div>
-              {/* You */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ width: 24, fontSize: 10, fontWeight: 700, color: "#C0392B", textAlign: "right", flexShrink: 0 }}>{d.posicao}º</span>
-                <span className="ranking-name" style={{ fontSize: 12, width: 130, flexShrink: 0, fontWeight: 700, color: "#C0392B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.nome_linha1}</span>
-                <div style={{ flex: 1, background: "rgba(13,74,74,0.08)", borderRadius: 4, height: 22, overflow: "hidden" }}>
-                  <div className="rank-bar" data-width={youPct} data-you="true" style={{ background: "#E74C3C", transition: "width 1.8s cubic-bezier(0.4,0,0.2,1) 0.8s" }}>
-                    {parseInt(d.avaliacoes).toLocaleString("pt-BR")}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Context cards */}
-          <div className="fade-up ranking-context-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, textAlign: "left" }}>
-            <div style={{ background: "white", border: "1.5px solid rgba(13,74,74,0.1)", borderRadius: 18, padding: "20px 22px", boxShadow: "0 4px 24px rgba(13,74,74,0.06)" }}>
-              <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#157373", marginBottom: 8 }}>Sua situação atual</p>
-              <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>Com {d.avaliacoes} avaliações, você está <strong style={{ color: "#374151" }}>{(d.ranking[0]?.aval || 0) - parseInt(d.avaliacoes)} avaliações atrás</strong> do líder. Essa distância se reflete diretamente na posição.</p>
-            </div>
-            <div style={{ background: "white", border: "1.5px solid rgba(13,74,74,0.1)", borderRadius: 18, padding: "20px 22px", boxShadow: "0 4px 24px rgba(13,74,74,0.06)" }}>
-              <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#157373", marginBottom: 8 }}>O que pode mudar</p>
-              <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>Você não precisa alcançar o 1º lugar para ganhar visibilidade. <strong style={{ color: "#374151" }}>Entrar no top 3</strong> já muda completamente quantos clientes te encontram.</p>
             </div>
           </div>
         </div>
