@@ -223,68 +223,56 @@ export function AnaliseClient({ data }: Props) {
             </div>
           </div>
 
-          {/* 4 Metric Cards */}
-          <div className="fade-up loss-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          {/* 3 Metric Cards */}
+          <div className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {[
-              {
-                label: "Sua posição",
-                badge: "Crítico",
-                badgeColor: "#C0392B",
-                badgeBg: "#FEE2E2",
-                borderColor: "rgba(192,57,43,0.15)",
-                barColor: "#C0392B",
-                valueProps: { "data-count": posNum, "data-suffix": "ª", "data-from": "1" },
-                valueText: "1ª",
-                valueColor: "#C0392B",
-                sub: `de ${d.posicao_total} na região`,
-              },
               {
                 label: "Suas avaliações",
                 badge: "Crítico",
+                badgeTip: "impacta diretamente sua posição",
                 badgeColor: "#C0392B",
                 badgeBg: "#FEE2E2",
-                borderColor: "rgba(192,57,43,0.15)",
                 barColor: "#C0392B",
                 valueProps: { "data-count": parseInt(d.avaliacoes), "data-from": "0" },
                 valueText: "0",
                 valueColor: "#C0392B",
-                sub: `1º lugar tem ${d.lider_aval}`,
+                explain: <>Pro Google, mais avaliações = mais relevante. Você tem bem menos que os primeiros <strong style={{ color: "#374151" }}>(líder: {d.lider_aval})</strong>.</>,
               },
               {
                 label: "Sua nota média",
                 badge: "Atenção",
-                badgeColor: "#C97A06",
+                badgeTip: "afasta clientes antes do clique",
+                badgeColor: "#B45309",
                 badgeBg: "#FEF3C7",
-                borderColor: "rgba(201,122,6,0.15)",
-                barColor: "#C97A06",
+                barColor: "#D97706",
                 valueProps: { "data-count-decimal": d.estrelas, "data-from": "5.0", "data-suffix": "★" },
                 valueText: "5.0★",
-                valueColor: "#C97A06",
-                sub: `média do segmento: ${d.estrelas_media_seg}★`,
+                valueColor: "#B45309",
+                explain: <>Abaixo de 4.0, muita gente descarta o perfil antes mesmo de clicar. <strong style={{ color: "#374151" }}>Média do segmento: {d.estrelas_media_seg}★.</strong></>,
               },
               {
                 label: "Nota do perfil",
                 badge: "Atenção",
-                badgeColor: "#C97A06",
+                badgeTip: "perfil incompleto perde visibilidade",
+                badgeColor: "#B45309",
                 badgeBg: "#FEF3C7",
-                borderColor: "rgba(201,122,6,0.15)",
-                barColor: "#C97A06",
+                barColor: "#D97706",
                 valueProps: {},
                 valueText: null,
-                valueColor: "#C97A06",
-                sub: "sem postagens e sem fotos",
+                valueColor: "#B45309",
+                explain: <>Mede o quão completo e otimizado está seu perfil. <strong style={{ color: "#374151" }}>{d.score} mostra que há bastante a melhorar</strong> — sem postagens nem fotos recentes.</>,
               },
             ].map((card, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 18, padding: "24px 22px", border: `1.5px solid ${card.borderColor}`, position: "relative", overflow: "hidden" }}>
+              <div key={i} style={{ background: "white", borderRadius: 18, padding: "24px 22px", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: card.barColor, borderRadius: "16px 16px 0 0" }} />
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                   <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{card.label}</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: card.badgeColor, background: card.badgeBg, padding: "3px 10px", borderRadius: 20 }}>{card.badge}</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: card.badgeColor, background: card.badgeBg, padding: "3px 10px", borderRadius: 20, cursor: "default" }} title={card.badgeTip}>{card.badge} · {card.badgeTip}</span>
                 </div>
-                <div {...card.valueProps} style={{ fontSize: 42, fontWeight: 800, color: card.valueColor, letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 10 }}>
+                <div {...card.valueProps} style={{ fontSize: 42, fontWeight: 800, color: card.valueColor, letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 12 }}>
                   {card.valueText !== null ? card.valueText : <>{d.score}<span style={{ fontSize: 20, fontWeight: 500, color: "#9CA3AF" }}>/100</span></>}
                 </div>
-                <p style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.4, fontWeight: 500 }}>{card.sub}</p>
+                <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>{card.explain}</p>
               </div>
             ))}
           </div>
