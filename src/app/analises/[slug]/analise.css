@@ -105,8 +105,7 @@ h2.tt em{font-family:'Playfair Display',serif;font-style:italic;font-weight:700;
   .por-que-grid{grid-template-columns:1fr!important}
   .score-gauge-wrap{flex-direction:column!important;text-align:center;gap:20px!important}
   .score-gauge-wrap>div:last-child{text-align:center}
-  .impacto-card-inner{flex-direction:column!important;text-align:center;gap:16px!important}
-  .impacto-card-inner .impacto-divider{width:40px!important;height:1px!important;margin:0 auto}
+  .impacto-card{padding:32px 24px!important}
   .impact-question-card{padding:36px 24px!important}
   .impact-phrase-card{padding:36px 24px!important}
   .checklist-row{flex-wrap:wrap!important;gap:6px!important}

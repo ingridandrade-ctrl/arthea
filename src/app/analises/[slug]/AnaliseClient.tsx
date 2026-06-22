@@ -209,26 +209,22 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* +N Card */}
-          <div className="fade-up" style={{ background: "#0D4A4A", borderRadius: 22, padding: "36px 32px", marginBottom: 36, position: "relative", overflow: "hidden" }}>
+          <div className="fade-up impacto-card" style={{ background: "#0D4A4A", borderRadius: 22, padding: "40px 36px", marginBottom: 36, position: "relative", overflow: "hidden", textAlign: "center" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
-            <div className="impacto-card-inner" style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 24 }}>
-              <div style={{ textAlign: "center", flexShrink: 0 }}>
-                <span style={{ display: "block", fontSize: "clamp(56px,9vw,76px)", fontWeight: 800, color: "white", letterSpacing: "-0.04em", lineHeight: 1 }}>
-                  +{impactoNum - posNum + 1 > 0 ? posNum - 1 : impactoNum}
-                </span>
-                <span style={{ display: "block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "#2DD4BF", marginTop: 6 }}>
-                  {d.segmento.toLowerCase().includes("advoc") ? "escritórios" : "negócios"}
-                </span>
-              </div>
-              <div className="impacto-divider" style={{ width: 1, height: 60, background: "rgba(255,255,255,0.12)", flexShrink: 0 }} />
-              <div>
-                <p style={{ fontSize: 15, color: "rgba(245,240,235,0.85)", lineHeight: 1.55, fontWeight: 500 }}>
-                  aparecem <strong style={{ color: "white", fontWeight: 700 }}>antes de você</strong> no Google Maps quando alguém pesquisa na sua região.
-                </p>
-                <p style={{ fontSize: 12, color: "rgba(245,240,235,0.4)", lineHeight: 1.5, marginTop: 8 }}>
-                  A maioria dos clientes <strong style={{ color: "rgba(245,240,235,0.7)" }}>nunca chega a ver seu perfil</strong>. Eles escolhem quem aparece primeiro.
-                </p>
-              </div>
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <span style={{ display: "block", fontSize: "clamp(52px,8vw,72px)", fontWeight: 800, color: "white", letterSpacing: "-0.04em", lineHeight: 1 }}>
+                +{impactoNum - posNum + 1 > 0 ? posNum - 1 : impactoNum}
+              </span>
+              <span style={{ display: "block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "#2DD4BF", marginTop: 8, marginBottom: 20 }}>
+                {d.segmento.toLowerCase().includes("advoc") ? "escritórios" : "negócios"}
+              </span>
+              <div style={{ width: 40, height: 1, background: "rgba(255,255,255,0.12)", margin: "0 auto 20px" }} />
+              <p style={{ fontSize: "clamp(15px,2vw,18px)", color: "rgba(245,240,235,0.88)", lineHeight: 1.6, fontWeight: 500, maxWidth: 420, margin: "0 auto" }}>
+                aparecem <strong style={{ color: "white", fontWeight: 700 }}>antes de você</strong> no Google Maps quando alguém pesquisa na sua região.
+              </p>
+              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.4)", lineHeight: 1.55, marginTop: 12, maxWidth: 380, margin: "12px auto 0" }}>
+                A maioria dos clientes <strong style={{ color: "rgba(245,240,235,0.65)" }}>nunca chega a ver seu perfil</strong>. Eles escolhem quem aparece primeiro.
+              </p>
             </div>
           </div>
 
