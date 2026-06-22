@@ -410,13 +410,13 @@ export function AnaliseClient({ data }: Props) {
 
           {/* ── GRUPO 2: LACUNAS CRÍTICAS ── */}
           <div style={{ marginBottom: 48 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#FEE2E2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "#C0392B", fontWeight: 700, flexShrink: 0 }}>✗</div>
-              <div>
-                <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#C0392B" }}>Lacunas críticas</span>
-                <span style={{ fontSize: 11, color: "#9CA3AF", marginLeft: 8 }}>Itens vazios que mais prejudicam sua posição</span>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#FEE2E2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#C0392B", fontWeight: 700, flexShrink: 0 }}>✗</div>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#C0392B" }}>Lacunas críticas</span>
+                <div style={{ flex: 1, height: 1, background: "rgba(192,57,43,0.12)" }} />
               </div>
-              <div style={{ flex: 1, height: 1, background: "rgba(192,57,43,0.15)" }} />
+              <p style={{ fontSize: 13, color: "#9CA3AF", marginLeft: 38, lineHeight: 1.5 }}>Esses itens estão vazios no seu perfil e são os que mais prejudicam sua posição.</p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {[
@@ -437,13 +437,13 @@ export function AnaliseClient({ data }: Props) {
 
           {/* ── GRUPO 3: PONTOS DE MELHORIA ── */}
           <div style={{ marginBottom: 48 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#FEF3C7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "#B45309", fontWeight: 700, flexShrink: 0 }}>!</div>
-              <div>
-                <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#B45309" }}>Pontos de melhoria</span>
-                <span style={{ fontSize: 11, color: "#9CA3AF", marginLeft: 8 }}>Existem, mas precisam de atenção</span>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#FEF3C7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#B45309", fontWeight: 700, flexShrink: 0 }}>!</div>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#B45309" }}>Pontos de melhoria</span>
+                <div style={{ flex: 1, height: 1, background: "rgba(180,83,9,0.12)" }} />
               </div>
-              <div style={{ flex: 1, height: 1, background: "rgba(180,83,9,0.15)" }} />
+              <p style={{ fontSize: 13, color: "#9CA3AF", marginLeft: 38, lineHeight: 1.5 }}>Esses itens existem, mas precisam de atenção para melhorar sua visibilidade.</p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {[
@@ -688,7 +688,7 @@ export function AnaliseClient({ data }: Props) {
           <div style={{ marginTop: 48, display: "flex", justifyContent: "center" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/analises/assets/logo-arthea.svg"
+              src="/analises/assets/logo-escura.png"
               alt="Arthea"
               style={{ height: 140, objectFit: "contain", opacity: 0.85 }}
             />
