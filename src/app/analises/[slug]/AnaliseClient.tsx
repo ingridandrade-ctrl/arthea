@@ -319,7 +319,7 @@ export function AnaliseClient({ data }: Props) {
           {/* Frase de virada */}
           <div className="fade-up" style={{ textAlign: "center" }}>
             <p style={{ fontSize: 15, color: "rgba(245,240,235,0.75)", lineHeight: 1.7, maxWidth: 520, margin: "0 auto" }}>
-              Proximidade você quase não controla. Mas <strong style={{ color: "white" }}>relevância</strong> e <strong style={{ color: "white" }}>destaque</strong> dependem de como o perfil é cuidado — e é exatamente aí que <strong style={{ color: "#FF8080" }}>você está perdendo posições</strong>.
+              Proximidade você quase não controla. Mas <strong style={{ color: "white" }}>relevância</strong> e <strong style={{ color: "white" }}>destaque</strong> dependem de como o perfil é cuidado. E é exatamente aí que <strong style={{ color: "#FF8080" }}>você está perdendo posições</strong>.
             </p>
           </div>
         </div>
@@ -337,7 +337,7 @@ export function AnaliseClient({ data }: Props) {
             resultado acima
           </h2>
           <p className="lead">
-            Já vimos onde você aparece e qual sua posição. Abaixo, detalhamos <strong>item por item</strong> do seu perfil — o que está funcionando e o que <strong>precisa de atenção</strong> para subir no ranking.
+            Agora que você sabe onde está e por que, vamos ao detalhe. Abaixo, analisamos <strong>cada item do seu perfil</strong> para mostrar o que já funciona e o que <strong>precisa mudar</strong> para você subir no ranking.
           </p>
 
           {/* Score Gauge */}
