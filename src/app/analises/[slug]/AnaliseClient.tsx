@@ -420,22 +420,16 @@ export function AnaliseClient({ data }: Props) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {[
-                { title: "Postagens no perfil", text: "Nenhuma postagem publicada. O Google prioriza perfis ativos com publicações regulares.", why: "Perfis sem postagens perdem visibilidade automaticamente." },
-                { title: "Fotos recentes do proprietário", text: "Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas aumentam o interesse dos clientes.", why: "Clientes confiam mais em perfis com imagens reais e recentes." },
-                { title: "Fotos 360°", text: "Nenhum tour virtual ou foto 360° adicionada.", why: "Perfis com tour virtual recebem o dobro de interesse segundo o Google." },
+                { title: "Postagens no perfil", text: "Nenhuma postagem publicada. Seu perfil aparece como inativo para o Google." },
+                { title: "Fotos recentes do proprietário", text: "Nenhuma foto do proprietário nos últimos 6 meses. O perfil passa uma impressão desatualizada." },
+                { title: "Fotos 360°", text: "Nenhum tour virtual ou foto 360° adicionada. É um recurso que seus concorrentes já utilizam." },
               ].map((gap, i) => (
-                <div key={i} className="fade-up gap-card" style={{ background: "white", borderRadius: 20, border: "1.5px solid rgba(192,57,43,0.15)", borderLeft: "4px solid #C0392B", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", overflow: "hidden" }}>
-                  <div style={{ padding: "22px 24px 18px" }}>
-                    <div className="gap-badge-row" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
-                      <strong style={{ fontSize: 15, color: "#111827" }}>{gap.title}</strong>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "3px 10px", borderRadius: 20 }}>Não preenchido</span>
-                    </div>
-                    <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.65 }}>{gap.text}</p>
+                <div key={i} className="fade-up gap-card" style={{ background: "white", borderRadius: 20, border: "1.5px solid rgba(192,57,43,0.15)", borderLeft: "4px solid #C0392B", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", padding: "22px 24px" }}>
+                  <div className="gap-badge-row" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+                    <strong style={{ fontSize: 15, color: "#111827" }}>{gap.title}</strong>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "3px 10px", borderRadius: 20 }}>Não preenchido</span>
                   </div>
-                  <div style={{ padding: "12px 24px", background: "rgba(192,57,43,0.04)", borderTop: "1px solid rgba(192,57,43,0.08)", display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 12, color: "#C0392B", fontWeight: 600 }}>→</span>
-                    <p style={{ fontSize: 12, color: "#C0392B", fontWeight: 500, lineHeight: 1.5 }}>{gap.why}</p>
-                  </div>
+                  <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.65 }}>{gap.text}</p>
                 </div>
               ))}
             </div>
@@ -453,24 +447,18 @@ export function AnaliseClient({ data }: Props) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {[
-                { title: "Média de avaliações", text: <>{d.estrelas}★ atual. Média do segmento: {d.estrelas_media_seg}★.</>, why: "Abaixo de 4.0, muitos clientes descartam o perfil antes de clicar." },
-                { title: "Avaliações sem resposta", text: <>{d.avaliacoes_sr} avaliações sem resposta do proprietário.</>, why: "Responder avaliações aumenta credibilidade e melhora o ranking." },
-                { title: "Avaliações sem comentário", text: <>{d.avaliacoes_sc} avaliações sem texto.</>, why: "Avaliações com texto detalhado fazem o Google mostrar seu perfil para mais pessoas." },
-                { title: "Vídeos no perfil", text: <>Nenhum vídeo adicionado ao perfil.</>, why: "Vídeos curtos aumentam o tempo de visualização e a interação dos clientes." },
-                { title: "Descrição do negócio", text: <>{d.descricao_chars} caracteres na descrição atual. Mínimo recomendado: 125.</>, why: "Use palavras-chave do segmento e da região para o Google entender seu negócio." },
+                { title: "Média de avaliações", text: <>{d.estrelas}★ atual, enquanto a média do segmento é {d.estrelas_media_seg}★.</> },
+                { title: "Avaliações sem resposta", text: <>{d.avaliacoes_sr} avaliações sem nenhuma resposta do proprietário.</> },
+                { title: "Avaliações sem comentário", text: <>{d.avaliacoes_sc} avaliações sem texto. Só a nota, sem detalhes.</> },
+                { title: "Vídeos no perfil", text: <>Nenhum vídeo adicionado ao perfil.</> },
+                { title: "Descrição do negócio", text: <>{d.descricao_chars} caracteres na descrição atual. O mínimo recomendado é 125.</> },
               ].map((item, i) => (
-                <div key={i} className="fade-up" style={{ background: "white", borderRadius: 20, border: "1.5px solid rgba(180,83,9,0.15)", borderLeft: "4px solid #D97706", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", overflow: "hidden" }}>
-                  <div style={{ padding: "22px 24px 18px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
-                      <strong style={{ fontSize: 15, color: "#111827" }}>{item.title}</strong>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "#B45309", background: "#FEF3C7", padding: "3px 10px", borderRadius: 20 }}>Precisa melhorar</span>
-                    </div>
-                    <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.65 }}>{item.text}</p>
+                <div key={i} className="fade-up" style={{ background: "white", borderRadius: 20, border: "1.5px solid rgba(180,83,9,0.15)", borderLeft: "4px solid #D97706", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", padding: "22px 24px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+                    <strong style={{ fontSize: 15, color: "#111827" }}>{item.title}</strong>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#B45309", background: "#FEF3C7", padding: "3px 10px", borderRadius: 20 }}>Precisa melhorar</span>
                   </div>
-                  <div style={{ padding: "12px 24px", background: "rgba(180,83,9,0.04)", borderTop: "1px solid rgba(180,83,9,0.08)", display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 12, color: "#B45309", fontWeight: 600 }}>→</span>
-                    <p style={{ fontSize: 12, color: "#B45309", fontWeight: 500, lineHeight: 1.5 }}>{item.why}</p>
-                  </div>
+                  <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.65 }}>{item.text}</p>
                 </div>
               ))}
             </div>
