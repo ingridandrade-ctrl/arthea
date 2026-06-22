@@ -319,11 +319,11 @@ export function AnaliseClient({ data }: Props) {
             resultado acima
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.75)" }}>
-            Já vimos onde você aparece e qual sua posição. Abaixo, detalhamos <strong>item por item</strong> do seu perfil — o que está funcionando e o que <strong>precisa de atenção</strong> para subir no ranking.
+            Já vimos onde você aparece e qual sua posição. Abaixo, detalhamos <strong style={{ color: "white" }}>item por item</strong> do seu perfil — o que está funcionando e o que <strong style={{ color: "white" }}>precisa de atenção</strong> para subir no ranking.
           </p>
 
           {/* Score Gauge */}
-          <div className="fade-up score-gauge-wrap" style={{ background: "#F7F5F1", borderRadius: 20, padding: 32, border: "1px solid rgba(13,74,74,0.12)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+          <div className="fade-up score-gauge-wrap" style={{ background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: 32, border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32 }}>
             <div style={{ position: "relative", width: 120, height: 120, flexShrink: 0 }}>
               <svg width="120" height="120" style={{ transform: "rotate(-90deg)" }}>
                 <defs>
@@ -332,7 +332,7 @@ export function AnaliseClient({ data }: Props) {
                     <stop offset="100%" style={{ stopColor: "#F59E0B" }} />
                   </linearGradient>
                 </defs>
-                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(13,74,74,0.08)" strokeWidth="10" />
+                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="10" />
                 <circle
                   className="score-gauge-fill"
                   cx="60"
@@ -348,38 +348,38 @@ export function AnaliseClient({ data }: Props) {
                 />
               </svg>
               <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 32, fontWeight: 700, color: "#111827", lineHeight: 1 }}>{d.score}</span>
-                <span style={{ fontSize: 10, color: "#9CA3AF", fontWeight: 600, marginTop: 2 }}>de 100</span>
+                <span style={{ fontSize: 32, fontWeight: 700, color: "white", lineHeight: 1 }}>{d.score}</span>
+                <span style={{ fontSize: 10, color: "rgba(245,240,235,0.45)", fontWeight: 600, marginTop: 2 }}>de 100</span>
               </div>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#FEF3C7", color: "#C97A06", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 20, marginBottom: 6 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(254,243,199,0.15)", color: "#FFE066", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "3px 10px", borderRadius: 20, marginBottom: 6 }}>
                 ⚡ Razoável · Abaixo do potencial
               </div>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 4 }}>Pontuação geral do perfil</h3>
-              <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.55 }}>
-                Alguns itens básicos estão preenchidos, mas faltam <strong style={{ color: "#374151" }}>configurações estratégicas</strong> que fariam o Google mostrar você <strong style={{ color: "#374151" }}>antes dos concorrentes</strong>.
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: "white", marginBottom: 4 }}>Pontuação geral do perfil</h3>
+              <p style={{ fontSize: 12, color: "rgba(245,240,235,0.65)", lineHeight: 1.55 }}>
+                Alguns itens básicos estão preenchidos, mas faltam <strong style={{ color: "rgba(245,240,235,0.9)" }}>configurações estratégicas</strong> que fariam o Google mostrar você <strong style={{ color: "rgba(245,240,235,0.9)" }}>antes dos concorrentes</strong>.
               </p>
             </div>
           </div>
 
           {/* Checklist: Exists */}
-          <div className="fade-up" style={{ background: "#F7F5F1", borderRadius: 20, border: "1px solid rgba(13,74,74,0.12)", overflow: "hidden", marginBottom: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-            <div style={{ padding: "12px 18px", background: "rgba(13,74,74,0.04)", borderBottom: "1px solid rgba(13,74,74,0.08)", display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="fade-up" style={{ background: "rgba(255,255,255,0.06)", borderRadius: 20, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", marginBottom: 24 }}>
+            <div style={{ padding: "12px 18px", background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", gap: 8 }}>
               <span>ℹ️</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#157373", textTransform: "uppercase", letterSpacing: "0.1em" }}>Preenchidos · requerem gestão contínua</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#2DD4BF", textTransform: "uppercase", letterSpacing: "0.1em" }}>Preenchidos · requerem gestão contínua</span>
             </div>
             <div style={{ padding: "12px 18px", display: "flex", flexDirection: "column", gap: 0 }}>
               {[
-                { item: "Horário de funcionamento", note: "precisa ser atualizado em feriados e datas especiais", badge: "Existe", color: "#157373", bg: "rgba(21,115,115,0.1)" },
-                { item: `Quantidade de avaliações`, note: `${d.avaliacoes} avaliações, volume abaixo da média do segmento`, badge: "Existe", color: "#157373", bg: "rgba(21,115,115,0.1)" },
-                { item: "Imagem do logotipo", note: "presente, mas sem atualização recente de fotos", badge: "Existe", color: "#157373", bg: "rgba(21,115,115,0.1)" },
-                { item: "Nome, telefone e website", note: "configurados corretamente", badge: "✓ Ok", color: "#0F6B3A", bg: "rgba(15,107,58,0.1)" },
+                { item: "Horário de funcionamento", note: "precisa ser atualizado em feriados e datas especiais", badge: "Existe", color: "#2DD4BF", bg: "rgba(45,212,191,0.12)" },
+                { item: `Quantidade de avaliações`, note: `${d.avaliacoes} avaliações, volume abaixo da média do segmento`, badge: "Existe", color: "#2DD4BF", bg: "rgba(45,212,191,0.12)" },
+                { item: "Imagem do logotipo", note: "presente, mas sem atualização recente de fotos", badge: "Existe", color: "#2DD4BF", bg: "rgba(45,212,191,0.12)" },
+                { item: "Nome, telefone e website", note: "configurados corretamente", badge: "✓ Ok", color: "#34D399", bg: "rgba(52,211,153,0.12)" },
               ].map((row, i) => (
-                <div key={i} className="checklist-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < 3 ? "1px solid rgba(13,74,74,0.08)" : "none" }}>
+                <div key={i} className="checklist-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
                   <div>
-                    <span style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>{row.item}</span>
-                    <span style={{ fontSize: 11, color: "#9CA3AF", marginLeft: 8 }}>· {row.note}</span>
+                    <span style={{ fontSize: 13, color: "rgba(245,240,235,0.85)", fontWeight: 500 }}>{row.item}</span>
+                    <span style={{ fontSize: 11, color: "rgba(245,240,235,0.4)", marginLeft: 8 }}>· {row.note}</span>
                   </div>
                   <span style={{ fontSize: 11, fontWeight: 700, color: row.color, background: row.bg, padding: "3px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>{row.badge}</span>
                 </div>
@@ -395,19 +395,18 @@ export function AnaliseClient({ data }: Props) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
-                { title: "Postagens no perfil", text: <>Nenhuma postagem publicada. O Google <strong style={{ color: "#991B1B" }}>prioriza perfis ativos</strong> com publicações regulares — postagens, ofertas e novidades.</> },
-                { title: "Fotos recentes do proprietário", text: <>Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas <strong style={{ color: "#991B1B" }}>aumentam o interesse dos clientes</strong> e a confiança no perfil.</> },
-                { title: "Fotos 360°", text: <>Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem <strong style={{ color: "#991B1B" }}>o dobro de interesse</strong> dos clientes segundo o Google.</> },
+                { title: "Postagens no perfil", text: <>Nenhuma postagem publicada. O Google <strong style={{ color: "#FF8080" }}>prioriza perfis ativos</strong> com publicações regulares — postagens, ofertas e novidades.</> },
+                { title: "Fotos recentes do proprietário", text: <>Nenhuma foto do proprietário nos últimos 6 meses. Fotos atualizadas <strong style={{ color: "#FF8080" }}>aumentam o interesse dos clientes</strong> e a confiança no perfil.</> },
+                { title: "Fotos 360°", text: <>Nenhum tour virtual ou foto 360° adicionada. Perfis com tour virtual recebem <strong style={{ color: "#FF8080" }}>o dobro de interesse</strong> dos clientes segundo o Google.</> },
               ].map((gap, i) => (
-                <div key={i} className="fade-up gap-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "#FEF2F2", borderRadius: 20, border: "1px solid rgba(192,57,43,0.2)", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C0392B", borderRadius: "16px 16px 0 0" }} />
-                  <div className="gap-icon" style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(192,57,43,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#C0392B", flexShrink: 0, marginTop: 1 }}>✗</div>
+                <div key={i} className="fade-up gap-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 22px", background: "rgba(192,57,43,0.1)", borderRadius: 20, border: "1px solid rgba(192,57,43,0.25)", borderLeft: "3px solid #FF8080", position: "relative", overflow: "hidden" }}>
+                  <div className="gap-icon" style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,128,128,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#FF8080", flexShrink: 0, marginTop: 1 }}>✗</div>
                   <div style={{ flex: 1 }}>
                     <div className="gap-badge-row" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                      <strong style={{ fontSize: 14, color: "#111827" }}>{gap.title}</strong>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "#C0392B", background: "#FEE2E2", padding: "2px 9px", borderRadius: 20 }}>Não preenchido</span>
+                      <strong style={{ fontSize: 14, color: "white" }}>{gap.title}</strong>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#FF8080", background: "rgba(255,128,128,0.15)", padding: "2px 9px", borderRadius: 20 }}>Não preenchido</span>
                     </div>
-                    <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>{gap.text}</p>
+                    <p style={{ fontSize: 13, color: "rgba(245,240,235,0.65)", lineHeight: 1.55 }}>{gap.text}</p>
                   </div>
                 </div>
               ))}
@@ -417,37 +416,35 @@ export function AnaliseClient({ data }: Props) {
           {/* Improvement Points */}
           <div style={{ marginBottom: 32 }}>
             <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#F59E0B" }}>Pontos de melhoria</span>
-              <div style={{ flex: 1, height: 1, background: "rgba(245,158,11,0.2)" }} />
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#FFE066" }}>Pontos de melhoria</span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,224,102,0.2)" }} />
             </div>
             <div className="improve-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
               {[
-                { title: "Média de avaliações", score: "50%", text: <>{d.estrelas}★ atual. Média do segmento: {d.estrelas_media_seg}★. <strong style={{ color: "#92400E" }}>Precisa melhorar</strong> para competir.</> },
-                { title: "Avaliações sem resposta", score: "50%", text: <><strong style={{ color: "#92400E" }}>{d.avaliacoes_sr} avaliações sem resposta</strong> do proprietário. Responder aumenta credibilidade e ranking.</> },
-                { title: "Avaliações sem comentário", score: "50%", text: <>{d.avaliacoes_sc} avaliações sem texto. Avaliações com texto detalhado fazem o Google <strong style={{ color: "#92400E" }}>mostrar seu perfil para mais pessoas</strong>.</> },
-                { title: "Vídeos no perfil", score: "50%", text: <>Nenhum vídeo adicionado. Vídeos curtos <strong style={{ color: "#92400E" }}>aumentam o tempo de visualização</strong> e a interação dos clientes com o perfil.</> },
+                { title: "Média de avaliações", score: "50%", text: <>{d.estrelas}★ atual. Média do segmento: {d.estrelas_media_seg}★. <strong style={{ color: "#FFE066" }}>Precisa melhorar</strong> para competir.</> },
+                { title: "Avaliações sem resposta", score: "50%", text: <><strong style={{ color: "#FFE066" }}>{d.avaliacoes_sr} avaliações sem resposta</strong> do proprietário. Responder aumenta credibilidade e ranking.</> },
+                { title: "Avaliações sem comentário", score: "50%", text: <>{d.avaliacoes_sc} avaliações sem texto. Avaliações com texto detalhado fazem o Google <strong style={{ color: "#FFE066" }}>mostrar seu perfil para mais pessoas</strong>.</> },
+                { title: "Vídeos no perfil", score: "50%", text: <>Nenhum vídeo adicionado. Vídeos curtos <strong style={{ color: "#FFE066" }}>aumentam o tempo de visualização</strong> e a interação dos clientes com o perfil.</> },
               ].map((item, i) => (
-                <div key={i} className="fade-up" style={{ padding: "18px 20px", background: "#FFFBEB", borderRadius: 20, border: "1px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "#C97A06", borderRadius: "16px 16px 0 0" }} />
+                <div key={i} className="fade-up" style={{ padding: "18px 20px", background: "rgba(201,122,6,0.1)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.25)", borderLeft: "3px solid #FFE066", position: "relative", overflow: "hidden" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 7 }}>
-                    <strong style={{ fontSize: 13, color: "#111827", lineHeight: 1.3, flex: 1 }}>{item.title}</strong>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap", marginLeft: 8 }}>{item.score}</span>
+                    <strong style={{ fontSize: 13, color: "white", lineHeight: 1.3, flex: 1 }}>{item.title}</strong>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#FFE066", background: "rgba(255,224,102,0.12)", padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap", marginLeft: 8 }}>{item.score}</span>
                   </div>
-                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{item.text}</p>
+                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.65)", lineHeight: 1.5 }}>{item.text}</p>
                 </div>
               ))}
             </div>
             {/* Description full-width */}
-            <div className="fade-up desc-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 22px", background: "#FFFBEB", borderRadius: 20, border: "1px solid rgba(201,122,6,0.2)", position: "relative", overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,#C97A06,#F59E0B)", borderRadius: "16px 16px 0 0" }} />
-              <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(201,122,6,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#C97A06", flexShrink: 0, marginTop: 1 }}>!</div>
+            <div className="fade-up desc-card" style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "18px 22px", background: "rgba(201,122,6,0.1)", borderRadius: 20, border: "1px solid rgba(201,122,6,0.25)", borderLeft: "3px solid #FFE066", position: "relative", overflow: "hidden" }}>
+              <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,224,102,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#FFE066", flexShrink: 0, marginTop: 1 }}>!</div>
               <div style={{ flex: 1 }}>
                 <div className="desc-badge-row" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                  <strong style={{ fontSize: 14, color: "#111827" }}>Descrição do negócio</strong>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "#C97A06", background: "#FEF3C7", padding: "2px 9px", borderRadius: 20 }}>Nota 70%</span>
+                  <strong style={{ fontSize: 14, color: "white" }}>Descrição do negócio</strong>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#FFE066", background: "rgba(255,224,102,0.12)", padding: "2px 9px", borderRadius: 20 }}>Nota 70%</span>
                 </div>
-                <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>
-                  Descrição atual: <strong style={{ color: "#92400E" }}>{d.descricao_chars} caracteres</strong>. Mínimo recomendado: 125. Use <strong style={{ color: "#92400E" }}>palavras-chave do segmento e da região</strong> para o Google entender seu negócio.
+                <p style={{ fontSize: 13, color: "rgba(245,240,235,0.65)", lineHeight: 1.55 }}>
+                  Descrição atual: <strong style={{ color: "#FFE066" }}>{d.descricao_chars} caracteres</strong>. Mínimo recomendado: 125. Use <strong style={{ color: "#FFE066" }}>palavras-chave do segmento e da região</strong> para o Google entender seu negócio.
                 </p>
               </div>
             </div>
@@ -463,47 +460,47 @@ export function AnaliseClient({ data }: Props) {
             <em style={{ color: "#2DD4BF" }}>que o cliente vê</em>
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.75)" }}>
-            Todas essas lacunas ficam claras quando colocamos <strong>seu perfil ao lado de um concorrente</strong> da mesma região — {d.concorrente_nome}, que aparece no {d.concorrente_pos}:
+            Todas essas lacunas ficam claras quando colocamos <strong style={{ color: "white" }}>seu perfil ao lado de um concorrente</strong> da mesma região — {d.concorrente_nome}, que aparece no {d.concorrente_pos}:
           </p>
 
-          <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(13,74,74,0.12)", marginBottom: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+          <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", marginBottom: 24 }}>
             {/* Headers */}
-            <div className="cmp-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "#F7F5F1" }}>
-              <div style={{ background: "#FEF2F2", padding: "14px 20px" }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#C0392B", marginBottom: 2 }}>⚠️ Você · {d.nome_linha1}</p>
-                <p style={{ fontSize: 10, color: "#9CA3AF" }}>Matriz · {d.cidade}, {d.estado.split(",")[1]?.trim() || "SP"}</p>
+            <div className="cmp-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(255,255,255,0.06)" }}>
+              <div style={{ background: "rgba(192,57,43,0.12)", padding: "14px 20px" }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#FF8080", marginBottom: 2 }}>⚠️ Você · {d.nome_linha1}</p>
+                <p style={{ fontSize: 10, color: "rgba(245,240,235,0.4)" }}>Matriz · {d.cidade}, {d.estado.split(",")[1]?.trim() || "SP"}</p>
               </div>
-              <div style={{ background: "#ECFDF5", padding: "14px 20px" }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#0F6B3A", marginBottom: 2 }}>✓ Concorrente direto</p>
-                <p style={{ fontSize: 10, color: "#9CA3AF" }}>{d.concorrente_nome.split(" ").slice(0, 2).join(" ")} · mesma região</p>
+              <div style={{ background: "rgba(52,211,153,0.08)", padding: "14px 20px" }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#34D399", marginBottom: 2 }}>✓ Concorrente direto</p>
+                <p style={{ fontSize: 10, color: "rgba(245,240,235,0.4)" }}>{d.concorrente_nome.split(" ").slice(0, 2).join(" ")} · mesma região</p>
               </div>
             </div>
             {/* Rows */}
-            <div className="cmp-rows-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "#F7F5F1" }}>
-              <div style={{ background: "white", padding: "0 20px" }}>
+            <div className="cmp-rows-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(255,255,255,0.06)" }}>
+              <div style={{ background: "rgba(255,255,255,0.04)", padding: "0 20px" }}>
                 {[
-                  { label: "Avaliações", val: d.avaliacoes, color: "#C0392B" },
-                  { label: "Média ★", val: d.estrelas, color: "#C0392B" },
-                  { label: "Categorias", val: "1 de 3", color: "#C97A06" },
-                  { label: "Postagens", val: "Inativo", color: "#C0392B" },
-                  { label: "Posição", val: `${d.posicao}ª de ${d.posicao_total}`, color: "#C0392B" },
+                  { label: "Avaliações", val: d.avaliacoes, color: "#FF8080" },
+                  { label: "Média ★", val: d.estrelas, color: "#FF8080" },
+                  { label: "Categorias", val: "1 de 3", color: "#FFE066" },
+                  { label: "Postagens", val: "Inativo", color: "#FF8080" },
+                  { label: "Posição", val: `${d.posicao}ª de ${d.posicao_total}`, color: "#FF8080" },
                 ].map((row, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(13,74,74,0.06)" : "none", fontSize: 11.5 }}>
-                    <span style={{ color: "#9CA3AF" }}>{row.label}</span>
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.06)" : "none", fontSize: 11.5 }}>
+                    <span style={{ color: "rgba(245,240,235,0.45)" }}>{row.label}</span>
                     <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
                   </div>
                 ))}
               </div>
-              <div style={{ background: "white", padding: "0 20px" }}>
+              <div style={{ background: "rgba(255,255,255,0.04)", padding: "0 20px" }}>
                 {[
-                  { label: "Avaliações", val: d.concorrente_aval, color: "#0F6B3A" },
-                  { label: "Média ★", val: d.concorrente_stars, color: "#0F6B3A" },
-                  { label: "Categorias", val: "3 ativas", color: "#0F6B3A" },
-                  { label: "Postagens", val: "Ativo", color: "#0F6B3A" },
-                  { label: "Posição", val: d.concorrente_pos, color: "#0F6B3A" },
+                  { label: "Avaliações", val: d.concorrente_aval, color: "#34D399" },
+                  { label: "Média ★", val: d.concorrente_stars, color: "#34D399" },
+                  { label: "Categorias", val: "3 ativas", color: "#34D399" },
+                  { label: "Postagens", val: "Ativo", color: "#34D399" },
+                  { label: "Posição", val: d.concorrente_pos, color: "#34D399" },
                 ].map((row, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(13,74,74,0.06)" : "none", fontSize: 11.5 }}>
-                    <span style={{ color: "#9CA3AF" }}>{row.label}</span>
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.06)" : "none", fontSize: 11.5 }}>
+                    <span style={{ color: "rgba(245,240,235,0.45)" }}>{row.label}</span>
                     <span style={{ fontWeight: 700, color: row.color }}>{row.val}</span>
                   </div>
                 ))}
@@ -518,25 +515,25 @@ export function AnaliseClient({ data }: Props) {
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
             </div>
             <div className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <div className="summary-alert" style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "#FEF2F2", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+              <div className="summary-alert" style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(192,57,43,0.1)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #FF8080" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
                 <div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Perfil inativo: sem postagens e sem fotos recentes</h4>
-                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>O Google interpreta isso como <strong style={{ color: "#991B1B" }}>perfil abandonado</strong> e reduz a visibilidade automaticamente. É o principal motivo da nota {d.score}/100.</p>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Perfil inativo: sem postagens e sem fotos recentes</h4>
+                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.65)", lineHeight: 1.5 }}>O Google interpreta isso como <strong style={{ color: "#FF8080" }}>perfil abandonado</strong> e reduz a visibilidade automaticamente. É o principal motivo da nota {d.score}/100.</p>
                 </div>
               </div>
-              <div className="summary-alert" style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "#FEF2F2", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C0392B", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+              <div className="summary-alert" style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(192,57,43,0.1)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #FF8080" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🔴</span>
                 <div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Volume de avaliações muito abaixo do necessário</h4>
-                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}><strong style={{ color: "#991B1B" }}>{d.avaliacoes} avaliações</strong> contra {d.concorrente_aval} do concorrente direto e {d.lider_aval} do líder. Isso explica a posição <strong style={{ color: "#991B1B" }}>{d.posicao}ª no ranking</strong>.</p>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Volume de avaliações muito abaixo do necessário</h4>
+                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.65)", lineHeight: 1.5 }}><strong style={{ color: "#FF8080" }}>{d.avaliacoes} avaliações</strong> contra {d.concorrente_aval} do concorrente direto e {d.lider_aval} do líder. Isso explica a posição <strong style={{ color: "#FF8080" }}>{d.posicao}ª no ranking</strong>.</p>
                 </div>
               </div>
-              <div className="summary-alert" style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "#FFFBEB", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #C97A06", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+              <div className="summary-alert" style={{ display: "flex", alignItems: "flex-start", gap: 11, background: "rgba(201,122,6,0.1)", borderRadius: 13, padding: "15px 16px", borderLeft: "3.5px solid #FFE066" }}>
                 <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>🟡</span>
                 <div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "#111827", marginBottom: 3 }}>Média de estrelas abaixo do segmento</h4>
-                  <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>{d.estrelas}★ contra {d.estrelas_media_seg}★ da média. Combinado com {d.avaliacoes_sr} avaliações sem resposta, passa uma <strong style={{ color: "#92400E" }}>impressão de descuido</strong> para quem pesquisa.</p>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 3 }}>Média de estrelas abaixo do segmento</h4>
+                  <p style={{ fontSize: 12, color: "rgba(245,240,235,0.65)", lineHeight: 1.5 }}>{d.estrelas}★ contra {d.estrelas_media_seg}★ da média. Combinado com {d.avaliacoes_sr} avaliações sem resposta, passa uma <strong style={{ color: "#FFE066" }}>impressão de descuido</strong> para quem pesquisa.</p>
                 </div>
               </div>
             </div>
@@ -642,119 +639,120 @@ export function AnaliseClient({ data }: Props) {
         </div>
       </section>
 
-      {/* ═══ SEÇÃO 5: TIMELINE + CTA ═══ */}
+      {/* ═══ SEÇÃO 5: PLANO COMPLETO + CTA ═══ */}
       <section style={{ padding: "96px 24px 96px", background: "linear-gradient(155deg,#071E1E 0%,#0D4A4A 55%,#093535 100%)", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
         <div style={{ maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
-            Como a Arthea transforma
+            O plano completo
           </div>
           <h2 className="tt" style={{ color: "white" }}>
-            O plano para colocar o<br />
-            <em style={{ color: "#2DD4BF" }}>{d.nome_linha1}</em> no topo
+            Tudo o que a Arthea vai fazer<br />
+            <em style={{ color: "#2DD4BF" }}>pelo {d.nome_linha1}</em>
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.75)" }}>
-            Um processo <strong>testado e comprovado</strong> que já transformou a presença local de dezenas de negócios.
+            Um processo <strong style={{ color: "white" }}>completo e comprovado</strong> para transformar sua presença no Google — da otimização inicial à gestão contínua.
           </p>
 
           {/* GMB note */}
-          <div className="fade-up" style={{ background: "rgba(45,212,191,0.07)", border: "1px solid rgba(45,212,191,0.18)", borderRadius: 18, padding: "18px 22px", marginBottom: 60, display: "flex", gap: 14, alignItems: "flex-start" }}>
+          <div className="fade-up" style={{ background: "rgba(45,212,191,0.07)", border: "1px solid rgba(45,212,191,0.18)", borderRadius: 18, padding: "18px 22px", marginBottom: 48, display: "flex", gap: 14, alignItems: "flex-start" }}>
             <span style={{ fontSize: 18 }}>💡</span>
             <div>
               <p style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Google Meu Negócio não é Google Ads</p>
-              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.6 }}>É uma <strong style={{ color: "rgba(245,240,235,0.8)" }}>ferramenta gratuita</strong> do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil — <strong style={{ color: "rgba(245,240,235,0.8)" }}>sem pagar por anúncios</strong>.</p>
+              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.6 }}>É uma <strong style={{ color: "rgba(245,240,235,0.9)" }}>ferramenta gratuita</strong> do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil — <strong style={{ color: "rgba(245,240,235,0.9)" }}>sem pagar por anúncios</strong>.</p>
             </div>
           </div>
 
-          {/* Timeline */}
-          <div style={{ position: "relative" }}>
-            <div className="tl-line" style={{ position: "absolute", left: 25, top: 52, bottom: 52, width: 1.5, background: "linear-gradient(to bottom,rgba(45,212,191,0.35),rgba(45,212,191,0.04))" }} />
-            {[
-              {
-                n: 1,
-                delay: 0,
-                tag: "Primeiros dias",
-                badge: "Imersão",
-                title: "Imersão no negócio e estratégia completa",
-                text: <>Entendemos seu mercado, seus diferenciais, seus concorrentes diretos e a região de atuação. O plano de ação é <strong style={{ color: "rgba(245,240,235,0.8)" }}>feito sob medida</strong>.</>,
-                active: true,
-              },
-              {
-                n: 2,
-                delay: 150,
-                tag: "Semana 2",
-                badge: "Otimização",
-                title: "Perfil configurado estrategicamente",
-                text: <>Todas as categorias, atributos, descrição otimizada, fotos profissionais e configurações avançadas. <strong style={{ color: "rgba(245,240,235,0.8)" }}>Nota de {d.score} para 85+</strong> em semanas.</>,
-                active: false,
-              },
-              {
-                n: 3,
-                delay: 300,
-                tag: "Meses 1 e 2",
-                badge: "Gestão mensal inclusa",
-                title: "Estratégia de avaliações e acompanhamento contínuo",
-                text: <>Implementamos processo para obter <strong style={{ color: "rgba(245,240,235,0.8)" }}>avaliações reais</strong>, respondemos cada uma estrategicamente e publicamos conteúdo regular no perfil.</>,
-                active: false,
-              },
-              {
-                n: 4,
-                delay: 450,
-                tag: "A partir do mês 3",
-                badge: "Gestão mensal",
-                title: "Perfil sempre ativo, sempre bem posicionado",
-                text: <>Monitoramento de ranking, relatórios mensais, ajustes de estratégia e <strong style={{ color: "rgba(245,240,235,0.8)" }}>gestão completa do perfil</strong> — você não precisa fazer nada.</>,
-                active: false,
-              },
-            ].map((step) => (
-              <div
-                key={step.n}
-                className="fade-up tl-step"
-                data-delay={step.delay}
-                style={{ display: "flex", gap: 24, alignItems: "flex-start", marginBottom: 36 }}
-              >
-                <div
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 17,
-                    fontWeight: 700,
-                    flexShrink: 0,
-                    position: "relative",
-                    zIndex: 1,
-                    ...(step.active
-                      ? { background: "#F7F5F1", color: "#0D4A4A", boxShadow: "0 0 0 6px rgba(245,240,235,0.07)" }
-                      : { background: "rgba(245,240,235,0.12)", border: "1.5px solid rgba(245,240,235,0.28)", color: "white" }),
-                  }}
-                >
-                  {step.n}
-                </div>
-                <div
-                  style={{
-                    flex: 1,
-                    background: step.active ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.04)",
-                    border: `1px solid rgba(255,255,255,${step.active ? "0.12" : "0.08"})`,
-                    borderRadius: 20,
-                    padding: "20px 22px",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(45,212,191,0.65)" }}>{step.tag}</p>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(45,212,191,0.7)", background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.18)", padding: "3px 10px", borderRadius: 20 }}>{step.badge}</span>
+          {/* PASSO 1: Otimização Principal */}
+          <div className="fade-up" style={{ marginBottom: 24 }}>
+            <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 22, overflow: "hidden" }}>
+              <div style={{ background: "rgba(45,212,191,0.08)", borderBottom: "1px solid rgba(45,212,191,0.15)", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#2DD4BF", color: "#071E1E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800 }}>1</div>
+                  <div>
+                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "#2DD4BF", marginBottom: 2 }}>Passo 1</p>
+                    <h3 style={{ fontSize: 17, fontWeight: 700, color: "white", letterSpacing: "-0.01em" }}>Otimização Principal</h3>
                   </div>
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 7, letterSpacing: "-0.01em" }}>{step.title}</h3>
-                  <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.65 }}>{step.text}</p>
                 </div>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#2DD4BF", background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.2)", padding: "4px 12px", borderRadius: 20 }}>8 entregáveis</span>
               </div>
-            ))}
+              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 0 }}>
+                {[
+                  { icon: "🔍", text: "Diagnóstico especializado com auditoria completa do perfil" },
+                  { icon: "📊", text: "Análise detalhada dos concorrentes no Google Maps" },
+                  { icon: "🎯", text: "Estratégia personalizada alinhada ao seu nicho" },
+                  { icon: "⭐", text: "Plano de respostas a avaliações com 6 modelos prontos" },
+                  { icon: "📋", text: "Dados completos e consistentes em todas as plataformas" },
+                  { icon: "🏷️", text: "Cadastro detalhado de todos os serviços oferecidos" },
+                  { icon: "📸", text: "Publicação de fotos estratégicas no perfil" },
+                  { icon: "📝", text: "4 postagens de lançamento para ativar o perfil" },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < 7 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                    <span style={{ fontSize: 15, flexShrink: 0 }}>{item.icon}</span>
+                    <span style={{ fontSize: 13, color: "rgba(245,240,235,0.85)", lineHeight: 1.45, fontWeight: 500 }}>{item.text}</span>
+                    <span style={{ marginLeft: "auto", fontSize: 12, color: "#2DD4BF", flexShrink: 0 }}>✓</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* PASSO 2: Gestão Contínua */}
+          <div className="fade-up" style={{ marginBottom: 24 }}>
+            <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 22, overflow: "hidden" }}>
+              <div style={{ background: "rgba(45,212,191,0.08)", borderBottom: "1px solid rgba(45,212,191,0.15)", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#2DD4BF", color: "#071E1E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800 }}>2</div>
+                  <div>
+                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "#2DD4BF", marginBottom: 2 }}>Passo 2</p>
+                    <h3 style={{ fontSize: 17, fontWeight: 700, color: "white", letterSpacing: "-0.01em" }}>Gestão Contínua Mensal</h3>
+                  </div>
+                </div>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#2DD4BF", background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.2)", padding: "4px 12px", borderRadius: 20 }}>6 entregáveis/mês</span>
+              </div>
+              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 0 }}>
+                {[
+                  { icon: "📝", text: "4 postagens mensais com conteúdo estratégico" },
+                  { icon: "📸", text: "Publicação de fotos e vídeos atualizados" },
+                  { icon: "🕐", text: "Atualização de horários em feriados e datas especiais" },
+                  { icon: "📈", text: "Monitoramento contínuo do ranqueamento" },
+                  { icon: "📊", text: "Relatório mensal completo de resultados" },
+                  { icon: "💬", text: "Respostas estratégicas às avaliações (2×/mês)" },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < 5 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                    <span style={{ fontSize: 15, flexShrink: 0 }}>{item.icon}</span>
+                    <span style={{ fontSize: 13, color: "rgba(245,240,235,0.85)", lineHeight: 1.45, fontWeight: 500 }}>{item.text}</span>
+                    <span style={{ marginLeft: "auto", fontSize: 12, color: "#2DD4BF", flexShrink: 0 }}>✓</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* BÔNUS */}
+          <div className="fade-up" style={{ marginBottom: 48 }}>
+            <div style={{ background: "rgba(45,212,191,0.06)", border: "1.5px solid rgba(45,212,191,0.2)", borderRadius: 22, overflow: "hidden" }}>
+              <div style={{ background: "rgba(45,212,191,0.1)", borderBottom: "1px solid rgba(45,212,191,0.15)", padding: "16px 24px", display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 16 }}>🎁</span>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#2DD4BF", letterSpacing: "-0.01em" }}>Bônus exclusivos inclusos</h3>
+              </div>
+              <div style={{ padding: "16px 24px", display: "flex", flexDirection: "column", gap: 0 }}>
+                {[
+                  { icon: "⭐", text: "Plano estratégico de captação de avaliações reais" },
+                  { icon: "🖼️", text: "Design profissional de placa de avaliações para seu escritório" },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < 1 ? "1px solid rgba(45,212,191,0.1)" : "none" }}>
+                    <span style={{ fontSize: 15, flexShrink: 0 }}>{item.icon}</span>
+                    <span style={{ fontSize: 13, color: "rgba(245,240,235,0.85)", lineHeight: 1.45, fontWeight: 500 }}>{item.text}</span>
+                    <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "#2DD4BF", background: "rgba(45,212,191,0.1)", padding: "2px 10px", borderRadius: 20, flexShrink: 0 }}>Grátis</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Impact phrase */}
-          <div className="fade-up impact-phrase-card" style={{ marginTop: 72, padding: "52px 40px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center" }}>
+          <div className="fade-up impact-phrase-card" style={{ padding: "52px 40px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center" }}>
             <h2 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 700, color: "white", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
               Quer que o próximo cliente
               <br />
@@ -775,12 +773,12 @@ export function AnaliseClient({ data }: Props) {
               <em style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", color: "#2DD4BF" }}>feitos para o seu negócio.</em>
             </h2>
             <p style={{ fontSize: 15, color: "rgba(245,240,235,0.75)", lineHeight: 1.7, marginBottom: 36 }}>
-              Preparamos <strong>planos de otimização exclusivos</strong>
+              Veja os <strong style={{ color: "white" }}>planos de otimização exclusivos</strong>
               <br />
-              para o {d.nome}.
+              que preparamos para o {d.nome}.
             </p>
             <a
-              href="https://arthea.com.br/gmb"
+              href="https://propostagmn.arthea.com.br/"
               className="cta-final"
               style={{
                 display: "inline-flex",
@@ -798,7 +796,7 @@ export function AnaliseClient({ data }: Props) {
                 transition: "all 0.25s ease",
               }}
             >
-              Ver planos de otimização →
+              Ver proposta completa →
             </a>
             <p style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.22em", color: "rgba(245,240,235,0.3)", marginTop: 16 }}>Análise gratuita · Sem compromisso</p>
 
