@@ -52,78 +52,89 @@ export function AnaliseClient({ data }: Props) {
       {/* ═══ HERO ═══ */}
       <section className="hero">
         <div className="hero-body">
-          {/* Google pill */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 50, padding: "8px 20px", marginBottom: 48 }}>
-            <span style={{ fontSize: 20, fontWeight: 700 }}>
-              <span style={{ color: "#4285f4" }}>G</span>
-              <span style={{ color: "#ea4335" }}>o</span>
-              <span style={{ color: "#fbbc05" }}>o</span>
-              <span style={{ color: "#4285f4" }}>g</span>
-              <span style={{ color: "#34a853" }}>l</span>
-              <span style={{ color: "#ea4335" }}>e</span>
-            </span>
-            <span style={{ width: 1, height: 16, background: "rgba(245,240,235,0.2)" }} />
-            <span style={{ fontSize: 12, color: "rgba(245,240,235,0.5)", fontWeight: 600, letterSpacing: "0.05em" }}>📍 Buscas locais</span>
+          {/* Logo Arthea */}
+          <div style={{ marginBottom: 12 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/analises/assets/logo-arthea.svg"
+              alt="Arthea"
+              className="hero-brand"
+            />
           </div>
+
+          {/* Kicker pill */}
+          <p className="hero-pill">
+            <span className="hero-dot" />
+            Gestão de Google Meu Negócio
+          </p>
 
           {/* Título principal */}
-          <h2 style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: "clamp(28px,5.5vw,44px)",
+          <h1 style={{
+            fontSize: "clamp(30px,5.5vw,64px)",
             fontWeight: 700,
-            lineHeight: 1.2,
-            letterSpacing: "-0.02em",
-            marginBottom: 12,
+            color: "#fff",
+            lineHeight: 1.06,
+            letterSpacing: "-0.035em",
+            marginBottom: 10,
+            textAlign: "center",
+            textWrap: "balance" as const,
+          }}>
+            Análise exclusiva do seu negócio
+            <em style={{
+              display: "block",
+              fontFamily: "'Playfair Display', serif",
+              fontStyle: "italic",
+              fontSize: "clamp(34px,6.5vw,76px)",
+              color: "#2DD4BF",
+              lineHeight: 1,
+            }}>
+              no Google.
+            </em>
+          </h1>
+
+          {/* Subtítulo */}
+          <p style={{
+            fontSize: 16,
+            fontWeight: 500,
+            color: "rgba(245,240,235,0.92)",
+            lineHeight: 1.75,
+            margin: "24px auto 10px",
+            maxWidth: 520,
             textAlign: "center",
           }}>
-            <span style={{ color: "rgba(245,240,235,0.95)" }}>Análise exclusiva do seu</span>
+            Diagnóstico completo para <strong style={{ color: "white" }}>{d.nome_linha1} {d.nome_linha2}</strong>
             <br />
-            <span style={{ color: "rgba(245,240,235,0.95)" }}>negócio no </span>
-            <em style={{ fontFamily: "'Playfair Display', serif", color: "#2DD4BF", fontStyle: "italic" }}>Google.</em>
-          </h2>
-
-          <p style={{ fontSize: 13, color: "rgba(245,240,235,0.4)", letterSpacing: "0.1em", fontWeight: 500, marginBottom: 28, textTransform: "none" }}>
-            por Arthea · Assessoria de Marketing Intencional
+            <span style={{ fontSize: 13, color: "rgba(245,240,235,0.45)", letterSpacing: "0.04em" }}>
+              {d.cidade} · {d.estado} · {d.segmento}
+            </span>
           </p>
 
-          {/* Separador */}
-          <div style={{ width: 40, height: 1, background: "rgba(45,212,191,0.3)", marginBottom: 28 }} />
-
-          {/* Bloco do cliente */}
-          <p style={{ fontSize: "clamp(17px,2.5vw,22px)", fontWeight: 500, color: "rgba(245,240,235,0.92)", marginBottom: 8 }}>
-            Diagnóstico completo para
-          </p>
-          <h1 style={{
-            fontSize: "clamp(17px,2.5vw,22px)",
+          {/* Botão CTA */}
+          <a href="#diagnostico" style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 12,
+            background: "#2DD4BF",
+            color: "#0D4A4A",
+            textDecoration: "none",
+            padding: "18px 40px",
+            borderRadius: 50,
+            fontSize: 15,
             fontWeight: 700,
-            color: "white",
-            lineHeight: 1.2,
-            letterSpacing: "0.01em",
-            marginBottom: 10,
+            letterSpacing: "0.02em",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.32)",
+            transition: "transform .2s, box-shadow .2s",
+            marginTop: 24,
           }}>
-            {d.nome_linha1} {d.nome_linha2}
-          </h1>
-          <div className="hero-client" style={{ marginBottom: 40 }}>
-            {d.cidade} · {d.estado} · {d.segmento}
-          </div>
-
-          <a href="#diagnostico" className="hero-cta">
             Ver minha análise completa ↓
           </a>
 
-          <div style={{ marginTop: 40, opacity: 0.6 }}>
-            <Image
-              src="/analises/assets/logo-arthea-oficial.png"
-              alt="Arthea"
-              width={280}
-              height={100}
-              style={{ height: 88, width: "auto", objectFit: "contain" }}
-            />
+          {/* Seta animada */}
+          <div className="hero-arrow" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 4v15M5.5 13.5 12 20l6.5-6.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
-        </div>
-        <div className="scroll-hint">
-          <span>Role para ver</span>
-          <div className="scroll-line" />
         </div>
       </section>
 
