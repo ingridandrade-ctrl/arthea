@@ -100,6 +100,7 @@ h2.tt em{font-family:'Playfair Display',serif;font-style:italic;font-weight:700;
   .stat-cards-col .stat-card-inner{flex-direction:column;text-align:center}
   .ranking-context-grid{grid-template-columns:1fr!important}
   .por-que-grid{grid-template-columns:1fr!important}
+  .pilares-grid{grid-template-columns:1fr!important}
   .score-gauge-wrap{flex-direction:column!important;text-align:center;gap:20px!important}
   .score-gauge-wrap>div:last-child{text-align:center}
   .impacto-card{padding:32px 24px!important}

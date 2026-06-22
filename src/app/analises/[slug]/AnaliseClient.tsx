@@ -646,14 +646,14 @@ export function AnaliseClient({ data }: Props) {
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
         <div style={{ maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
-            O plano completo
+            A boa notícia
           </div>
           <h2 className="tt" style={{ color: "white" }}>
-            Tudo o que a Arthea vai fazer<br />
-            <em style={{ color: "#2DD4BF" }}>pelo {d.nome_linha1}</em>
+            Tudo o que mostramos tem solução<br />
+            <em style={{ color: "#2DD4BF" }}>e ela é sob medida pro {d.nome_linha1}.</em>
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.75)" }}>
-            Um processo <strong style={{ color: "white" }}>completo e comprovado</strong> para transformar sua presença no Google — da otimização inicial à gestão contínua.
+            Cada lacuna do diagnóstico acima tem correção. A Arthea <strong style={{ color: "white" }}>estrutura seu perfil do zero</strong> e cuida dele todos os meses — pra te tirar da <strong style={{ color: "#FF8080" }}>{d.posicao}ª posição</strong> e te colocar onde o cliente está procurando.
           </p>
 
           {/* GMB note */}
@@ -665,92 +665,21 @@ export function AnaliseClient({ data }: Props) {
             </div>
           </div>
 
-          {/* PASSO 1: Otimização Principal */}
-          <div className="fade-up" style={{ marginBottom: 24 }}>
-            <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 22, overflow: "hidden" }}>
-              <div style={{ background: "rgba(45,212,191,0.08)", borderBottom: "1px solid rgba(45,212,191,0.15)", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#2DD4BF", color: "#071E1E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800 }}>1</div>
-                  <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "#2DD4BF", marginBottom: 2 }}>Passo 1</p>
-                    <h3 style={{ fontSize: 17, fontWeight: 700, color: "white", letterSpacing: "-0.01em" }}>Otimização Principal</h3>
-                  </div>
+          {/* 3 pilares de resultado */}
+          <div className="fade-up pilares-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 48 }}>
+            {[
+              { icon: "🎯", title: "Aparecer no topo", text: "Subir nas buscas do Google Maps na sua região, onde estão os cliques." },
+              { icon: "⭐", title: "Perfil que converte", text: "Um perfil completo e confiável que transforma quem vê em quem entra em contato." },
+              { icon: "📈", title: "Presença ativa", text: "Gestão mensal pra manter — e melhorar — sua posição ao longo do tempo." },
+            ].map((p, i) => (
+              <div key={i} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "24px 20px", textAlign: "center" }}>
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg, rgba(45,212,191,0.15), rgba(45,212,191,0.05))", border: "1px solid rgba(45,212,191,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 14px" }}>
+                  {p.icon}
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#2DD4BF", background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.2)", padding: "4px 12px", borderRadius: 20 }}>8 entregáveis</span>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "white", marginBottom: 8, letterSpacing: "-0.01em" }}>{p.title}</h3>
+                <p style={{ fontSize: 13, color: "rgba(245,240,235,0.65)", lineHeight: 1.55 }}>{p.text}</p>
               </div>
-              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 0 }}>
-                {[
-                  { icon: "🔍", text: "Diagnóstico especializado com auditoria completa do perfil" },
-                  { icon: "📊", text: "Análise detalhada dos concorrentes no Google Maps" },
-                  { icon: "🎯", text: "Estratégia personalizada alinhada ao seu nicho" },
-                  { icon: "⭐", text: "Plano de respostas a avaliações com 6 modelos prontos" },
-                  { icon: "📋", text: "Dados completos e consistentes em todas as plataformas" },
-                  { icon: "🏷️", text: "Cadastro detalhado de todos os serviços oferecidos" },
-                  { icon: "📸", text: "Publicação de fotos estratégicas no perfil" },
-                  { icon: "📝", text: "4 postagens de lançamento para ativar o perfil" },
-                ].map((item, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < 7 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
-                    <span style={{ fontSize: 15, flexShrink: 0 }}>{item.icon}</span>
-                    <span style={{ fontSize: 13, color: "rgba(245,240,235,0.85)", lineHeight: 1.45, fontWeight: 500 }}>{item.text}</span>
-                    <span style={{ marginLeft: "auto", fontSize: 12, color: "#2DD4BF", flexShrink: 0 }}>✓</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* PASSO 2: Gestão Contínua */}
-          <div className="fade-up" style={{ marginBottom: 24 }}>
-            <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 22, overflow: "hidden" }}>
-              <div style={{ background: "rgba(45,212,191,0.08)", borderBottom: "1px solid rgba(45,212,191,0.15)", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#2DD4BF", color: "#071E1E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800 }}>2</div>
-                  <div>
-                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "#2DD4BF", marginBottom: 2 }}>Passo 2</p>
-                    <h3 style={{ fontSize: 17, fontWeight: 700, color: "white", letterSpacing: "-0.01em" }}>Gestão Contínua Mensal</h3>
-                  </div>
-                </div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#2DD4BF", background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.2)", padding: "4px 12px", borderRadius: 20 }}>6 entregáveis/mês</span>
-              </div>
-              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 0 }}>
-                {[
-                  { icon: "📝", text: "4 postagens mensais com conteúdo estratégico" },
-                  { icon: "📸", text: "Publicação de fotos e vídeos atualizados" },
-                  { icon: "🕐", text: "Atualização de horários em feriados e datas especiais" },
-                  { icon: "📈", text: "Monitoramento contínuo do ranqueamento" },
-                  { icon: "📊", text: "Relatório mensal completo de resultados" },
-                  { icon: "💬", text: "Respostas estratégicas às avaliações (2×/mês)" },
-                ].map((item, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < 5 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
-                    <span style={{ fontSize: 15, flexShrink: 0 }}>{item.icon}</span>
-                    <span style={{ fontSize: 13, color: "rgba(245,240,235,0.85)", lineHeight: 1.45, fontWeight: 500 }}>{item.text}</span>
-                    <span style={{ marginLeft: "auto", fontSize: 12, color: "#2DD4BF", flexShrink: 0 }}>✓</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* BÔNUS */}
-          <div className="fade-up" style={{ marginBottom: 48 }}>
-            <div style={{ background: "rgba(45,212,191,0.06)", border: "1.5px solid rgba(45,212,191,0.2)", borderRadius: 22, overflow: "hidden" }}>
-              <div style={{ background: "rgba(45,212,191,0.1)", borderBottom: "1px solid rgba(45,212,191,0.15)", padding: "16px 24px", display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 16 }}>🎁</span>
-                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#2DD4BF", letterSpacing: "-0.01em" }}>Bônus exclusivos inclusos</h3>
-              </div>
-              <div style={{ padding: "16px 24px", display: "flex", flexDirection: "column", gap: 0 }}>
-                {[
-                  { icon: "⭐", text: "Plano estratégico de captação de avaliações reais" },
-                  { icon: "🖼️", text: "Design profissional de placa de avaliações para seu escritório" },
-                ].map((item, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: i < 1 ? "1px solid rgba(45,212,191,0.1)" : "none" }}>
-                    <span style={{ fontSize: 15, flexShrink: 0 }}>{item.icon}</span>
-                    <span style={{ fontSize: 13, color: "rgba(245,240,235,0.85)", lineHeight: 1.45, fontWeight: 500 }}>{item.text}</span>
-                    <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "#2DD4BF", background: "rgba(45,212,191,0.1)", padding: "2px 10px", borderRadius: 20, flexShrink: 0 }}>Grátis</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Impact phrase */}
