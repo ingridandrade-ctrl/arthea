@@ -992,12 +992,14 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
               <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.22em;color:#157373;margin-bottom:10px;">Escolha o seu plano</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                 <button onclick="switchPlan('sem')" id="btn-sem" style="padding:14px 16px;border-radius:12px;border:2px solid #0D4A4A;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;background:#0D4A4A;transition:all .25s;">
-                  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.6);margin-bottom:4px;">Básico</div>
-                  <div style="font-size:14px;font-weight:700;color:white;line-height:1.25;">Sem gestão de avaliações</div>
+                  <div class="pt-tag" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.6);margin-bottom:4px;">Básico</div>
+                  <div class="pt-label" style="font-size:14px;font-weight:700;color:white;line-height:1.25;">Sem gestão de avaliações</div>
+                  <div class="pt-price" style="font-size:16px;font-weight:700;color:white;margin-top:7px;">R$ 450<span style="font-size:11px;font-weight:500;opacity:.65;">/mês</span></div>
                 </button>
                 <button onclick="switchPlan('com')" id="btn-com" style="padding:14px 16px;border-radius:12px;border:2px solid rgba(13,74,74,0.15);cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;background:transparent;transition:all .25s;">
-                  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#157373;margin-bottom:4px;">Completo</div>
-                  <div style="font-size:14px;font-weight:700;color:#374151;line-height:1.25;">Com gestão de avaliações</div>
+                  <div class="pt-tag" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#157373;margin-bottom:4px;">Completo</div>
+                  <div class="pt-label" style="font-size:14px;font-weight:700;color:#374151;line-height:1.25;">Com gestão de avaliações</div>
+                  <div class="pt-price" style="font-size:16px;font-weight:700;color:#0D4A4A;margin-top:7px;">R$ 650<span style="font-size:11px;font-weight:500;opacity:.6;">/mês</span></div>
                 </button>
               </div>
             </div>
@@ -1230,26 +1232,22 @@ function switchPlan(type) {
   const priceSem = document.getElementById('price-sem');
   const priceCom = document.getElementById('price-com');
 
+  function paint(btn, active) {
+    btn.style.background = active ? '#0D4A4A' : 'transparent';
+    btn.style.borderColor = active ? '#0D4A4A' : 'rgba(13,74,74,0.15)';
+    btn.querySelector('.pt-tag').style.color = active ? 'rgba(255,255,255,.6)' : '#157373';
+    btn.querySelector('.pt-label').style.color = active ? 'white' : '#374151';
+    btn.querySelector('.pt-price').style.color = active ? 'white' : '#0D4A4A';
+  }
+
   if (type === 'sem') {
-    btnSem.style.background = '#0D4A4A';
-    btnSem.style.borderColor = '#0D4A4A';
-    btnSem.querySelector('div:last-child').style.color = 'white';
-    btnSem.querySelector('div:first-child').style.color = 'rgba(255,255,255,.6)';
-    btnCom.style.background = 'transparent';
-    btnCom.style.borderColor = 'rgba(13,74,74,0.15)';
-    btnCom.querySelector('div:last-child').style.color = '#374151';
-    btnCom.querySelector('div:first-child').style.color = '#157373';
+    paint(btnSem, true);
+    paint(btnCom, false);
     priceSem.style.display = 'block';
     priceCom.style.display = 'none';
   } else {
-    btnCom.style.background = '#0D4A4A';
-    btnCom.style.borderColor = '#0D4A4A';
-    btnCom.querySelector('div:last-child').style.color = 'white';
-    btnCom.querySelector('div:first-child').style.color = 'rgba(255,255,255,.6)';
-    btnSem.style.background = 'transparent';
-    btnSem.style.borderColor = 'rgba(13,74,74,0.15)';
-    btnSem.querySelector('div:last-child').style.color = '#374151';
-    btnSem.querySelector('div:first-child').style.color = '#157373';
+    paint(btnSem, false);
+    paint(btnCom, true);
     priceSem.style.display = 'none';
     priceCom.style.display = 'block';
   }
