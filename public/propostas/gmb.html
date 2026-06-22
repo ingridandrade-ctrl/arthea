@@ -448,7 +448,7 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 ════════════════════════════ */
 .plans{
   display:grid;grid-template-columns:5fr 7fr;
-  gap:16px;margin-top:48px;position:relative;
+  gap:30px;margin-top:48px;position:relative;
 }
 /* Aura ambiente atrás dos planos */
 .plans::before{
@@ -515,6 +515,12 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 .plan-opt-price{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1;flex-shrink:0;color:var(--ink);white-space:nowrap;}
 .plan-opt-price span{font-size:14px;font-weight:500;color:var(--muted);}
 .plan-opt-featured .plan-opt-price{color:var(--teal);}
+/* Desktop: caixas mais "cheias" e preço bem maior (não esticado/pequeno) */
+@media(min-width:769px){
+  .plan-opt{padding:22px 26px;}
+  .plan-opt-price{font-size:46px;}
+  .plan-opt-price span{font-size:16px;}
+}
 @media(max-width:560px){
   .plan-opt{flex-direction:column;align-items:flex-start;gap:10px;}
   .plan-opt-price{font-size:32px;}
@@ -867,8 +873,8 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
               <div class="deliv"><div class="deliv-ic">🚀</div><div><div class="deliv-t">4 postagens de lançamento</div><div class="deliv-d">Seu perfil já começa com presença — quatro postagens publicadas na entrega, pra você sair na frente desde o 1º dia.</div></div></div>
             </div>
 
-            <button class="deliv-btn" onclick="toggleDeliv(this)" data-more="Ver tudo que você recebe (+5)" data-less="Ver menos">
-              <span class="deliv-btn-label">Ver tudo que você recebe (+5)</span>
+            <button class="deliv-btn" onclick="toggleDeliv(this)" data-more="Clique e veja tudo o que você recebe" data-less="Ver menos">
+              <span class="deliv-btn-label">Clique e veja tudo o que você recebe</span>
               <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
 
@@ -921,8 +927,8 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
               <div class="deliv"><div class="deliv-ic">💬</div><div><div class="deliv-t">+ Respostas às avaliações</div><div class="deliv-d">A Arthea responde 2× por mês. Disponível no plano com avaliações.</div></div></div>
             </div>
 
-            <button class="deliv-btn" onclick="toggleDeliv(this)" data-more="Ver tudo que a Arthea faz (+3)" data-less="Ver menos">
-              <span class="deliv-btn-label">Ver tudo que a Arthea faz (+3)</span>
+            <button class="deliv-btn" onclick="toggleDeliv(this)" data-more="Clique e veja tudo o que a Arthea faz pelo seu negócio" data-less="Ver menos">
+              <span class="deliv-btn-label">Clique e veja tudo o que a Arthea faz pelo seu negócio</span>
               <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
 
