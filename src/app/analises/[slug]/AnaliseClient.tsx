@@ -282,8 +282,9 @@ export function AnaliseClient({ data }: Props) {
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
             <span data-count="72" data-suffix="%" data-from="0" style={{ fontSize: 44, fontWeight: 700, color: "#FAF9F6", letterSpacing: "-0.04em", lineHeight: 1, flexShrink: 0, minWidth: 80, textAlign: "left" as const, position: "relative", zIndex: 1 }}>0%</span>
             <div style={{ textAlign: "left" as const, position: "relative", zIndex: 1 }}>
-              <p style={{ fontSize: 15, fontWeight: 700, color: "#FAF9F6", marginBottom: 3 }}>escolhem entre os <strong>3 primeiros resultados</strong></p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#FAF9F6", marginBottom: 3 }}>das pessoas escolhem entre os <strong>3 primeiros resultados</strong></p>
               <p style={{ fontSize: 12, color: "rgba(245,240,235,0.5)", lineHeight: 1.5 }}>Na {d.posicao}ª posição, você fica <strong style={{ color: "rgba(245,240,235,0.7)" }}>fora dessa faixa de decisão</strong>.</p>
+              <p style={{ fontSize: 13, fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: "#2DD4BF", marginTop: 10, lineHeight: 1.5 }}>Quantas dessas pessoas você acredita que chegam até você?</p>
             </div>
           </div>
         </div>
