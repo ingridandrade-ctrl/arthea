@@ -94,15 +94,17 @@ export function AnaliseClient({ data }: Props) {
 
           {/* Subtítulo */}
           <p style={{
-            fontSize: 16,
+            fontSize: "clamp(17px,2.2vw,20px)",
             fontWeight: 500,
             color: "rgba(245,240,235,0.92)",
-            lineHeight: 1.75,
+            lineHeight: 1.6,
             margin: "24px auto 10px",
             maxWidth: 520,
             textAlign: "center",
           }}>
-            Diagnóstico completo para <strong style={{ color: "white" }}>{d.nome_linha1} {d.nome_linha2}</strong>
+            Diagnóstico completo para
+            <br />
+            <strong style={{ color: "white", fontWeight: 700 }}>{d.nome_linha1} {d.nome_linha2}</strong>
             <br />
             <span style={{ fontSize: 13, color: "rgba(245,240,235,0.45)", letterSpacing: "0.04em" }}>
               {d.cidade} · {d.estado} · {d.segmento}
@@ -128,13 +130,6 @@ export function AnaliseClient({ data }: Props) {
           }}>
             Ver minha análise completa ↓
           </a>
-
-          {/* Seta animada */}
-          <div className="hero-arrow" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M12 4v15M5.5 13.5 12 20l6.5-6.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
         </div>
       </section>
 
