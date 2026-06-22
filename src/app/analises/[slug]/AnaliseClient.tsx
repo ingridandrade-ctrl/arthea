@@ -658,18 +658,19 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* 3 pilares — o como */}
-          <h3 className="fade-up" style={{ fontSize: "clamp(18px,2.5vw,22px)", fontWeight: 700, color: "white", textAlign: "center", marginBottom: 20, lineHeight: 1.3 }}>
+          <h3 className="fade-up" style={{ fontSize: "clamp(18px,2.5vw,22px)", fontWeight: 700, color: "white", textAlign: "center", marginBottom: 24, lineHeight: 1.3 }}>
             Nossa missão é fazer o seu negócio<br />
             <em style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", color: "#2DD4BF" }}>ser encontrado, escolhido e lembrado.</em>
           </h3>
           <div className="pilares-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 56 }}>
             {[
-              { icon: "🎯", title: "Aparecer no topo", text: "Subimos seu perfil nas buscas do Maps, na sua região, onde estão os cliques.", delay: 0 },
-              { icon: "⭐", title: "Perfil que converte", text: "Perfil completo e confiável que transforma quem vê em quem entra em contato.", delay: 150 },
-              { icon: "📈", title: "Presença ativa", text: "Gestão mensal pra manter e melhorar sua posição ao longo do tempo.", delay: 300 },
+              { icon: "🎯", tag: "Encontrado", title: "Aparecer no topo", text: "Subimos seu perfil nas buscas do Maps, na sua região, onde estão os cliques.", delay: 0 },
+              { icon: "⭐", tag: "Escolhido", title: "Perfil que converte", text: "Perfil completo e confiável que transforma quem vê em quem entra em contato.", delay: 150 },
+              { icon: "📈", tag: "Lembrado", title: "Presença ativa", text: "Gestão mensal pra manter e melhorar sua posição ao longo do tempo.", delay: 300 },
             ].map((p, i) => (
               <div key={i} className="fade-up" data-delay={p.delay} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "28px 22px", textAlign: "center", transition: "background .2s, border-color .2s" }} onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,212,191,0.3)"; }} onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)"; }}>
-                <div style={{ width: 52, height: 52, borderRadius: 16, background: "linear-gradient(135deg, #0D4A4A, #157373)", border: "1px solid rgba(45,212,191,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, margin: "0 auto 16px", boxShadow: "0 4px 16px rgba(13,74,74,0.3)" }}>
+                <span style={{ display: "inline-block", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.14em", color: "#2DD4BF", background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 50, padding: "4px 12px", marginBottom: 14 }}>{p.tag}</span>
+                <div style={{ width: 52, height: 52, borderRadius: 16, background: "linear-gradient(135deg, #0D4A4A, #157373)", border: "1px solid rgba(45,212,191,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, margin: "0 auto 14px", boxShadow: "0 4px 16px rgba(13,74,74,0.3)" }}>
                   {p.icon}
                 </div>
                 <h3 style={{ fontSize: 15, fontWeight: 700, color: "white", marginBottom: 10, letterSpacing: "-0.01em" }}>{p.title}</h3>
@@ -689,13 +690,14 @@ export function AnaliseClient({ data }: Props) {
 
           {/* Impact phrase — fecho da seção */}
           <div className="fade-up impact-phrase-card" style={{ padding: "40px 36px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center" }}>
-            <h2 style={{ fontSize: "clamp(20px,3.5vw,32px)", fontWeight: 700, color: "white", lineHeight: 1.25, letterSpacing: "-0.02em" }}>
+            <h2 style={{ fontSize: "clamp(20px,3.5vw,32px)", fontWeight: 700, color: "white", lineHeight: 1.25, letterSpacing: "-0.02em", marginBottom: 14 }}>
               Quer que o próximo cliente
               <br />
               que pesquisar na sua região
               <br />
               <em style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", color: "#2DD4BF" }}>encontre você primeiro?</em>
             </h2>
+            <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(245,240,235,0.35)" }}>Veja o que preparamos abaixo</p>
           </div>
         </div>
       </section>
