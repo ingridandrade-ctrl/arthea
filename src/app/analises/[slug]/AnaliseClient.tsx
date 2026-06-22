@@ -605,7 +605,7 @@ export function AnaliseClient({ data }: Props) {
         </div>
       </section>
 
-      {/* ═══ SEÇÃO 5: PLANO COMPLETO + CTA ═══ */}
+      {/* ═══ SEÇÃO 5: SOLUÇÃO ═══ */}
       <section style={{ padding: "96px 24px 96px", background: "linear-gradient(155deg,#071E1E 0%,#0D4A4A 55%,#093535 100%)", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
         <div style={{ maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 }}>
@@ -617,37 +617,80 @@ export function AnaliseClient({ data }: Props) {
             <em style={{ color: "#2DD4BF" }}>e ela é sob medida pro {d.nome_linha1}.</em>
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.75)" }}>
-            Cada lacuna do diagnóstico acima tem correção. A Arthea <strong style={{ color: "white" }}>estrutura seu perfil do zero</strong> e cuida dele todos os meses — pra te tirar da <strong style={{ color: "#FF8080" }}>{d.posicao}ª posição</strong> e te colocar onde o cliente está procurando.
+            Cada lacuna do diagnóstico acima tem correção. A Arthea <strong style={{ color: "white" }}>estrutura seu perfil do zero</strong> e cuida dele todos os meses. Pra te tirar da <strong style={{ color: "#FF8080" }}>{d.posicao}ª posição</strong> e te colocar onde o cliente está procurando.
           </p>
 
-          {/* GMB note */}
-          <div className="fade-up" style={{ background: "rgba(45,212,191,0.07)", border: "1px solid rgba(45,212,191,0.18)", borderRadius: 18, padding: "18px 22px", marginBottom: 48, display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <span style={{ fontSize: 18 }}>💡</span>
-            <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Google Meu Negócio não é Google Ads</p>
-              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.6 }}>É uma <strong style={{ color: "rgba(245,240,235,0.9)" }}>ferramenta gratuita</strong> do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil — <strong style={{ color: "rgba(245,240,235,0.9)" }}>sem pagar por anúncios</strong>.</p>
+          {/* DE → PARA */}
+          <div className="fade-up de-para-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "stretch", gap: 0, marginBottom: 56 }}>
+            {/* Card Hoje */}
+            <div style={{ background: "rgba(192,57,43,0.12)", border: "1px solid rgba(192,57,43,0.25)", borderRadius: 20, padding: "28px 24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+                <span style={{ fontSize: 16 }}>📉</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#FF8080", textTransform: "uppercase", letterSpacing: "0.1em" }}>Hoje</span>
+              </div>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+                <li style={{ fontSize: 13, color: "rgba(245,240,235,0.8)", lineHeight: 1.55, paddingLeft: 18, position: "relative" }}>
+                  <span style={{ position: "absolute", left: 0, color: "#FF8080" }}>•</span>
+                  <strong style={{ color: "#FF8080" }}>{d.posicao}ª posição</strong> — 2ª página do Maps
+                </li>
+                <li style={{ fontSize: 13, color: "rgba(245,240,235,0.8)", lineHeight: 1.55, paddingLeft: 18, position: "relative" }}>
+                  <span style={{ position: "absolute", left: 0, color: "#FF8080" }}>•</span>
+                  Perfil <strong style={{ color: "#FF8080" }}>inativo</strong> — sem postagens nem fotos recentes
+                </li>
+                <li style={{ fontSize: 13, color: "rgba(245,240,235,0.8)", lineHeight: 1.55, paddingLeft: 18, position: "relative" }}>
+                  <span style={{ position: "absolute", left: 0, color: "#FF8080" }}>•</span>
+                  <strong style={{ color: "#FF8080" }}>{d.estrelas}★</strong> · <strong style={{ color: "#FF8080" }}>{d.avaliacoes}</strong> avaliações (abaixo do segmento)
+                </li>
+              </ul>
+            </div>
+
+            {/* Seta */}
+            <div className="de-para-arrow" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "0 12px" }}>
+              <span style={{ fontSize: 24, color: "#2DD4BF" }}>→</span>
+            </div>
+
+            {/* Card Com a Arthea */}
+            <div style={{ background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 20, padding: "28px 24px", boxShadow: "0 0 40px rgba(45,212,191,0.08)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
+                <span style={{ fontSize: 16 }}>📈</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", textTransform: "uppercase", letterSpacing: "0.1em" }}>Com a Arthea</span>
+              </div>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+                <li style={{ fontSize: 13, color: "rgba(245,240,235,0.8)", lineHeight: 1.55, paddingLeft: 18, position: "relative" }}>
+                  <span style={{ position: "absolute", left: 0, color: "#2DD4BF" }}>•</span>
+                  <strong style={{ color: "#2DD4BF" }}>Subindo no ranking</strong>, rumo ao topo
+                </li>
+                <li style={{ fontSize: 13, color: "rgba(245,240,235,0.8)", lineHeight: 1.55, paddingLeft: 18, position: "relative" }}>
+                  <span style={{ position: "absolute", left: 0, color: "#2DD4BF" }}>•</span>
+                  Perfil <strong style={{ color: "#2DD4BF" }}>ativo</strong> todos os meses
+                </li>
+                <li style={{ fontSize: 13, color: "rgba(245,240,235,0.8)", lineHeight: 1.55, paddingLeft: 18, position: "relative" }}>
+                  <span style={{ position: "absolute", left: 0, color: "#2DD4BF" }}>•</span>
+                  Reputação <strong style={{ color: "#2DD4BF" }}>crescente</strong> e bem trabalhada
+                </li>
+              </ul>
             </div>
           </div>
 
-          {/* 3 pilares de resultado */}
-          <div className="fade-up pilares-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 48 }}>
+          {/* 3 pilares — o como */}
+          <div className="pilares-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 56 }}>
             {[
-              { icon: "🎯", title: "Aparecer no topo", text: "Subir nas buscas do Google Maps na sua região, onde estão os cliques." },
-              { icon: "⭐", title: "Perfil que converte", text: "Um perfil completo e confiável que transforma quem vê em quem entra em contato." },
-              { icon: "📈", title: "Presença ativa", text: "Gestão mensal pra manter — e melhorar — sua posição ao longo do tempo." },
+              { icon: "🎯", title: "Aparecer no topo", text: "Subimos seu perfil nas buscas do Maps, na sua região, onde estão os cliques.", delay: 0 },
+              { icon: "⭐", title: "Perfil que converte", text: "Perfil completo e confiável que transforma quem vê em quem entra em contato.", delay: 150 },
+              { icon: "📈", title: "Presença ativa", text: "Gestão mensal pra manter e melhorar sua posição ao longo do tempo.", delay: 300 },
             ].map((p, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "24px 20px", textAlign: "center" }}>
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg, rgba(45,212,191,0.15), rgba(45,212,191,0.05))", border: "1px solid rgba(45,212,191,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 14px" }}>
+              <div key={i} className="fade-up" data-delay={p.delay} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "28px 22px", textAlign: "center", transition: "background .2s, border-color .2s" }} onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,212,191,0.3)"; }} onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)"; }}>
+                <div style={{ width: 52, height: 52, borderRadius: 16, background: "linear-gradient(135deg, #0D4A4A, #157373)", border: "1px solid rgba(45,212,191,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, margin: "0 auto 16px", boxShadow: "0 4px 16px rgba(13,74,74,0.3)" }}>
                   {p.icon}
                 </div>
-                <h3 style={{ fontSize: 15, fontWeight: 700, color: "white", marginBottom: 8, letterSpacing: "-0.01em" }}>{p.title}</h3>
-                <p style={{ fontSize: 13, color: "rgba(245,240,235,0.65)", lineHeight: 1.55 }}>{p.text}</p>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "white", marginBottom: 10, letterSpacing: "-0.01em" }}>{p.title}</h3>
+                <p style={{ fontSize: 13, color: "rgba(245,240,235,0.65)", lineHeight: 1.6 }}>{p.text}</p>
               </div>
             ))}
           </div>
 
           {/* Impact phrase */}
-          <div className="fade-up impact-phrase-card" style={{ padding: "40px 36px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center" }}>
+          <div className="fade-up impact-phrase-card" style={{ padding: "40px 36px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center", marginBottom: 48 }}>
             <h2 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 700, color: "white", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
               Quer que o próximo cliente
               <br />
@@ -657,6 +700,14 @@ export function AnaliseClient({ data }: Props) {
             </h2>
           </div>
 
+          {/* GMB note — tranquilização final */}
+          <div className="fade-up" style={{ background: "rgba(45,212,191,0.07)", border: "1px solid rgba(45,212,191,0.18)", borderRadius: 18, padding: "18px 22px", display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <span style={{ fontSize: 18 }}>💡</span>
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Google Meu Negócio não é Google Ads</p>
+              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.6 }}>É uma <strong style={{ color: "rgba(245,240,235,0.9)" }}>ferramenta gratuita</strong> do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil, <strong style={{ color: "rgba(245,240,235,0.9)" }}>sem pagar por anúncios</strong>.</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -682,7 +733,6 @@ export function AnaliseClient({ data }: Props) {
             >
               <span>Ver proposta completa →</span>
             </a>
-            <p style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.22em", color: "#9CA3AF", marginTop: 16 }}>Análise gratuita · Sem compromisso</p>
           </div>
 
           <div style={{ marginTop: 48, display: "flex", justifyContent: "center" }}>
