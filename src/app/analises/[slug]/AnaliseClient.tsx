@@ -599,8 +599,7 @@ export function AnaliseClient({ data }: Props) {
             A boa notícia
           </div>
           <h2 className="tt" style={{ color: "white" }}>
-            Tudo o que mostramos tem solução<br />
-            <em style={{ color: "#2DD4BF" }}>e a Arthea te ajuda a resolver.</em>
+            Tudo o que mostramos tem solução — <em style={{ color: "#2DD4BF" }}>e a Arthea te ajuda a resolver.</em>
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.75)" }}>
             Cada lacuna do diagnóstico acima tem correção. A Arthea <strong style={{ color: "white" }}>estrutura seu perfil do zero</strong> e cuida dele todos os meses. Pra te tirar da <strong style={{ color: "#FF8080" }}>{d.posicao}ª posição</strong> e te colocar onde o cliente está procurando.
