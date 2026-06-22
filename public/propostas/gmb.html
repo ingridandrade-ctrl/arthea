@@ -986,44 +986,37 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
           <div style="font-size:12px;color:var(--teal-light);font-weight:600;margin-bottom:16px;">Presença ativa no Google durante 1 ano</div>
           <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:24px;">A Arthea cuida do seu perfil todos os meses para que seu negócio continue aparecendo para quem procura o que você oferece.</p>
 
-          <!-- Toggle de planos -->
+          <!-- Opções de plano (duas caixas empilhadas) -->
           <div style="margin-bottom:20px;">
-            <div style="margin-bottom:16px;">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.22em;color:#157373;margin-bottom:10px;">Escolha o seu plano</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <button onclick="switchPlan('sem')" id="btn-sem" style="padding:14px 16px;border-radius:12px;border:2px solid #0D4A4A;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;background:#0D4A4A;transition:all .25s;">
-                  <div class="pt-tag" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.6);margin-bottom:4px;">Básico</div>
-                  <div class="pt-label" style="font-size:14px;font-weight:700;color:white;line-height:1.25;">Sem gestão de avaliações</div>
-                  <div class="pt-price" style="font-size:16px;font-weight:700;color:white;margin-top:7px;">R$ 450<span style="font-size:11px;font-weight:500;opacity:.65;">/mês</span></div>
-                </button>
-                <button onclick="switchPlan('com')" id="btn-com" style="padding:14px 16px;border-radius:12px;border:2px solid rgba(13,74,74,0.15);cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;background:transparent;transition:all .25s;">
-                  <div class="pt-tag" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#157373;margin-bottom:4px;">Completo</div>
-                  <div class="pt-label" style="font-size:14px;font-weight:700;color:#374151;line-height:1.25;">Com gestão de avaliações</div>
-                  <div class="pt-price" style="font-size:16px;font-weight:700;color:#0D4A4A;margin-top:7px;">R$ 650<span style="font-size:11px;font-weight:500;opacity:.6;">/mês</span></div>
-                </button>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.22em;color:#157373;margin-bottom:12px;">Escolha o seu plano</div>
+
+            <!-- Opção 1: Básico -->
+            <div style="border:1.5px solid rgba(13,74,74,0.14);border-radius:14px;padding:16px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:14px;">
+              <div>
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6B7280;margin-bottom:3px;">Básico</div>
+                <div style="font-size:15px;font-weight:700;color:var(--ink);">Sem gestão de avaliações</div>
               </div>
+              <div style="font-size:26px;font-weight:700;color:var(--ink);letter-spacing:-.03em;line-height:1;flex-shrink:0;">R$ 450<span style="font-size:13px;font-weight:500;color:var(--muted);">/mês</span></div>
             </div>
 
-            <div id="price-sem" style="padding:18px 20px;background:rgba(13,74,74,0.04);border-radius:12px;border:1px solid rgba(13,74,74,0.1);">
-              <div class="price-num" style="font-size:44px;font-weight:700;color:var(--ink);letter-spacing:-.04em;line-height:1;margin-bottom:4px;">R$ 450<sub style="font-size:16px;font-weight:500;color:var(--muted);vertical-align:baseline;">/mês</sub></div>
-              <div style="font-size:13px;color:var(--muted);margin-top:4px;">Sem gestão de avaliações</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:2px;opacity:.7;">Cobrança automática mensal no cartão</div>
-              <div style="margin-top:10px;"><span class="chip chip-teal">Contrato 12 meses</span></div>
+            <!-- Opção 2: Completo (destaque) -->
+            <div style="position:relative;border:2px solid var(--teal);border-radius:14px;padding:16px 18px;background:rgba(45,212,191,0.06);box-shadow:0 0 22px rgba(45,212,191,0.15);display:flex;justify-content:space-between;align-items:center;gap:14px;">
+              <div>
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#157373;margin-bottom:3px;">★ Completo · Recomendado</div>
+                <div style="font-size:15px;font-weight:700;color:var(--teal);">Com gestão de avaliações</div>
+                <div style="font-size:12px;color:#6B7280;margin-top:4px;line-height:1.5;">A Arthea responde suas avaliações 2×/mês.</div>
+              </div>
+              <div style="font-size:26px;font-weight:700;color:var(--teal);letter-spacing:-.03em;line-height:1;flex-shrink:0;">R$ 650<span style="font-size:13px;font-weight:500;color:var(--muted);">/mês</span></div>
             </div>
 
-            <div id="price-com" style="display:none;padding:18px 20px;background:rgba(13,74,74,0.06);border-radius:12px;border:1.5px solid rgba(13,74,74,0.2);">
-              <div class="price-num" style="font-size:44px;font-weight:700;color:var(--teal);letter-spacing:-.04em;line-height:1;margin-bottom:4px;">R$ 650<sub style="font-size:16px;font-weight:500;color:var(--muted);vertical-align:baseline;">/mês</sub></div>
-              <div style="font-size:13px;color:var(--muted);margin-top:4px;">Com respostas às avaliações pela Arthea 2×/mês</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:2px;opacity:.7;">Cobrança automática mensal no cartão</div>
-              <div style="margin-top:10px;"><span class="chip chip-teal">Contrato 12 meses</span></div>
-            </div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:12px;text-align:center;">Cobrança mensal no cartão · Contrato de 12 meses</div>
           </div>
 
 
         </div>
 
         <div style="padding:0 28px 8px;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;">O que está incluso</div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;">Incluso nos dois planos</div>
         </div>
         <div class="plan-body" style="padding-top:8px;">
           <div class="plan-feat hl" style="font-size:14px;font-weight:600;padding:13px 0;border-bottom:1px solid rgba(13,74,74,0.12);">Tudo da Otimização Principal</div>
@@ -1225,33 +1218,6 @@ const io = new IntersectionObserver(entries => {
   });
 }, {threshold: 0, rootMargin: '0px 0px -8% 0px'});
 els.forEach(el => io.observe(el));
-
-function switchPlan(type) {
-  const btnSem = document.getElementById('btn-sem');
-  const btnCom = document.getElementById('btn-com');
-  const priceSem = document.getElementById('price-sem');
-  const priceCom = document.getElementById('price-com');
-
-  function paint(btn, active) {
-    btn.style.background = active ? '#0D4A4A' : 'transparent';
-    btn.style.borderColor = active ? '#0D4A4A' : 'rgba(13,74,74,0.15)';
-    btn.querySelector('.pt-tag').style.color = active ? 'rgba(255,255,255,.6)' : '#157373';
-    btn.querySelector('.pt-label').style.color = active ? 'white' : '#374151';
-    btn.querySelector('.pt-price').style.color = active ? 'white' : '#0D4A4A';
-  }
-
-  if (type === 'sem') {
-    paint(btnSem, true);
-    paint(btnCom, false);
-    priceSem.style.display = 'block';
-    priceCom.style.display = 'none';
-  } else {
-    paint(btnSem, false);
-    paint(btnCom, true);
-    priceSem.style.display = 'none';
-    priceCom.style.display = 'block';
-  }
-}
 
 function toggleDeliv(btn) {
   const more = btn.previousElementSibling;
