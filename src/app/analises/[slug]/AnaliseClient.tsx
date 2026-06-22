@@ -693,37 +693,41 @@ export function AnaliseClient({ data }: Props) {
             </h2>
           </div>
 
-          {/* CTA */}
-          <div className="fade-up" style={{ textAlign: "center", marginTop: 40 }}>
-            <div className="ey" style={{ color: "rgba(45,212,191,0.7)", marginBottom: 16 }}>
-              Próximo passo
-            </div>
-            <h2 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 700, color: "white", lineHeight: 1.15, letterSpacing: "-0.02em", marginBottom: 14 }}>
-              Preparamos planos
-              <br />
-              <em style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", color: "#2DD4BF" }}>feitos para o seu negócio.</em>
-            </h2>
-            <p style={{ fontSize: 15, color: "rgba(245,240,235,0.75)", lineHeight: 1.7, marginBottom: 36 }}>
-              Veja os <strong style={{ color: "white" }}>planos de otimização exclusivos</strong>
-              <br />
-              que preparamos para o {d.nome}.
-            </p>
+        </div>
+      </section>
+
+      {/* ═══ SEÇÃO 6: PRÓXIMO PASSO (fundo claro) ═══ */}
+      <section style={{ padding: "96px 24px 80px", background: "#F7F5F1" }}>
+        <div className="wrap" style={{ textAlign: "center" }}>
+          <div className="ey">Próximo passo</div>
+          <h2 className="tt">
+            Preparamos planos
+            <br />
+            <em>feitos para o seu negócio.</em>
+          </h2>
+          <p className="lead">
+            Veja os <strong>planos de otimização exclusivos</strong>
+            <br />
+            que preparamos para o {d.nome}.
+          </p>
+          <div className="fade-up" style={{ marginTop: 8 }}>
             <a
               href="https://propostagmn.arthea.com.br/"
               className="btn-whatsapp"
+              style={{ background: "#0D4A4A", color: "#F7F5F1" }}
             >
               <span>Ver proposta completa →</span>
             </a>
-            <p style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.22em", color: "rgba(245,240,235,0.3)", marginTop: 16 }}>Análise gratuita · Sem compromisso</p>
+            <p style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.22em", color: "#9CA3AF", marginTop: 16 }}>Análise gratuita · Sem compromisso</p>
+          </div>
 
-            <div style={{ marginTop: 32 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/analises/assets/logo-arthea.svg"
-                alt="Arthea"
-                style={{ height: 100, objectFit: "contain", mixBlendMode: "screen", opacity: 0.8 }}
-              />
-            </div>
+          <div style={{ marginTop: 48, display: "flex", justifyContent: "center" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/analises/assets/logo-arthea.svg"
+              alt="Arthea"
+              style={{ height: 140, objectFit: "contain", opacity: 0.85 }}
+            />
           </div>
         </div>
       </section>
