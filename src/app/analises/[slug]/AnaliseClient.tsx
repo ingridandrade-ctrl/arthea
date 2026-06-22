@@ -286,49 +286,40 @@ export function AnaliseClient({ data }: Props) {
               <p style={{ fontSize: 12, color: "rgba(245,240,235,0.5)", lineHeight: 1.5 }}>Na {d.posicao}ª posição, você fica <strong style={{ color: "rgba(245,240,235,0.7)" }}>fora dessa faixa de decisão</strong>.</p>
             </div>
           </div>
-
-          {/* Pergunta de impacto */}
-          <div className="fade-up impact-question-card" style={{ background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 100%)", borderRadius: 22, overflow: "hidden", position: "relative", padding: "52px 40px", textAlign: "center", marginTop: 20 }}>
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
-            <div style={{ position: "relative", zIndex: 1 }}>
-              <p style={{ fontSize: 15, color: "rgba(245,240,235,0.75)", lineHeight: 1.7, marginBottom: 16 }}>
-                Isso significa que todos os dias, quando pessoas pesquisam &ldquo;{d.busca_termo}&rdquo; na sua região, você aparece na <strong style={{ color: "#FF8080", fontWeight: 700 }}>{d.posicao}ª posição</strong>. Nessa posição,
-              </p>
-              <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(24px,4vw,34px)", fontWeight: 400, color: "#2DD4BF", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
-                quantas escolhem você?
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* ═══ COMO FUNCIONA (regra do jogo) ═══ */}
-      <section style={{ padding: "64px 24px 72px", background: "#F7F5F1" }}>
-        <div className="wrap">
-          <div className="ey">A regra do jogo</div>
-          <h2 className="tt">
-            Como o Google decide <em>quem aparece primeiro</em>
+      {/* ═══ REGRA DO JOGO (escuro) ═══ */}
+      <section style={{ padding: "80px 24px 88px", background: "linear-gradient(155deg,#071E1E 0%,#0D4A4A 55%,#093535 100%)", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
+        <div style={{ maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>A regra do jogo</div>
+          <h2 className="tt" style={{ color: "white" }}>
+            Como o Google decide <em style={{ color: "#2DD4BF" }}>quem aparece primeiro</em>
           </h2>
 
-          {/* Mini-fluxo 3 passos */}
-          <div className="fade-up flow-steps" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, margin: "32px auto 36px", maxWidth: 520 }}>
+          {/* 3 fatores de ranqueamento */}
+          <div className="fade-up pilares-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, margin: "32px 0 40px" }}>
             {[
-              { icon: "🔎", label: "Cliente pesquisa", delay: 0 },
-              { icon: "📍", label: "Vê os 3 primeiros", delay: 200 },
-              { icon: "👆", label: "Escolhe ali mesmo", delay: 400 },
-            ].map((step, i) => (
-              <div key={i} style={{ display: "contents" }}>
-                <div className="fade-up flow-step" data-delay={step.delay} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, flex: 1 }}>
-                  <div style={{ width: 56, height: 56, borderRadius: 16, background: "linear-gradient(135deg, #0D4A4A, #157373)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, boxShadow: "0 4px 16px rgba(13,74,74,0.2)" }}>
-                    {step.icon}
-                  </div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", textAlign: "center", lineHeight: 1.3 }}>{step.label}</span>
+              { icon: "🎯", title: "Relevância", text: "Quão completo e certo está seu perfil: serviços, categorias e descrição. Quanto mais claro, melhor o Google entende pra quem te mostrar." },
+              { icon: "📍", title: "Proximidade", text: "A distância entre você e quem está pesquisando. Um perfil bem configurado ajuda o Google a te posicionar na sua região." },
+              { icon: "⭐", title: "Destaque", text: "Sua reputação e atividade: volume de avaliações, nota, postagens e fotos. É o que mostra ao Google que você é relevante e ativo." },
+            ].map((f, i) => (
+              <div key={i} className="fade-up" data-delay={i * 150} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "24px 20px", textAlign: "center" }}>
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg, rgba(45,212,191,0.15), rgba(45,212,191,0.05))", border: "1px solid rgba(45,212,191,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, margin: "0 auto 14px" }}>
+                  {f.icon}
                 </div>
-                {i < 2 && (
-                  <div className="flow-arrow" style={{ fontSize: 16, color: "#9CA3AF", flexShrink: 0, padding: "0 6px", marginBottom: 20 }}>→</div>
-                )}
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "white", marginBottom: 8, letterSpacing: "-0.01em" }}>{f.title}</h3>
+                <p style={{ fontSize: 13, color: "rgba(245,240,235,0.65)", lineHeight: 1.55 }}>{f.text}</p>
               </div>
             ))}
+          </div>
+
+          {/* Frase de virada */}
+          <div className="fade-up" style={{ textAlign: "center" }}>
+            <p style={{ fontSize: 15, color: "rgba(245,240,235,0.75)", lineHeight: 1.7, maxWidth: 520, margin: "0 auto" }}>
+              Proximidade você quase não controla. Mas <strong style={{ color: "white" }}>relevância</strong> e <strong style={{ color: "white" }}>destaque</strong> dependem de como o perfil é cuidado — e é exatamente aí que <strong style={{ color: "#FF8080" }}>você está perdendo posições</strong>.
+            </p>
           </div>
         </div>
       </section>
@@ -531,6 +522,23 @@ export function AnaliseClient({ data }: Props) {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ PONTE EMOCIONAL ═══ */}
+      <section style={{ padding: "0 24px 96px", background: "#F7F5F1" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+          <div className="fade-up impact-question-card" style={{ background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 100%)", borderRadius: 22, overflow: "hidden", position: "relative", padding: "52px 40px", textAlign: "center" }}>
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <p style={{ fontSize: 15, color: "rgba(245,240,235,0.75)", lineHeight: 1.7, marginBottom: 16 }}>
+                Isso significa que todos os dias, quando pessoas pesquisam &ldquo;{d.busca_termo}&rdquo; na sua região, você aparece na <strong style={{ color: "#FF8080", fontWeight: 700 }}>{d.posicao}ª posição</strong>. Nessa posição,
+              </p>
+              <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(24px,4vw,34px)", fontWeight: 400, color: "#2DD4BF", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+                quantas escolhem você?
+              </p>
             </div>
           </div>
         </div>
