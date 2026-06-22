@@ -779,34 +779,18 @@ export function AnaliseClient({ data }: Props) {
             </p>
             <a
               href="https://propostagmn.arthea.com.br/"
-              className="cta-final"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 12,
-                background: "#F7F5F1",
-                color: "#0D4A4A",
-                textDecoration: "none",
-                padding: "18px 52px",
-                borderRadius: 50,
-                fontSize: 16,
-                fontWeight: 700,
-                letterSpacing: "0.02em",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-                transition: "all 0.25s ease",
-              }}
+              className="btn-whatsapp"
             >
-              Ver proposta completa →
+              <span>Ver proposta completa →</span>
             </a>
             <p style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.22em", color: "rgba(245,240,235,0.3)", marginTop: 16 }}>Análise gratuita · Sem compromisso</p>
 
-            <div style={{ marginTop: 60, opacity: 0.15 }}>
-              <Image
-                src="/analises/assets/logo-arthea-oficial.png"
+            <div style={{ marginTop: 64 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/analises/assets/logo-arthea.svg"
                 alt="Arthea"
-                width={120}
-                height={60}
-                style={{ height: 80, width: "auto", objectFit: "contain", filter: "brightness(10)" }}
+                style={{ height: 200, objectFit: "contain", mixBlendMode: "screen", opacity: 0.8 }}
               />
             </div>
           </div>
