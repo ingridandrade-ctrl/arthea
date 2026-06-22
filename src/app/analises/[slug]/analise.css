@@ -110,7 +110,8 @@ h2.tt em{font-family:'Playfair Display',serif;font-style:italic;font-weight:700;
   .score-gauge-wrap>div:last-child{text-align:center}
   .impacto-card{padding:32px 24px!important}
   .impact-question-card{padding:36px 24px!important}
-  .impact-phrase-card{padding:36px 24px!important}
+  .impact-phrase-card{padding:28px 20px!important}
+  .impact-phrase-card h2{font-size:20px!important}
   .checklist-row{flex-wrap:wrap!important;gap:6px!important}
   .checklist-row>div:first-child{width:100%}
   .checklist-row>div:first-child span:last-child{display:block;margin-left:0!important;margin-top:2px}

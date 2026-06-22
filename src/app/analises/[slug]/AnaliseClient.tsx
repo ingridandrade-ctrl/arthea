@@ -600,7 +600,7 @@ export function AnaliseClient({ data }: Props) {
           </div>
           <h2 className="tt" style={{ color: "white" }}>
             Tudo o que mostramos tem solução<br />
-            <em style={{ color: "#2DD4BF" }}>e ela é sob medida pro {d.nome_linha1}.</em>
+            <em style={{ color: "#2DD4BF" }}>e a Arthea te ajuda a resolver.</em>
           </h2>
           <p className="lead" style={{ color: "rgba(245,240,235,0.75)" }}>
             Cada lacuna do diagnóstico acima tem correção. A Arthea <strong style={{ color: "white" }}>estrutura seu perfil do zero</strong> e cuida dele todos os meses. Pra te tirar da <strong style={{ color: "#FF8080" }}>{d.posicao}ª posição</strong> e te colocar onde o cliente está procurando.
@@ -659,6 +659,10 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* 3 pilares — o como */}
+          <h3 className="fade-up" style={{ fontSize: "clamp(18px,2.5vw,22px)", fontWeight: 700, color: "white", textAlign: "center", marginBottom: 20, lineHeight: 1.3 }}>
+            Nossa missão é fazer o seu negócio<br />
+            <em style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", color: "#2DD4BF" }}>ser encontrado, escolhido e lembrado.</em>
+          </h3>
           <div className="pilares-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 56 }}>
             {[
               { icon: "🎯", title: "Aparecer no topo", text: "Subimos seu perfil nas buscas do Maps, na sua região, onde estão os cliques.", delay: 0 },
@@ -675,24 +679,24 @@ export function AnaliseClient({ data }: Props) {
             ))}
           </div>
 
-          {/* Impact phrase */}
-          <div className="fade-up impact-phrase-card" style={{ padding: "40px 36px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center", marginBottom: 48 }}>
-            <h2 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 700, color: "white", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+          {/* GMB note — tranquilização */}
+          <div className="fade-up" style={{ background: "rgba(45,212,191,0.07)", border: "1px solid rgba(45,212,191,0.18)", borderRadius: 18, padding: "18px 22px", display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 48 }}>
+            <span style={{ fontSize: 18 }}>💡</span>
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Google Meu Negócio não é Google Ads</p>
+              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.6 }}>É uma <strong style={{ color: "rgba(245,240,235,0.9)" }}>ferramenta gratuita</strong> do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil, <strong style={{ color: "rgba(245,240,235,0.9)" }}>sem pagar por anúncios</strong>.</p>
+            </div>
+          </div>
+
+          {/* Impact phrase — fecho da seção */}
+          <div className="fade-up impact-phrase-card" style={{ padding: "40px 36px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center" }}>
+            <h2 style={{ fontSize: "clamp(20px,3.5vw,32px)", fontWeight: 700, color: "white", lineHeight: 1.25, letterSpacing: "-0.02em" }}>
               Quer que o próximo cliente
               <br />
               que pesquisar na sua região
               <br />
               <em style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", color: "#2DD4BF" }}>encontre você primeiro?</em>
             </h2>
-          </div>
-
-          {/* GMB note — tranquilização final */}
-          <div className="fade-up" style={{ background: "rgba(45,212,191,0.07)", border: "1px solid rgba(45,212,191,0.18)", borderRadius: 18, padding: "18px 22px", display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <span style={{ fontSize: 18 }}>💡</span>
-            <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Google Meu Negócio não é Google Ads</p>
-              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.6 }}>É uma <strong style={{ color: "rgba(245,240,235,0.9)" }}>ferramenta gratuita</strong> do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil, <strong style={{ color: "rgba(245,240,235,0.9)" }}>sem pagar por anúncios</strong>.</p>
-            </div>
           </div>
         </div>
       </section>
