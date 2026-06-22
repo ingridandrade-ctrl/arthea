@@ -448,7 +448,7 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 ════════════════════════════ */
 .plans{
   display:grid;grid-template-columns:5fr 7fr;
-  gap:16px;margin-top:48px;position:relative;
+  gap:30px;margin-top:48px;position:relative;
 }
 /* Aura ambiente atrás dos planos */
 .plans::before{
@@ -515,6 +515,12 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 .plan-opt-price{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1;flex-shrink:0;color:var(--ink);white-space:nowrap;}
 .plan-opt-price span{font-size:14px;font-weight:500;color:var(--muted);}
 .plan-opt-featured .plan-opt-price{color:var(--teal);}
+/* Desktop: caixas mais "cheias" e preço bem maior (não esticado/pequeno) */
+@media(min-width:769px){
+  .plan-opt{padding:22px 26px;}
+  .plan-opt-price{font-size:46px;}
+  .plan-opt-price span{font-size:16px;}
+}
 @media(max-width:560px){
   .plan-opt{flex-direction:column;align-items:flex-start;gap:10px;}
   .plan-opt-price{font-size:32px;}
