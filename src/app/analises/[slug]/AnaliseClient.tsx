@@ -48,7 +48,7 @@ export function AnaliseClient({ data }: Props) {
   }, []);
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#FAF9F6", color: "#111827" }}>
+    <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#F7F5F1", color: "#111827" }}>
       {/* ═══ HERO ═══ */}
       <section className="hero">
         <div className="hero-body">
@@ -90,7 +90,7 @@ export function AnaliseClient({ data }: Props) {
           <div style={{ width: 40, height: 1, background: "rgba(45,212,191,0.3)", marginBottom: 28 }} />
 
           {/* Bloco do cliente */}
-          <p style={{ fontSize: "clamp(17px,2.5vw,22px)", fontWeight: 500, color: "rgba(245,240,235,0.7)", marginBottom: 8 }}>
+          <p style={{ fontSize: "clamp(17px,2.5vw,22px)", fontWeight: 500, color: "rgba(245,240,235,0.92)", marginBottom: 8 }}>
             Diagnóstico completo para
           </p>
           <h1 style={{
@@ -128,7 +128,7 @@ export function AnaliseClient({ data }: Props) {
       </section>
 
       {/* ═══ SEÇÃO 1: IMPACTO REAL ═══ */}
-      <section style={{ padding: "88px 24px 56px", background: "#FAF9F6" }}>
+      <section style={{ padding: "96px 24px 56px", background: "#F7F5F1" }}>
         <div className="wrap">
           <div className="ey">O que encontramos</div>
           <h2 className="tt">
@@ -290,7 +290,7 @@ export function AnaliseClient({ data }: Props) {
       </section>
 
       {/* ═══ IMPACT QUESTION ═══ */}
-      <section style={{ padding: "0 24px 88px", background: "#FAF9F6" }}>
+      <section style={{ padding: "0 24px 96px", background: "#F7F5F1" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
           <div className="fade-up impact-question-card" style={{ background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 100%)", borderRadius: 22, overflow: "hidden", position: "relative", padding: "52px 40px", textAlign: "center" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "18px 18px" }} />
@@ -307,7 +307,7 @@ export function AnaliseClient({ data }: Props) {
       </section>
 
       {/* ═══ SEÇÃO 3: DIAGNÓSTICO COMPLETO ═══ */}
-      <section id="diagnostico" style={{ padding: "72px 24px 96px", background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 45%,#0A3A3A 100%)", position: "relative", overflow: "hidden" }}>
+      <section id="diagnostico" style={{ padding: "96px 24px 96px", background: "linear-gradient(155deg,#071E1E 0%,#0D4A4A 55%,#093535 100%)", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
         <div style={{ maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
@@ -323,7 +323,7 @@ export function AnaliseClient({ data }: Props) {
           </p>
 
           {/* Score Gauge */}
-          <div className="fade-up score-gauge-wrap" style={{ background: "#FAF9F6", borderRadius: 20, padding: 32, border: "1px solid rgba(13,74,74,0.12)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+          <div className="fade-up score-gauge-wrap" style={{ background: "#F7F5F1", borderRadius: 20, padding: 32, border: "1px solid rgba(13,74,74,0.12)", display: "flex", alignItems: "center", gap: 28, marginBottom: 32, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
             <div style={{ position: "relative", width: 120, height: 120, flexShrink: 0 }}>
               <svg width="120" height="120" style={{ transform: "rotate(-90deg)" }}>
                 <defs>
@@ -364,7 +364,7 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* Checklist: Exists */}
-          <div className="fade-up" style={{ background: "#FAF9F6", borderRadius: 20, border: "1px solid rgba(13,74,74,0.12)", overflow: "hidden", marginBottom: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+          <div className="fade-up" style={{ background: "#F7F5F1", borderRadius: 20, border: "1px solid rgba(13,74,74,0.12)", overflow: "hidden", marginBottom: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
             <div style={{ padding: "12px 18px", background: "rgba(13,74,74,0.04)", borderBottom: "1px solid rgba(13,74,74,0.08)", display: "flex", alignItems: "center", gap: 8 }}>
               <span>ℹ️</span>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#157373", textTransform: "uppercase", letterSpacing: "0.1em" }}>Preenchidos · requerem gestão contínua</span>
@@ -468,7 +468,7 @@ export function AnaliseClient({ data }: Props) {
 
           <div className="fade-up" style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(13,74,74,0.12)", marginBottom: 24, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
             {/* Headers */}
-            <div className="cmp-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "#FAF9F6" }}>
+            <div className="cmp-header-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "#F7F5F1" }}>
               <div style={{ background: "#FEF2F2", padding: "14px 20px" }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: "#C0392B", marginBottom: 2 }}>⚠️ Você · {d.nome_linha1}</p>
                 <p style={{ fontSize: 10, color: "#9CA3AF" }}>Matriz · {d.cidade}, {d.estado.split(",")[1]?.trim() || "SP"}</p>
@@ -479,7 +479,7 @@ export function AnaliseClient({ data }: Props) {
               </div>
             </div>
             {/* Rows */}
-            <div className="cmp-rows-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "#FAF9F6" }}>
+            <div className="cmp-rows-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, background: "#F7F5F1" }}>
               <div style={{ background: "white", padding: "0 20px" }}>
                 {[
                   { label: "Avaliações", val: d.avaliacoes, color: "#C0392B" },
@@ -545,7 +545,7 @@ export function AnaliseClient({ data }: Props) {
       </section>
 
       {/* ═══ SEÇÃO 4: COMO FUNCIONA + RANKING (fundo claro) ═══ */}
-      <section style={{ padding: "88px 24px 72px", background: "#FAF9F6" }}>
+      <section style={{ padding: "96px 24px 72px", background: "#F7F5F1" }}>
         <div className="wrap">
           <div className="ey">Como funciona a busca local</div>
           <h2 className="tt">
@@ -562,7 +562,7 @@ export function AnaliseClient({ data }: Props) {
               { icon: "⭐", title: "Volume de avaliações", text: <>O líder tem <strong>{d.lider_aval}</strong>. Você tem <strong>{d.avaliacoes}</strong>. Essa diferença define quem aparece primeiro.</> },
               { icon: "📞", title: "Contato direto", text: <>O cliente liga, pede rota ou acessa seu site <strong>direto do perfil</strong>, sem visitar nenhum outro.</> },
             ].map((c, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 18, padding: "22px 20px", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 2px 12px rgba(13,74,74,0.06)" }}>
+              <div key={i} style={{ background: "white", borderRadius: 18, padding: "22px 20px", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 24px rgba(13,74,74,0.06)" }}>
                 <div style={{ fontSize: 24, marginBottom: 10 }}>{c.icon}</div>
                 <h4 style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 5, lineHeight: 1.3 }}>{c.title}</h4>
                 <p style={{ fontSize: 12, color: "#6B7280", lineHeight: 1.55 }}>{c.text}</p>
@@ -630,11 +630,11 @@ export function AnaliseClient({ data }: Props) {
 
           {/* Context cards */}
           <div className="fade-up ranking-context-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, textAlign: "left" }}>
-            <div style={{ background: "white", border: "1.5px solid rgba(13,74,74,0.1)", borderRadius: 18, padding: "20px 22px", boxShadow: "0 2px 12px rgba(13,74,74,0.06)" }}>
+            <div style={{ background: "white", border: "1.5px solid rgba(13,74,74,0.1)", borderRadius: 18, padding: "20px 22px", boxShadow: "0 4px 24px rgba(13,74,74,0.06)" }}>
               <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#157373", marginBottom: 8 }}>Sua situação atual</p>
               <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>Com {d.avaliacoes} avaliações, você está <strong style={{ color: "#374151" }}>{(d.ranking[0]?.aval || 0) - parseInt(d.avaliacoes)} avaliações atrás</strong> do líder. Essa distância se reflete diretamente na posição.</p>
             </div>
-            <div style={{ background: "white", border: "1.5px solid rgba(13,74,74,0.1)", borderRadius: 18, padding: "20px 22px", boxShadow: "0 2px 12px rgba(13,74,74,0.06)" }}>
+            <div style={{ background: "white", border: "1.5px solid rgba(13,74,74,0.1)", borderRadius: 18, padding: "20px 22px", boxShadow: "0 4px 24px rgba(13,74,74,0.06)" }}>
               <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#157373", marginBottom: 8 }}>O que pode mudar</p>
               <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6 }}>Você não precisa alcançar o 1º lugar para ganhar visibilidade. <strong style={{ color: "#374151" }}>Entrar no top 3</strong> já muda completamente quantos clientes te encontram.</p>
             </div>
@@ -643,7 +643,7 @@ export function AnaliseClient({ data }: Props) {
       </section>
 
       {/* ═══ SEÇÃO 5: TIMELINE + CTA ═══ */}
-      <section style={{ padding: "96px 24px 88px", background: "linear-gradient(160deg,#082E2E 0%,#0D4A4A 45%,#0A3A3A 100%)", position: "relative", overflow: "hidden" }}>
+      <section style={{ padding: "96px 24px 96px", background: "linear-gradient(155deg,#071E1E 0%,#0D4A4A 55%,#093535 100%)", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle,rgba(255,255,255,0.025) 1px,transparent 0)", backgroundSize: "20px 20px" }} />
         <div style={{ maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div className="ey" style={{ color: "rgba(45,212,191,0.7)" }}>
@@ -727,7 +727,7 @@ export function AnaliseClient({ data }: Props) {
                     position: "relative",
                     zIndex: 1,
                     ...(step.active
-                      ? { background: "#FAF9F6", color: "#0D4A4A", boxShadow: "0 0 0 6px rgba(245,240,235,0.07)" }
+                      ? { background: "#F7F5F1", color: "#0D4A4A", boxShadow: "0 0 0 6px rgba(245,240,235,0.07)" }
                       : { background: "rgba(245,240,235,0.12)", border: "1.5px solid rgba(245,240,235,0.28)", color: "white" }),
                   }}
                 >
@@ -786,7 +786,7 @@ export function AnaliseClient({ data }: Props) {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 12,
-                background: "#FAF9F6",
+                background: "#F7F5F1",
                 color: "#0D4A4A",
                 textDecoration: "none",
                 padding: "18px 52px",
@@ -816,7 +816,7 @@ export function AnaliseClient({ data }: Props) {
       </section>
 
       {/* ═══ FOOTER ═══ */}
-      <footer style={{ background: "#0D4A4A", padding: "28px 24px", textAlign: "center" }}>
+      <footer style={{ background: "#082E2E", padding: "28px 32px", textAlign: "center" }}>
         <p style={{ fontSize: 10, color: "rgba(245,240,235,0.4)", letterSpacing: "0.18em", fontWeight: 600 }}>
           ARTHEA · Dados coletados em {d.data_analise} por ferramenta especializada da agência · Uso exclusivo e confidencial
         </p>
