@@ -752,7 +752,7 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* Impact phrase */}
-          <div className="fade-up impact-phrase-card" style={{ padding: "52px 40px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center" }}>
+          <div className="fade-up impact-phrase-card" style={{ padding: "40px 36px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center" }}>
             <h2 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 700, color: "white", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
               Quer que o próximo cliente
               <br />
@@ -763,7 +763,7 @@ export function AnaliseClient({ data }: Props) {
           </div>
 
           {/* CTA */}
-          <div className="fade-up" style={{ textAlign: "center", marginTop: 56 }}>
+          <div className="fade-up" style={{ textAlign: "center", marginTop: 40 }}>
             <div className="ey" style={{ color: "rgba(45,212,191,0.7)", marginBottom: 16 }}>
               Próximo passo
             </div>
@@ -785,12 +785,12 @@ export function AnaliseClient({ data }: Props) {
             </a>
             <p style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.22em", color: "rgba(245,240,235,0.3)", marginTop: 16 }}>Análise gratuita · Sem compromisso</p>
 
-            <div style={{ marginTop: 64 }}>
+            <div style={{ marginTop: 32 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/analises/assets/logo-arthea.svg"
                 alt="Arthea"
-                style={{ height: 200, objectFit: "contain", mixBlendMode: "screen", opacity: 0.8 }}
+                style={{ height: 100, objectFit: "contain", mixBlendMode: "screen", opacity: 0.8 }}
               />
             </div>
           </div>
