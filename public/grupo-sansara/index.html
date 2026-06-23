@@ -100,7 +100,8 @@
       margin-bottom: 16px;
     }
     .inv-titulo { font-size: 13px; font-family: 'DM Mono', monospace; letter-spacing: 0.18em; text-transform: uppercase; color: var(--verde-claro); margin-bottom: 24px; }
-    .inv-valor-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 28px; }
+    .inv-valor-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+    .inv-subtitulo { font-size: 17px; font-weight: 500; color: var(--verde-claro); margin-bottom: 28px; }
     .inv-valor { font-size: clamp(64px, 9vw, 96px); font-weight: 700; color: var(--creme); line-height: 1; letter-spacing: -2px; }
     .inv-mes { font-size: 20px; font-weight: 300; color: rgba(250,249,246,0.45); align-self: flex-end; margin-bottom: 8px; }
     .inv-divider { border: none; border-top: 1px solid rgba(250,249,246,0.12); margin-bottom: 24px; }
@@ -176,7 +177,12 @@
       .loja-body { padding: 24px; }
       .servico-principal { padding: 22px 20px; }
       .blocos-sec { grid-template-columns: 1fr; }
-      .valor-marcas { grid-template-columns: 1fr; }
+      .valor-marcas { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .valor-marca-card { padding: 16px 8px; border-radius: 12px; }
+      .vmarca-nome { font-size: 9px; letter-spacing: 0.08em; margin-bottom: 10px; }
+      .vmarca-valor { font-size: clamp(14px, 4.2vw, 22px); }
+      .vmarca-valor span { display: block; font-size: 10px; margin-top: 2px; }
+      .vmarca-note { font-size: 9px; margin-top: 6px; }
       .sites-grid { grid-template-columns: 1fr; }
       .bloco-inv { padding: 36px 26px; }
       .inv-valor { font-size: clamp(46px, 13vw, 72px); letter-spacing: -1px; }
@@ -364,8 +370,8 @@
         <div class="inv-valor">R$ 2.500</div>
         <div class="inv-mes">/mês</div>
       </div>
+      <div class="inv-subtitulo">Gestão de Tráfego para 03 lojas</div>
       <hr class="inv-divider" />
-      <div class="inv-detalhe">Gestão de Tráfego Estratégico das três lojas</div>
       <div class="inv-detalhe">Contrato de 6 meses</div>
       <div class="inv-detalhe">A partir de julho de 2026</div>
     </div>
