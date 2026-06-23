@@ -79,6 +79,12 @@ const nextConfig = {
           source: "/propostas/gmb",
           destination: "/propostas/gmb.html",
         },
+        // URL limpa pra proposta do Grupo Sansara em public/grupo-sansara —
+        // clientes.arthea.com.br/grupo-sansara serve o index.html da pasta.
+        {
+          source: "/grupo-sansara",
+          destination: "/grupo-sansara/index.html",
+        },
       ],
     };
   },
@@ -94,6 +100,13 @@ const nextConfig = {
       {
         // Propostas comerciais são acessadas por link — fora de buscadores.
         source: "/propostas/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        // Proposta do Grupo Sansara — acessada por link, fora de buscadores.
+        source: "/grupo-sansara/:path*",
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
