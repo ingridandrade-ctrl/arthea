@@ -17,7 +17,8 @@
       --borda: #D8D3C8;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'DM Sans', sans-serif; background: var(--creme); color: var(--tinta); line-height: 1.65; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--creme); color: var(--tinta); line-height: 1.65; -webkit-text-size-adjust: 100%; overflow-x: hidden; }
+    img { max-width: 100%; height: auto; }
 
     /* NAV */
     nav {
@@ -164,19 +165,33 @@
 
     /* RESPONSIVE */
     @media (max-width: 680px) {
-      nav { padding: 14px 20px; }
-      .hero { padding: 100px 24px 56px; }
+      nav { padding: 14px 20px; gap: 12px; }
+      .nav-label { font-size: 10px; letter-spacing: 0.04em; text-align: right; }
+      .hero { padding: 96px 24px 56px; min-height: auto; }
+      .hero h1 { font-size: clamp(40px, 11vw, 72px); }
+      .hero img { height: 72px !important; }
       main { padding: 0 24px 60px; }
+      .section-header { margin-top: 64px; padding-top: 32px; }
       .loja-header { flex-direction: column; align-items: flex-start; padding: 22px 24px; }
       .loja-body { padding: 24px; }
+      .servico-principal { padding: 22px 20px; }
       .blocos-sec { grid-template-columns: 1fr; }
       .valor-marcas { grid-template-columns: 1fr; }
       .sites-grid { grid-template-columns: 1fr; }
-      .bloco-inv { padding: 36px 28px; }
-      .card-total { flex-direction: column; align-items: flex-start; }
-      .ct-parcela { text-align: left; }
-      .sintese { padding: 48px 28px; margin-top: 64px; }
+      .bloco-inv { padding: 36px 26px; }
+      .inv-valor { font-size: clamp(46px, 13vw, 72px); letter-spacing: -1px; }
+      .card-total { padding: 32px 26px; }
+      .sintese { padding: 48px 26px; margin-top: 64px; }
       footer { flex-direction: column; gap: 8px; text-align: center; padding: 28px 24px; }
+    }
+
+    /* Telas muito estreitas — evita estouro dos números grandes */
+    @media (max-width: 360px) {
+      .nav-label { display: none; }
+      .hero h1 { font-size: 36px; }
+      .inv-valor { font-size: 42px; }
+      .ct-valor { font-size: 40px; }
+      .site-preco { font-size: 34px; }
     }
   </style>
 </head>
@@ -431,7 +446,7 @@
 
   <footer>
     <span class="f-marca">Arthea · 2026</span>
-    <span class="f-contato">ingridandrade@arthea.com.br · (19) 92000-2917</span>
+    <span class="f-contato">ingridandrade@arthea.com.br</span>
   </footer>
 
 </body>
