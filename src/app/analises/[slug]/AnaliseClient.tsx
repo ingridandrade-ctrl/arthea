@@ -660,15 +660,6 @@ export function AnaliseClient({ data }: Props) {
             ))}
           </div>
 
-          {/* GMB note — tranquilização */}
-          <div className="fade-up" style={{ background: "rgba(45,212,191,0.07)", border: "1px solid rgba(45,212,191,0.18)", borderRadius: 18, padding: "18px 22px", display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 48 }}>
-            <span style={{ fontSize: 18 }}>💡</span>
-            <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Você não precisa pagar pra aparecer</p>
-              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.6 }}>O Google Meu Negócio é uma <strong style={{ color: "rgba(245,240,235,0.9)" }}>ferramenta gratuita</strong>. Existem anúncios no Google Maps, mas <strong style={{ color: "rgba(245,240,235,0.9)" }}>não é necessário pagar para ranquear melhor</strong>. O trabalho da Arthea é otimizar e posicionar seu perfil de forma orgânica — sem custo com anúncios.</p>
-            </div>
-          </div>
-
           {/* Impact phrase — fecho da seção */}
           <div className="fade-up impact-phrase-card" style={{ padding: "40px 36px", background: "rgba(255,255,255,0.03)", borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, textAlign: "center" }}>
             <h2 style={{ fontSize: "clamp(20px,3.5vw,32px)", fontWeight: 700, color: "white", lineHeight: 1.25, letterSpacing: "-0.02em", marginBottom: 14 }}>
