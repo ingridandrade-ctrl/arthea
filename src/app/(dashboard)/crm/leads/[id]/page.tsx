@@ -13,6 +13,7 @@ import {
   Clock,
   Tag,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
@@ -29,6 +30,8 @@ export default function LeadDetailPage() {
   const [lead, setLead] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   function fetchLead() {
     fetch(`/api/leads/${params.id}`)
@@ -62,8 +65,11 @@ export default function LeadDetailPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-2xl font-bold">{lead.name}</h1>
-        <button onClick={() => setEditing(true)} className="p-1.5 rounded-lg hover:bg-muted">
+        <button onClick={() => setEditing(true)} className="p-1.5 rounded-lg hover:bg-muted" title="Editar">
           <Pencil className="w-4 h-4 text-muted-foreground" />
+        </button>
+        <button onClick={() => setShowDelete(true)} className="p-1.5 rounded-lg hover:bg-red-50" title="Excluir">
+          <Trash2 className="w-4 h-4 text-muted-foreground hover:text-red-600" />
         </button>
         {/* Service tags */}
         <div className="flex gap-1">
@@ -235,6 +241,36 @@ export default function LeadDetailPage() {
             lead={lead}
             onSaved={() => { setEditing(false); fetchLead(); }}
           />
+        </Modal>
+      )}
+
+      {showDelete && (
+        <Modal title="Excluir Lead" onClose={() => setShowDelete(false)}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja excluir o lead <strong>{lead.name}</strong>? Todos os dados associados (deals, conversas, tarefas) serao perdidos. Esta acao nao pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDelete(false)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  setDeleting(true);
+                  await fetch(`/api/leads/${lead.id}`, { method: "DELETE" });
+                  setDeleting(false);
+                  router.push("/crm/leads");
+                }}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {deleting ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>
