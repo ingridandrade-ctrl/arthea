@@ -119,32 +119,45 @@ export function Sidebar() {
         collapsed ? "w-[72px]" : "w-64",
       )}
     >
-      {/* Brand */}
+      {/* Brand + Collapse toggle */}
       <div className="px-3 pt-5 pb-3">
-        <Link
-          href="/inicio"
-          className={cn(
-            "flex items-center gap-3 rounded-lg hover:bg-muted/60 transition-colors",
-            collapsed ? "justify-center px-0 py-1.5" : "px-2 py-1.5",
-          )}
-        >
-          <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-base flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #1D7070, #0D4A4A)" }}
+        <div className={cn("flex items-center", collapsed ? "flex-col gap-2" : "justify-between")}>
+          <Link
+            href="/inicio"
+            className={cn(
+              "flex items-center gap-3 rounded-lg hover:bg-muted/60 transition-colors",
+              collapsed ? "justify-center px-0 py-1.5" : "px-2 py-1.5",
+            )}
           >
-            A
-          </div>
-          {!collapsed && (
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground leading-tight">
-                Portal
-              </p>
-              <p className="text-sm font-medium leading-tight mt-0.5 truncate">
-                Agência Arthea
-              </p>
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-base flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #1D7070, #0D4A4A)" }}
+            >
+              A
             </div>
-          )}
-        </Link>
+            {!collapsed && (
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground leading-tight">
+                  Portal
+                </p>
+                <p className="text-sm font-medium leading-tight mt-0.5 truncate">
+                  Agência Arthea
+                </p>
+              </div>
+            )}
+          </Link>
+          <button
+            onClick={toggle}
+            className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            title={collapsed ? "Expandir menu" : "Recolher menu"}
+          >
+            {collapsed ? (
+              <ChevronsRight className="w-4 h-4" strokeWidth={1.7} />
+            ) : (
+              <ChevronsLeft className="w-4 h-4" strokeWidth={1.7} />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Início */}
@@ -322,24 +335,6 @@ export function Sidebar() {
           </>
         )}
 
-        {/* Collapse toggle */}
-        <button
-          onClick={toggle}
-          className={cn(
-            "flex items-center gap-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full mt-1",
-            collapsed ? "justify-center px-0 py-2" : "px-3 py-2",
-          )}
-          title={collapsed ? "Expandir menu" : "Recolher menu"}
-        >
-          {collapsed ? (
-            <ChevronsRight className="w-4 h-4" strokeWidth={1.7} />
-          ) : (
-            <>
-              <ChevronsLeft className="w-4 h-4" strokeWidth={1.7} />
-              Recolher
-            </>
-          )}
-        </button>
       </div>
     </aside>
   );
