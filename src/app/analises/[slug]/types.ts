@@ -5,6 +5,30 @@ export interface RankingItem {
   pct: number;
 }
 
+export interface PreenchidoItem {
+  item: string;
+  note: string;
+  badge: string;
+  positive?: boolean;
+}
+
+export interface DiagnosticoItem {
+  title: string;
+  text: string;
+}
+
+export interface CardMetrica {
+  label: string;
+  badge: string;
+  badgeTip: string;
+  badgeColor: string;
+  badgeBg: string;
+  barColor: string;
+  valueType: "counter" | "stars" | "score";
+  valueColor: string;
+  explain: string;
+}
+
 export interface ClienteData {
   nome: string;
   nome_linha1: string;
@@ -35,4 +59,8 @@ export interface ClienteData {
   descricao_chars: string;
   estrelas_media_seg: string;
   ranking: RankingItem[];
+  preenchidos?: PreenchidoItem[];
+  lacunas?: DiagnosticoItem[];
+  melhorias?: DiagnosticoItem[];
+  cards_metricas?: CardMetrica[];
 }

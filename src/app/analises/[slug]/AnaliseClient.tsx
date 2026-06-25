@@ -225,56 +225,33 @@ export function AnaliseClient({ data }: Props) {
 
           {/* 3 Metric Cards */}
           <div className="fade-up" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {[
-              {
-                label: "Suas avaliações",
-                badge: "Crítico",
-                badgeTip: "impacta diretamente sua posição",
-                badgeColor: "#C0392B",
-                badgeBg: "#FEE2E2",
-                barColor: "#C0392B",
-                valueProps: { "data-count": parseInt(d.avaliacoes), "data-from": "0" },
-                valueText: "0",
-                valueColor: "#C0392B",
-                explain: <>Pro Google, mais avaliações = mais relevante. Você tem bem menos que os primeiros <strong style={{ color: "#374151" }}>(líder: {d.lider_aval})</strong>.</>,
-              },
-              {
-                label: "Sua nota média",
-                badge: "Atenção",
-                badgeTip: "afasta clientes antes do clique",
-                badgeColor: "#B45309",
-                badgeBg: "#FEF3C7",
-                barColor: "#D97706",
-                valueProps: { "data-count-decimal": d.estrelas, "data-from": "5.0", "data-suffix": "★" },
-                valueText: "5.0★",
-                valueColor: "#B45309",
-                explain: <>Abaixo de 4.0, muita gente descarta o perfil antes mesmo de clicar. <strong style={{ color: "#374151" }}>Média do segmento: {d.estrelas_media_seg}★.</strong></>,
-              },
-              {
-                label: "Nota do perfil",
-                badge: "Atenção",
-                badgeTip: "perfil incompleto perde visibilidade",
-                badgeColor: "#B45309",
-                badgeBg: "#FEF3C7",
-                barColor: "#D97706",
-                valueProps: {},
-                valueText: null,
-                valueColor: "#B45309",
-                explain: <>Mede o quão completo e otimizado está seu perfil. <strong style={{ color: "#374151" }}>{d.score} mostra que há bastante a melhorar</strong> — sem postagens nem fotos recentes.</>,
-              },
-            ].map((card, i) => (
-              <div key={i} style={{ background: "white", borderRadius: 18, padding: "24px 22px", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: card.barColor, borderRadius: "16px 16px 0 0" }} />
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{card.label}</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: card.badgeColor, background: card.badgeBg, padding: "3px 10px", borderRadius: 20, cursor: "default" }} title={card.badgeTip}>{card.badge} · {card.badgeTip}</span>
+            {(d.cards_metricas ?? [
+              { label: "Suas avaliações", badge: "Crítico", badgeTip: "impacta diretamente sua posição", badgeColor: "#C0392B", badgeBg: "#FEE2E2", barColor: "#C0392B", valueType: "counter" as const, valueColor: "#C0392B", explain: `Pro Google, mais avaliações = mais relevante. Você tem bem menos que os primeiros (líder: ${d.lider_aval}).` },
+              { label: "Sua nota média", badge: "Atenção", badgeTip: "afasta clientes antes do clique", badgeColor: "#B45309", badgeBg: "#FEF3C7", barColor: "#D97706", valueType: "stars" as const, valueColor: "#B45309", explain: `Abaixo de 4.0, muita gente descarta o perfil antes mesmo de clicar. Média do segmento: ${d.estrelas_media_seg}★.` },
+              { label: "Nota do perfil", badge: "Atenção", badgeTip: "perfil incompleto perde visibilidade", badgeColor: "#B45309", badgeBg: "#FEF3C7", barColor: "#D97706", valueType: "score" as const, valueColor: "#B45309", explain: `Mede o quão completo e otimizado está seu perfil. ${d.score} mostra que há bastante a melhorar — sem postagens nem fotos recentes.` },
+            ]).map((card, i) => {
+              const valueProps = card.valueType === "counter"
+                ? { "data-count": parseInt(d.avaliacoes), "data-from": "0" }
+                : card.valueType === "stars"
+                ? { "data-count-decimal": d.estrelas, "data-from": "5.0", "data-suffix": "★" }
+                : {};
+              const valueText = card.valueType === "counter" ? "0"
+                : card.valueType === "stars" ? "5.0★"
+                : null;
+              return (
+                <div key={i} style={{ background: "white", borderRadius: 18, padding: "24px 22px", border: "1.5px solid rgba(13,74,74,0.1)", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", position: "relative", overflow: "hidden" }}>
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: card.barColor, borderRadius: "16px 16px 0 0" }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{card.label}</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: card.badgeColor, background: card.badgeBg, padding: "3px 10px", borderRadius: 20, cursor: "default" }} title={card.badgeTip}>{card.badge} · {card.badgeTip}</span>
+                  </div>
+                  <div {...valueProps} style={{ fontSize: 42, fontWeight: 800, color: card.valueColor, letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 12 }}>
+                    {valueText !== null ? valueText : <>{d.score}<span style={{ fontSize: 20, fontWeight: 500, color: "#9CA3AF" }}>/100</span></>}
+                  </div>
+                  <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>{card.explain}</p>
                 </div>
-                <div {...card.valueProps} style={{ fontSize: 42, fontWeight: 800, color: card.valueColor, letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 12 }}>
-                  {card.valueText !== null ? card.valueText : <>{d.score}<span style={{ fontSize: 20, fontWeight: 500, color: "#9CA3AF" }}>/100</span></>}
-                </div>
-                <p style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.55 }}>{card.explain}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* 72% stat */}
@@ -391,13 +368,17 @@ export function AnaliseClient({ data }: Props) {
               </div>
             </div>
             <div style={{ padding: "8px 24px 16px" }}>
-              {[
-                { item: "Horário de funcionamento", note: "Precisa ser atualizado em feriados e datas especiais", badge: "Existe", color: "#157373", bg: "rgba(13,74,74,0.07)" },
-                { item: "Quantidade de avaliações", note: `${d.avaliacoes} avaliações. Volume abaixo da média do segmento`, badge: "Existe", color: "#157373", bg: "rgba(13,74,74,0.07)" },
-                { item: "Imagem do logotipo", note: "Presente, mas sem atualização recente de fotos", badge: "Existe", color: "#157373", bg: "rgba(13,74,74,0.07)" },
-                { item: "Nome, telefone e website", note: "Configurados corretamente", badge: "✓ Ok", color: "#15803D", bg: "rgba(21,128,61,0.08)" },
-              ].map((row, i) => (
-                <div key={i} className="checklist-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "14px 0", borderBottom: i < 3 ? "1px solid rgba(13,74,74,0.06)" : "none", gap: 12 }}>
+              {(d.preenchidos ?? [
+                { item: "Horário de funcionamento", note: "Precisa ser atualizado em feriados e datas especiais", badge: "Existe", positive: false },
+                { item: "Quantidade de avaliações", note: `${d.avaliacoes} avaliações. Volume abaixo da média do segmento`, badge: "Existe", positive: false },
+                { item: "Imagem do logotipo", note: "Presente, mas sem atualização recente de fotos", badge: "Existe", positive: false },
+                { item: "Nome, telefone e website", note: "Configurados corretamente", badge: "✓ Ok", positive: true },
+              ]).map((row) => {
+                const color = row.positive ? "#15803D" : "#157373";
+                const bg = row.positive ? "rgba(21,128,61,0.08)" : "rgba(13,74,74,0.07)";
+                return { ...row, color, bg };
+              }).map((row, i, arr) => (
+                <div key={i} className="checklist-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "14px 0", borderBottom: i < arr.length - 1 ? "1px solid rgba(13,74,74,0.06)" : "none", gap: 12 }}>
                   <div style={{ flex: 1 }}>
                     <span style={{ fontSize: 14, color: "#374151", fontWeight: 600, display: "block", marginBottom: 3 }}>{row.item}</span>
                     <span style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>{row.note}</span>
@@ -419,11 +400,11 @@ export function AnaliseClient({ data }: Props) {
               <p style={{ fontSize: 13, color: "#9CA3AF", marginLeft: 38, lineHeight: 1.5 }}>Esses itens estão vazios no seu perfil e são os que mais prejudicam sua posição.</p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {[
+              {(d.lacunas ?? [
                 { title: "Postagens no perfil", text: "Nenhuma postagem publicada. Seu perfil aparece como inativo para o Google." },
                 { title: "Fotos recentes do proprietário", text: "Nenhuma foto do proprietário nos últimos 6 meses. O perfil passa uma impressão desatualizada." },
                 { title: "Fotos 360°", text: "Nenhum tour virtual ou foto 360° adicionada. É um recurso que seus concorrentes já utilizam." },
-              ].map((gap, i) => (
+              ]).map((gap, i) => (
                 <div key={i} className="fade-up gap-card" style={{ background: "white", borderRadius: 20, border: "1.5px solid rgba(192,57,43,0.15)", borderLeft: "4px solid #C0392B", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", padding: "22px 24px" }}>
                   <div className="gap-badge-row" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
                     <strong style={{ fontSize: 15, color: "#111827" }}>{gap.title}</strong>
@@ -446,13 +427,13 @@ export function AnaliseClient({ data }: Props) {
               <p style={{ fontSize: 13, color: "#9CA3AF", marginLeft: 38, lineHeight: 1.5 }}>Esses itens existem, mas precisam de atenção para melhorar sua visibilidade.</p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {[
-                { title: "Média de avaliações", text: <>{d.estrelas}★ atual, enquanto a média do segmento é {d.estrelas_media_seg}★.</> },
-                { title: "Avaliações sem resposta", text: <>{d.avaliacoes_sr} avaliações sem nenhuma resposta do proprietário.</> },
-                { title: "Avaliações sem comentário", text: <>{d.avaliacoes_sc} avaliações sem texto. Só a nota, sem detalhes.</> },
-                { title: "Vídeos no perfil", text: <>Nenhum vídeo adicionado ao perfil.</> },
-                { title: "Descrição do negócio", text: <>{d.descricao_chars} caracteres na descrição atual. O mínimo recomendado é 125.</> },
-              ].map((item, i) => (
+              {(d.melhorias ?? [
+                { title: "Média de avaliações", text: `${d.estrelas}★ atual, enquanto a média do segmento é ${d.estrelas_media_seg}★.` },
+                { title: "Avaliações sem resposta", text: `${d.avaliacoes_sr} avaliações sem nenhuma resposta do proprietário.` },
+                { title: "Avaliações sem comentário", text: `${d.avaliacoes_sc} avaliações sem texto. Só a nota, sem detalhes.` },
+                { title: "Vídeos no perfil", text: "Nenhum vídeo adicionado ao perfil." },
+                { title: "Descrição do negócio", text: `${d.descricao_chars} caracteres na descrição atual. O mínimo recomendado é 125.` },
+              ]).map((item, i) => (
                 <div key={i} className="fade-up" style={{ background: "white", borderRadius: 20, border: "1.5px solid rgba(180,83,9,0.15)", borderLeft: "4px solid #D97706", boxShadow: "0 4px 24px rgba(13,74,74,0.06)", padding: "22px 24px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
                     <strong style={{ fontSize: 15, color: "#111827" }}>{item.title}</strong>
