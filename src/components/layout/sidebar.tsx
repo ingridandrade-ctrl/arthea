@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { useSidebar } from "@/lib/hooks/use-sidebar";
 import {
   Home,
   Users,
@@ -14,7 +15,6 @@ import {
   Zap,
   FileText,
   PanelsTopLeft,
-  Megaphone,
   DollarSign,
   TrendingUp,
   LayoutGrid,
@@ -23,6 +23,8 @@ import {
   UserCog,
   LogOut,
   Link2,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 
 type Mode = "crm" | "clientes" | "financeiro";
@@ -32,7 +34,7 @@ type NavItem = {
   href: string;
   icon: any;
   roles?: string[];
-  match?: string; // path prefix used to mark active (defaults to href)
+  match?: string;
 };
 
 const MODES: Array<{
@@ -75,13 +77,10 @@ const SISTEMA_ITEMS: NavItem[] = [
 ];
 
 function modeForPath(pathname: string): Mode {
-  // Rotas que vivem fora do prefixo mas pertencem a um modo
   if (pathname === "/projetos" || pathname.startsWith("/projetos/")) return "clientes";
-
   for (const m of MODES) {
     if (pathname === m.prefix || pathname.startsWith(m.prefix + "/")) return m.key;
   }
-  // Sistema fica sob o último modo que o usuário visitou — pro MVP default CRM
   return "crm";
 }
 
@@ -101,6 +100,7 @@ function isActive(pathname: string, item: NavItem) {
 export function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { collapsed, toggle } = useSidebar();
   const userRole = (session?.user as any)?.role;
   const userName = session?.user?.name || "Usuário";
   const onInicio = pathname === "/inicio";
@@ -113,27 +113,37 @@ export function Sidebar() {
   const systemItems = filterByRole(SISTEMA_ITEMS);
 
   return (
-    <aside className="w-64 bg-sidebar border-r border-border h-screen flex flex-col fixed left-0 top-0">
+    <aside
+      className={cn(
+        "bg-sidebar border-r border-border h-screen flex flex-col fixed left-0 top-0 transition-[width] duration-300 ease-in-out z-40",
+        collapsed ? "w-[72px]" : "w-64",
+      )}
+    >
       {/* Brand */}
-      <div className="px-4 pt-5 pb-3">
+      <div className="px-3 pt-5 pb-3">
         <Link
           href="/inicio"
-          className="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-muted/60 transition-colors -mx-2"
+          className={cn(
+            "flex items-center gap-3 rounded-lg hover:bg-muted/60 transition-colors",
+            collapsed ? "justify-center px-0 py-1.5" : "px-2 py-1.5",
+          )}
         >
           <div
-            className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-base"
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-base flex-shrink-0"
             style={{ background: "linear-gradient(135deg, #1D7070, #0D4A4A)" }}
           >
             A
           </div>
-          <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground leading-tight">
-              Portal
-            </p>
-            <p className="text-sm font-medium leading-tight mt-0.5 truncate">
-              Agência Arthea
-            </p>
-          </div>
+          {!collapsed && (
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground leading-tight">
+                Portal
+              </p>
+              <p className="text-sm font-medium leading-tight mt-0.5 truncate">
+                Agência Arthea
+              </p>
+            </div>
+          )}
         </Link>
       </div>
 
@@ -142,53 +152,81 @@ export function Sidebar() {
         <Link
           href="/inicio"
           className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+            "flex items-center gap-3 rounded-lg text-sm font-medium transition-colors",
+            collapsed ? "justify-center px-0 py-2" : "px-3 py-2",
             onInicio
               ? "bg-primary/10 text-primary"
               : "text-muted-foreground hover:bg-muted hover:text-foreground",
           )}
+          title={collapsed ? "Início" : undefined}
         >
-          <Home className="w-4 h-4" strokeWidth={1.7} />
-          Início
+          <Home className="w-4 h-4 flex-shrink-0" strokeWidth={1.7} />
+          {!collapsed && "Início"}
         </Link>
       </div>
 
       {/* Mode switcher */}
       <div className="px-3 mt-3">
-        <div
-          className="grid grid-cols-3 gap-0.5 p-1 rounded-xl"
-          style={{ background: "rgba(13,74,74,0.05)" }}
-        >
-          {MODES.map((m) => {
-            const Icon = m.icon;
-            const active = currentMode === m.key && !onInicio;
-            return (
-              <Link
-                key={m.key}
-                href={m.defaultHref}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-1 px-1 py-2 rounded-lg text-[11px] font-medium transition-colors",
-                  active
-                    ? "bg-card text-primary shadow-sm font-semibold"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <Icon className="w-4 h-4" strokeWidth={1.7} />
-                <span className="leading-none">{m.label}</span>
-              </Link>
-            );
-          })}
-        </div>
+        {collapsed ? (
+          <div className="flex flex-col gap-1">
+            {MODES.map((m) => {
+              const Icon = m.icon;
+              const active = currentMode === m.key && !onInicio;
+              return (
+                <Link
+                  key={m.key}
+                  href={m.defaultHref}
+                  className={cn(
+                    "flex items-center justify-center p-2 rounded-lg transition-colors",
+                    active
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                  title={m.label}
+                >
+                  <Icon className="w-4 h-4" strokeWidth={1.7} />
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <div
+            className="grid grid-cols-3 gap-0.5 p-1 rounded-xl"
+            style={{ background: "rgba(13,74,74,0.05)" }}
+          >
+            {MODES.map((m) => {
+              const Icon = m.icon;
+              const active = currentMode === m.key && !onInicio;
+              return (
+                <Link
+                  key={m.key}
+                  href={m.defaultHref}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-1 px-1 py-2 rounded-lg text-[11px] font-medium transition-colors",
+                    active
+                      ? "bg-card text-primary shadow-sm font-semibold"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <Icon className="w-4 h-4" strokeWidth={1.7} />
+                  <span className="leading-none">{m.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {!onInicio && (
+      {!onInicio && !collapsed && (
         <p className="px-4 mt-4 mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary/80 flex items-center gap-2">
           <span className="w-3.5 h-px bg-primary/80" />
           {MODES.find((m) => m.key === currentMode)?.label}
         </p>
       )}
 
-      {/* Nav itens do modo */}
+      {!onInicio && collapsed && <div className="mt-3" />}
+
+      {/* Nav items */}
       <nav className="flex-1 px-3 overflow-y-auto">
         {!onInicio &&
           modeItems.map((item) => {
@@ -199,27 +237,28 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mb-0.5",
+                  "flex items-center gap-3 rounded-lg text-sm transition-colors mb-0.5",
+                  collapsed ? "justify-center px-0 py-2" : "px-3 py-2",
                   active
                     ? "bg-primary/10 text-primary font-medium"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
+                title={collapsed ? item.name : undefined}
               >
-                <Icon
-                  className="w-4 h-4"
-                  strokeWidth={1.6}
-                />
-                {item.name}
+                <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.6} />
+                {!collapsed && item.name}
               </Link>
             );
           })}
 
-        {/* Sistema (sempre embaixo) */}
+        {/* Sistema */}
         {systemItems.length > 0 && (
-          <div className={cn("mt-6 pt-4 border-t border-border")}>
-            <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground mb-2">
-              Sistema
-            </p>
+          <div className="mt-6 pt-4 border-t border-border">
+            {!collapsed && (
+              <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground mb-2">
+                Sistema
+              </p>
+            )}
             {systemItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(pathname, item);
@@ -228,14 +267,16 @@ export function Sidebar() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mb-0.5",
+                    "flex items-center gap-3 rounded-lg text-sm transition-colors mb-0.5",
+                    collapsed ? "justify-center px-0 py-2" : "px-3 py-2",
                     active
                       ? "bg-primary/10 text-primary font-medium"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
+                  title={collapsed ? item.name : undefined}
                 >
-                  <Icon className="w-4 h-4" strokeWidth={1.6} />
-                  {item.name}
+                  <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.6} />
+                  {!collapsed && item.name}
                 </Link>
               );
             })}
@@ -243,25 +284,61 @@ export function Sidebar() {
         )}
       </nav>
 
-      {/* User & logout */}
+      {/* User & logout & collapse toggle */}
       <div className="p-3 border-t border-border">
-        <div className="flex items-center gap-2.5 px-2 mb-2">
-          <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold flex-shrink-0">
-            {(userName || "?").charAt(0).toUpperCase()}
+        {collapsed ? (
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold" title={userName}>
+              {(userName || "?").charAt(0).toUpperCase()}
+            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="p-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              title="Sair"
+            >
+              <LogOut className="w-4 h-4" strokeWidth={1.7} />
+            </button>
           </div>
-          <div className="min-w-0">
-            <p className="text-[12.5px] font-medium truncate leading-tight">{userName}</p>
-            <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
-              {userRole || "—"}
-            </p>
-          </div>
-        </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-2.5 px-2 mb-2">
+              <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                {(userName || "?").charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[12.5px] font-medium truncate leading-tight">{userName}</p>
+                <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                  {userRole || "—"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full"
+            >
+              <LogOut className="w-4 h-4" strokeWidth={1.7} />
+              Sair
+            </button>
+          </>
+        )}
+
+        {/* Collapse toggle */}
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full"
+          onClick={toggle}
+          className={cn(
+            "flex items-center gap-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full mt-1",
+            collapsed ? "justify-center px-0 py-2" : "px-3 py-2",
+          )}
+          title={collapsed ? "Expandir menu" : "Recolher menu"}
         >
-          <LogOut className="w-4 h-4" strokeWidth={1.7} />
-          Sair
+          {collapsed ? (
+            <ChevronsRight className="w-4 h-4" strokeWidth={1.7} />
+          ) : (
+            <>
+              <ChevronsLeft className="w-4 h-4" strokeWidth={1.7} />
+              Recolher
+            </>
+          )}
         </button>
       </div>
     </aside>
