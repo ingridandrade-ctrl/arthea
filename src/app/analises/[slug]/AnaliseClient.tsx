@@ -664,8 +664,8 @@ export function AnaliseClient({ data }: Props) {
           <div className="fade-up" style={{ background: "rgba(45,212,191,0.07)", border: "1px solid rgba(45,212,191,0.18)", borderRadius: 18, padding: "18px 22px", display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 48 }}>
             <span style={{ fontSize: 18 }}>💡</span>
             <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Google Meu Negócio não é Google Ads</p>
-              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.6 }}>É uma <strong style={{ color: "rgba(245,240,235,0.9)" }}>ferramenta gratuita</strong> do Google. Você não paga por clique nem faz anúncio. O trabalho da Arthea é otimizar, gerenciar e posicionar seu perfil, <strong style={{ color: "rgba(245,240,235,0.9)" }}>sem pagar por anúncios</strong>.</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.1em" }}>Você não precisa pagar pra aparecer</p>
+              <p style={{ fontSize: 13, color: "rgba(245,240,235,0.75)", lineHeight: 1.6 }}>O Google Meu Negócio é uma <strong style={{ color: "rgba(245,240,235,0.9)" }}>ferramenta gratuita</strong>. Existem anúncios no Google Maps, mas <strong style={{ color: "rgba(245,240,235,0.9)" }}>não é necessário pagar para ranquear melhor</strong>. O trabalho da Arthea é otimizar e posicionar seu perfil de forma orgânica — sem custo com anúncios.</p>
             </div>
           </div>
 
