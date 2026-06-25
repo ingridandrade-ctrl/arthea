@@ -3,8 +3,9 @@
 import { useEffect, useState, useDeferredValue } from "react";
 import { useServiceFilter } from "@/lib/hooks/use-service-filter";
 import { formatPhone } from "@/lib/utils";
-import { Plus, Search, X } from "lucide-react";
+import { Plus, Search, X, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { Modal } from "@/components/ui/modal";
 
 interface LeadService {
   service: { id: string; name: string; color: string; slug: string };
@@ -30,6 +31,9 @@ export default function LeadsPage() {
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
   const [showForm, setShowForm] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [deletingLead, setDeletingLead] = useState<Lead | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function fetchLeads() {
     setLoading(true);
@@ -85,18 +89,19 @@ export default function LeadsPage() {
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Origem</th>
                 <th className="px-4 py-3 font-medium">Data</th>
+                <th className="px-4 py-3 font-medium text-right">Acoes</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
                     Carregando...
                   </td>
                 </tr>
               ) : leads.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
                     Nenhum lead encontrado
                   </td>
                 </tr>
@@ -140,6 +145,24 @@ export default function LeadsPage() {
                     <td className="px-4 py-3 text-muted-foreground">
                       {new Date(lead.createdAt).toLocaleDateString("pt-BR")}
                     </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setEditingLead(lead); }}
+                          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition"
+                          title="Editar"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setDeletingLead(lead); }}
+                          className="p-1.5 rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-600 transition"
+                          title="Excluir"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -157,6 +180,48 @@ export default function LeadsPage() {
             fetchLeads();
           }}
         />
+      )}
+
+      {/* Modal - Edit Lead */}
+      {editingLead && (
+        <Modal title="Editar Lead" onClose={() => setEditingLead(null)}>
+          <EditLeadInlineForm
+            lead={editingLead}
+            onSaved={() => { setEditingLead(null); fetchLeads(); }}
+          />
+        </Modal>
+      )}
+
+      {/* Modal - Delete Confirmation */}
+      {deletingLead && (
+        <Modal title="Excluir Lead" onClose={() => setDeletingLead(null)}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja excluir o lead <strong>{deletingLead.name}</strong>? Esta acao nao pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeletingLead(null)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  setDeleting(true);
+                  await fetch(`/api/leads/${deletingLead.id}`, { method: "DELETE" });
+                  setDeleting(false);
+                  setDeletingLead(null);
+                  fetchLeads();
+                }}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {deleting ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );
@@ -301,6 +366,106 @@ function LeadFormModal({
         </form>
       </div>
     </div>
+  );
+}
+
+function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [services, setServices] = useState<any[]>([]);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(
+    lead.services.map((ls) => ls.service.id)
+  );
+  const [status, setStatus] = useState(lead.status);
+
+  useEffect(() => {
+    fetch("/api/services")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setServices(data); })
+      .catch(() => {});
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    const fd = new FormData(e.currentTarget);
+    const res = await fetch(`/api/leads/${lead.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: fd.get("name"),
+        phone: fd.get("phone"),
+        email: fd.get("email") || null,
+        company: fd.get("company") || null,
+        status,
+        notes: fd.get("notes") || null,
+        serviceIds: selectedServiceIds,
+      }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Erro ao salvar");
+      setLoading(false);
+      return;
+    }
+    onSaved();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
+      <div>
+        <label className="block text-sm font-medium mb-1">Nome *</label>
+        <input name="name" defaultValue={lead.name} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Telefone *</label>
+        <input name="phone" defaultValue={lead.phone} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Email</label>
+        <input name="email" type="email" defaultValue={lead.email || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Empresa</label>
+        <input name="company" defaultValue={lead.company || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Status</label>
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+          <option value="NEW">Novo</option>
+          <option value="CONTACTED">Contatado</option>
+          <option value="QUALIFIED">Qualificado</option>
+          <option value="UNQUALIFIED">Desqualificado</option>
+        </select>
+      </div>
+      {services.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium mb-1">Servicos</label>
+          <div className="flex flex-wrap gap-2">
+            {services.map((s: any) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setSelectedServiceIds((prev) => prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id])}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${selectedServiceIds.includes(s.id) ? "text-white" : "bg-muted text-muted-foreground"}`}
+                style={selectedServiceIds.includes(s.id) ? { backgroundColor: s.color } : undefined}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <div>
+        <label className="block text-sm font-medium mb-1">Observacoes</label>
+        <textarea name="notes" rows={3} defaultValue={(lead as any).notes || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
+        {loading ? "Salvando..." : "Salvar"}
+      </button>
+    </form>
   );
 }
 
