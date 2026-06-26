@@ -12,7 +12,7 @@ export async function GET() {
       stages: {
         orderBy: { order: "asc" },
         include: {
-          _count: { select: { deals: true } },
+          _count: { select: { leadServices: true } },
         },
       },
     },
@@ -29,7 +29,7 @@ export async function GET() {
       name: s.name,
       order: s.order,
       color: s.color,
-      dealCount: s._count.deals,
+      leadServiceCount: s._count.leadServices,
     })),
   });
 }

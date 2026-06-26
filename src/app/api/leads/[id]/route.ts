@@ -13,12 +13,10 @@ export async function GET(
   const lead = await prisma.lead.findUnique({
     where: { id: params.id },
     include: {
-      services: { include: { service: true } },
-      deals: {
+      services: {
         include: {
-          stage: true,
           service: true,
-          assignedTo: true,
+          stage: true,
           followUps: { orderBy: { order: "asc" } },
         },
         orderBy: { createdAt: "desc" },
@@ -95,6 +93,37 @@ export async function DELETE(
   const session = await getServerSession(authOptions) as any;
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-  await prisma.lead.delete({ where: { id: params.id } });
-  return NextResponse.json({ success: true });
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.invoice.deleteMany({ where: { leadId: params.id } });
+      await tx.contract.deleteMany({ where: { leadId: params.id } });
+      const leadServices = await tx.leadService.findMany({ where: { leadId: params.id }, select: { id: true } });
+      const lsIds = leadServices.map((ls) => ls.id);
+      if (lsIds.length > 0) {
+        await tx.followUp.deleteMany({ where: { leadServiceId: { in: lsIds } } });
+      }
+      // Delete conversations and their messages
+      const convs = await tx.conversation.findMany({ where: { leadId: params.id }, select: { id: true } });
+      const convIds = convs.map((c) => c.id);
+      if (convIds.length > 0) {
+        await tx.message.deleteMany({ where: { conversationId: { in: convIds } } });
+      }
+      await tx.conversation.deleteMany({ where: { leadId: params.id } });
+      // Delete other related records
+      await tx.task.deleteMany({ where: { leadId: params.id } });
+      await tx.activity.deleteMany({ where: { leadId: params.id } });
+      await tx.automationLog.deleteMany({ where: { leadId: params.id } });
+      await tx.leadService.deleteMany({ where: { leadId: params.id } });
+      // Finally delete the lead
+      await tx.lead.delete({ where: { id: params.id } });
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    if (err?.code === "P2025") {
+      return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 });
+    }
+    console.error("Error deleting lead:", err);
+    return NextResponse.json({ error: "Erro ao excluir lead. Tente novamente." }, { status: 500 });
+  }
 }

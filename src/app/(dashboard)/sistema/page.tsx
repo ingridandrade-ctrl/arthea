@@ -31,7 +31,7 @@ export default async function SobreSistemaPage() {
   const [
     userCount,
     leadCount,
-    dealCount,
+    leadServiceCount,
     serviceCount,
     automationCount,
     templateCount,
@@ -40,7 +40,7 @@ export default async function SobreSistemaPage() {
   ] = await Promise.all([
     prisma.user.count(),
     prisma.lead.count(),
-    prisma.deal.count(),
+    prisma.leadService.count(),
     prisma.service.count(),
     prisma.automation.count(),
     prisma.messageTemplate.count(),
@@ -64,6 +64,62 @@ export default async function SobreSistemaPage() {
         <p className="text-sm text-muted-foreground mt-1">
           Visão geral do seu CRM, integrações e infraestrutura
         </p>
+      </div>
+
+      {/* Integrations Status */}
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Integrações</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <IntegrationStatus
+            icon={MessageCircle}
+            name="WhatsApp"
+            description="API Oficial (Meta)"
+            configured={whatsappConfigured}
+            color="text-green-600"
+            bg="bg-green-50"
+            hint="Variáveis WHATSAPP_API_TOKEN e WHATSAPP_PHONE_ID"
+          />
+          <IntegrationStatus
+            icon={Bot}
+            name="IA / Chatbot"
+            description={`${aiModelLabel} · ${aiConfig?.active !== false ? "Ativo" : "Desativado"}`}
+            configured={aiConfigured}
+            color="text-orange-600"
+            bg="bg-orange-50"
+            hint="Configurar em Configurações → Inteligência Artificial"
+          />
+          <IntegrationStatus
+            icon={Megaphone}
+            name="Meta Ads"
+            description="Facebook · Instagram · Messenger"
+            configured={metaConnected}
+            color="text-blue-600"
+            bg="bg-blue-50"
+            hint="Configurar em Integrações → Meta Ads"
+          />
+          <IntegrationStatus
+            icon={BarChart3}
+            name="Google Ads"
+            description="Search · Display · YouTube"
+            configured={googleConnected}
+            color="text-amber-600"
+            bg="bg-amber-50"
+            hint="Configurar em Integrações → Google Ads"
+          />
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Dados do Sistema</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <StatCard icon={Users} label="Usuários" value={userCount} color="text-blue-600" bg="bg-blue-50" />
+          <StatCard icon={Users} label="Leads" value={leadCount} color="text-teal-600" bg="bg-teal-50" />
+          <StatCard icon={KanbanSquare} label="Serviços em negociação" value={leadServiceCount} color="text-indigo-600" bg="bg-indigo-50" />
+          <StatCard icon={Briefcase} label="Serviços" value={serviceCount} color="text-orange-600" bg="bg-orange-50" />
+          <StatCard icon={Zap} label="Automações" value={automationCount} color="text-yellow-600" bg="bg-yellow-50" />
+          <StatCard icon={FileText} label="Templates" value={templateCount} color="text-purple-600" bg="bg-purple-50" />
+        </div>
       </div>
 
       {/* Platform Info */}
@@ -102,62 +158,6 @@ export default async function SobreSistemaPage() {
             <InfoRow label="Região" value="sa-east-1 (São Paulo)" />
             <InfoRow label="Status" value="Operacional" status="active" />
           </div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Dados do Sistema</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <StatCard icon={Users} label="Usuários" value={userCount} color="text-blue-600" bg="bg-blue-50" />
-          <StatCard icon={Users} label="Leads" value={leadCount} color="text-teal-600" bg="bg-teal-50" />
-          <StatCard icon={KanbanSquare} label="Deals" value={dealCount} color="text-indigo-600" bg="bg-indigo-50" />
-          <StatCard icon={Briefcase} label="Serviços" value={serviceCount} color="text-orange-600" bg="bg-orange-50" />
-          <StatCard icon={Zap} label="Automações" value={automationCount} color="text-yellow-600" bg="bg-yellow-50" />
-          <StatCard icon={FileText} label="Templates" value={templateCount} color="text-purple-600" bg="bg-purple-50" />
-        </div>
-      </div>
-
-      {/* Integrations Status */}
-      <div>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Integrações</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <IntegrationStatus
-            icon={MessageCircle}
-            name="WhatsApp"
-            description="API Oficial (Meta)"
-            configured={whatsappConfigured}
-            color="text-green-600"
-            bg="bg-green-50"
-            hint="Variáveis WHATSAPP_API_TOKEN e WHATSAPP_PHONE_ID"
-          />
-          <IntegrationStatus
-            icon={Bot}
-            name="IA / Chatbot"
-            description="Atendimento automático"
-            configured={aiConfigured}
-            color="text-orange-600"
-            bg="bg-orange-50"
-            hint="Variável ANTHROPIC_API_KEY"
-          />
-          <IntegrationStatus
-            icon={Megaphone}
-            name="Meta Ads"
-            description="Facebook · Instagram · Messenger"
-            configured={metaConnected}
-            color="text-blue-600"
-            bg="bg-blue-50"
-            hint="Configurar em Integrações → Meta Ads"
-          />
-          <IntegrationStatus
-            icon={BarChart3}
-            name="Google Ads"
-            description="Search · Display · YouTube"
-            configured={googleConnected}
-            color="text-amber-600"
-            bg="bg-amber-50"
-            hint="Configurar em Integrações → Google Ads"
-          />
         </div>
       </div>
 

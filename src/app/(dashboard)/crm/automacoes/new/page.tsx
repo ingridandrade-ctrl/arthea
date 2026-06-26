@@ -115,7 +115,7 @@ export default function NewAutomationPage() {
             onChange={(e) => setTrigger(e.target.value)}
             className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="STAGE_CHANGE">Quando deal mudar de estagio</option>
+            <option value="STAGE_CHANGE">Quando servico mudar de estagio</option>
             <option value="TIME_AFTER_STAGE">Apos tempo no estagio</option>
             <option value="NEW_LEAD">Quando novo lead for criado</option>
             <option value="NO_RESPONSE">Quando lead nao responder</option>

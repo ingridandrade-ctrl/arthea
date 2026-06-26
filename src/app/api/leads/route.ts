@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
     where,
     take: 50,
     include: {
-      services: { include: { service: true } },
-      _count: { select: { deals: true, conversations: true } },
+      services: { include: { service: true, stage: true } },
+      _count: { select: { conversations: true } },
     },
     orderBy: { createdAt: "desc" },
   });

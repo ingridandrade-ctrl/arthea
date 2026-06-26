@@ -70,7 +70,7 @@ export default function AutomacoesPage() {
           <Zap className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
           <p className="text-muted-foreground">Nenhuma automacao configurada</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Crie automacoes para enviar mensagens, mover deals e mais
+            Crie automacoes para enviar mensagens, mover estagios e mais
           </p>
         </div>
       ) : (

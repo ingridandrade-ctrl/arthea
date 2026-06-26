@@ -4,7 +4,6 @@ import type {
   Lead,
   Pipeline,
   PipelineStage,
-  Deal,
   Conversation,
   Message,
   Automation,
@@ -20,7 +19,6 @@ export type {
   Lead,
   Pipeline,
   PipelineStage,
-  Deal,
   Conversation,
   Message,
   Automation,
@@ -36,7 +34,7 @@ export interface Activity {
   title: string;
   description: string | null;
   leadId: string | null;
-  dealId: string | null;
+  leadServiceId: string | null;
   userId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -44,7 +42,7 @@ export interface Activity {
 
 export type ActivityWithRelations = Activity & {
   lead: Lead | null;
-  deal: Deal | null;
+  leadService: LeadService | null;
   user: User;
 };
 
@@ -56,7 +54,7 @@ export interface Task {
   status: string;
   dueDate: Date | null;
   leadId: string | null;
-  dealId: string | null;
+  leadServiceId: string | null;
   assignedToId: string | null;
   createdById: string;
   createdAt: Date;
@@ -65,28 +63,26 @@ export interface Task {
 
 export type TaskWithRelations = Task & {
   lead: Lead | null;
-  deal: Deal | null;
+  leadService: LeadService | null;
   assignedTo: User | null;
   createdBy: User;
 };
 
 export type LeadWithServices = Lead & {
-  services: (LeadService & { service: Service })[];
+  services: (LeadService & { service: Service; stage?: PipelineStage | null })[];
 };
 
-export type DealWithRelations = Deal & {
+export type LeadServiceWithRelations = LeadService & {
   lead: LeadWithServices;
   service: Service;
-  stage: PipelineStage;
-  assignedTo: User | null;
+  stage: PipelineStage | null;
   activities: Activity[];
   tasks: Task[];
   followUps: FollowUp[];
 };
 
 export type LeadWithRelations = Lead & {
-  services: (LeadService & { service: Service })[];
-  deals: Deal[];
+  services: (LeadService & { service: Service; stage?: PipelineStage | null })[];
   conversations: Conversation[];
   activities: Activity[];
   tasks: Task[];
@@ -99,7 +95,7 @@ export type ConversationWithRelations = Conversation & {
 
 export type PipelineWithStages = Pipeline & {
   stages: (PipelineStage & {
-    deals: DealWithRelations[];
+    leadServices: LeadServiceWithRelations[];
   })[];
 };
 
@@ -143,7 +139,6 @@ export interface ReportData {
 
 export interface DashboardStats {
   totalLeads: number;
-  totalDeals: number;
   totalRevenue: number;
   conversionRate: number;
   leadsByService: { service: string; count: number; color: string }[];

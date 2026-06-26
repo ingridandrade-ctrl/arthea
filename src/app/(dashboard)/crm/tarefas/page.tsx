@@ -34,10 +34,10 @@ interface Task {
   priority: string;
   createdAt: string;
   leadId: string | null;
-  dealId: string | null;
+  leadServiceId: string | null;
   assignedToId: string | null;
   lead: { id: string; name: string } | null;
-  deal: { id: string; title: string } | null;
+  leadService: { id: string; service: { name: string } } | null;
   assignedTo: { id: string; name: string; email: string } | null;
   createdBy: { id: string; name: string } | null;
 }
@@ -784,10 +784,10 @@ function TaskRow({
             </span>
           )}
 
-          {task.deal && (
+          {task.leadService && (
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-              {task.deal.title}
+              {task.leadService.service.name}
             </span>
           )}
 

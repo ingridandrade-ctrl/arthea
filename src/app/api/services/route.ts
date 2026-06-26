@@ -11,7 +11,7 @@ export async function GET() {
     where: { isActive: true },
     orderBy: { name: "asc" },
     include: {
-      _count: { select: { leads: true, deals: true, contracts: true } },
+      _count: { select: { leads: true, contracts: true } },
     },
   });
 
