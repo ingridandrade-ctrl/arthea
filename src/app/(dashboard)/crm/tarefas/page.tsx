@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { formatDate } from "@/lib/utils";
+import { useEffect, useState, useMemo } from "react";
+import { formatDateBR } from "@/lib/utils";
 import {
   CheckCircle2,
   Circle,
@@ -11,6 +11,13 @@ import {
   Calendar,
   X,
   Pencil,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Filter,
+  ListFilter,
+  CalendarDays,
+  CalendarRange,
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 
@@ -38,6 +45,8 @@ interface Lead {
 }
 
 type FilterTab = "todas" | "minhas" | "pendentes" | "concluidas" | "atrasadas";
+type DatePreset = "all" | "today" | "week" | "month" | "custom";
+type GroupKey = "overdue" | "today" | "tomorrow" | "thisWeek" | "later" | "noDate" | "completed";
 
 const priorityLabels: Record<string, string> = {
   urgent: "Urgente",
@@ -50,8 +59,90 @@ const priorityStyles: Record<string, string> = {
   urgent: "bg-red-100 text-red-700",
   high: "bg-orange-100 text-orange-700",
   medium: "bg-blue-100 text-blue-700",
-  low: "bg-gray-100 text-gray-700",
+  low: "bg-gray-100 text-gray-600",
 };
+
+const priorityBorder: Record<string, string> = {
+  urgent: "border-l-red-500",
+  high: "border-l-orange-500",
+  medium: "border-l-blue-400",
+  low: "border-l-gray-300",
+};
+
+const groupConfig: Record<GroupKey, { label: string; icon: typeof AlertTriangle; color: string }> = {
+  overdue: { label: "Atrasadas", icon: AlertTriangle, color: "text-red-600" },
+  today: { label: "Hoje", icon: CalendarDays, color: "text-blue-600" },
+  tomorrow: { label: "Amanhã", icon: Calendar, color: "text-indigo-600" },
+  thisWeek: { label: "Esta Semana", icon: CalendarRange, color: "text-violet-600" },
+  later: { label: "Próximas", icon: Clock, color: "text-gray-500" },
+  noDate: { label: "Sem Data", icon: ListFilter, color: "text-gray-400" },
+  completed: { label: "Concluídas", icon: CheckCircle2, color: "text-green-600" },
+};
+
+const groupOrder: GroupKey[] = ["overdue", "today", "tomorrow", "thisWeek", "later", "noDate", "completed"];
+
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function endOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function endOfWeek(d: Date): Date {
+  const day = d.getDay();
+  const diff = day === 0 ? 0 : 7 - day;
+  const end = new Date(d);
+  end.setDate(end.getDate() + diff);
+  return endOfDay(end);
+}
+
+function groupTasks(tasks: Task[]): Record<GroupKey, Task[]> {
+  const now = new Date();
+  const today = startOfDay(now);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const weekEnd = endOfWeek(now);
+
+  const groups: Record<GroupKey, Task[]> = {
+    overdue: [],
+    today: [],
+    tomorrow: [],
+    thisWeek: [],
+    later: [],
+    noDate: [],
+    completed: [],
+  };
+
+  for (const task of tasks) {
+    if (task.completed) {
+      groups.completed.push(task);
+      continue;
+    }
+    if (!task.dueDate) {
+      groups.noDate.push(task);
+      continue;
+    }
+    const due = new Date(task.dueDate);
+    if (due < today) {
+      groups.overdue.push(task);
+    } else if (isSameDay(due, today)) {
+      groups.today.push(task);
+    } else if (isSameDay(due, tomorrow)) {
+      groups.tomorrow.push(task);
+    } else if (due <= weekEnd) {
+      groups.thisWeek.push(task);
+    } else {
+      groups.later.push(task);
+    }
+  }
+
+  return groups;
+}
 
 export default function TarefasPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -59,14 +150,31 @@ export default function TarefasPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>("todas");
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const [deletingLoading, setDeletingLoading] = useState(false);
+
+  const [datePreset, setDatePreset] = useState<DatePreset>("all");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<GroupKey>>(new Set());
+
+  function toggleGroup(key: GroupKey) {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
 
   async function fetchTasks() {
     setLoading(true);
     const params = new URLSearchParams();
 
     if (activeTab === "minhas") {
-      // Will filter client-side after fetching with session user id
-      // The API needs assignedToId, but we get it from session
       params.set("assignedToId", "me");
     } else if (activeTab === "pendentes") {
       params.set("completed", "false");
@@ -76,15 +184,40 @@ export default function TarefasPage() {
       params.set("overdue", "true");
     }
 
+    if (priorityFilter) {
+      params.set("priority", priorityFilter);
+    }
+
+    const now = new Date();
+    if (datePreset === "today") {
+      const s = startOfDay(now);
+      const e = endOfDay(now);
+      params.set("dueDateFrom", s.toISOString());
+      params.set("dueDateTo", e.toISOString());
+    } else if (datePreset === "week") {
+      const s = startOfDay(now);
+      const e = endOfWeek(now);
+      params.set("dueDateFrom", s.toISOString());
+      params.set("dueDateTo", e.toISOString());
+    } else if (datePreset === "month") {
+      const s = startOfDay(now);
+      const e = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      params.set("dueDateFrom", s.toISOString());
+      params.set("dueDateTo", e.toISOString());
+    } else if (datePreset === "custom") {
+      if (customFrom) params.set("dueDateFrom", new Date(customFrom).toISOString());
+      if (customTo) params.set("dueDateTo", endOfDay(new Date(customTo)).toISOString());
+    }
+
     const res = await fetch(`/api/tasks?${params}`);
     const data = await res.json();
-    setTasks(data);
+    setTasks(Array.isArray(data) ? data : []);
     setLoading(false);
   }
 
   useEffect(() => {
     fetchTasks();
-  }, [activeTab]);
+  }, [activeTab, datePreset, customFrom, customTo, priorityFilter]);
 
   async function toggleComplete(task: Task) {
     const res = await fetch(`/api/tasks/${task.id}`, {
@@ -92,152 +225,261 @@ export default function TarefasPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ completed: !task.completed }),
     });
-    if (res.ok) {
-      fetchTasks();
-    }
+    if (res.ok) fetchTasks();
   }
 
-  function isOverdue(task: Task): boolean {
-    if (task.completed || !task.dueDate) return false;
-    return new Date(task.dueDate) < new Date();
-  }
+  const grouped = useMemo(() => groupTasks(tasks), [tasks]);
 
-  const tabs: { key: FilterTab; label: string }[] = [
-    { key: "todas", label: "Todas" },
+  const totalPending = tasks.filter((t) => !t.completed).length;
+  const totalOverdue = grouped.overdue.length;
+  const totalToday = grouped.today.length;
+
+  const tabs: { key: FilterTab; label: string; count?: number }[] = [
+    { key: "todas", label: "Todas", count: tasks.length },
     { key: "minhas", label: "Minhas" },
-    { key: "pendentes", label: "Pendentes" },
-    { key: "concluidas", label: "Concluídas" },
-    { key: "atrasadas", label: "Atrasadas" },
+    { key: "pendentes", label: "Pendentes", count: totalPending },
+    { key: "concluidas", label: "Concluídas", count: grouped.completed.length },
+    { key: "atrasadas", label: "Atrasadas", count: totalOverdue },
   ];
 
+  const datePresets: { key: DatePreset; label: string }[] = [
+    { key: "all", label: "Todas as datas" },
+    { key: "today", label: "Hoje" },
+    { key: "week", label: "Esta semana" },
+    { key: "month", label: "Este mês" },
+    { key: "custom", label: "Personalizado" },
+  ];
+
+  const hasActiveFilters = datePreset !== "all" || priorityFilter !== "";
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Tarefas</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition"
-        >
-          <Plus className="w-4 h-4" />
-          Nova Tarefa
-        </button>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Tarefas</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {totalPending} pendente{totalPending !== 1 ? "s" : ""}
+            {totalOverdue > 0 && (
+              <span className="text-red-500 font-medium"> · {totalOverdue} atrasada{totalOverdue !== 1 ? "s" : ""}</span>
+            )}
+            {totalToday > 0 && (
+              <span className="text-blue-500 font-medium"> · {totalToday} para hoje</span>
+            )}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition ${
+              hasActiveFilters
+                ? "border-primary bg-primary/5 text-primary"
+                : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            }`}
+          >
+            <Filter className="w-4 h-4" />
+            Filtros
+            {hasActiveFilters && (
+              <span className="w-5 h-5 rounded-full bg-primary text-white text-xs flex items-center justify-center">
+                {(datePreset !== "all" ? 1 : 0) + (priorityFilter ? 1 : 0)}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Tarefa
+          </button>
+        </div>
       </div>
 
-      {/* Filter Tabs */}
+      {/* Status Tabs */}
       <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition flex items-center gap-2 ${
               activeTab === tab.key
                 ? "bg-white text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {tab.label}
+            {tab.count !== undefined && (
+              <span
+                className={`text-xs px-1.5 py-0.5 rounded-full ${
+                  activeTab === tab.key
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {tab.count}
+              </span>
+            )}
           </button>
         ))}
       </div>
 
-      {/* Task List */}
-      <div className="bg-white rounded-xl border border-gray-200">
-        {loading ? (
-          <div className="px-4 py-8 text-center text-muted-foreground">
-            Carregando...
-          </div>
-        ) : tasks.length === 0 ? (
-          <div className="px-4 py-12 text-center text-muted-foreground">
-            <Clock className="w-10 h-10 mx-auto mb-3 opacity-40" />
-            <p>Nenhuma tarefa encontrada</p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-gray-100">
-            {tasks.map((task) => (
-              <li
-                key={task.id}
-                className="flex items-start gap-3 px-4 py-3 hover:bg-muted/30 transition"
+      {/* Filters Panel */}
+      {showFilters && (
+        <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">Filtros</h3>
+            {hasActiveFilters && (
+              <button
+                onClick={() => {
+                  setDatePreset("all");
+                  setCustomFrom("");
+                  setCustomTo("");
+                  setPriorityFilter("");
+                }}
+                className="text-xs text-primary hover:underline"
               >
-                {/* Checkbox */}
-                <button
-                  onClick={() => toggleComplete(task)}
-                  className="mt-0.5 shrink-0"
-                  title={task.completed ? "Marcar como pendente" : "Marcar como concluída"}
-                >
-                  {task.completed ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  ) : (
-                    <Circle className="w-5 h-5 text-gray-300 hover:text-gray-400" />
-                  )}
-                </button>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span
-                      className={`text-sm font-medium ${
-                        task.completed
-                          ? "line-through text-muted-foreground"
-                          : "text-foreground"
-                      }`}
-                    >
-                      {task.title}
-                    </span>
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        priorityStyles[task.priority] || "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {priorityLabels[task.priority] || task.priority}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    {/* Due date */}
-                    {task.dueDate && (
-                      <span
-                        className={`flex items-center gap-1 ${
-                          isOverdue(task) ? "text-red-500 font-medium" : ""
-                        }`}
-                      >
-                        {isOverdue(task) ? (
-                          <AlertTriangle className="w-3 h-3" />
-                        ) : (
-                          <Calendar className="w-3 h-3" />
-                        )}
-                        {formatDate(task.dueDate)}
-                      </span>
-                    )}
-
-                    {/* Lead */}
-                    {task.lead && (
-                      <span className="truncate">
-                        Lead: {task.lead.name}
-                      </span>
-                    )}
-
-                    {/* Assigned to */}
-                    {task.assignedTo && (
-                      <span className="flex items-center gap-1">
-                        <span className="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] flex items-center justify-center font-medium">
-                          {task.assignedTo.name.charAt(0).toUpperCase()}
-                        </span>
-                        {task.assignedTo.name}
-                      </span>
-                    )}
-                  </div>
+                Limpar filtros
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Date Filter */}
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                <CalendarDays className="w-3.5 h-3.5 inline mr-1" />
+                Período
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {datePresets.map((p) => (
+                  <button
+                    key={p.key}
+                    onClick={() => setDatePreset(p.key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      datePreset === p.key
+                        ? "bg-primary text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              {datePreset === "custom" && (
+                <div className="flex gap-2 mt-2">
+                  <input
+                    type="date"
+                    value={customFrom}
+                    onChange={(e) => setCustomFrom(e.target.value)}
+                    className="flex-1 px-2.5 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="De"
+                  />
+                  <input
+                    type="date"
+                    value={customTo}
+                    onChange={(e) => setCustomTo(e.target.value)}
+                    className="flex-1 px-2.5 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Até"
+                  />
                 </div>
+              )}
+            </div>
 
-                <button onClick={() => setEditingTask(task)} className="shrink-0 p-1 rounded hover:bg-muted">
-                  <Pencil className="w-4 h-4 text-muted-foreground" />
+            {/* Priority Filter */}
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                <ListFilter className="w-3.5 h-3.5 inline mr-1" />
+                Prioridade
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  onClick={() => setPriorityFilter("")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                    !priorityFilter
+                      ? "bg-primary text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Todas
                 </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                {(["urgent", "high", "medium", "low"] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPriorityFilter(p)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      priorityFilter === p
+                        ? "bg-primary text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {priorityLabels[p]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Modal - Nova Tarefa */}
+      {/* Task Groups */}
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      ) : tasks.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-200 px-4 py-16 text-center text-muted-foreground">
+          <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p className="font-medium">Nenhuma tarefa encontrada</p>
+          <p className="text-sm mt-1">Crie uma nova tarefa para começar</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {groupOrder.map((key) => {
+            const group = grouped[key];
+            if (group.length === 0) return null;
+            const config = groupConfig[key];
+            const Icon = config.icon;
+            const isCollapsed = collapsedGroups.has(key);
+
+            return (
+              <div key={key} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                {/* Group Header */}
+                <button
+                  onClick={() => toggleGroup(key)}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition"
+                >
+                  {isCollapsed ? (
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                  <Icon className={`w-4 h-4 ${config.color}`} />
+                  <span className={`text-sm font-semibold ${config.color}`}>{config.label}</span>
+                  <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full">
+                    {group.length}
+                  </span>
+                </button>
+
+                {/* Group Tasks */}
+                {!isCollapsed && (
+                  <ul className="border-t border-gray-100">
+                    {group.map((task) => (
+                      <TaskRow
+                        key={task.id}
+                        task={task}
+                        isOverdue={key === "overdue"}
+                        onToggle={() => toggleComplete(task)}
+                        onEdit={() => setEditingTask(task)}
+                        onDelete={() => setDeletingTask(task)}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {showForm && (
         <TaskFormModal
           onClose={() => setShowForm(false)}
@@ -248,27 +490,175 @@ export default function TarefasPage() {
         />
       )}
 
-      {/* Modal - Editar Tarefa */}
       {editingTask && (
         <Modal title="Editar Tarefa" onClose={() => setEditingTask(null)}>
           <EditTaskForm
             task={editingTask}
-            onSaved={() => { setEditingTask(null); fetchTasks(); }}
+            onSaved={() => {
+              setEditingTask(null);
+              fetchTasks();
+            }}
           />
+        </Modal>
+      )}
+
+      {deletingTask && (
+        <Modal title="Excluir Tarefa" onClose={() => setDeletingTask(null)}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja excluir a tarefa <strong>{deletingTask.title}</strong>?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeletingTask(null)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  setDeletingLoading(true);
+                  const res = await fetch(`/api/tasks/${deletingTask.id}`, {
+                    method: "DELETE",
+                  });
+                  if (res.ok) {
+                    setDeletingTask(null);
+                    fetchTasks();
+                  } else {
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.error || "Erro ao excluir tarefa");
+                  }
+                  setDeletingLoading(false);
+                }}
+                disabled={deletingLoading}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {deletingLoading ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>
   );
 }
 
+function TaskRow({
+  task,
+  isOverdue,
+  onToggle,
+  onEdit,
+  onDelete,
+}: {
+  task: Task;
+  isOverdue: boolean;
+  onToggle: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <li
+      className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition border-l-[3px] ${
+        priorityBorder[task.priority] || "border-l-transparent"
+      } ${isOverdue ? "bg-red-50/40" : ""}`}
+    >
+      <button
+        onClick={onToggle}
+        className="mt-0.5 shrink-0"
+        title={task.completed ? "Marcar como pendente" : "Marcar como concluída"}
+      >
+        {task.completed ? (
+          <CheckCircle2 className="w-[18px] h-[18px] text-green-500" />
+        ) : (
+          <Circle className="w-[18px] h-[18px] text-gray-300 hover:text-gray-400 transition" />
+        )}
+      </button>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className={`text-sm font-medium leading-tight ${
+              task.completed ? "line-through text-muted-foreground" : "text-foreground"
+            }`}
+          >
+            {task.title}
+          </span>
+          <span
+            className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
+              priorityStyles[task.priority] || "bg-gray-100 text-gray-700"
+            }`}
+          >
+            {priorityLabels[task.priority] || task.priority}
+          </span>
+        </div>
+
+        {task.description && (
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{task.description}</p>
+        )}
+
+        <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+          {task.dueDate && (
+            <span
+              className={`flex items-center gap-1 text-xs ${
+                isOverdue ? "text-red-500 font-semibold" : "text-muted-foreground"
+              }`}
+            >
+              {isOverdue ? (
+                <AlertTriangle className="w-3 h-3" />
+              ) : (
+                <Calendar className="w-3 h-3" />
+              )}
+              {formatDateBR(task.dueDate)}
+            </span>
+          )}
+
+          {task.lead && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+              {task.lead.name}
+            </span>
+          )}
+
+          {task.deal && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+              {task.deal.title}
+            </span>
+          )}
+
+          {task.assignedTo && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] flex items-center justify-center font-semibold">
+                {task.assignedTo.name.charAt(0).toUpperCase()}
+              </span>
+              {task.assignedTo.name}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-0.5 shrink-0">
+        <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-gray-100 transition" title="Editar">
+          <Pencil className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" />
+        </button>
+        <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-red-50 transition" title="Excluir">
+          <Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
+        </button>
+      </div>
+    </li>
+  );
+}
+
 function EditTaskForm({ task, onSaved }: { task: Task; onSaved: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    setError("");
     const fd = new FormData(e.currentTarget);
-    await fetch(`/api/tasks/${task.id}`, {
+    const res = await fetch(`/api/tasks/${task.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -278,33 +668,63 @@ function EditTaskForm({ task, onSaved }: { task: Task; onSaved: () => void }) {
         dueDate: fd.get("dueDate") || null,
       }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Erro ao salvar tarefa");
+      setLoading(false);
+      return;
+    }
     onSaved();
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
       <div>
-        <label className="block text-sm font-medium mb-1">Titulo</label>
-        <input name="title" defaultValue={task.title} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        <label className="block text-sm font-medium mb-1">Título</label>
+        <input
+          name="title"
+          defaultValue={task.title}
+          required
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Descricao</label>
-        <textarea name="description" rows={3} defaultValue={task.description || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        <label className="block text-sm font-medium mb-1">Descrição</label>
+        <textarea
+          name="description"
+          rows={3}
+          defaultValue={task.description || ""}
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Prioridade</label>
-        <select name="priority" defaultValue={task.priority} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        <select
+          name="priority"
+          defaultValue={task.priority}
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        >
           <option value="low">Baixa</option>
-          <option value="medium">Media</option>
+          <option value="medium">Média</option>
           <option value="high">Alta</option>
           <option value="urgent">Urgente</option>
         </select>
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Data de Vencimento</label>
-        <input name="dueDate" type="date" defaultValue={task.dueDate ? task.dueDate.split("T")[0] : ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+        <input
+          name="dueDate"
+          type="date"
+          defaultValue={task.dueDate ? task.dueDate.split("T")[0] : ""}
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
       </div>
-      <button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+      >
         {loading ? "Salvando..." : "Salvar"}
       </button>
     </form>

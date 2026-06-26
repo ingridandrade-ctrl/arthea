@@ -18,7 +18,11 @@ export async function GET(request: NextRequest) {
   const where: any = {};
 
   if (assignedToId) {
-    where.assignedToId = assignedToId;
+    if (assignedToId === "me") {
+      where.assignedToId = (session.user as any).id;
+    } else {
+      where.assignedToId = assignedToId;
+    }
   }
   if (completed !== null && completed !== undefined && completed !== "") {
     where.completed = completed === "true";
@@ -35,6 +39,14 @@ export async function GET(request: NextRequest) {
   if (overdue === "true") {
     where.completed = false;
     where.dueDate = { lt: new Date() };
+  }
+
+  const dueDateFrom = searchParams.get("dueDateFrom");
+  const dueDateTo = searchParams.get("dueDateTo");
+  if (dueDateFrom || dueDateTo) {
+    where.dueDate = where.dueDate || {};
+    if (dueDateFrom) where.dueDate.gte = new Date(dueDateFrom);
+    if (dueDateTo) where.dueDate.lte = new Date(dueDateTo);
   }
 
   const tasks = await prisma.task.findMany({
