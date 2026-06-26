@@ -37,8 +37,6 @@ export default function LeadDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [stages, setStages] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
-  const [showNewDeal, setShowNewDeal] = useState(false);
-  const [editingDeal, setEditingDeal] = useState<any>(null);
 
   function fetchLead() {
     fetch(`/api/leads/${params.id}`)
@@ -134,31 +132,14 @@ export default function LeadDetailPage() {
 
         {/* Deals + Diagnostics */}
         <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Deals</h2>
-            <button
-              onClick={() => setShowNewDeal(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 transition"
-            >
-              <Plus className="w-3.5 h-3.5" /> Novo Deal
-            </button>
-          </div>
+          <h2 className="text-lg font-semibold mb-4">Deals</h2>
           {lead.deals.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum deal</p>
           ) : (
             <div className="space-y-3">
               {lead.deals.map((deal: any) => (
                 <div key={deal.id} className="border border-border rounded-lg p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium text-sm">{deal.title}</p>
-                    <button
-                      onClick={() => setEditingDeal(deal)}
-                      className="p-1 rounded hover:bg-muted"
-                      title="Editar deal"
-                    >
-                      <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                    </button>
-                  </div>
+                  <p className="font-medium text-sm">{deal.title}</p>
                   <div className="flex items-center gap-2">
                     <StageSelector
                       dealId={deal.id}
@@ -269,30 +250,9 @@ export default function LeadDetailPage() {
         <Modal title="Editar Lead" onClose={() => setEditing(false)}>
           <EditLeadForm
             lead={lead}
+            stages={stages}
+            services={services}
             onSaved={() => { setEditing(false); fetchLead(); }}
-          />
-        </Modal>
-      )}
-
-      {showNewDeal && (
-        <Modal title="Novo Deal" onClose={() => setShowNewDeal(false)}>
-          <DealForm
-            leadId={lead.id}
-            stages={stages}
-            services={services}
-            onSaved={() => { setShowNewDeal(false); fetchLead(); }}
-          />
-        </Modal>
-      )}
-
-      {editingDeal && (
-        <Modal title="Editar Deal" onClose={() => setEditingDeal(null)}>
-          <DealForm
-            leadId={lead.id}
-            deal={editingDeal}
-            stages={stages}
-            services={services}
-            onSaved={() => { setEditingDeal(null); fetchLead(); }}
           />
         </Modal>
       )}
@@ -411,141 +371,40 @@ function StageSelector({
   );
 }
 
-function DealForm({
-  leadId,
-  deal,
+function EditLeadForm({
+  lead,
   stages,
   services,
   onSaved,
 }: {
-  leadId: string;
-  deal?: any;
+  lead: any;
   stages: any[];
   services: any[];
   onSaved: () => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const isEdit = !!deal;
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    const fd = new FormData(e.currentTarget);
-    const value = fd.get("value") ? parseFloat(fd.get("value") as string) : null;
-
-    if (isEdit) {
-      const res = await fetch(`/api/deals/${deal.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: fd.get("title"),
-          value,
-          stageId: fd.get("stageId"),
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || "Erro ao salvar");
-        setLoading(false);
-        return;
-      }
-    } else {
-      const res = await fetch("/api/deals", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: fd.get("title"),
-          leadId,
-          serviceId: fd.get("serviceId"),
-          stageId: fd.get("stageId"),
-          value,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || "Erro ao criar deal");
-        setLoading(false);
-        return;
-      }
-    }
-    onSaved();
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
-      <div>
-        <label className="block text-sm font-medium mb-1">Título</label>
-        <input
-          name="title"
-          defaultValue={deal?.title || ""}
-          required
-          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Valor (R$)</label>
-        <input
-          name="value"
-          type="number"
-          step="0.01"
-          defaultValue={deal?.value || ""}
-          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder="0,00"
-        />
-      </div>
-      {!isEdit && (
-        <div>
-          <label className="block text-sm font-medium mb-1">Serviço</label>
-          <select
-            name="serviceId"
-            required
-            defaultValue=""
-            className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-card"
-          >
-            <option value="" disabled>Selecione...</option>
-            {services.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-        </div>
-      )}
-      <div>
-        <label className="block text-sm font-medium mb-1">Estágio</label>
-        <select
-          name="stageId"
-          required
-          defaultValue={deal?.stageId || stages[0]?.id || ""}
-          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-card"
-        >
-          {stages.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
-      </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
-      >
-        {loading ? "Salvando..." : isEdit ? "Salvar" : "Criar Deal"}
-      </button>
-    </form>
+  const [deals, setDeals] = useState<any[]>(
+    lead.deals.map((d: any) => ({
+      id: d.id,
+      title: d.title,
+      value: d.value || "",
+      stageId: d.stageId,
+      serviceId: d.serviceId,
+      isNew: false,
+    }))
   );
-}
-
-function EditLeadForm({ lead, onSaved }: { lead: any; onSaved: () => void }) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [showNewDeal, setShowNewDeal] = useState(false);
+  const [newDeal, setNewDeal] = useState({ title: "", value: "", serviceId: "", stageId: stages[0]?.id || "" });
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
+
     const fd = new FormData(e.currentTarget);
-    const res = await fetch(`/api/leads/${lead.id}`, {
+
+    const leadRes = await fetch(`/api/leads/${lead.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -556,39 +415,244 @@ function EditLeadForm({ lead, onSaved }: { lead: any; onSaved: () => void }) {
         notes: fd.get("notes") || null,
       }),
     });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || "Erro ao salvar");
+    if (!leadRes.ok) {
+      const data = await leadRes.json().catch(() => ({}));
+      setError(data.error || "Erro ao salvar lead");
       setLoading(false);
       return;
     }
+
+    for (const deal of deals) {
+      if (deal.isNew) {
+        const res = await fetch("/api/deals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: deal.title,
+            leadId: lead.id,
+            serviceId: deal.serviceId,
+            stageId: deal.stageId,
+            value: deal.value ? parseFloat(deal.value) : null,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setError(data.error || "Erro ao criar deal");
+          setLoading(false);
+          return;
+        }
+      } else {
+        const original = lead.deals.find((d: any) => d.id === deal.id);
+        const changed =
+          deal.title !== original?.title ||
+          String(deal.value || "") !== String(original?.value || "") ||
+          deal.stageId !== original?.stageId;
+        if (changed) {
+          const res = await fetch(`/api/deals/${deal.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: deal.title,
+              value: deal.value ? parseFloat(deal.value) : null,
+              stageId: deal.stageId,
+            }),
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            setError(data.error || "Erro ao atualizar deal");
+            setLoading(false);
+            return;
+          }
+        }
+      }
+    }
+
     onSaved();
   }
 
+  function addNewDeal() {
+    if (!newDeal.title || !newDeal.serviceId || !newDeal.stageId) return;
+    setDeals([...deals, { ...newDeal, id: `new-${Date.now()}`, isNew: true }]);
+    setNewDeal({ title: "", value: "", serviceId: "", stageId: stages[0]?.id || "" });
+    setShowNewDeal(false);
+  }
+
+  function updateDeal(index: number, field: string, value: string) {
+    const updated = [...deals];
+    updated[index] = { ...updated[index], [field]: value };
+    setDeals(updated);
+  }
+
+  const inputClass = "w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
-      <div>
-        <label className="block text-sm font-medium mb-1">Nome</label>
-        <input name="name" defaultValue={lead.name} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Nome</label>
+          <input name="name" defaultValue={lead.name} required className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Telefone</label>
+          <input name="phone" defaultValue={lead.phone} required className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Email</label>
+          <input name="email" type="email" defaultValue={lead.email || ""} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Empresa</label>
+          <input name="company" defaultValue={lead.company || ""} className={inputClass} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Observações</label>
+          <textarea name="notes" rows={2} defaultValue={lead.notes || ""} className={inputClass} />
+        </div>
       </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Telefone</label>
-        <input name="phone" defaultValue={lead.phone} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+
+      {/* Deals section */}
+      <div className="border-t border-border pt-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold">Deals</p>
+          <button
+            type="button"
+            onClick={() => setShowNewDeal(true)}
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+          >
+            <Plus className="w-3.5 h-3.5" /> Adicionar
+          </button>
+        </div>
+
+        {deals.length === 0 && !showNewDeal && (
+          <p className="text-xs text-muted-foreground">Nenhum deal</p>
+        )}
+
+        <div className="space-y-3">
+          {deals.map((deal, i) => (
+            <div key={deal.id} className="border border-border rounded-lg p-3 space-y-2">
+              <div>
+                <label className="block text-xs text-muted-foreground mb-0.5">Título</label>
+                <input
+                  value={deal.title}
+                  onChange={(e) => updateDeal(i, "title", e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-0.5">Valor (R$)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={deal.value}
+                    onChange={(e) => updateDeal(i, "value", e.target.value)}
+                    className={inputClass}
+                    placeholder="0,00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-0.5">Estágio</label>
+                  <select
+                    value={deal.stageId}
+                    onChange={(e) => updateDeal(i, "stageId", e.target.value)}
+                    className={inputClass + " bg-card"}
+                  >
+                    {stages.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              {deal.isNew && (
+                <button
+                  type="button"
+                  onClick={() => setDeals(deals.filter((_, j) => j !== i))}
+                  className="text-xs text-red-500 hover:underline"
+                >
+                  Remover
+                </button>
+              )}
+            </div>
+          ))}
+
+          {showNewDeal && (
+            <div className="border border-dashed border-primary/40 rounded-lg p-3 space-y-2">
+              <div>
+                <label className="block text-xs text-muted-foreground mb-0.5">Título</label>
+                <input
+                  value={newDeal.title}
+                  onChange={(e) => setNewDeal({ ...newDeal, title: e.target.value })}
+                  className={inputClass}
+                  placeholder="Nome do deal"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-0.5">Valor (R$)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newDeal.value}
+                    onChange={(e) => setNewDeal({ ...newDeal, value: e.target.value })}
+                    className={inputClass}
+                    placeholder="0,00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-0.5">Serviço</label>
+                  <select
+                    value={newDeal.serviceId}
+                    onChange={(e) => setNewDeal({ ...newDeal, serviceId: e.target.value })}
+                    className={inputClass + " bg-card"}
+                  >
+                    <option value="" disabled>Selecione...</option>
+                    {services.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-muted-foreground mb-0.5">Estágio</label>
+                <select
+                  value={newDeal.stageId}
+                  onChange={(e) => setNewDeal({ ...newDeal, stageId: e.target.value })}
+                  className={inputClass + " bg-card"}
+                >
+                  {stages.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={addNewDeal}
+                  disabled={!newDeal.title || !newDeal.serviceId}
+                  className="px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50"
+                >
+                  Adicionar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNewDeal(false)}
+                  className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Email</label>
-        <input name="email" type="email" defaultValue={lead.email || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Empresa</label>
-        <input name="company" defaultValue={lead.company || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Observacoes</label>
-        <textarea name="notes" rows={3} defaultValue={lead.notes || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-      </div>
-      <button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+      >
         {loading ? "Salvando..." : "Salvar"}
       </button>
     </form>
