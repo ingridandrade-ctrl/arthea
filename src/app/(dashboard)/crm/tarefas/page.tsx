@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { formatDateBR } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import {
   CheckCircle2,
   Circle,
@@ -160,7 +160,7 @@ export default function TarefasPage() {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<"delete" | "complete" | null>(null);
@@ -773,7 +773,7 @@ function TaskRow({
               ) : (
                 <Calendar className="w-3 h-3" />
               )}
-              {formatDateBR(task.dueDate)}
+              {formatDate(task.dueDate)}
             </span>
           )}
 
@@ -814,15 +814,43 @@ function TaskRow({
   );
 }
 
+function isoToDatetimeLocal(iso: string): string {
+  const d = new Date(iso);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 function EditTaskForm({ task, onSaved }: { task: Task; onSaved: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    fetch("/api/leads")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setLeads(data.map((l: any) => ({ id: l.id, name: l.name })));
+      })
+      .catch(() => {});
+    fetch("/api/users")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setUsers(data.map((u: any) => ({ id: u.id, name: u.name })));
+      })
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
     const fd = new FormData(e.currentTarget);
+    const dueDateVal = fd.get("dueDate") as string;
     const res = await fetch(`/api/tasks/${task.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -830,7 +858,9 @@ function EditTaskForm({ task, onSaved }: { task: Task; onSaved: () => void }) {
         title: fd.get("title"),
         description: fd.get("description") || null,
         priority: fd.get("priority"),
-        dueDate: fd.get("dueDate") || null,
+        dueDate: dueDateVal ? new Date(dueDateVal).toISOString() : null,
+        leadId: fd.get("leadId") || null,
+        assignedToId: fd.get("assignedToId") || null,
       }),
     });
     if (!res.ok) {
@@ -863,27 +893,55 @@ function EditTaskForm({ task, onSaved }: { task: Task; onSaved: () => void }) {
           className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Prioridade</label>
+          <select
+            name="priority"
+            defaultValue={task.priority}
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="low">Baixa</option>
+            <option value="medium">Média</option>
+            <option value="high">Alta</option>
+            <option value="urgent">Urgente</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Data e Hora</label>
+          <input
+            name="dueDate"
+            type="datetime-local"
+            defaultValue={task.dueDate ? isoToDatetimeLocal(task.dueDate) : ""}
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+      </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Prioridade</label>
+        <label className="block text-sm font-medium mb-1">Lead</label>
         <select
-          name="priority"
-          defaultValue={task.priority}
+          name="leadId"
+          defaultValue={task.leadId || ""}
           className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value="low">Baixa</option>
-          <option value="medium">Média</option>
-          <option value="high">Alta</option>
-          <option value="urgent">Urgente</option>
+          <option value="">Nenhum</option>
+          {leads.map((l) => (
+            <option key={l.id} value={l.id}>{l.name}</option>
+          ))}
         </select>
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Data de Vencimento</label>
-        <input
-          name="dueDate"
-          type="date"
-          defaultValue={task.dueDate ? task.dueDate.split("T")[0] : ""}
+        <label className="block text-sm font-medium mb-1">Responsável</label>
+        <select
+          name="assignedToId"
+          defaultValue={task.assignedToId || ""}
           className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-        />
+        >
+          <option value="">Nenhum</option>
+          {users.map((u) => (
+            <option key={u.id} value={u.id}>{u.name}</option>
+          ))}
+        </select>
       </div>
       <button
         type="submit"
@@ -906,6 +964,7 @@ function TaskFormModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     fetch("/api/leads")
@@ -916,6 +975,12 @@ function TaskFormModal({
         }
       })
       .catch(() => {});
+    fetch("/api/users")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setUsers(data.map((u: any) => ({ id: u.id, name: u.name })));
+      })
+      .catch(() => {});
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -924,10 +989,11 @@ function TaskFormModal({
     setError("");
 
     const formData = new FormData(e.currentTarget);
+    const dueDateVal = formData.get("dueDate") as string;
     const body = {
       title: formData.get("title"),
       description: formData.get("description") || undefined,
-      dueDate: formData.get("dueDate") || undefined,
+      dueDate: dueDateVal ? new Date(dueDateVal).toISOString() : undefined,
       priority: formData.get("priority"),
       leadId: formData.get("leadId") || undefined,
       assignedToId: formData.get("assignedToId") || undefined,
@@ -982,26 +1048,28 @@ function TaskFormModal({
               placeholder="Detalhes da tarefa..."
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Data de Vencimento</label>
-            <input
-              name="dueDate"
-              type="date"
-              className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Prioridade</label>
-            <select
-              name="priority"
-              defaultValue="medium"
-              className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="low">Baixa</option>
-              <option value="medium">Média</option>
-              <option value="high">Alta</option>
-              <option value="urgent">Urgente</option>
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Data e Hora</label>
+              <input
+                name="dueDate"
+                type="datetime-local"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Prioridade</label>
+              <select
+                name="priority"
+                defaultValue="medium"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="low">Baixa</option>
+                <option value="medium">Média</option>
+                <option value="high">Alta</option>
+                <option value="urgent">Urgente</option>
+              </select>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Lead (opcional)</label>
@@ -1019,11 +1087,15 @@ function TaskFormModal({
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Responsável (opcional)</label>
-            <input
+            <select
               name="assignedToId"
               className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="ID do usuário"
-            />
+            >
+              <option value="">Nenhum</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
           </div>
           <button
             type="submit"

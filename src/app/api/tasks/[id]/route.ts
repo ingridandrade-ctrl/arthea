@@ -12,7 +12,7 @@ export async function PUT(
 
   try {
     const body = await request.json();
-    const { title, description, dueDate, priority, completed, assignedToId } = body;
+    const { title, description, dueDate, priority, completed, assignedToId, leadId, dealId } = body;
 
     const data: any = {};
     if (title !== undefined) data.title = title;
@@ -20,6 +20,8 @@ export async function PUT(
     if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
     if (priority !== undefined) data.priority = priority;
     if (assignedToId !== undefined) data.assignedToId = assignedToId || null;
+    if (leadId !== undefined) data.leadId = leadId || null;
+    if (dealId !== undefined) data.dealId = dealId || null;
 
     if (completed !== undefined) {
       data.completed = completed;
