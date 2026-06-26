@@ -224,8 +224,29 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* User & logout */}
+      {/* Settings + User & logout */}
       <div className="p-3 border-t border-border/60">
+        {/* Configurações link - always visible for ADMIN */}
+        {userRole === "ADMIN" && (
+          <Link
+            href="/sistema"
+            className={cn(
+              "group relative flex items-center gap-3 rounded-lg text-[13px] transition-all duration-150 mb-1",
+              collapsed ? "justify-center px-0 py-[7px]" : "px-3 py-[7px]",
+              pathname.startsWith("/sistema")
+                ? "bg-primary/[0.08] text-primary font-medium"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground active:scale-[0.98]",
+            )}
+            title={collapsed ? "Configurações" : undefined}
+          >
+            {pathname.startsWith("/sistema") && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-full bg-primary" />
+            )}
+            <Settings className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={pathname.startsWith("/sistema") ? 1.8 : 1.5} />
+            {!collapsed && "Configurações"}
+          </Link>
+        )}
+
         {collapsed ? (
           <div className="flex flex-col items-center gap-2">
             <div
@@ -244,7 +265,7 @@ export function Sidebar() {
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2.5 px-2 mb-2">
+            <div className="flex items-center gap-2.5 px-2 mb-2 mt-2">
               <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold flex-shrink-0 ring-1 ring-border/60">
                 {(userName || "?").charAt(0).toUpperCase()}
               </div>
