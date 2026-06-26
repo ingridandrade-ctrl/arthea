@@ -200,7 +200,7 @@ model LeadService {
   value     Float?
   closedAt  DateTime?
   createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  updatedAt DateTime       @default(now()) @updatedAt
   followUps FollowUp[]
   contract  Contract?
   activities Activity[]
