@@ -335,13 +335,11 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard title="Total de Leads" value={stats.totalLeads.toString()} icon={Users} color="text-blue-600" bgColor="bg-blue-50" />
-            <StatsCard title="Total de Deals" value={stats.totalDeals.toString()} icon={BarChart3} color="text-purple-600" bgColor="bg-purple-50" />
             <StatsCard title="Receita Total" value={formatCurrency(stats.totalRevenue)} icon={DollarSign} color="text-green-600" bgColor="bg-green-50" />
             <StatsCard title="Taxa de Conversão" value={`${stats.conversionRate}%`} icon={TrendingUp} color="text-orange-600" bgColor="bg-orange-50" />
             <StatsCard title="Follow-ups Hoje" value={stats.pendingFollowUpsToday.toString()} icon={Clock} color="text-indigo-600" bgColor="bg-indigo-50" alert={stats.pendingFollowUpsToday > 0} />
-            <StatsCard title="Leads Esquecidos" value={stats.staleLeadsCount.toString()} icon={AlertTriangle} color="text-red-600" bgColor="bg-red-50" alert={stats.staleLeadsCount > 0} />
           </div>
 
           <div>
