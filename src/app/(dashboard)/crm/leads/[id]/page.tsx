@@ -16,6 +16,7 @@ import {
   Trash2,
   ChevronDown,
   Loader2,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
@@ -35,6 +36,9 @@ export default function LeadDetailPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [stages, setStages] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
+  const [showNewDeal, setShowNewDeal] = useState(false);
+  const [editingDeal, setEditingDeal] = useState<any>(null);
 
   function fetchLead() {
     fetch(`/api/leads/${params.id}`)
@@ -50,6 +54,9 @@ export default function LeadDetailPage() {
     fetch("/api/pipeline/stages")
       .then((r) => r.json())
       .then((data) => setStages(data.stages || []));
+    fetch("/api/services")
+      .then((r) => r.json())
+      .then((data) => setServices(Array.isArray(data) ? data : []));
   }, [params.id]);
 
   if (loading) {
@@ -127,14 +134,31 @@ export default function LeadDetailPage() {
 
         {/* Deals + Diagnostics */}
         <div className="bg-card rounded-xl border border-border p-6">
-          <h2 className="text-lg font-semibold mb-4">Deals</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Deals</h2>
+            <button
+              onClick={() => setShowNewDeal(true)}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:opacity-90 transition"
+            >
+              <Plus className="w-3.5 h-3.5" /> Novo Deal
+            </button>
+          </div>
           {lead.deals.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum deal</p>
           ) : (
             <div className="space-y-3">
               {lead.deals.map((deal: any) => (
                 <div key={deal.id} className="border border-border rounded-lg p-3 space-y-2">
-                  <p className="font-medium text-sm">{deal.title}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-sm">{deal.title}</p>
+                    <button
+                      onClick={() => setEditingDeal(deal)}
+                      className="p-1 rounded hover:bg-muted"
+                      title="Editar deal"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                  </div>
                   <div className="flex items-center gap-2">
                     <StageSelector
                       dealId={deal.id}
@@ -250,6 +274,29 @@ export default function LeadDetailPage() {
         </Modal>
       )}
 
+      {showNewDeal && (
+        <Modal title="Novo Deal" onClose={() => setShowNewDeal(false)}>
+          <DealForm
+            leadId={lead.id}
+            stages={stages}
+            services={services}
+            onSaved={() => { setShowNewDeal(false); fetchLead(); }}
+          />
+        </Modal>
+      )}
+
+      {editingDeal && (
+        <Modal title="Editar Deal" onClose={() => setEditingDeal(null)}>
+          <DealForm
+            leadId={lead.id}
+            deal={editingDeal}
+            stages={stages}
+            services={services}
+            onSaved={() => { setEditingDeal(null); fetchLead(); }}
+          />
+        </Modal>
+      )}
+
       {showDelete && (
         <Modal title="Excluir Lead" onClose={() => setShowDelete(false)}>
           <div className="space-y-4">
@@ -361,6 +408,131 @@ function StageSelector({
         </div>
       )}
     </div>
+  );
+}
+
+function DealForm({
+  leadId,
+  deal,
+  stages,
+  services,
+  onSaved,
+}: {
+  leadId: string;
+  deal?: any;
+  stages: any[];
+  services: any[];
+  onSaved: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const isEdit = !!deal;
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    const fd = new FormData(e.currentTarget);
+    const value = fd.get("value") ? parseFloat(fd.get("value") as string) : null;
+
+    if (isEdit) {
+      const res = await fetch(`/api/deals/${deal.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: fd.get("title"),
+          value,
+          stageId: fd.get("stageId"),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Erro ao salvar");
+        setLoading(false);
+        return;
+      }
+    } else {
+      const res = await fetch("/api/deals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: fd.get("title"),
+          leadId,
+          serviceId: fd.get("serviceId"),
+          stageId: fd.get("stageId"),
+          value,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Erro ao criar deal");
+        setLoading(false);
+        return;
+      }
+    }
+    onSaved();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
+      <div>
+        <label className="block text-sm font-medium mb-1">Título</label>
+        <input
+          name="title"
+          defaultValue={deal?.title || ""}
+          required
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Valor (R$)</label>
+        <input
+          name="value"
+          type="number"
+          step="0.01"
+          defaultValue={deal?.value || ""}
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="0,00"
+        />
+      </div>
+      {!isEdit && (
+        <div>
+          <label className="block text-sm font-medium mb-1">Serviço</label>
+          <select
+            name="serviceId"
+            required
+            defaultValue=""
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-card"
+          >
+            <option value="" disabled>Selecione...</option>
+            {services.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+      <div>
+        <label className="block text-sm font-medium mb-1">Estágio</label>
+        <select
+          name="stageId"
+          required
+          defaultValue={deal?.stageId || stages[0]?.id || ""}
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-card"
+        >
+          {stages.map((s) => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+      >
+        {loading ? "Salvando..." : isEdit ? "Salvar" : "Criar Deal"}
+      </button>
+    </form>
   );
 }
 
