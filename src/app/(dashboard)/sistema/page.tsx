@@ -82,7 +82,7 @@ export default async function SobreSistemaPage() {
           <IntegrationStatus
             icon={Bot}
             name="IA / Chatbot"
-            description={`${aiModelLabel} · ${aiConfig?.active !== false ? "Ativo" : "Desativado"}`}
+            description={aiConfigured ? "Ativo" : "Desativado"}
             configured={aiConfigured}
             color="text-orange-600"
             bg="bg-orange-50"

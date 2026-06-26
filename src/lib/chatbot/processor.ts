@@ -83,9 +83,7 @@ export async function processIncomingMessage(
     data: { lastMessageAt: new Date() },
   });
 
-  const aiConfig = await getAiConfig();
-
-  if (!aiConfig.active) {
+  if (!process.env.ANTHROPIC_API_KEY) {
     return { handled: false, reason: "ai_disabled" };
   }
 
@@ -93,8 +91,7 @@ export async function processIncomingMessage(
     return { handled: false, reason: "human_active" };
   }
 
-  const keywords = aiConfig.handoffKeywords.length > 0 ? aiConfig.handoffKeywords : HANDOFF_KEYWORDS;
-  if (shouldHandoff(content, keywords)) {
+  if (shouldHandoff(content)) {
     await performHandoff(conversation.id, lead.phone);
     return { handled: true, reason: "handoff" };
   }
