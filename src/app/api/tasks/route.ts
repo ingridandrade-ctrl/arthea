@@ -41,6 +41,14 @@ export async function GET(request: NextRequest) {
     where.dueDate = { lt: new Date() };
   }
 
+  const dueDateFrom = searchParams.get("dueDateFrom");
+  const dueDateTo = searchParams.get("dueDateTo");
+  if (dueDateFrom || dueDateTo) {
+    where.dueDate = where.dueDate || {};
+    if (dueDateFrom) where.dueDate.gte = new Date(dueDateFrom);
+    if (dueDateTo) where.dueDate.lte = new Date(dueDateTo);
+  }
+
   const tasks = await prisma.task.findMany({
     where,
     take: 100,

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useServiceFilter } from "@/lib/hooks/use-service-filter";
 import { formatCurrency } from "@/lib/utils";
-import { GripVertical, Tag, Pencil } from "lucide-react";
+import { GripVertical, Tag, Pencil, Trash2, X } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 
 export default function PipelinePage() {
@@ -12,6 +12,8 @@ export default function PipelinePage() {
   const [loading, setLoading] = useState(true);
   const [draggedDeal, setDraggedDeal] = useState<any>(null);
   const [editingDeal, setEditingDeal] = useState<any>(null);
+  const [deletingDeal, setDeletingDeal] = useState<any>(null);
+  const [deletingLoading, setDeletingLoading] = useState(false);
 
   async function fetchPipeline() {
     setLoading(true);
@@ -33,7 +35,6 @@ export default function PipelinePage() {
       return;
     }
 
-    // Optimistic update
     setPipeline((prev: any) => {
       if (!prev) return prev;
       const newStages = prev.stages.map((s: any) => ({
@@ -116,16 +117,26 @@ export default function PipelinePage() {
                   onDragStart={() => setDraggedDeal(deal)}
                   className="group relative bg-card rounded-lg border border-border p-3 cursor-grab active:cursor-grabbing hover:shadow-sm transition"
                 >
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setEditingDeal(deal); }}
-                    className="absolute top-2 right-2 p-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
+                  <div className="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setEditingDeal(deal); }}
+                      className="p-1 rounded hover:bg-muted"
+                      title="Editar"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeletingDeal(deal); }}
+                      className="p-1 rounded hover:bg-red-50"
+                      title="Excluir"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-500" />
+                    </button>
+                  </div>
                   <div className="flex items-start gap-2">
                     <GripVertical className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
+                      <p className="text-sm font-medium truncate pr-14">
                         {deal.title}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
@@ -179,26 +190,79 @@ export default function PipelinePage() {
         ))}
       </div>
 
+      {/* Edit Deal Modal */}
       {editingDeal && (
         <Modal title="Editar Deal" onClose={() => setEditingDeal(null)}>
           <EditDealForm
             deal={editingDeal}
+            stages={pipeline.stages}
             onSaved={() => { setEditingDeal(null); fetchPipeline(); }}
           />
+        </Modal>
+      )}
+
+      {/* Delete Deal Modal */}
+      {deletingDeal && (
+        <Modal title="Excluir Deal" onClose={() => setDeletingDeal(null)}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja excluir o deal <strong>{deletingDeal.title}</strong> do lead <strong>{deletingDeal.lead?.name}</strong>? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeletingDeal(null)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  setDeletingLoading(true);
+                  const res = await fetch(`/api/deals/${deletingDeal.id}`, { method: "DELETE" });
+                  if (res.ok) {
+                    setDeletingDeal(null);
+                    fetchPipeline();
+                  } else {
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.error || "Erro ao excluir deal");
+                  }
+                  setDeletingLoading(false);
+                }}
+                disabled={deletingLoading}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {deletingLoading ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>
   );
 }
 
-function EditDealForm({ deal, onSaved }: { deal: any; onSaved: () => void }) {
+function EditDealForm({ deal, stages, onSaved }: { deal: any; stages: any[]; onSaved: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [services, setServices] = useState<any[]>([]);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(
+    deal.lead?.services?.map((ls: any) => ls.service.id) || []
+  );
+
+  useEffect(() => {
+    fetch("/api/services")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setServices(data); })
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    setError("");
     const fd = new FormData(e.currentTarget);
-    await fetch(`/api/deals/${deal.id}`, {
+
+    const dealRes = await fetch(`/api/deals/${deal.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -206,19 +270,66 @@ function EditDealForm({ deal, onSaved }: { deal: any; onSaved: () => void }) {
         value: fd.get("value") ? parseFloat(fd.get("value") as string) : null,
       }),
     });
+
+    if (!dealRes.ok) {
+      setError("Erro ao salvar deal");
+      setLoading(false);
+      return;
+    }
+
+    if (deal.lead?.id) {
+      const leadRes = await fetch(`/api/leads/${deal.lead.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceIds: selectedServiceIds }),
+      });
+      if (!leadRes.ok) {
+        setError("Erro ao atualizar serviços do lead");
+        setLoading(false);
+        return;
+      }
+    }
+
     onSaved();
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
+
+      <div className="bg-muted/50 rounded-lg p-3">
+        <p className="text-xs text-muted-foreground">Lead</p>
+        <p className="text-sm font-medium">{deal.lead?.name}</p>
+      </div>
+
       <div>
-        <label className="block text-sm font-medium mb-1">Titulo</label>
+        <label className="block text-sm font-medium mb-1">Título do Deal</label>
         <input name="title" defaultValue={deal.title} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">Valor (R$)</label>
         <input name="value" type="number" step="0.01" defaultValue={deal.value || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
+
+      {services.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium mb-1">Serviços do Lead</label>
+          <div className="flex flex-wrap gap-2">
+            {services.map((s: any) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setSelectedServiceIds((prev) => prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id])}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${selectedServiceIds.includes(s.id) ? "text-white" : "bg-muted text-muted-foreground"}`}
+                style={selectedServiceIds.includes(s.id) ? { backgroundColor: s.color } : undefined}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
         {loading ? "Salvando..." : "Salvar"}
       </button>

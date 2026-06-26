@@ -3,7 +3,7 @@
 import { useEffect, useState, useDeferredValue } from "react";
 import { useServiceFilter } from "@/lib/hooks/use-service-filter";
 import { formatPhone } from "@/lib/utils";
-import { Plus, Search, X, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, X, Pencil, Trash2, CheckSquare, Square, MinusSquare } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
 
@@ -35,6 +35,11 @@ export default function LeadsPage() {
   const [deletingLead, setDeletingLead] = useState<Lead | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<"delete" | "status" | null>(null);
+  const [bulkStatus, setBulkStatus] = useState("NEW");
+  const [bulkLoading, setBulkLoading] = useState(false);
+
   async function fetchLeads() {
     setLoading(true);
     const params = new URLSearchParams();
@@ -44,11 +49,58 @@ export default function LeadsPage() {
     const data = await res.json();
     setLeads(Array.isArray(data) ? data : []);
     setLoading(false);
+    setSelectedIds(new Set());
   }
 
   useEffect(() => {
     fetchLeads();
   }, [activeService, deferredSearch]);
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === leads.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(leads.map((l) => l.id)));
+    }
+  }
+
+  async function handleBulkDelete() {
+    setBulkLoading(true);
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      await fetch(`/api/leads/${id}`, { method: "DELETE" });
+    }
+    setBulkLoading(false);
+    setBulkAction(null);
+    fetchLeads();
+  }
+
+  async function handleBulkStatusChange() {
+    setBulkLoading(true);
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      await fetch(`/api/leads/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: bulkStatus }),
+      });
+    }
+    setBulkLoading(false);
+    setBulkAction(null);
+    fetchLeads();
+  }
+
+  const allSelected = leads.length > 0 && selectedIds.size === leads.length;
+  const someSelected = selectedIds.size > 0 && selectedIds.size < leads.length;
 
   return (
     <div className="space-y-6">
@@ -75,33 +127,74 @@ export default function LeadsPage() {
         />
       </div>
 
+      {/* Bulk Action Bar */}
+      {selectedIds.size > 0 && (
+        <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 flex items-center justify-between">
+          <span className="text-sm font-medium text-primary">
+            {selectedIds.size} lead{selectedIds.size !== 1 ? "s" : ""} selecionado{selectedIds.size !== 1 ? "s" : ""}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setBulkAction("status"); setBulkStatus("NEW"); }}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-border hover:bg-muted transition"
+            >
+              Alterar Status
+            </button>
+            <button
+              onClick={() => setBulkAction("delete")}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition"
+            >
+              Excluir Selecionados
+            </button>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="p-1.5 rounded-lg hover:bg-muted transition"
+              title="Limpar seleção"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-card rounded-xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-muted-foreground bg-muted/50">
+                <th className="px-4 py-3 w-10">
+                  <button onClick={toggleSelectAll} className="flex items-center">
+                    {allSelected ? (
+                      <CheckSquare className="w-4 h-4 text-primary" />
+                    ) : someSelected ? (
+                      <MinusSquare className="w-4 h-4 text-primary" />
+                    ) : (
+                      <Square className="w-4 h-4 text-gray-300" />
+                    )}
+                  </button>
+                </th>
                 <th className="px-4 py-3 font-medium">Nome</th>
                 <th className="px-4 py-3 font-medium">Telefone</th>
                 <th className="px-4 py-3 font-medium">Email</th>
                 <th className="px-4 py-3 font-medium">Empresa</th>
-                <th className="px-4 py-3 font-medium">Servicos</th>
+                <th className="px-4 py-3 font-medium">Serviços</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Origem</th>
                 <th className="px-4 py-3 font-medium">Data</th>
-                <th className="px-4 py-3 font-medium text-right">Acoes</th>
+                <th className="px-4 py-3 font-medium text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
                     Carregando...
                   </td>
                 </tr>
               ) : leads.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
                     Nenhum lead encontrado
                   </td>
                 </tr>
@@ -109,8 +202,19 @@ export default function LeadsPage() {
                 leads.map((lead) => (
                   <tr
                     key={lead.id}
-                    className="border-t border-border hover:bg-muted/30 transition cursor-pointer"
+                    className={`border-t border-border hover:bg-muted/30 transition ${
+                      selectedIds.has(lead.id) ? "bg-primary/5" : ""
+                    }`}
                   >
+                    <td className="px-4 py-3">
+                      <button onClick={() => toggleSelect(lead.id)} className="flex items-center">
+                        {selectedIds.has(lead.id) ? (
+                          <CheckSquare className="w-4 h-4 text-primary" />
+                        ) : (
+                          <Square className="w-4 h-4 text-gray-300 hover:text-gray-400" />
+                        )}
+                      </button>
+                    </td>
                     <td className="px-4 py-3">
                       <Link href={`/crm/leads/${lead.id}`} className="font-medium text-primary hover:underline">
                         {lead.name}
@@ -192,12 +296,12 @@ export default function LeadsPage() {
         </Modal>
       )}
 
-      {/* Modal - Delete Confirmation */}
+      {/* Modal - Delete Single */}
       {deletingLead && (
         <Modal title="Excluir Lead" onClose={() => setDeletingLead(null)}>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Tem certeza que deseja excluir o lead <strong>{deletingLead.name}</strong>? Esta acao nao pode ser desfeita.
+              Tem certeza que deseja excluir o lead <strong>{deletingLead.name}</strong>? Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-3">
               <button
@@ -223,6 +327,68 @@ export default function LeadsPage() {
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
               >
                 {deleting ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal - Bulk Delete */}
+      {bulkAction === "delete" && (
+        <Modal title="Excluir Leads Selecionados" onClose={() => setBulkAction(null)}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja excluir <strong>{selectedIds.size} lead{selectedIds.size !== 1 ? "s" : ""}</strong>? Todos os dados associados (deals, conversas, tarefas) serão perdidos. Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setBulkAction(null)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkLoading}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {bulkLoading ? `Excluindo (${selectedIds.size})...` : `Excluir ${selectedIds.size}`}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal - Bulk Status Change */}
+      {bulkAction === "status" && (
+        <Modal title="Alterar Status" onClose={() => setBulkAction(null)}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Alterar o status de <strong>{selectedIds.size} lead{selectedIds.size !== 1 ? "s" : ""}</strong> para:
+            </p>
+            <select
+              value={bulkStatus}
+              onChange={(e) => setBulkStatus(e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="NEW">Novo</option>
+              <option value="CONTACTED">Contatado</option>
+              <option value="QUALIFIED">Qualificado</option>
+              <option value="UNQUALIFIED">Desqualificado</option>
+            </select>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setBulkAction(null)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleBulkStatusChange}
+                disabled={bulkLoading}
+                className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+              >
+                {bulkLoading ? "Salvando..." : "Alterar Status"}
               </button>
             </div>
           </div>
@@ -324,7 +490,7 @@ function LeadFormModal({
           </div>
           {services.length > 0 && (
             <div>
-              <label className="block text-sm font-medium mb-1">Servicos</label>
+              <label className="block text-sm font-medium mb-1">Serviços</label>
               <div className="flex flex-wrap gap-2">
                 {services.map((s: any) => (
                   <button
@@ -354,11 +520,11 @@ function LeadFormModal({
               <option value="MANUAL">Manual</option>
               <option value="WHATSAPP">WhatsApp</option>
               <option value="WEBSITE">Website</option>
-              <option value="REFERRAL">Indicacao</option>
+              <option value="REFERRAL">Indicação</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Observacoes</label>
+            <label className="block text-sm font-medium mb-1">Observações</label>
             <textarea name="notes" rows={3} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <button
@@ -409,7 +575,7 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
       }),
     });
     if (!res.ok) {
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       setError(data.error || "Erro ao salvar");
       setLoading(false);
       return;
@@ -447,7 +613,7 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
       </div>
       {services.length > 0 && (
         <div>
-          <label className="block text-sm font-medium mb-1">Servicos</label>
+          <label className="block text-sm font-medium mb-1">Serviços</label>
           <div className="flex flex-wrap gap-2">
             {services.map((s: any) => (
               <button
@@ -464,7 +630,7 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
         </div>
       )}
       <div>
-        <label className="block text-sm font-medium mb-1">Observacoes</label>
+        <label className="block text-sm font-medium mb-1">Observações</label>
         <textarea name="notes" rows={3} defaultValue={(lead as any).notes || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
       <button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
@@ -499,7 +665,7 @@ function SourceBadge({ source }: { source: string }) {
     WHATSAPP: "WhatsApp",
     WEBSITE: "Website",
     MANUAL: "Manual",
-    REFERRAL: "Indicacao",
+    REFERRAL: "Indicação",
     QUIZ: "Quiz",
   };
   return (
