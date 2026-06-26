@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   Calendar,
   Tag,
+  KanbanSquare,
   X,
   ChevronDown,
 } from "lucide-react";
@@ -73,30 +74,39 @@ function useClickOutside(ref: React.RefObject<HTMLElement | null>, handler: () =
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [services, setServices] = useState<any[]>([]);
+  const [stages, setStages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeService, setActiveService] = useState("all");
+  const [activeStage, setActiveStage] = useState("all");
   const [datePreset, setDatePreset] = useState("all");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [showCustomDate, setShowCustomDate] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<"date" | "service" | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<"date" | "service" | "stage" | null>(null);
 
   const dateRef = useRef<HTMLDivElement>(null);
   const serviceRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(dateRef, () => { if (openDropdown === "date") setOpenDropdown(null); });
   useClickOutside(serviceRef, () => { if (openDropdown === "service") setOpenDropdown(null); });
+  useClickOutside(stageRef, () => { if (openDropdown === "stage") setOpenDropdown(null); });
 
   useEffect(() => {
     fetch("/api/services")
       .then((r) => r.json())
       .then((data) => setServices(Array.isArray(data) ? data : []))
       .catch(() => {});
+    fetch("/api/pipeline/stages")
+      .then((r) => r.json())
+      .then((data) => setStages(data?.stages || []))
+      .catch(() => {});
   }, []);
 
   const url = useMemo(() => {
     const params = new URLSearchParams();
     if (activeService !== "all") params.set("service", activeService);
+    if (activeStage !== "all") params.set("stage", activeStage);
 
     if (showCustomDate && customFrom) {
       params.set("from", customFrom);
@@ -111,7 +121,7 @@ export default function DashboardPage() {
 
     const qs = params.toString();
     return `/api/dashboard/stats${qs ? `?${qs}` : ""}`;
-  }, [activeService, datePreset, showCustomDate, customFrom, customTo]);
+  }, [activeService, activeStage, datePreset, showCustomDate, customFrom, customTo]);
 
   useEffect(() => {
     setLoading(true);
@@ -121,14 +131,16 @@ export default function DashboardPage() {
       .catch(() => setLoading(false));
   }, [url]);
 
-  const hasFilters = activeService !== "all" || datePreset !== "all" || showCustomDate;
+  const hasFilters = activeService !== "all" || activeStage !== "all" || datePreset !== "all" || showCustomDate;
   const activeServiceName = services.find((s) => s.slug === activeService)?.name;
+  const activeStageName = stages.find((s: any) => s.id === activeStage)?.name;
   const dateLabel = showCustomDate
     ? `${customFrom || "..."}${customTo ? ` – ${customTo}` : ""}`
     : getPresetLabel(datePreset);
 
   function clearFilters() {
     setActiveService("all");
+    setActiveStage("all");
     setDatePreset("all");
     setShowCustomDate(false);
     setCustomFrom("");
@@ -257,6 +269,53 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Stage dropdown */}
+        {stages.length > 0 && (
+          <div ref={stageRef} className="relative">
+            <button
+              onClick={() => setOpenDropdown(openDropdown === "stage" ? null : "stage")}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition ${
+                activeStage !== "all"
+                  ? "border-primary bg-primary/5 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+            >
+              <KanbanSquare className="w-4 h-4" />
+              {activeStageName || "Todos os estágios"}
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === "stage" ? "rotate-180" : ""}`} />
+            </button>
+
+            {openDropdown === "stage" && (
+              <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-xl shadow-lg z-50 min-w-[220px] p-2">
+                <button
+                  onClick={() => { setActiveStage("all"); setOpenDropdown(null); }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                    activeStage === "all"
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-foreground hover:bg-muted"
+                  }`}
+                >
+                  Todos os estágios
+                </button>
+                {stages.map((s: any) => (
+                  <button
+                    key={s.id}
+                    onClick={() => { setActiveStage(s.id); setOpenDropdown(null); }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition flex items-center gap-2 ${
+                      activeStage === s.id
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Clear filters */}
         {hasFilters && (
           <button
@@ -285,44 +344,41 @@ export default function DashboardPage() {
             <StatsCard title="Leads Esquecidos" value={stats.staleLeadsCount.toString()} icon={AlertTriangle} color="text-red-600" bgColor="bg-red-50" alert={stats.staleLeadsCount > 0} />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
             {/* Leads por Serviço */}
             <div className="bg-card rounded-xl border border-border p-6">
-              <h2 className="text-lg font-semibold mb-4">Leads por Serviço</h2>
-              <div className="space-y-3">
-                {stats.leadsByService.map((item) => (
-                  <div key={item.service} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                      <span className="text-sm">{item.service}</span>
-                    </div>
-                    <span className="text-sm font-semibold">{item.count}</span>
-                  </div>
-                ))}
-                {stats.leadsByService.length === 0 && (
-                  <p className="text-sm text-muted-foreground">Nenhum lead ainda</p>
-                )}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Leads por Serviço</h2>
+                <span className="text-xs text-muted-foreground">
+                  {stats.leadsByService.reduce((s, i) => s + i.count, 0)} total
+                </span>
               </div>
+              {stats.leadsByService.length > 0 ? (
+                <div className="space-y-3">
+                  {stats.leadsByService.map((item) => {
+                    const max = Math.max(...stats.leadsByService.map((i) => i.count), 1);
+                    const pct = (item.count / max) * 100;
+                    return (
+                      <div key={item.service}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm">{item.service}</span>
+                          <span className="text-sm font-semibold">{item.count}</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${pct}%`, backgroundColor: item.color }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Nenhum lead ainda</p>
+              )}
             </div>
 
-            {/* Deals por Estágio */}
-            <div className="bg-card rounded-xl border border-border p-6">
-              <h2 className="text-lg font-semibold mb-4">Deals por Estágio</h2>
-              <div className="space-y-3">
-                {stats.dealsByStage.map((item) => (
-                  <div key={item.stage} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                      <span className="text-sm">{item.stage}</span>
-                    </div>
-                    <span className="text-sm font-semibold">{item.count}</span>
-                  </div>
-                ))}
-                {stats.dealsByStage.length === 0 && (
-                  <p className="text-sm text-muted-foreground">Nenhum deal ainda</p>
-                )}
-              </div>
-            </div>
           </div>
 
           {/* Recent Leads */}

@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
   const serviceSlug = searchParams.get("service");
   const dateFrom = searchParams.get("from");
   const dateTo = searchParams.get("to");
+  const stageId = searchParams.get("stage");
 
   const leadWhere: any = {};
   const dealWhere: any = {};
@@ -18,6 +19,10 @@ export async function GET(request: NextRequest) {
   if (serviceSlug && serviceSlug !== "all") {
     leadWhere.services = { some: { service: { slug: serviceSlug } } };
     dealWhere.service = { slug: serviceSlug };
+  }
+
+  if (stageId && stageId !== "all") {
+    dealWhere.stageId = stageId;
   }
 
   if (dateFrom || dateTo) {
