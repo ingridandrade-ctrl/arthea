@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bot, Save, Plus, X, Power, PowerOff } from "lucide-react";
+import { Bot, Save, Plus, X, Power, PowerOff, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 const MODELS = [
   { id: "claude-sonnet-4-6", label: "Claude Sonnet 4.6 (Recomendado)", desc: "Mais recente — melhor equilíbrio entre qualidade e velocidade" },
@@ -70,6 +71,12 @@ export default function IAConfigPage() {
 
   return (
     <div className="space-y-6 max-w-3xl">
+      <Link
+        href="/sistema/integracoes"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="w-4 h-4" /> Integrações
+      </Link>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Inteligência Artificial</h1>
