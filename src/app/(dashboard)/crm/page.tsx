@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { formatCurrency } from "@/lib/utils";
 import {
   Users,
@@ -9,9 +9,10 @@ import {
   BarChart3,
   Clock,
   AlertTriangle,
-  Filter,
   Calendar,
+  Tag,
   X,
+  ChevronDown,
 } from "lucide-react";
 import type { DashboardStats } from "@/types";
 
@@ -54,6 +55,21 @@ function getDateRange(preset: string): { from: string; to: string } | null {
   }
 }
 
+function getPresetLabel(value: string) {
+  return DATE_PRESETS.find((p) => p.value === value)?.label || "Tudo";
+}
+
+function useClickOutside(ref: React.RefObject<HTMLElement | null>, handler: () => void) {
+  useEffect(() => {
+    function listener(e: MouseEvent) {
+      if (!ref.current || ref.current.contains(e.target as Node)) return;
+      handler();
+    }
+    document.addEventListener("mousedown", listener);
+    return () => document.removeEventListener("mousedown", listener);
+  }, [ref, handler]);
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [services, setServices] = useState<any[]>([]);
@@ -63,6 +79,13 @@ export default function DashboardPage() {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [showCustomDate, setShowCustomDate] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<"date" | "service" | null>(null);
+
+  const dateRef = useRef<HTMLDivElement>(null);
+  const serviceRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(dateRef, () => { if (openDropdown === "date") setOpenDropdown(null); });
+  useClickOutside(serviceRef, () => { if (openDropdown === "service") setOpenDropdown(null); });
 
   useEffect(() => {
     fetch("/api/services")
@@ -99,6 +122,10 @@ export default function DashboardPage() {
   }, [url]);
 
   const hasFilters = activeService !== "all" || datePreset !== "all" || showCustomDate;
+  const activeServiceName = services.find((s) => s.slug === activeService)?.name;
+  const dateLabel = showCustomDate
+    ? `${customFrom || "..."}${customTo ? ` – ${customTo}` : ""}`
+    : getPresetLabel(datePreset);
 
   function clearFilters() {
     setActiveService("all");
@@ -106,111 +133,139 @@ export default function DashboardPage() {
     setShowCustomDate(false);
     setCustomFrom("");
     setCustomTo("");
+    setOpenDropdown(null);
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        {hasFilters && (
-          <button
-            onClick={clearFilters}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition"
-          >
-            <X className="w-3.5 h-3.5" />
-            Limpar filtros
-          </button>
-        )}
       </div>
 
-      {/* Filters */}
-      <div className="bg-card rounded-xl border border-border p-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <Filter className="w-4 h-4" />
-          Filtros
-        </div>
+      {/* Filter buttons */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Date dropdown */}
+        <div ref={dateRef} className="relative">
+          <button
+            onClick={() => setOpenDropdown(openDropdown === "date" ? null : "date")}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition ${
+              datePreset !== "all" || showCustomDate
+                ? "border-primary bg-primary/5 text-primary"
+                : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-border"
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            {dateLabel}
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === "date" ? "rotate-180" : ""}`} />
+          </button>
 
-        {/* Date filter */}
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5" />
-            Período
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {DATE_PRESETS.map((p) => (
-              <button
-                key={p.value}
-                onClick={() => { setDatePreset(p.value); setShowCustomDate(false); }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                  datePreset === p.value && !showCustomDate
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-            <button
-              onClick={() => { setShowCustomDate(true); setDatePreset("custom"); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                showCustomDate
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Personalizado
-            </button>
-          </div>
-          {showCustomDate && (
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={customFrom}
-                onChange={(e) => setCustomFrom(e.target.value)}
-                className="px-2 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <span className="text-xs text-muted-foreground">até</span>
-              <input
-                type="date"
-                value={customTo}
-                onChange={(e) => setCustomTo(e.target.value)}
-                className="px-2 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+          {openDropdown === "date" && (
+            <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-xl shadow-lg z-50 min-w-[200px] p-2">
+              {DATE_PRESETS.map((p) => (
+                <button
+                  key={p.value}
+                  onClick={() => {
+                    setDatePreset(p.value);
+                    setShowCustomDate(false);
+                    setOpenDropdown(null);
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                    datePreset === p.value && !showCustomDate
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+              <div className="border-t border-border mt-1 pt-1">
+                <button
+                  onClick={() => { setShowCustomDate(true); setDatePreset("custom"); }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                    showCustomDate
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-foreground hover:bg-muted"
+                  }`}
+                >
+                  Personalizado
+                </button>
+                {showCustomDate && (
+                  <div className="px-3 py-2 space-y-2">
+                    <input
+                      type="date"
+                      value={customFrom}
+                      onChange={(e) => setCustomFrom(e.target.value)}
+                      className="w-full px-2 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <input
+                      type="date"
+                      value={customTo}
+                      onChange={(e) => setCustomTo(e.target.value)}
+                      className="w-full px-2 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Service filter */}
+        {/* Service dropdown */}
         {services.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">Serviço</p>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                onClick={() => setActiveService("all")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                  activeService === "all"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Todos
-              </button>
-              {services.map((s) => (
+          <div ref={serviceRef} className="relative">
+            <button
+              onClick={() => setOpenDropdown(openDropdown === "service" ? null : "service")}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition ${
+                activeService !== "all"
+                  ? "border-primary bg-primary/5 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+            >
+              <Tag className="w-4 h-4" />
+              {activeServiceName || "Todos os serviços"}
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === "service" ? "rotate-180" : ""}`} />
+            </button>
+
+            {openDropdown === "service" && (
+              <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-xl shadow-lg z-50 min-w-[220px] p-2">
                 <button
-                  key={s.id}
-                  onClick={() => setActiveService(s.slug)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                    activeService === s.slug
-                      ? "text-white"
-                      : "bg-muted text-muted-foreground hover:text-foreground"
+                  onClick={() => { setActiveService("all"); setOpenDropdown(null); }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${
+                    activeService === "all"
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-foreground hover:bg-muted"
                   }`}
-                  style={activeService === s.slug ? { backgroundColor: s.color } : undefined}
                 >
-                  {s.name}
+                  Todos os serviços
                 </button>
-              ))}
-            </div>
+                {services.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => { setActiveService(s.slug); setOpenDropdown(null); }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition flex items-center gap-2 ${
+                      activeService === s.slug
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+        )}
+
+        {/* Clear filters */}
+        {hasFilters && (
+          <button
+            onClick={clearFilters}
+            className="flex items-center gap-1 px-2.5 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition"
+          >
+            <X className="w-3.5 h-3.5" />
+            Limpar
+          </button>
         )}
       </div>
 
