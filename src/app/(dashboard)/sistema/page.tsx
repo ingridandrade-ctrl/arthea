@@ -76,58 +76,6 @@ export default async function SobreSistemaPage() {
         </p>
       </div>
 
-      {/* Platform Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Info className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold">Arthea CRM</h2>
-              <p className="text-xs text-muted-foreground">Plataforma de gestão</p>
-            </div>
-          </div>
-          <div className="space-y-3 text-sm">
-            <InfoRow label="Versão" value="2.0.0" />
-            <InfoRow label="Framework" value="Next.js 14 (App Router)" />
-            <InfoRow label="Deploy" value="Vercel" />
-            <InfoRow label="Região" value="GRU1 (São Paulo)" />
-          </div>
-        </div>
-
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Database className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold">Banco de Dados</h2>
-              <p className="text-xs text-muted-foreground">Armazenamento de dados</p>
-            </div>
-          </div>
-          <div className="space-y-3 text-sm">
-            <InfoRow label="Provedor" value="Neon PostgreSQL" />
-            <InfoRow label="ORM" value="Prisma" />
-            <InfoRow label="Região" value="sa-east-1 (São Paulo)" />
-            <InfoRow label="Status" value="Operacional" status="active" />
-          </div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Dados do Sistema</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <StatCard icon={Users} label="Usuários" value={userCount} color="text-blue-600" bg="bg-blue-50" />
-          <StatCard icon={Users} label="Leads" value={leadCount} color="text-teal-600" bg="bg-teal-50" />
-          <StatCard icon={KanbanSquare} label="Deals" value={dealCount} color="text-indigo-600" bg="bg-indigo-50" />
-          <StatCard icon={Briefcase} label="Serviços" value={serviceCount} color="text-orange-600" bg="bg-orange-50" />
-          <StatCard icon={Zap} label="Automações" value={automationCount} color="text-yellow-600" bg="bg-yellow-50" />
-          <StatCard icon={FileText} label="Templates" value={templateCount} color="text-purple-600" bg="bg-purple-50" />
-        </div>
-      </div>
-
       {/* Integrations Status */}
       <div>
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Integrações</h2>
@@ -168,6 +116,58 @@ export default async function SobreSistemaPage() {
             bg="bg-amber-50"
             hint="Configurar em Integrações → Google Ads"
           />
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Dados do Sistema</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <StatCard icon={Users} label="Usuários" value={userCount} color="text-blue-600" bg="bg-blue-50" />
+          <StatCard icon={Users} label="Leads" value={leadCount} color="text-teal-600" bg="bg-teal-50" />
+          <StatCard icon={KanbanSquare} label="Deals" value={dealCount} color="text-indigo-600" bg="bg-indigo-50" />
+          <StatCard icon={Briefcase} label="Serviços" value={serviceCount} color="text-orange-600" bg="bg-orange-50" />
+          <StatCard icon={Zap} label="Automações" value={automationCount} color="text-yellow-600" bg="bg-yellow-50" />
+          <StatCard icon={FileText} label="Templates" value={templateCount} color="text-purple-600" bg="bg-purple-50" />
+        </div>
+      </div>
+
+      {/* Platform Info */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Info className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">Arthea CRM</h2>
+              <p className="text-xs text-muted-foreground">Plataforma de gestão</p>
+            </div>
+          </div>
+          <div className="space-y-3 text-sm">
+            <InfoRow label="Versão" value="2.0.0" />
+            <InfoRow label="Framework" value="Next.js 14 (App Router)" />
+            <InfoRow label="Deploy" value="Vercel" />
+            <InfoRow label="Região" value="GRU1 (São Paulo)" />
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
+              <Database className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">Banco de Dados</h2>
+              <p className="text-xs text-muted-foreground">Armazenamento de dados</p>
+            </div>
+          </div>
+          <div className="space-y-3 text-sm">
+            <InfoRow label="Provedor" value="Neon PostgreSQL" />
+            <InfoRow label="ORM" value="Prisma" />
+            <InfoRow label="Região" value="sa-east-1 (São Paulo)" />
+            <InfoRow label="Status" value="Operacional" status="active" />
+          </div>
         </div>
       </div>
 
