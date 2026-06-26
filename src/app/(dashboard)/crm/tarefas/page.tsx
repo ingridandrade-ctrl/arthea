@@ -18,6 +18,9 @@ import {
   ListFilter,
   CalendarDays,
   CalendarRange,
+  CheckSquare,
+  Square,
+  MinusSquare,
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 
@@ -159,7 +162,59 @@ export default function TarefasPage() {
   const [priorityFilter, setPriorityFilter] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<"delete" | "complete" | null>(null);
+  const [bulkLoading, setBulkLoading] = useState(false);
+
   const [collapsedGroups, setCollapsedGroups] = useState<Set<GroupKey>>(new Set());
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectGroup(groupTasks: Task[]) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const allSelected = groupTasks.every((t) => next.has(t.id));
+      if (allSelected) {
+        groupTasks.forEach((t) => next.delete(t.id));
+      } else {
+        groupTasks.forEach((t) => next.add(t.id));
+      }
+      return next;
+    });
+  }
+
+  async function handleBulkDelete() {
+    setBulkLoading(true);
+    for (const id of selectedIds) {
+      await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+    }
+    setBulkLoading(false);
+    setBulkAction(null);
+    setSelectedIds(new Set());
+    fetchTasks();
+  }
+
+  async function handleBulkComplete() {
+    setBulkLoading(true);
+    for (const id of selectedIds) {
+      await fetch(`/api/tasks/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed: true }),
+      });
+    }
+    setBulkLoading(false);
+    setBulkAction(null);
+    setSelectedIds(new Set());
+    fetchTasks();
+  }
 
   function toggleGroup(key: GroupKey) {
     setCollapsedGroups((prev) => {
@@ -323,6 +378,36 @@ export default function TarefasPage() {
         ))}
       </div>
 
+      {/* Bulk Action Bar */}
+      {selectedIds.size > 0 && (
+        <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 flex items-center justify-between">
+          <span className="text-sm font-medium text-primary">
+            {selectedIds.size} tarefa{selectedIds.size !== 1 ? "s" : ""} selecionada{selectedIds.size !== 1 ? "s" : ""}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setBulkAction("complete")}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600 text-white hover:bg-green-700 transition"
+            >
+              Concluir Selecionadas
+            </button>
+            <button
+              onClick={() => setBulkAction("delete")}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition"
+            >
+              Excluir Selecionadas
+            </button>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="p-1.5 rounded-lg hover:bg-muted transition"
+              title="Limpar seleção"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Filters Panel */}
       {showFilters && (
         <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
@@ -443,21 +528,35 @@ export default function TarefasPage() {
             return (
               <div key={key} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 {/* Group Header */}
-                <button
-                  onClick={() => toggleGroup(key)}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition"
-                >
-                  {isCollapsed ? (
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                  )}
-                  <Icon className={`w-4 h-4 ${config.color}`} />
-                  <span className={`text-sm font-semibold ${config.color}`}>{config.label}</span>
-                  <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full">
-                    {group.length}
-                  </span>
-                </button>
+                <div className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleSelectGroup(group); }}
+                    className="shrink-0"
+                  >
+                    {group.every((t) => selectedIds.has(t.id)) ? (
+                      <CheckSquare className="w-4 h-4 text-primary" />
+                    ) : group.some((t) => selectedIds.has(t.id)) ? (
+                      <MinusSquare className="w-4 h-4 text-primary" />
+                    ) : (
+                      <Square className="w-4 h-4 text-gray-300 hover:text-gray-400" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => toggleGroup(key)}
+                    className="flex-1 flex items-center gap-3"
+                  >
+                    {isCollapsed ? (
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    )}
+                    <Icon className={`w-4 h-4 ${config.color}`} />
+                    <span className={`text-sm font-semibold ${config.color}`}>{config.label}</span>
+                    <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full">
+                      {group.length}
+                    </span>
+                  </button>
+                </div>
 
                 {/* Group Tasks */}
                 {!isCollapsed && (
@@ -467,6 +566,8 @@ export default function TarefasPage() {
                         key={task.id}
                         task={task}
                         isOverdue={key === "overdue"}
+                        selected={selectedIds.has(task.id)}
+                        onSelect={() => toggleSelect(task.id)}
                         onToggle={() => toggleComplete(task)}
                         onEdit={() => setEditingTask(task)}
                         onDelete={() => setDeletingTask(task)}
@@ -539,6 +640,58 @@ export default function TarefasPage() {
           </div>
         </Modal>
       )}
+
+      {/* Bulk Delete Modal */}
+      {bulkAction === "delete" && (
+        <Modal title="Excluir Tarefas Selecionadas" onClose={() => setBulkAction(null)}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja excluir <strong>{selectedIds.size} tarefa{selectedIds.size !== 1 ? "s" : ""}</strong>? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setBulkAction(null)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkLoading}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {bulkLoading ? `Excluindo (${selectedIds.size})...` : `Excluir ${selectedIds.size}`}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Bulk Complete Modal */}
+      {bulkAction === "complete" && (
+        <Modal title="Concluir Tarefas" onClose={() => setBulkAction(null)}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Marcar <strong>{selectedIds.size} tarefa{selectedIds.size !== 1 ? "s" : ""}</strong> como concluída{selectedIds.size !== 1 ? "s" : ""}?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setBulkAction(null)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleBulkComplete}
+                disabled={bulkLoading}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition disabled:opacity-50"
+              >
+                {bulkLoading ? "Concluindo..." : "Concluir"}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -546,12 +699,16 @@ export default function TarefasPage() {
 function TaskRow({
   task,
   isOverdue,
+  selected,
+  onSelect,
   onToggle,
   onEdit,
   onDelete,
 }: {
   task: Task;
   isOverdue: boolean;
+  selected: boolean;
+  onSelect: () => void;
   onToggle: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -560,8 +717,16 @@ function TaskRow({
     <li
       className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition border-l-[3px] ${
         priorityBorder[task.priority] || "border-l-transparent"
-      } ${isOverdue ? "bg-red-50/40" : ""}`}
+      } ${isOverdue ? "bg-red-50/40" : ""} ${selected ? "bg-primary/5" : ""}`}
     >
+      <button onClick={onSelect} className="mt-0.5 shrink-0">
+        {selected ? (
+          <CheckSquare className="w-[18px] h-[18px] text-primary" />
+        ) : (
+          <Square className="w-[18px] h-[18px] text-gray-300 hover:text-gray-400 transition" />
+        )}
+      </button>
+
       <button
         onClick={onToggle}
         className="mt-0.5 shrink-0"
