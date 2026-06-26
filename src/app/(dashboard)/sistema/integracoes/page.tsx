@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Megaphone, BarChart3, Bot, CheckCircle2, AlertTriangle, ArrowRight } from "lucide-react";
+import { Megaphone, BarChart3, Bot, MessageCircle, CheckCircle2, AlertTriangle, ArrowRight } from "lucide-react";
 
 // Landing das integrações da agência (OAuth Meta + Google + futuro WhatsApp).
 // Esta camada é CONFIGURAÇÃO TÉCNICA da agência — 1× por agência.
@@ -35,6 +35,8 @@ export default async function IntegracoesPage() {
 
   const metaActive = metaConnections.some((c) => c.status === "ACTIVE");
   const googleActive = googleConnection?.status === "ACTIVE";
+  const whatsappConfigured = !!(process.env.WHATSAPP_API_TOKEN && process.env.WHATSAPP_PHONE_ID);
+  const whatsappProvider = process.env.WHATSAPP_PROVIDER?.toLowerCase() === "official" ? "Meta Oficial" : "Evolution API";
   const aiConfigured = !!process.env.ANTHROPIC_API_KEY;
   const MODEL_LABELS: Record<string, string> = {
     "claude-sonnet-4-6": "Sonnet 4.6",
@@ -54,6 +56,19 @@ export default async function IntegracoesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <IntegrationCard
+          href="/sistema/integracoes/whatsapp"
+          icon={MessageCircle}
+          color="#25D366"
+          name="WhatsApp"
+          sub="Mensagens automáticas e chatbot"
+          connected={whatsappConfigured}
+          subStatus={
+            whatsappConfigured
+              ? `Provider: ${whatsappProvider} · Conectado`
+              : "Tokens não configurados"
+          }
+        />
         <IntegrationCard
           href="/sistema/integracoes/ia"
           icon={Bot}
