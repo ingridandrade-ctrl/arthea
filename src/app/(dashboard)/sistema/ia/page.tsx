@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { Bot, Save, Plus, X, Power, PowerOff } from "lucide-react";
 
 const MODELS = [
-  { id: "claude-sonnet-4-20250514", label: "Claude Sonnet 4 (Recomendado)", desc: "Equilíbrio entre qualidade e velocidade" },
+  { id: "claude-sonnet-4-6", label: "Claude Sonnet 4.6 (Recomendado)", desc: "Mais recente — melhor equilíbrio entre qualidade e velocidade" },
+  { id: "claude-opus-4-8", label: "Claude Opus 4.8", desc: "Modelo mais avançado, máxima qualidade, mais caro" },
+  { id: "claude-sonnet-4-20250514", label: "Claude Sonnet 4", desc: "Versão anterior do Sonnet, estável" },
   { id: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5", desc: "Mais rápido e econômico, respostas mais simples" },
-  { id: "claude-opus-4-20250514", label: "Claude Opus 4", desc: "Máxima qualidade, mais lento e caro" },
 ];
 
 export default function IAConfigPage() {

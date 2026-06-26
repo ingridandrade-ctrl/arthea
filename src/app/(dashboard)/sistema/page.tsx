@@ -59,11 +59,13 @@ export default async function SobreSistemaPage() {
   const metaConnected = metaConnections.some((c) => c.status === "ACTIVE");
   const googleConnected = googleConnection?.status === "ACTIVE";
 
-  const aiModelLabel = aiConfig?.model === "claude-haiku-4-5-20251001"
-    ? "Claude Haiku 4.5"
-    : aiConfig?.model === "claude-opus-4-20250514"
-      ? "Claude Opus 4"
-      : "Claude Sonnet 4";
+  const MODEL_LABELS: Record<string, string> = {
+    "claude-sonnet-4-6": "Claude Sonnet 4.6",
+    "claude-opus-4-8": "Claude Opus 4.8",
+    "claude-sonnet-4-20250514": "Claude Sonnet 4",
+    "claude-haiku-4-5-20251001": "Claude Haiku 4.5",
+  };
+  const aiModelLabel = MODEL_LABELS[aiConfig?.model || ""] || "Claude Sonnet 4";
 
   return (
     <div className="space-y-6">
