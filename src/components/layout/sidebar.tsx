@@ -72,6 +72,7 @@ const FINANCEIRO_ITEMS: NavItem[] = [
 const SISTEMA_ITEMS: NavItem[] = [
   { name: "Integrações", href: "/sistema/integracoes", icon: Link2, roles: ["ADMIN", "MANAGER"] },
   { name: "Serviços", href: "/sistema/servicos", icon: Briefcase, roles: ["ADMIN", "MANAGER"] },
+  { name: "Pipeline", href: "/sistema/pipeline", icon: KanbanSquare, roles: ["ADMIN", "MANAGER"] },
   { name: "Usuários", href: "/sistema/usuarios", icon: UserCog, roles: ["ADMIN"] },
   { name: "Sobre o Sistema", href: "/sistema", icon: Settings, match: "/sistema", roles: ["ADMIN"] },
 ];
