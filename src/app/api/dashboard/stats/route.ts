@@ -9,14 +9,27 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const serviceSlug = searchParams.get("service");
+  const dateFrom = searchParams.get("from");
+  const dateTo = searchParams.get("to");
 
-  // Build filter for leads with service tag
   const leadWhere: any = {};
   const dealWhere: any = {};
 
   if (serviceSlug && serviceSlug !== "all") {
     leadWhere.services = { some: { service: { slug: serviceSlug } } };
     dealWhere.service = { slug: serviceSlug };
+  }
+
+  if (dateFrom || dateTo) {
+    const dateFilter: any = {};
+    if (dateFrom) dateFilter.gte = new Date(dateFrom);
+    if (dateTo) {
+      const to = new Date(dateTo);
+      to.setHours(23, 59, 59, 999);
+      dateFilter.lte = to;
+    }
+    leadWhere.createdAt = dateFilter;
+    dealWhere.createdAt = dateFilter;
   }
 
   const [totalLeads, totalDeals, closedDeals, recentLeads, services] =
