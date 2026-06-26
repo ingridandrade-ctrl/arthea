@@ -73,7 +73,7 @@ const SISTEMA_ITEMS: NavItem[] = [
   { name: "Integrações", href: "/sistema/integracoes", icon: Link2, roles: ["ADMIN", "MANAGER"] },
   { name: "Serviços", href: "/sistema/servicos", icon: Briefcase, roles: ["ADMIN", "MANAGER"] },
   { name: "Usuários", href: "/sistema/usuarios", icon: UserCog, roles: ["ADMIN"] },
-  { name: "Configurações", href: "/sistema", icon: Settings, match: "/sistema", roles: ["ADMIN"] },
+  { name: "Sobre o Sistema", href: "/sistema", icon: Settings, match: "/sistema", roles: ["ADMIN"] },
 ];
 
 function modeForPath(pathname: string): Mode {
@@ -256,7 +256,7 @@ export function Sidebar() {
           <div className="mt-6 pt-4 border-t border-border">
             {!collapsed && (
               <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground mb-2">
-                Sistema
+                Configurações
               </p>
             )}
             {systemItems.map((item) => {
