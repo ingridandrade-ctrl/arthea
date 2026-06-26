@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { formatPhone, formatDate, formatCurrency } from "@/lib/utils";
 import {
@@ -14,6 +14,8 @@ import {
   Tag,
   Pencil,
   Trash2,
+  ChevronDown,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
@@ -32,6 +34,7 @@ export default function LeadDetailPage() {
   const [editing, setEditing] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [stages, setStages] = useState<any[]>([]);
 
   function fetchLead() {
     fetch(`/api/leads/${params.id}`)
@@ -44,6 +47,9 @@ export default function LeadDetailPage() {
 
   useEffect(() => {
     fetchLead();
+    fetch("/api/pipeline/stages")
+      .then((r) => r.json())
+      .then((data) => setStages(data.stages || []));
   }, [params.id]);
 
   if (loading) {
@@ -130,12 +136,12 @@ export default function LeadDetailPage() {
                 <div key={deal.id} className="border border-border rounded-lg p-3 space-y-2">
                   <p className="font-medium text-sm">{deal.title}</p>
                   <div className="flex items-center gap-2">
-                    <span
-                      className="px-2 py-0.5 rounded text-xs text-white"
-                      style={{ backgroundColor: deal.stage?.color || "#6366f1" }}
-                    >
-                      {deal.stage?.name}
-                    </span>
+                    <StageSelector
+                      dealId={deal.id}
+                      currentStage={deal.stage}
+                      stages={stages}
+                      onChanged={fetchLead}
+                    />
                     {deal.value && (
                       <span className="text-xs text-muted-foreground">
                         {formatCurrency(deal.value)}
@@ -277,6 +283,82 @@ export default function LeadDetailPage() {
             </div>
           </div>
         </Modal>
+      )}
+    </div>
+  );
+}
+
+function StageSelector({
+  dealId,
+  currentStage,
+  stages,
+  onChanged,
+}: {
+  dealId: string;
+  currentStage: any;
+  stages: any[];
+  onChanged: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  async function changeStage(stageId: string) {
+    if (stageId === currentStage?.id) { setOpen(false); return; }
+    setUpdating(true);
+    setOpen(false);
+    await fetch(`/api/deals/${dealId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stageId }),
+    });
+    setUpdating(false);
+    onChanged();
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        disabled={updating}
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs text-white cursor-pointer hover:opacity-90 transition"
+        style={{ backgroundColor: currentStage?.color || "#6366f1" }}
+      >
+        {updating ? (
+          <Loader2 className="w-3 h-3 animate-spin" />
+        ) : (
+          <>
+            {currentStage?.name}
+            <ChevronDown className="w-3 h-3" />
+          </>
+        )}
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[160px] py-1">
+          {stages.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => changeStage(s.id)}
+              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-muted/50 transition flex items-center gap-2 ${
+                s.id === currentStage?.id ? "font-semibold" : ""
+              }`}
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                style={{ backgroundColor: s.color }}
+              />
+              {s.name}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );
