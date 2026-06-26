@@ -11,6 +11,7 @@ import {
   Calendar,
   X,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 
@@ -59,6 +60,8 @@ export default function TarefasPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>("todas");
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const [deletingLoading, setDeletingLoading] = useState(false);
 
   async function fetchTasks() {
     setLoading(true);
@@ -228,9 +231,14 @@ export default function TarefasPage() {
                   </div>
                 </div>
 
-                <button onClick={() => setEditingTask(task)} className="shrink-0 p-1 rounded hover:bg-muted">
-                  <Pencil className="w-4 h-4 text-muted-foreground" />
-                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => setEditingTask(task)} className="p-1 rounded hover:bg-muted" title="Editar">
+                    <Pencil className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                  <button onClick={() => setDeletingTask(task)} className="p-1 rounded hover:bg-red-50" title="Excluir">
+                    <Trash2 className="w-4 h-4 text-muted-foreground hover:text-red-600" />
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -257,18 +265,57 @@ export default function TarefasPage() {
           />
         </Modal>
       )}
+
+      {/* Modal - Excluir Tarefa */}
+      {deletingTask && (
+        <Modal title="Excluir Tarefa" onClose={() => setDeletingTask(null)}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja excluir a tarefa <strong>{deletingTask.title}</strong>?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeletingTask(null)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  setDeletingLoading(true);
+                  const res = await fetch(`/api/tasks/${deletingTask.id}`, { method: "DELETE" });
+                  if (res.ok) {
+                    setDeletingTask(null);
+                    fetchTasks();
+                  } else {
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.error || "Erro ao excluir tarefa");
+                  }
+                  setDeletingLoading(false);
+                }}
+                disabled={deletingLoading}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {deletingLoading ? "Excluindo..." : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
 
 function EditTaskForm({ task, onSaved }: { task: Task; onSaved: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    setError("");
     const fd = new FormData(e.currentTarget);
-    await fetch(`/api/tasks/${task.id}`, {
+    const res = await fetch(`/api/tasks/${task.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -278,11 +325,18 @@ function EditTaskForm({ task, onSaved }: { task: Task; onSaved: () => void }) {
         dueDate: fd.get("dueDate") || null,
       }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Erro ao salvar tarefa");
+      setLoading(false);
+      return;
+    }
     onSaved();
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
       <div>
         <label className="block text-sm font-medium mb-1">Titulo</label>
         <input name="title" defaultValue={task.title} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />

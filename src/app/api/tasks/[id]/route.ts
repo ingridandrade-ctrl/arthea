@@ -10,38 +10,40 @@ export async function PUT(
   const session = await getServerSession(authOptions) as any;
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-  const body = await request.json();
-  const { title, description, dueDate, priority, completed, assignedToId } = body;
+  try {
+    const body = await request.json();
+    const { title, description, dueDate, priority, completed, assignedToId } = body;
 
-  // Handle completedAt based on completed status change
-  const data: any = {};
-  if (title !== undefined) data.title = title;
-  if (description !== undefined) data.description = description;
-  if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
-  if (priority !== undefined) data.priority = priority;
-  if (assignedToId !== undefined) data.assignedToId = assignedToId || null;
+    const data: any = {};
+    if (title !== undefined) data.title = title;
+    if (description !== undefined) data.description = description;
+    if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
+    if (priority !== undefined) data.priority = priority;
+    if (assignedToId !== undefined) data.assignedToId = assignedToId || null;
 
-  if (completed !== undefined) {
-    data.completed = completed;
-    if (completed === true) {
-      data.completedAt = new Date();
-    } else {
-      data.completedAt = null;
+    if (completed !== undefined) {
+      data.completed = completed;
+      data.completedAt = completed ? new Date() : null;
     }
+
+    const task = await prisma.task.update({
+      where: { id: params.id },
+      data,
+      include: {
+        lead: true,
+        deal: true,
+        assignedTo: true,
+        createdBy: true,
+      },
+    });
+
+    return NextResponse.json(task);
+  } catch (err: any) {
+    if (err?.code === "P2025") {
+      return NextResponse.json({ error: "Tarefa não encontrada" }, { status: 404 });
+    }
+    return NextResponse.json({ error: "Erro ao atualizar tarefa" }, { status: 500 });
   }
-
-  const task = await prisma.task.update({
-    where: { id: params.id },
-    data,
-    include: {
-      lead: true,
-      deal: true,
-      assignedTo: true,
-      createdBy: true,
-    },
-  });
-
-  return NextResponse.json(task);
 }
 
 export async function DELETE(
@@ -51,6 +53,13 @@ export async function DELETE(
   const session = await getServerSession(authOptions) as any;
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-  await prisma.task.delete({ where: { id: params.id } });
-  return NextResponse.json({ success: true });
+  try {
+    await prisma.task.delete({ where: { id: params.id } });
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    if (err?.code === "P2025") {
+      return NextResponse.json({ error: "Tarefa não encontrada" }, { status: 404 });
+    }
+    return NextResponse.json({ error: "Erro ao excluir tarefa" }, { status: 500 });
+  }
 }

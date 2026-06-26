@@ -18,7 +18,11 @@ export async function GET(request: NextRequest) {
   const where: any = {};
 
   if (assignedToId) {
-    where.assignedToId = assignedToId;
+    if (assignedToId === "me") {
+      where.assignedToId = (session.user as any).id;
+    } else {
+      where.assignedToId = assignedToId;
+    }
   }
   if (completed !== null && completed !== undefined && completed !== "") {
     where.completed = completed === "true";

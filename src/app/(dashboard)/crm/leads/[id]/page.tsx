@@ -214,7 +214,7 @@ export default function LeadDetailPage() {
               {lead.conversations.map((conv: any) => (
                 <Link
                   key={conv.id}
-                  href={`/conversations/${conv.id}`}
+                  href={`/crm/conversations/${conv.id}`}
                   className="block border border-border rounded-lg p-3 hover:bg-muted/30 transition"
                 >
                   <div className="flex items-center gap-2">
@@ -260,9 +260,14 @@ export default function LeadDetailPage() {
               <button
                 onClick={async () => {
                   setDeleting(true);
-                  await fetch(`/api/leads/${lead.id}`, { method: "DELETE" });
-                  setDeleting(false);
-                  router.push("/crm/leads");
+                  const res = await fetch(`/api/leads/${lead.id}`, { method: "DELETE" });
+                  if (res.ok) {
+                    router.push("/crm/leads");
+                  } else {
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.error || "Erro ao excluir lead");
+                    setDeleting(false);
+                  }
                 }}
                 disabled={deleting}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
@@ -279,12 +284,14 @@ export default function LeadDetailPage() {
 
 function EditLeadForm({ lead, onSaved }: { lead: any; onSaved: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    setError("");
     const fd = new FormData(e.currentTarget);
-    await fetch(`/api/leads/${lead.id}`, {
+    const res = await fetch(`/api/leads/${lead.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -295,11 +302,18 @@ function EditLeadForm({ lead, onSaved }: { lead: any; onSaved: () => void }) {
         notes: fd.get("notes") || null,
       }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Erro ao salvar");
+      setLoading(false);
+      return;
+    }
     onSaved();
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
       <div>
         <label className="block text-sm font-medium mb-1">Nome</label>
         <input name="name" defaultValue={lead.name} required className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />

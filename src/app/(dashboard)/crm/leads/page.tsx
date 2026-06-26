@@ -112,7 +112,7 @@ export default function LeadsPage() {
                     className="border-t border-border hover:bg-muted/30 transition cursor-pointer"
                   >
                     <td className="px-4 py-3">
-                      <Link href={`/leads/${lead.id}`} className="font-medium text-primary hover:underline">
+                      <Link href={`/crm/leads/${lead.id}`} className="font-medium text-primary hover:underline">
                         {lead.name}
                       </Link>
                     </td>
@@ -209,10 +209,15 @@ export default function LeadsPage() {
               <button
                 onClick={async () => {
                   setDeleting(true);
-                  await fetch(`/api/leads/${deletingLead.id}`, { method: "DELETE" });
+                  const res = await fetch(`/api/leads/${deletingLead.id}`, { method: "DELETE" });
+                  if (res.ok) {
+                    setDeletingLead(null);
+                    fetchLeads();
+                  } else {
+                    const data = await res.json().catch(() => ({}));
+                    alert(data.error || "Erro ao excluir lead");
+                  }
                   setDeleting(false);
-                  setDeletingLead(null);
-                  fetchLeads();
                 }}
                 disabled={deleting}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50"
