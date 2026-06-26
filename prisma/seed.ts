@@ -400,16 +400,17 @@ async function main() {
     for (const config of serviceConfigs) {
       const serviceId = createdServices[config.slug];
       if (serviceId) {
+        const stageId = stageByOrder[config.stageOrder] || null;
         const ls = await prisma.leadService.upsert({
           where: { leadId_serviceId: { leadId: created.id, serviceId } },
           update: {
-            stageId: stageByOrder[config.stageOrder] || null,
+            stage: stageId ? { connect: { id: stageId } } : { disconnect: true },
             value: config.value,
           },
           create: {
             leadId: created.id,
             serviceId,
-            stageId: stageByOrder[config.stageOrder] || null,
+            stageId,
             value: config.value,
           },
         });

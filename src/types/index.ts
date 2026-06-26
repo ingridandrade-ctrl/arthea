@@ -139,6 +139,7 @@ export interface ReportData {
 
 export interface DashboardStats {
   totalLeads: number;
+  totalLeadServices: number;
   totalRevenue: number;
   conversionRate: number;
   leadsByService: { service: string; count: number; color: string }[];

@@ -9,8 +9,10 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const serviceSlug = searchParams.get("service");
+  const stageId = searchParams.get("stage");
+  const dateFrom = searchParams.get("from");
+  const dateTo = searchParams.get("to");
 
-  // Build filter for leads with service tag
   const leadWhere: any = {};
   const lsWhere: any = {};
 
@@ -35,9 +37,10 @@ export async function GET(request: NextRequest) {
     lsWhere.createdAt = dateFilter;
   }
 
-  const [totalLeads, closedLeadServices, recentLeads, services] =
+  const [totalLeads, totalLeadServices, closedLeadServices, recentLeads, services] =
     await Promise.all([
       prisma.lead.count({ where: leadWhere }),
+      prisma.leadService.count({ where: lsWhere }),
       prisma.leadService.findMany({
         where: {
           ...lsWhere,
@@ -109,6 +112,7 @@ export async function GET(request: NextRequest) {
 
   const response = NextResponse.json({
     totalLeads,
+    totalLeadServices,
     totalRevenue,
     conversionRate: Math.round(conversionRate * 10) / 10,
     leadsByService,

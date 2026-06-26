@@ -40,8 +40,8 @@ export default function DashboardPage() {
           bgColor="bg-blue-50"
         />
         <StatsCard
-          title="Total de Deals"
-          value={stats.totalDeals.toString()}
+          title="Total de Servicos"
+          value={stats.totalLeadServices.toString()}
           icon={BarChart3}
           color="text-purple-600"
           bgColor="bg-purple-50"
@@ -101,9 +101,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Deals por Estagio */}
+        {/* Servicos por Estagio */}
         <div className="bg-card rounded-xl border border-border p-6">
-          <h2 className="text-lg font-semibold mb-4">Deals por Estagio</h2>
+          <h2 className="text-lg font-semibold mb-4">Servicos por Estagio</h2>
           <div className="space-y-3">
             {stats.dealsByStage.map((item) => (
               <div key={item.stage} className="flex items-center justify-between">
@@ -118,7 +118,7 @@ export default function DashboardPage() {
               </div>
             ))}
             {stats.dealsByStage.length === 0 && (
-              <p className="text-sm text-muted-foreground">Nenhum deal ainda</p>
+              <p className="text-sm text-muted-foreground">Nenhum servico ainda</p>
             )}
           </div>
         </div>

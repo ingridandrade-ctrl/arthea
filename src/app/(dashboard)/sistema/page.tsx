@@ -43,7 +43,7 @@ export default async function SobreSistemaPage() {
     prisma.leadService.count(),
     prisma.service.count(),
     prisma.automation.count(),
-    prisma.messageTemplate.count(),
+    prisma.followUpTemplate.count(),
     prisma.metaConnection.findMany({
       select: { status: true },
     }),
