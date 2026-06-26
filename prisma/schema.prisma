@@ -1179,3 +1179,14 @@ model GoogleAdsAccount {
   @@index([engagementId])
   @@index([hidden])
 }
+
+model AiConfig {
+  id               String   @id @default("default")
+  model            String   @default("claude-sonnet-4-20250514")
+  maxTokens        Int      @default(1024)
+  systemPrompt     String   @db.Text
+  handoffKeywords  String[] @default([])
+  botName          String   @default("Arthea IA")
+  active           Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+}

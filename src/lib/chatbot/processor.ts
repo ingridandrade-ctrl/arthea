@@ -1,10 +1,24 @@
 import { prisma } from "@/lib/prisma";
 import { generateChatResponse } from "@/lib/anthropic";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
-import { SYSTEM_PROMPT, shouldHandoff } from "./prompts";
+import { SYSTEM_PROMPT, HANDOFF_KEYWORDS, shouldHandoff } from "./prompts";
 import { performHandoff } from "./handoff";
 import { scheduleFollowUpsForDeal } from "@/lib/followups/engine";
 import { renderTemplate } from "@/lib/followups/engine";
+
+async function getAiConfig() {
+  const config = await prisma.aiConfig.findUnique({ where: { id: "default" } });
+  if (!config) {
+    return {
+      model: "claude-sonnet-4-20250514",
+      maxTokens: 1024,
+      systemPrompt: SYSTEM_PROMPT,
+      handoffKeywords: HANDOFF_KEYWORDS,
+      active: true,
+    };
+  }
+  return config;
+}
 
 export async function processIncomingMessage(
   phone: string,
@@ -90,13 +104,22 @@ export async function processIncomingMessage(
     data: { lastMessageAt: new Date() },
   });
 
-  // 4. If AI is not active (human took over), skip AI processing
+  // 4. Load AI config
+  const aiConfig = await getAiConfig();
+
+  // If AI is globally disabled, skip
+  if (!aiConfig.active) {
+    return { handled: false, reason: "ai_disabled" };
+  }
+
+  // If AI is not active on this conversation (human took over), skip
   if (!conversation.isAiActive) {
     return { handled: false, reason: "human_active" };
   }
 
   // 5. Check if handoff is needed
-  if (shouldHandoff(content)) {
+  const keywords = aiConfig.handoffKeywords.length > 0 ? aiConfig.handoffKeywords : HANDOFF_KEYWORDS;
+  if (shouldHandoff(content, keywords)) {
     await performHandoff(conversation.id, lead.phone);
     return { handled: true, reason: "handoff" };
   }
@@ -175,7 +198,7 @@ export async function processIncomingMessage(
     content: msg.content,
   }));
 
-  const aiResponse = await generateChatResponse(SYSTEM_PROMPT, messages);
+  const aiResponse = await generateChatResponse(aiConfig.systemPrompt, messages, aiConfig.model, aiConfig.maxTokens);
 
   await prisma.message.create({
     data: {

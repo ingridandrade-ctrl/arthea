@@ -52,10 +52,18 @@ export default async function SobreSistemaPage() {
     }),
   ]);
 
+  const aiConfig = await prisma.aiConfig.findUnique({ where: { id: "default" } });
+
   const whatsappConfigured = !!(process.env.WHATSAPP_API_TOKEN && process.env.WHATSAPP_PHONE_ID);
   const aiConfigured = !!(process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY);
   const metaConnected = metaConnections.some((c) => c.status === "ACTIVE");
   const googleConnected = googleConnection?.status === "ACTIVE";
+
+  const aiModelLabel = aiConfig?.model === "claude-haiku-4-5-20251001"
+    ? "Claude Haiku 4.5"
+    : aiConfig?.model === "claude-opus-4-20250514"
+      ? "Claude Opus 4"
+      : "Claude Sonnet 4";
 
   return (
     <div className="space-y-6">
@@ -134,11 +142,11 @@ export default async function SobreSistemaPage() {
           <IntegrationStatus
             icon={Bot}
             name="IA / Chatbot"
-            description="Atendimento automático"
+            description={`${aiModelLabel} · ${aiConfig?.active !== false ? "Ativo" : "Desativado"}`}
             configured={aiConfigured}
             color="text-orange-600"
             bg="bg-orange-50"
-            hint="Variável ANTHROPIC_API_KEY"
+            hint="Configurar em Configurações → Inteligência Artificial"
           />
           <IntegrationStatus
             icon={Megaphone}
