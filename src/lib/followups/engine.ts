@@ -23,7 +23,6 @@ export async function scheduleFollowUpsForLeadService(
         leadServiceId,
         stageId,
         order: template.followUpOrder,
-        status: "pending",
       },
     });
     if (existing) continue;
