@@ -6,11 +6,13 @@ const client = new Anthropic({
 
 export async function generateChatResponse(
   systemPrompt: string,
-  messages: { role: "user" | "assistant"; content: string }[]
+  messages: { role: "user" | "assistant"; content: string }[],
+  model?: string,
+  maxTokens?: number
 ): Promise<string> {
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1024,
+    model: model || "claude-sonnet-4-20250514",
+    max_tokens: maxTokens || 1024,
     system: systemPrompt,
     messages,
   });

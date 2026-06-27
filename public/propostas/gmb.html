@@ -7,8 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400;1,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-font-smoothing:antialiased;}
+html{scroll-behavior:smooth;background:#082E2E;overflow-x:clip;}
+body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-font-smoothing:antialiased;overflow-x:clip;}
 
 :root{
   --ink:#111827;
@@ -28,9 +28,15 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 .container{max-width:1060px;margin:0 auto;padding:0 32px;}
 .container-sm{max-width:720px;margin:0 auto;padding:0 32px;}
 
-/* ── FADE ── */
-.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);}
+/* ── FADE / SURGIMENTO ── */
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1);will-change:opacity,transform;}
 .reveal.in{opacity:1;transform:none;}
+/* Quebra forçada em títulos some no celular — o texto flui naturalmente. */
+@media(max-width:560px){ .brk{display:none;} }
+/* Acessibilidade: respeita quem prefere menos animação. */
+@media(prefers-reduced-motion:reduce){
+  .reveal{opacity:1!important;transform:none!important;transition:none!important;}
+}
 
 /* ════════════════════════════
    HERO
@@ -78,27 +84,54 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 }
 
 .hero-kicker{
-  font-size:11px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.28em;color:rgba(45,212,191,.7);
-  margin-bottom:16px;
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:9px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.16em;color:#2DD4BF;
+  background:rgba(45,212,191,.08);
+  border:1px solid rgba(45,212,191,.25);
+  padding:8px 16px;border-radius:50px;
+  margin-bottom:22px;
+}
+.hero-kicker::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:#2DD4BF;box-shadow:0 0 0 3px rgba(45,212,191,.18);
+  flex-shrink:0;
 }
 
 .hero h1{
-  font-size:clamp(36px,5.5vw,64px);
+  font-size:clamp(30px,5.5vw,74px);
   font-weight:700;color:#fff;
   line-height:1.06;letter-spacing:-.035em;
-  margin-bottom:10px;
+  margin-bottom:10px;text-wrap:balance;
 }
 .hero h1 .display{
-  display:block;font-size:clamp(42px,6.5vw,76px);
+  display:block;font-size:clamp(34px,6.5vw,90px);
   color:#2DD4BF;line-height:1;
 }
 
 .hero-sub{
   font-size:16px;font-weight:500;color:rgba(245,240,235,.92);
-  line-height:1.75;margin:24px auto 48px;
-  max-width:520px;
+  line-height:1.75;margin:24px auto 10px;
+  max-width:520px;text-wrap:pretty;
 }
+/* Desktop: hero com logo e textos maiores (mobile mantém os menores). */
+@media(min-width:769px){
+  .hero-sub{font-size:18px;max-width:560px;}
+  .hero-brand{height:170px;}
+  /* Menos folga vertical na hero do desktop. */
+  .hero{min-height:86vh;}
+  .hero-nav{padding:16px 40px;}
+  .hero-body{padding-top:16px;padding-bottom:36px;}
+}
+.hero-arrow{
+  display:flex;justify-content:center;margin-top:14px;
+  color:rgba(45,212,191,.7);
+  animation:heroArrowBob 2s ease-in-out infinite;
+}
+@keyframes heroArrowBob{0%,100%{transform:translateY(0);}50%{transform:translateY(7px);}}
+@media(prefers-reduced-motion:reduce){.hero-arrow{animation:none;}}
+
+.hero-brand{height:160px;object-fit:contain;mix-blend-mode:screen;opacity:.9;}
 
 .btn-primary{
   display:inline-flex;align-items:center;gap:12px;
@@ -111,11 +144,30 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 28px 72px rgba(0,0,0,.38);}
 
 .btn-whatsapp{
+  position:relative;overflow:hidden;
   display:inline-flex;align-items:center;gap:12px;
   background:#2DD4BF;color:#0D4A4A;text-decoration:none;
   padding:18px 44px;border-radius:50px;
   font-size:16px;font-weight:700;letter-spacing:.02em;
   box-shadow:0 20px 56px rgba(0,0,0,.28);
+  animation:waPulse 2.4s ease-in-out infinite;
+  transition:transform .2s;
+}
+.btn-whatsapp:hover{transform:translateY(-2px) scale(1.02);}
+.btn-whatsapp>*{position:relative;z-index:1;}
+.btn-whatsapp::after{
+  content:'';position:absolute;top:0;left:-60%;width:42%;height:100%;z-index:0;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:skewX(-20deg);animation:badgeShine 3.4s ease-in-out infinite;
+}
+@keyframes waPulse{
+  0%,100%{box-shadow:0 20px 56px rgba(0,0,0,.28),0 0 0 0 rgba(45,212,191,.5);}
+  50%{box-shadow:0 20px 56px rgba(0,0,0,.30),0 0 34px 7px rgba(45,212,191,.5);}
+}
+@media(prefers-reduced-motion:reduce){
+  .btn-whatsapp{animation:none;}
+  .btn-whatsapp::after{display:none;}
+  .btn-whatsapp:hover{transform:none;}
 }
 
 .hero-scroll{
@@ -171,16 +223,18 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 
 /* ── HEADINGS ── */
 .h2{
-  font-size:clamp(28px,3.5vw,44px);
-  font-weight:700;letter-spacing:-.025em;line-height:1.1;
-  color:var(--ink);margin-bottom:16px;
+  font-size:clamp(26px,3.5vw,44px);
+  font-weight:700;letter-spacing:-.025em;line-height:1.12;
+  color:var(--ink);margin-bottom:16px;text-wrap:balance;
 }
 .h2 em{font-family:'Playfair Display',serif;font-style:italic;color:var(--teal-light);}
 .h2-light{color:#fff;}
 .h2-light em{color:#2DD4BF;}
 
-.lead{font-size:16px;font-weight:500;color:#374151;line-height:1.75;max-width:540px;}
+.lead{font-size:16px;font-weight:500;color:#374151;line-height:1.75;max-width:540px;text-wrap:pretty;}
+.lead strong{color:#111827;font-weight:700;}
 .lead-light{color:rgba(245,240,235,.82);font-weight:500;}
+.lead-light strong{color:inherit;font-weight:700;}
 
 /* ════════════════════════════
    PROBLEMA — stats
@@ -200,6 +254,129 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
   letter-spacing:-.04em;line-height:1;margin-bottom:10px;
 }
 .stat-desc{font-size:13px;color:var(--muted);line-height:1.55;}
+
+/* Cards da seção "82%" — número e texto reequilibrados, sem moldura. */
+.prob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px;}
+.prob-card{
+  position:relative;overflow:hidden;text-align:center;
+  background:#fff;border-radius:20px;
+  border:1.5px solid var(--border);
+  box-shadow:0 10px 36px rgba(13,74,74,.07);
+  padding:34px 26px 30px;
+  transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s,border-color .3s;
+}
+.prob-card:hover{transform:translateY(-5px);box-shadow:0 20px 48px rgba(13,74,74,.14),0 0 28px rgba(45,212,191,.16);border-color:rgba(45,212,191,.4);}
+.prob-card .prob-num{transition:text-shadow .3s;}
+.prob-card:hover .prob-num{text-shadow:0 0 26px rgba(45,212,191,.45);}
+.prob-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#0D4A4A,#2DD4BF);}
+.prob-ico{
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(21,115,115,.08);
+  display:flex;align-items:center;justify-content:center;
+  margin:2px auto 16px;font-size:20px;
+}
+.prob-num{font-size:46px;font-weight:700;color:var(--teal-light);letter-spacing:-.04em;line-height:1;margin-bottom:6px;}
+.prob-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:#2DD4BF;margin-bottom:12px;}
+.prob-desc{font-size:14px;color:var(--muted);line-height:1.65;}
+.prob-desc strong{color:var(--ink);font-weight:700;}
+
+/* Caixa de transição (escura) com as duas frases. */
+.prob-bridge{background:#0D4A4A;border-radius:20px;overflow:hidden;}
+.prob-bridge-row{padding:26px 36px;text-align:center;}
+.prob-bridge-row p{font-size:17px;line-height:1.6;max-width:480px;margin:0 auto;text-wrap:pretty;}
+
+/* ── ENTREGÁVEIS (mini-cards + revelar) ── */
+.deliv-list,.deliv-more{display:flex;flex-direction:column;gap:10px;}
+.deliv-more{display:none;margin-top:10px;}
+.deliv-more.open{display:flex;}
+.deliv{
+  display:flex;gap:13px;align-items:flex-start;
+  background:#fff;border:1.5px solid rgba(21,115,115,.18);
+  border-radius:14px;padding:15px 16px;
+  transition:border-color .2s,box-shadow .2s,transform .2s;
+}
+.deliv:hover{border-color:rgba(45,212,191,.55);box-shadow:0 12px 30px rgba(13,74,74,.10),0 0 0 1px rgba(45,212,191,.22);transform:translateY(-3px);}
+.deliv-ic{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(135deg,#0D4A4A,#157373);
+  box-shadow:0 4px 12px rgba(13,74,74,.20);
+  display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;
+  transition:transform .25s;
+}
+.deliv:hover .deliv-ic{transform:scale(1.08) rotate(-3deg);}
+.deliv-t{font-size:14px;font-weight:700;color:#111827;line-height:1.3;margin-bottom:3px;}
+.deliv-d{font-size:13px;color:#6B7280;line-height:1.6;}
+.deliv-more.open .deliv{animation:delivIn .5s cubic-bezier(.16,1,.3,1) both;}
+.deliv-more.open .deliv:nth-child(2){animation-delay:.07s;}
+.deliv-more.open .deliv:nth-child(3){animation-delay:.14s;}
+.deliv-more.open .deliv:nth-child(4){animation-delay:.21s;}
+.deliv-more.open .deliv:nth-child(5){animation-delay:.28s;}
+@keyframes delivIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+/* Entrada em cascata dos mini-cards visíveis quando o card surge (mobile inclusive) */
+.reveal.in .deliv-list .deliv{animation:delivIn .55s cubic-bezier(.16,1,.3,1) both;}
+.reveal.in .deliv-list .deliv:nth-child(2){animation-delay:.1s;}
+.reveal.in .deliv-list .deliv:nth-child(3){animation-delay:.2s;}
+@media(prefers-reduced-motion:reduce){
+  .reveal.in .deliv-list .deliv{animation:none;}
+}
+.deliv-btn{
+  width:100%;margin-top:14px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:#0D4A4A;color:#fff;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:14.5px;font-weight:700;letter-spacing:.02em;
+  padding:15px 18px;border-radius:12px;transition:background .2s;
+  animation:delivPulse 2.2s ease-out infinite;
+}
+.deliv-btn:hover{background:#157373;animation:none;}
+.deliv-btn.open{animation:none;}
+.deliv-btn svg{transition:transform .3s;}
+.deliv-btn.open svg{transform:rotate(180deg);}
+@keyframes delivPulse{
+  0%{box-shadow:0 0 0 0 rgba(45,212,191,.45);}
+  70%{box-shadow:0 0 0 12px rgba(45,212,191,0);}
+  100%{box-shadow:0 0 0 0 rgba(45,212,191,0);}
+}
+@media(prefers-reduced-motion:reduce){ .deliv-btn{animation:none;} }
+/* Painel de bônus em destaque */
+.deliv-bonus{
+  margin-top:24px;
+  background:linear-gradient(135deg,rgba(21,115,115,.07),rgba(45,212,191,.08));
+  border:1.5px solid rgba(21,115,115,.22);
+  border-radius:16px;padding:20px;
+}
+.deliv-bonus-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.deliv-bonus-ic{font-size:20px;line-height:1;}
+.deliv-bonus-title{font-size:12px;font-weight:800;color:#0D4A4A;text-transform:uppercase;letter-spacing:.12em;flex:1;}
+.deliv-bonus-tag{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:#157373;padding:4px 11px;border-radius:20px;}
+.deliv-bonus-list{display:flex;flex-direction:column;gap:14px;}
+.deliv-bonus-item{display:flex;gap:12px;align-items:flex-start;}
+.deliv-bonus-item .bstar{color:#157373;font-weight:700;font-size:16px;flex-shrink:0;margin-top:1px;}
+.deliv-bonus-item .bt{font-size:14px;font-weight:700;color:#111827;margin-bottom:3px;}
+.deliv-bonus-item .bd{font-size:13px;color:#6B7280;line-height:1.6;}
+
+/* Cards de benefício dentro do plano Gestão Mensal */
+.gest-benefits{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.gest-benefit{
+  position:relative;
+  background:linear-gradient(160deg,#fff,rgba(45,212,191,.07));
+  border:1.5px solid rgba(21,115,115,.18);
+  border-radius:16px;padding:18px;
+  transition:transform .25s,box-shadow .25s,border-color .25s;
+}
+.gest-benefit:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(13,74,74,.10);border-color:rgba(45,212,191,.45);}
+.gest-benefit-ic{
+  width:38px;height:38px;border-radius:11px;
+  background:linear-gradient(135deg,#0D4A4A,#157373);
+  display:flex;align-items:center;justify-content:center;margin-bottom:13px;
+  box-shadow:0 6px 16px rgba(13,74,74,.20);
+}
+.gest-benefit-t{font-size:13.5px;font-weight:700;color:#0D4A4A;margin-bottom:6px;}
+.gest-benefit p{font-size:12px;color:#6B7280;line-height:1.6;}
+.gest-benefit-tag{
+  position:absolute;top:13px;right:13px;
+  font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:#fff;background:#157373;padding:3px 9px;border-radius:20px;
+}
 
 .bridge{
   background:var(--teal);color:#fff;
@@ -271,18 +448,88 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 ════════════════════════════ */
 .plans{
   display:grid;grid-template-columns:5fr 7fr;
-  gap:16px;margin-top:48px;
+  gap:30px;margin-top:48px;position:relative;
+}
+/* Aura ambiente atrás dos planos */
+.plans::before{
+  content:'';position:absolute;inset:-50px 0;z-index:0;pointer-events:none;
+  background:radial-gradient(58% 46% at 50% 64%,rgba(45,212,191,.18),transparent 70%);
 }
 .plan{
+  position:relative;z-index:1;
   background:#fff;border-radius:24px;overflow:hidden;
   border:1.5px solid var(--border);
   box-shadow:0 8px 40px rgba(13,74,74,.08);
+  transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s;
 }
-.plan-featured{border-color:var(--teal);border-width:2px;}
+.plan:hover{transform:translateY(-5px);box-shadow:0 22px 60px rgba(13,74,74,.16);}
+/* Plano em destaque: glow pulsante */
+.plan-featured{
+  border-color:var(--teal);border-width:2px;
+  box-shadow:0 18px 56px rgba(13,74,74,.16),0 0 28px rgba(45,212,191,.18);
+  animation:planGlow 3.2s ease-in-out infinite;
+}
+@keyframes planGlow{
+  0%,100%{box-shadow:0 18px 56px rgba(13,74,74,.16),0 0 24px rgba(45,212,191,.16);}
+  50%{box-shadow:0 24px 70px rgba(13,74,74,.20),0 0 58px rgba(45,212,191,.42);}
+}
 .plan-badge{
-  background:var(--teal);color:#fff;
+  position:relative;overflow:hidden;
+  background:linear-gradient(90deg,#0D4A4A,#157373,#0D4A4A);
+  color:#fff;
   font-size:10px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.18em;padding:8px 20px;text-align:center;
+  letter-spacing:.18em;padding:9px 20px;text-align:center;
+}
+/* Brilho passando no selo "Mais contratado" */
+.plan-badge::after{
+  content:'';position:absolute;top:0;left:-60%;width:45%;height:100%;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:skewX(-20deg);animation:badgeShine 3.6s ease-in-out infinite;
+}
+@keyframes badgeShine{0%{left:-60%;}45%,100%{left:135%;}}
+/* Glow sutil no preço do plano em destaque */
+.price-num{text-shadow:0 0 26px rgba(45,212,191,.40);}
+/* Otimização Principal — destaque próprio (sem competir com o featured) */
+.plan:not(.plan-featured){border-color:rgba(21,115,115,.30);box-shadow:0 12px 44px rgba(13,74,74,.10),0 0 22px rgba(45,212,191,.12);}
+.plan:not(.plan-featured) .plan-price{text-shadow:0 0 24px rgba(45,212,191,.30);}
+.plan-badge-soft{
+  position:relative;
+  background:rgba(21,115,115,.08);color:#157373;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;
+  padding:9px 20px;text-align:center;
+  border-bottom:1px solid rgba(21,115,115,.14);
+}
+/* Opções de plano (duas caixas empilhadas) */
+.plan-opt{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  border-radius:14px;padding:18px 20px;margin-bottom:10px;
+  border:1.5px solid rgba(13,74,74,0.16);background:#fff;
+  transition:border-color .2s,box-shadow .2s,transform .2s;
+}
+.plan-opt:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(13,74,74,.08);}
+.plan-opt-featured{
+  border:2px solid var(--teal);
+  background:rgba(45,212,191,0.06);
+  box-shadow:0 0 24px rgba(45,212,191,0.15);
+}
+.plan-opt-price{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1;flex-shrink:0;color:var(--ink);white-space:nowrap;}
+.plan-opt-price span{font-size:14px;font-weight:500;color:var(--muted);}
+.plan-opt-featured .plan-opt-price{color:var(--teal);}
+/* Desktop: caixas mais "cheias" e preço bem maior (não esticado/pequeno) */
+@media(min-width:769px){
+  .plan-opt{padding:22px 26px;}
+  .plan-opt-price{font-size:46px;}
+  .plan-opt-price span{font-size:16px;}
+}
+@media(max-width:560px){
+  .plan-opt{flex-direction:column;align-items:flex-start;gap:10px;}
+  .plan-opt-price{font-size:32px;}
+}
+@media(prefers-reduced-motion:reduce){
+  .plan-featured{animation:none;}
+  .plan-badge::after{display:none;}
+  .plan{transition:none;}
+  .plan:hover{transform:none;}
 }
 .plan-header{padding:28px 28px 20px;}
 .plan-tag{
@@ -383,9 +630,9 @@ body{font-family:'DM Sans',sans-serif;background:#F7F5F1;color:#111827;-webkit-f
 }
 .cta-inner{position:relative;z-index:1;max-width:580px;margin:0 auto;}
 .cta-sec h2{
-  font-size:clamp(30px,4.5vw,52px);
+  font-size:clamp(28px,4.5vw,52px);
   font-weight:700;color:#fff;letter-spacing:-.03em;
-  line-height:1.1;margin-bottom:18px;
+  line-height:1.12;margin-bottom:18px;text-wrap:balance;
 }
 .cta-sec h2 em{
   font-family:'Playfair Display',serif;
@@ -401,11 +648,48 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
-  .stat-row{grid-template-columns:1fr;gap:0;}
+  .stat-row{grid-template-columns:1fr!important;gap:0;}
   .stat-cell:not(:last-child){border-right:none;border-bottom:1.5px solid var(--border);}
   .phases,.plans,.sobre-grid,.faq-grid,.results-grid{grid-template-columns:1fr;}
+  .prob-grid{grid-template-columns:1fr;gap:14px;}
   .container{padding:0 20px;}
+  .container-sm{padding:0 20px;}
   .sec{padding:72px 0;}
+  /* Hero no mobile: sem 100vh (que criava vãos enormes em cima/embaixo
+     ao centralizar um bloco pequeno). Passa a ter altura do conteúdo com
+     respiro controlado; o indicador "Role para ver" é escondido. */
+  .hero{min-height:auto;}
+  .hero-nav{display:none;}
+  .hero-body{padding:52px 22px 60px;justify-content:flex-start;}
+  .hero-brand{height:110px;}
+  .hero-sub{margin:18px auto 0;}
+  .hero-scroll{display:none;}
+  /* CTA: logo proporcional e menos respiro lateral. */
+  .cta-sec{padding:72px 20px;}
+  .cta-logo{margin-top:48px;}
+  .cta-logo img{height:132px;}
+}
+
+@media(max-width:600px){
+  /* Texto justificado vira alinhado à esquerda no celular (evita "rios"
+     de espaço entre palavras em colunas estreitas). */
+  [style*="text-align:justify"]{text-align:left!important;}
+  /* Grids internos de 2 colunas empilham em telas estreitas. */
+  [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important;}
+  .gest-benefits{grid-template-columns:1fr;}
+  /* Caixa escura das duas frases: menos padding e fonte no celular,
+     pra não virar muitas linhas curtas. */
+  .prob-bridge-row{padding:20px 20px;}
+  .prob-bridge-row p{font-size:15px;}
+}
+
+@media(max-width:480px){
+  .hero-body{padding:44px 18px 52px;}
+  .hero-brand{height:96px;}
+  .hero-kicker{font-size:9px;letter-spacing:.14em;}
+  .cta-logo img{height:104px;}
+  .prob-card{padding:28px 22px 26px;}
+  .prob-num{font-size:42px;}
 }
 
 /* ════════════════════════════
@@ -472,74 +756,69 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   </nav>
 
   <div class="hero-body">
-    <p class="hero-kicker reveal">Presença local · Resultado orgânico</p>
+    <div class="reveal" style="margin-bottom:12px;">
+      <img class="hero-brand" src="/analises/assets/logo-arthea.svg" alt="Arthea">
+    </div>
+
+    <p class="hero-kicker reveal">Gestão de Google Meu Negócio</p>
 
     <h1 class="reveal">
-      Sua empresa aparece<br>quando alguém pesquisa<br>
+      Quer sua empresa aparecendo estrategicamente
       <em class="display">no Google?</em>
     </h1>
 
     <p class="hero-sub reveal">
       Veja a proposta da Arthea abaixo.
     </p>
-    <div class="fade-up" style="margin-top:16px;">
-      <img src="/analises/assets/logo-arthea.svg" alt="Arthea" style="height:160px;object-fit:contain;mix-blend-mode:screen;opacity:0.9;">
+
+    <div class="hero-arrow reveal" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4v15M5.5 13.5 12 20l6.5-6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
 
-
   </div>
 
-  <div class="hero-scroll">
-    <span>Role para ver</span>
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M8 3v10M8 13l-4-4M8 13l4-4" stroke="rgba(245,240,235,.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </div>
 </section>
 
 <!-- ════ PROBLEMA ════ -->
 <section class="sec">
   <div class="container-sm" style="text-align:center;">
-    <h2 class="h2 reveal">82% dos clientes pesquisam online<br><em>antes de qualquer contato.</em></h2>
-    <p class="lead reveal" style="margin:0 auto 48px;">Os 3 primeiros perfis do Google Maps concentram quase todos os cliques. Quem está abaixo raramente é encontrado, independente de quanto tempo está no mercado ou da qualidade do serviço.</p>
+    <h2 class="h2 reveal">82% dos clientes pesquisam online <br class="brk"><em>antes de qualquer contato.</em></h2>
+    <p class="lead reveal" style="margin:0 auto 48px;">E <strong>quase todos os cliques</strong> de uma pesquisa vão para os <strong>3 primeiros perfis</strong> do Google Meu Negócio. A empresa que está abaixo <strong>raramente é encontrada</strong>, independente de quanto tempo está no mercado ou da qualidade do serviço.</p>
   </div>
 
   <div class="container">
-    <div class="reveal stat-row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+    <div class="prob-grid">
 
-      <div style="background:#fff;border-radius:24px;border:1.5px solid rgba(13,74,74,0.1);box-shadow:0 8px 40px rgba(13,74,74,0.09);padding:36px 28px;text-align:center;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:#157373;"></div>
-        <div style="width:48px;height:48px;border-radius:50%;background:rgba(13,74,74,0.07);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:22px;">🔍</div>
-        <div style="font-size:56px;font-weight:700;color:#157373;letter-spacing:-.04em;line-height:1;margin-bottom:6px;">72%</div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:#2DD4BF;margin-bottom:14px;">dos cliques</div>
-        <div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">vão para os <strong style="color:#111827;">3 primeiros resultados</strong> locais. Quem está abaixo quase não é encontrado.</div>
+      <div class="prob-card reveal">
+        <div class="prob-ico">🔍</div>
+        <div class="prob-num">72%</div>
+        <div class="prob-label">dos cliques</div>
+        <p class="prob-desc">vão para os <strong>3 primeiros resultados</strong> locais. Quem está abaixo quase não é encontrado.</p>
       </div>
 
-      <div style="background:#fff;border-radius:24px;border:1.5px solid rgba(13,74,74,0.1);box-shadow:0 8px 40px rgba(13,74,74,0.09);padding:36px 28px;text-align:center;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:#157373;"></div>
-        <div style="width:48px;height:48px;border-radius:50%;background:rgba(13,74,74,0.07);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:22px;">⭐</div>
-        <div style="font-size:56px;font-weight:700;color:#157373;letter-spacing:-.04em;line-height:1;margin-bottom:6px;">68%</div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:#2DD4BF;margin-bottom:14px;">das decisões</div>
-        <div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">são tomadas com base nas <strong style="color:#111827;">avaliações do perfil</strong>, antes mesmo de qualquer contato.</div>
+      <div class="prob-card reveal">
+        <div class="prob-ico">⭐</div>
+        <div class="prob-num">68%</div>
+        <div class="prob-label">das decisões</div>
+        <p class="prob-desc">são tomadas com base nas <strong>avaliações do perfil</strong>, antes mesmo de qualquer contato.</p>
       </div>
 
-      <div style="background:#fff;border-radius:24px;border:1.5px solid rgba(13,74,74,0.1);box-shadow:0 8px 40px rgba(13,74,74,0.09);padding:36px 28px;text-align:center;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:#157373;"></div>
-        <div style="width:48px;height:48px;border-radius:50%;background:rgba(13,74,74,0.07);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:22px;">📈</div>
-        <div style="font-size:56px;font-weight:700;color:#157373;letter-spacing:-.04em;line-height:1;margin-bottom:6px;">+3×</div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:#2DD4BF;margin-bottom:14px;">mais visibilidade</div>
-        <div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Perfis otimizados recebem <strong style="color:#111827;">até 3 vezes mais visualizações</strong> do que perfis abandonados na mesma região.</div>
+      <div class="prob-card reveal">
+        <div class="prob-ico">📈</div>
+        <div class="prob-num">+3×</div>
+        <div class="prob-label">mais visibilidade</div>
+        <p class="prob-desc">Perfis otimizados recebem <strong>até 3 vezes mais visualizações</strong> do que perfis abandonados na mesma região.</p>
       </div>
 
     </div>
 
     <div class="container-sm" style="margin-top:56px;">
-      <div class="reveal" style="background:#0D4A4A;border-radius:20px;overflow:hidden;">
-        <div style="padding:28px 36px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.07);">
-          <p style="font-size:17px;color:rgba(245,240,235,.88);line-height:1.65;font-weight:500;max-width:480px;margin:0 auto;">O Google decide quem aparece e quem some. Se o seu perfil não está bem configurado, você fica de fora e o cliente vai para o concorrente.</p>
+      <div class="reveal prob-bridge">
+        <div class="prob-bridge-row" style="border-bottom:1px solid rgba(255,255,255,0.07);">
+          <p style="color:rgba(245,240,235,.88);font-weight:500;">O Google decide quem aparece e quem some. Se o seu perfil não está bem configurado, você fica de fora e o cliente vai para o concorrente.</p>
         </div>
-        <div style="padding:24px 36px;text-align:center;background:rgba(0,0,0,0.1);">
-          <p style="font-size:17px;font-weight:600;color:#2DD4BF;line-height:1.55;letter-spacing:-.01em;max-width:480px;margin:0 auto;">A Arthea garante que o seu negócio seja encontrado por quem já está procurando o que você oferece na sua cidade.</p>
+        <div class="prob-bridge-row" style="background:rgba(0,0,0,0.1);">
+          <p style="font-weight:600;color:#2DD4BF;letter-spacing:-.01em;">A Arthea garante que o seu negócio seja encontrado por quem já está procurando o que você oferece na sua cidade.</p>
         </div>
       </div>
     </div>
@@ -551,8 +830,8 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   <div class="rel">
     <div class="container-sm" style="text-align:center;">
       <div class="ey ey-light reveal" style="justify-content:center;">Como funciona</div>
-      <h2 class="h2 h2-light reveal">Dois passos para o seu perfil<br><em>trabalhar por você.</em></h2>
-      <p class="lead lead-light reveal" style="margin:0 auto;max-width:520px;">Primeiro a Arthea estrutura o perfil do zero com estratégia. Depois mantém tudo ativo, mês a mês, para o Google continuar reconhecendo e recomendando você.</p>
+      <h2 class="h2 h2-light reveal">Dois passos para o seu perfil <br class="brk"><em>trabalhar por você.</em></h2>
+      <p class="lead lead-light reveal" style="margin:0 auto;max-width:520px;">Primeiro a Arthea <strong>estrutura o perfil do zero</strong> com estratégia. Depois <strong>mantém tudo ativo, mês a mês</strong>, para o Google continuar <strong>reconhecendo e recomendando você</strong>.</p>
     </div>
 
     <div class="container-sm" style="margin-top:48px;">
@@ -571,52 +850,33 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
               <div style="width:40px;height:40px;border-radius:50%;background:rgba(45,212,191,0.15);border:1.5px solid rgba(45,212,191,0.3);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#2DD4BF;flex-shrink:0;">1</div>
               <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:rgba(45,212,191,0.75);">A base · Otimização Principal</span>
             </div>
-            <h3 style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:12px;">Seu perfil configurado com estratégia</h3>
-            <p style="font-size:14px;color:rgba(245,240,235,.9);line-height:1.75;font-weight:500;text-align:justify;">Começamos pela análise da sua posição atual, dos concorrentes no Maps e do mercado em que você atua. Só então configuramos o perfil do zero, com estratégia alinhada ao seu posicionamento.</p>
+            <h3 style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:12px;">Seu perfil pronto para ser encontrado e escolhido</h3>
+            <p style="font-size:14px;color:rgba(245,240,235,.9);line-height:1.75;font-weight:500;text-align:justify;">Começamos pela <strong style="font-weight:700;">análise da sua posição atual</strong>, dos <strong style="font-weight:700;">concorrentes no Maps</strong> e do mercado em que você atua. Só então <strong style="font-weight:700;">configuramos o perfil do zero</strong>, com estratégia alinhada ao seu posicionamento.</p>
           </div>
 
           <!-- Entregáveis — fundo claro -->
           <div class="card-body" style="padding:24px 36px 32px;background:#F7F5F1;box-shadow:inset 0 0 0 1.5px rgba(13,74,74,0.15);">
 
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;margin-bottom:20px;">Estratégia e configuração</div>
-            <div style="display:flex;flex-direction:column;margin-bottom:28px;">
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(13,74,74,0.08);">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Diagnóstico especializado</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Auditoria completa do perfil atual com ferramentas especializadas.</div></div>
-              </div>
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(13,74,74,0.08);">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Análise de concorrentes no Maps</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Quem aparece antes de você no Maps, por que está lá e o que fazemos para mudar isso.</div></div>
-              </div>
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(13,74,74,0.08);">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Estratégia alinhada ao seu nicho</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Cada detalhe pensado para o seu posicionamento e para o cliente que você quer alcançar.</div></div>
-              </div>
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Plano de respostas a avaliações</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">6 modelos personalizados para responder avaliações com consistência e profissionalismo.</div></div>
-              </div>
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;margin-bottom:16px;">O que está incluso na entrega</div>
+
+            <div class="deliv-list">
+              <div class="deliv"><div class="deliv-ic">🔬</div><div><div class="deliv-t">Diagnóstico especializado</div><div class="deliv-d">Auditoria completa do perfil atual com ferramentas especializadas.</div></div></div>
+              <div class="deliv"><div class="deliv-ic">🗺️</div><div><div class="deliv-t">Análise de concorrentes no Maps</div><div class="deliv-d">Quem aparece antes de você no Maps, por que está lá e o que fazemos para mudar isso.</div></div></div>
+              <div class="deliv"><div class="deliv-ic">🎯</div><div><div class="deliv-t">Estratégia alinhada ao seu nicho</div><div class="deliv-d">Cada detalhe pensado para o seu posicionamento e para o cliente que você quer alcançar.</div></div></div>
             </div>
 
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;margin-bottom:20px;">Informações e conteúdo</div>
-            <div style="display:flex;flex-direction:column;">
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(13,74,74,0.08);">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Dados completos e consistentes</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Todos os dados do seu negócio revisados e padronizados para que o cliente consiga entrar em contato com você.</div></div>
-              </div>
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(13,74,74,0.08);">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Cadastro de serviços detalhado</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Cada serviço descrito com clareza para que o cliente saiba que você oferece o que ele precisa antes de entrar em contato.</div></div>
-              </div>
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(13,74,74,0.08);">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Publicação de fotos estratégicas</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Selecionamos e publicamos as imagens certas para transmitir confiança antes do primeiro contato e gerar mais cliques.</div></div>
-              </div>
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#0D4A4A;margin-bottom:3px;">4 postagens estratégicas de lançamento</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Seu perfil já começa com presença. Quatro postagens publicadas na entrega para você sair na frente desde o primeiro dia.</div></div>
-              </div>
+            <div class="deliv-more">
+              <div class="deliv"><div class="deliv-ic">💬</div><div><div class="deliv-t">Plano de respostas a avaliações</div><div class="deliv-d">6 modelos personalizados para responder avaliações com consistência e profissionalismo.</div></div></div>
+              <div class="deliv"><div class="deliv-ic">📋</div><div><div class="deliv-t">Dados completos e consistentes</div><div class="deliv-d">Todos os dados do seu negócio revisados e padronizados para que o cliente consiga entrar em contato com você.</div></div></div>
+              <div class="deliv"><div class="deliv-ic">🧾</div><div><div class="deliv-t">Cadastro de serviços detalhado</div><div class="deliv-d">Cada serviço descrito com clareza para que o cliente saiba que você oferece o que precisa antes do contato.</div></div></div>
+              <div class="deliv"><div class="deliv-ic">📸</div><div><div class="deliv-t">Publicação de fotos e vídeos estratégicos</div><div class="deliv-d">As imagens e vídeos certos para transmitir confiança antes do primeiro contato e gerar mais cliques.</div></div></div>
+              <div class="deliv"><div class="deliv-ic">🚀</div><div><div class="deliv-t">4 postagens de lançamento</div><div class="deliv-d">Seu perfil já começa com presença — quatro postagens publicadas na entrega, pra você sair na frente desde o 1º dia.</div></div></div>
             </div>
+
+            <button class="deliv-btn" onclick="toggleDeliv(this)" data-more="Clique e veja tudo o que a Arthea faz pelo seu negócio" data-less="Ver menos">
+              <span class="deliv-btn-label">Clique e veja tudo o que a Arthea faz pelo seu negócio</span>
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
 
             <!-- Rodapé -->
             <div style="margin-top:24px;padding-top:16px;border-top:1px solid rgba(13,74,74,0.08);">
@@ -647,65 +907,49 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
               <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:rgba(45,212,191,0.75);">O que potencializa · Gestão Contínua</span>
             </div>
             <h3 style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:12px;">A Arthea mantém você no topo</h3>
-            <p style="font-size:14px;color:rgba(245,240,235,.9);line-height:1.75;font-weight:500;text-align:justify;">Ranqueamento no Google não se mantém sozinho. A Arthea cuida do perfil todo mês para que seu negócio continue aparecendo para quem está procurando o que você oferece.</p>
+            <p style="font-size:14px;color:rgba(245,240,235,.9);line-height:1.75;font-weight:500;text-align:justify;">Ranqueamento no Google <strong style="font-weight:700;">não se mantém sozinho</strong>. A Arthea <strong style="font-weight:700;">cuida do perfil todo mês</strong> para que seu negócio <strong style="font-weight:700;">continue aparecendo</strong> para quem está procurando o que você oferece.</p>
           </div>
 
           <!-- Body cream -->
-          <div style="padding:24px 36px 32px;background:#F7F5F1;box-shadow:inset 0 0 0 1.5px rgba(13,74,74,0.15);">
+          <div class="card-body" style="padding:24px 36px 32px;background:#F7F5F1;box-shadow:inset 0 0 0 1.5px rgba(13,74,74,0.15);">
 
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;margin-bottom:20px;">O que a Arthea faz todo mês</div>
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;margin-bottom:16px;">O que a Arthea faz todo mês</div>
 
-            <div style="display:flex;flex-direction:column;margin-bottom:28px;">
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(13,74,74,0.08);">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">4 postagens mensais</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Publicadas todo mês para manter o perfil ativo e consistente aos olhos do Google.</div></div>
-              </div>
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(13,74,74,0.08);">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Publicação de fotos e vídeos</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Você envia, a Arthea publica com critério para reforçar o posicionamento do negócio.</div></div>
-              </div>
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(13,74,74,0.08);">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Atualização de horários</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Em feriados e datas especiais, para que o cliente nunca encontre uma informação desatualizada.</div></div>
-              </div>
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(13,74,74,0.08);">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Monitoramento de ranqueamento</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Acompanhamos sua posição no Maps e ajustamos a estratégia para continuar subindo.</div></div>
-              </div>
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(13,74,74,0.08);">
-                <div style="width:7px;height:7px;border-radius:50%;background:#2DD4BF;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Relatório mensal de resultados</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Visualizações, cliques, ligações e rotas geradas pelo perfil no período.</div></div>
-              </div>
-              <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;">
-                <div style="width:7px;height:7px;border-radius:50%;background:#0D4A4A;flex-shrink:0;margin-top:6px;"></div>
-                <div><div style="font-size:14px;font-weight:600;color:#0D4A4A;margin-bottom:3px;">+ Respostas às avaliações</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">A Arthea responde 2× por mês. Disponível no plano com avaliações.</div></div>
-              </div>
+            <div class="deliv-list">
+              <div class="deliv"><div class="deliv-ic">📝</div><div><div class="deliv-t">4 postagens mensais</div><div class="deliv-d">Publicadas todo mês para manter o perfil ativo e consistente aos olhos do Google.</div></div></div>
+              <div class="deliv"><div class="deliv-ic">🎬</div><div><div class="deliv-t">Publicação de fotos e vídeos</div><div class="deliv-d">Você envia, a Arthea publica com critério para reforçar o posicionamento do negócio.</div></div></div>
+              <div class="deliv"><div class="deliv-ic">⏰</div><div><div class="deliv-t">Atualização de horários</div><div class="deliv-d">Em feriados e datas especiais, para o cliente nunca encontrar uma informação desatualizada.</div></div></div>
             </div>
 
-            <!-- Bônus -->
-            <div style="border-top:1px dashed rgba(13,74,74,0.2);padding-top:20px;margin-bottom:24px;">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;margin-bottom:16px;">🎁 Bônus inclusos</div>
-              <div style="display:flex;flex-direction:column;gap:14px;">
-                <div style="display:flex;gap:14px;align-items:flex-start;">
-                  <span style="color:#157373;font-weight:700;font-size:16px;flex-shrink:0;margin-top:1px;">✦</span>
-                  <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Plano estratégico de captação de avaliações</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Estratégia para aumentar o volume e a qualidade das avaliações do seu negócio.</div></div>
+            <div class="deliv-more">
+              <div class="deliv"><div class="deliv-ic">📈</div><div><div class="deliv-t">Monitoramento de ranqueamento</div><div class="deliv-d">Acompanhamos sua posição no Maps e ajustamos a estratégia para continuar subindo.</div></div></div>
+              <div class="deliv"><div class="deliv-ic">📊</div><div><div class="deliv-t">Relatório mensal de resultados</div><div class="deliv-d">Visualizações, cliques, ligações e rotas geradas pelo perfil no período.</div></div></div>
+              <div class="deliv"><div class="deliv-ic">💬</div><div><div class="deliv-t">+ Respostas às avaliações</div><div class="deliv-d">A Arthea responde 2× por mês. Disponível no plano com avaliações.</div></div></div>
+
+              <!-- Bônus (revelado junto) -->
+              <div class="deliv-bonus">
+                <div class="deliv-bonus-head">
+                  <span class="deliv-bonus-ic">🎁</span>
+                  <span class="deliv-bonus-title">Bônus inclusos</span>
+                  <span class="deliv-bonus-tag">Grátis</span>
                 </div>
-                <div style="display:flex;gap:14px;align-items:flex-start;">
-                  <span style="color:#157373;font-weight:700;font-size:16px;flex-shrink:0;margin-top:1px;">✦</span>
-                  <div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:3px;">Design de placa de avaliações</div><div style="font-size:13px;color:#6B7280;line-height:1.6;text-align:justify;">Para imprimir ou enviar digitalmente aos seus clientes.</div></div>
+                <div class="deliv-bonus-list">
+                  <div class="deliv-bonus-item">
+                    <span class="bstar">✦</span>
+                    <div><div class="bt">Plano estratégico de captação de avaliações</div><div class="bd">Estratégia para aumentar o volume e a qualidade das avaliações do seu negócio.</div></div>
+                  </div>
+                  <div class="deliv-bonus-item">
+                    <span class="bstar">✦</span>
+                    <div><div class="bt">Design de placa de avaliações</div><div class="bd">Para imprimir ou enviar digitalmente aos seus clientes.</div></div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- O que você ganha -->
-            <div style="border-top:1px solid rgba(13,74,74,0.08);padding-top:20px;">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;margin-bottom:16px;">O que você ganha</div>
-              <div style="display:flex;flex-direction:column;gap:10px;">
-                <div style="display:flex;gap:12px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:#157373;flex-shrink:0;margin-top:6px;"></div><div style="font-size:14px;color:#374151;font-weight:500;text-align:justify;">Posição crescente no Google Maps ao longo do tempo.</div></div>
-                <div style="display:flex;gap:12px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:#157373;flex-shrink:0;margin-top:6px;"></div><div style="font-size:14px;color:#374151;font-weight:500;text-align:justify;">Perfil que transmite confiança e converte visita em contato.</div></div>
-                <div style="display:flex;gap:12px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:#157373;flex-shrink:0;margin-top:6px;"></div><div style="font-size:14px;color:#374151;font-weight:500;text-align:justify;">Visibilidade constante no Google sem depender de investimento em anúncio.</div></div>
-              </div>
-            </div>
+            <button class="deliv-btn" onclick="toggleDeliv(this)" data-more="Clique e veja tudo o que a Arthea faz pelo seu negócio" data-less="Ver menos">
+              <span class="deliv-btn-label">Clique e veja tudo o que a Arthea faz pelo seu negócio</span>
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
 
           </div>
         </div>
@@ -718,7 +962,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 <section class="sec" style="background:#F7F5F1;">
   <div class="container-sm" style="text-align:center;">
     <div class="ey ey-dark reveal" style="justify-content:center;">Investimento</div>
-    <h2 class="h2 reveal">Escolha o plano<br><em>certo para o seu momento.</em></h2>
+    <h2 class="h2 reveal">Escolha o plano <br class="brk"><em>certo para o seu momento.</em></h2>
     <p class="lead reveal" style="margin:0 auto;">Quem fecha a Gestão Mensal recebe a Otimização Principal gratuitamente. Seu perfil já começa estruturado desde o primeiro dia.</p>
   </div>
 
@@ -727,7 +971,8 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 
       <!-- Otimização Principal -->
       <div class="plan reveal" style="position:relative;overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#0D4A4A,#2DD4BF,#0D4A4A);"></div>
+        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#0D4A4A,#2DD4BF,#0D4A4A);z-index:1;"></div>
+        <div class="plan-badge-soft">Pagamento único</div>
         <div class="plan-header">
           <!-- Título com destaque -->
           <div style="margin-bottom:6px;">
@@ -749,7 +994,7 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
           <div class="plan-feat" style="font-size:14px;font-weight:500;padding:13px 0;border-bottom:1px solid rgba(13,74,74,0.12);">Estratégia alinhada ao seu posicionamento e nicho</div>
           <div class="plan-feat" style="font-size:14px;font-weight:500;padding:13px 0;border-bottom:1px solid rgba(13,74,74,0.12);">Todos os dados do perfil revisados e padronizados</div>
           <div class="plan-feat" style="font-size:14px;font-weight:500;padding:13px 0;border-bottom:1px solid rgba(13,74,74,0.12);">Cadastro de serviços detalhado</div>
-          <div class="plan-feat" style="font-size:14px;font-weight:500;padding:13px 0;border-bottom:1px solid rgba(13,74,74,0.12);">Publicação de fotos estratégicas</div>
+          <div class="plan-feat" style="font-size:14px;font-weight:500;padding:13px 0;border-bottom:1px solid rgba(13,74,74,0.12);">Publicação de fotos e vídeos estratégicos</div>
           <div class="plan-feat" style="font-size:14px;font-weight:500;padding:13px 0;border-bottom:1px solid rgba(13,74,74,0.12);">Plano de respostas a avaliações (6 modelos)</div>
           <div class="plan-feat" style="font-size:14px;font-weight:500;padding:13px 0;border-bottom:1px solid rgba(13,74,74,0.12);">4 postagens estratégicas de lançamento</div>
           <div class="plan-feat" style="font-size:14px;font-weight:500;padding:13px 0;">Suporte por 14 dias após entrega</div>
@@ -765,44 +1010,11 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
           <!-- Título -->
           <div style="font-size:22px;font-weight:700;color:var(--teal);letter-spacing:-.02em;margin-bottom:6px;">Gestão Mensal</div>
           <div style="font-size:12px;color:var(--teal-light);font-weight:600;margin-bottom:16px;">Presença ativa no Google durante 1 ano</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:24px;">A Arthea cuida do seu perfil todos os meses para que seu negócio continue aparecendo para quem procura o que você oferece.</p>
-
-          <!-- Toggle de planos -->
-          <div style="margin-bottom:20px;">
-            <div style="margin-bottom:16px;">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.22em;color:#157373;margin-bottom:10px;">Escolha o seu plano</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <button onclick="switchPlan('sem')" id="btn-sem" style="padding:14px 16px;border-radius:12px;border:2px solid #0D4A4A;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;background:#0D4A4A;transition:all .25s;">
-                  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.6);margin-bottom:4px;">Básico</div>
-                  <div style="font-size:15px;font-weight:700;color:white;">Sem avaliações</div>
-                </button>
-                <button onclick="switchPlan('com')" id="btn-com" style="padding:14px 16px;border-radius:12px;border:2px solid rgba(13,74,74,0.15);cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;background:transparent;transition:all .25s;">
-                  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#157373;margin-bottom:4px;">Completo</div>
-                  <div style="font-size:15px;font-weight:700;color:#374151;">Com avaliações</div>
-                </button>
-              </div>
-            </div>
-
-            <div id="price-sem" style="padding:18px 20px;background:rgba(13,74,74,0.04);border-radius:12px;border:1px solid rgba(13,74,74,0.1);">
-              <div style="font-size:44px;font-weight:700;color:var(--ink);letter-spacing:-.04em;line-height:1;margin-bottom:4px;">R$ 450<sub style="font-size:16px;font-weight:500;color:var(--muted);vertical-align:baseline;">/mês</sub></div>
-              <div style="font-size:13px;color:var(--muted);margin-top:4px;">Sem gestão de avaliações</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:2px;opacity:.7;">Cobrança automática mensal no cartão</div>
-              <div style="margin-top:10px;"><span class="chip chip-teal">Contrato 12 meses</span></div>
-            </div>
-
-            <div id="price-com" style="display:none;padding:18px 20px;background:rgba(13,74,74,0.06);border-radius:12px;border:1.5px solid rgba(13,74,74,0.2);">
-              <div style="font-size:44px;font-weight:700;color:var(--teal);letter-spacing:-.04em;line-height:1;margin-bottom:4px;">R$ 650<sub style="font-size:16px;font-weight:500;color:var(--muted);vertical-align:baseline;">/mês</sub></div>
-              <div style="font-size:13px;color:var(--muted);margin-top:4px;">Com respostas às avaliações pela Arthea 2×/mês</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:2px;opacity:.7;">Cobrança automática mensal no cartão</div>
-              <div style="margin-top:10px;"><span class="chip chip-teal">Contrato 12 meses</span></div>
-            </div>
-          </div>
-
-
+          <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:0;">A Arthea cuida do seu perfil todos os meses para que seu negócio continue aparecendo para quem procura o que você oferece.</p>
         </div>
 
         <div style="padding:0 28px 8px;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;">O que está incluso</div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.24em;color:#157373;">Incluso na Gestão Mensal</div>
         </div>
         <div class="plan-body" style="padding-top:8px;">
           <div class="plan-feat hl" style="font-size:14px;font-weight:600;padding:13px 0;border-bottom:1px solid rgba(13,74,74,0.12);">Tudo da Otimização Principal</div>
@@ -837,25 +1049,52 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
 
         <!-- Benefícios dentro do card -->
         <div style="margin:0 24px 24px;border-top:1px solid rgba(13,74,74,0.08);padding-top:20px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="gest-benefits">
 
-            <div style="background:rgba(13,74,74,0.04);border:1px solid rgba(13,74,74,0.12);border-radius:16px;padding:20px;">
-              <div style="width:36px;height:36px;border-radius:10px;background:rgba(13,74,74,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#157373" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            <div class="gest-benefit">
+              <span class="gest-benefit-tag">Grátis</span>
+              <div class="gest-benefit-ic">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
               </div>
-              <div style="font-size:13px;font-weight:700;color:#0D4A4A;margin-bottom:6px;">Otimização Principal</div>
-              <p style="font-size:12px;color:#6B7280;line-height:1.65;">Inclusa gratuitamente. Seu perfil começa estruturado do jeito certo desde o primeiro dia.</p>
+              <div class="gest-benefit-t">Otimização Principal</div>
+              <p>Inclusa gratuitamente. Seu perfil já começa estruturado do jeito certo desde o primeiro dia.</p>
             </div>
 
-            <div style="background:rgba(13,74,74,0.04);border:1px solid rgba(13,74,74,0.12);border-radius:16px;padding:20px;">
-              <div style="width:36px;height:36px;border-radius:10px;background:rgba(13,74,74,0.1);display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#157373" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div class="gest-benefit">
+              <span class="gest-benefit-tag">12 meses</span>
+              <div class="gest-benefit-ic">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               </div>
-              <div style="font-size:13px;font-weight:700;color:#0D4A4A;margin-bottom:6px;">1 ano de presença ativa</div>
-              <p style="font-size:12px;color:#6B7280;line-height:1.65;">A Arthea cuida do perfil todos os meses, durante 1 ano completo.</p>
+              <div class="gest-benefit-t">1 ano de presença ativa</div>
+              <p>A Arthea cuida do perfil todos os meses, durante 1 ano completo.</p>
             </div>
 
           </div>
+        </div>
+
+        <!-- Valores (no fim) -->
+        <div style="padding:4px 28px 28px;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.22em;color:#157373;margin-bottom:12px;">Escolha o seu plano</div>
+
+          <div class="plan-opt">
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6B7280;margin-bottom:3px;">Básico</div>
+              <div style="font-size:15px;font-weight:700;color:var(--ink);">Sem gestão de avaliações</div>
+              <div style="font-size:12px;color:#6B7280;margin-top:4px;line-height:1.5;">Gestão completa do seu perfil no Google todos os meses.</div>
+            </div>
+            <div class="plan-opt-price">R$ 450<span>/mês</span></div>
+          </div>
+
+          <div class="plan-opt plan-opt-featured">
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#157373;margin-bottom:3px;">★ Completo · Recomendado</div>
+              <div style="font-size:15px;font-weight:700;color:var(--teal);">Com gestão de avaliações</div>
+              <div style="font-size:12px;color:#6B7280;margin-top:4px;line-height:1.5;">Tudo do Básico + a Arthea responde suas avaliações 2×/mês.</div>
+            </div>
+            <div class="plan-opt-price">R$ 650<span>/mês</span></div>
+          </div>
+
+          <div style="font-size:11.5px;color:var(--muted);margin-top:12px;text-align:center;line-height:1.6;">Cobrança mensal recorrente no cartão<br>· Contrato de 12 meses</div>
         </div>
       </div>
 
@@ -868,11 +1107,11 @@ footer p{font-size:10px;color:rgba(245,240,235,.3);letter-spacing:.16em;font-wei
   <div class="cta-inner">
     <div class="ey ey-light reveal" style="justify-content:center;">Próximo passo</div>
     <h2 class="reveal">
-      Vamos posicionar o seu<br>
+      Vamos posicionar o seu <br class="brk">
       <em>negócio no Google?</em>
     </h2>
     <p class="reveal" style="font-size:18px;color:rgba(245,240,235,.88);font-weight:500;">Fale com a Arthea pelo WhatsApp e comece agora mesmo o plano ideal para a sua empresa.</p>
-    <a href="https://wa.me/5519920002917?text=Olá%2C%20quero%20saber%20mais%20sobre%20a%20gestão%20de%20GMB%20da%20Arthea" class="btn-whatsapp reveal">
+    <a href="https://wa.me/5519920002917?text=Quero%20contratar%20um%20plano%20de%20gest%C3%A3o%20do%20Google%20Meu%20Neg%C3%B3cio%20com%20a%20Arthea" class="btn-whatsapp reveal">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="#0D4A4A"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
       Quero fechar um plano
     </a>
@@ -1000,38 +1239,14 @@ const io = new IntersectionObserver(entries => {
     setTimeout(() => e.target.classList.add('in'), idx * 90);
     io.unobserve(e.target);
   });
-}, {threshold: 0.07});
+}, {threshold: 0, rootMargin: '0px 0px -8% 0px'});
 els.forEach(el => io.observe(el));
 
-function switchPlan(type) {
-  const btnSem = document.getElementById('btn-sem');
-  const btnCom = document.getElementById('btn-com');
-  const priceSem = document.getElementById('price-sem');
-  const priceCom = document.getElementById('price-com');
-
-  if (type === 'sem') {
-    btnSem.style.background = '#0D4A4A';
-    btnSem.style.borderColor = '#0D4A4A';
-    btnSem.querySelector('div:last-child').style.color = 'white';
-    btnSem.querySelector('div:first-child').style.color = 'rgba(255,255,255,.6)';
-    btnCom.style.background = 'transparent';
-    btnCom.style.borderColor = 'rgba(13,74,74,0.15)';
-    btnCom.querySelector('div:last-child').style.color = '#374151';
-    btnCom.querySelector('div:first-child').style.color = '#157373';
-    priceSem.style.display = 'block';
-    priceCom.style.display = 'none';
-  } else {
-    btnCom.style.background = '#0D4A4A';
-    btnCom.style.borderColor = '#0D4A4A';
-    btnCom.querySelector('div:last-child').style.color = 'white';
-    btnCom.querySelector('div:first-child').style.color = 'rgba(255,255,255,.6)';
-    btnSem.style.background = 'transparent';
-    btnSem.style.borderColor = 'rgba(13,74,74,0.15)';
-    btnSem.querySelector('div:last-child').style.color = '#374151';
-    btnSem.querySelector('div:first-child').style.color = '#157373';
-    priceSem.style.display = 'none';
-    priceCom.style.display = 'block';
-  }
+function toggleDeliv(btn) {
+  const more = btn.previousElementSibling;
+  const open = more.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.querySelector('.deliv-btn-label').textContent = open ? btn.dataset.less : btn.dataset.more;
 }
 
 function toggleAcc(btn) {

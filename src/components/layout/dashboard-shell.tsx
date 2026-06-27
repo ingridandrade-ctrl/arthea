@@ -7,7 +7,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className="flex-1 transition-[margin-left] duration-300 ease-in-out"
+      className="flex-1 transition-[margin-left] duration-300 ease-in-out min-w-0 overflow-x-hidden"
       style={{ marginLeft: collapsed ? 72 : 256 }}
     >
       {children}

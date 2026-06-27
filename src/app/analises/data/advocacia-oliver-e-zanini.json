@@ -1,0 +1,92 @@
+{
+  "nome": "Advocacia Oliver e Zanini",
+  "nome_linha1": "Advocacia Oliver",
+  "nome_linha2": "e Zanini",
+  "cidade": "Franca",
+  "estado": "São Paulo, SP",
+  "segmento": "Escritório de Advocacia",
+  "busca_termo": "advogado Franca",
+  "busca_termo_longo": "Escritório de advocacia em Franca SP",
+  "data_analise": "junho de 2025",
+  "posicao": "25",
+  "posicao_total": "32",
+  "score": "62",
+  "avaliacoes": "4",
+  "estrelas": "5.0",
+  "concorrente_nome": "Branco Gonçalves Advocacia",
+  "concorrente_aval": "156",
+  "concorrente_stars": "5.0",
+  "concorrente_pos": "4º",
+  "lider_nome": "Sciampaglia Advogados",
+  "lider_aval": "722",
+  "lider_stars": "5.0",
+  "segundo_nome": "Neves Pádua Advocacia",
+  "segundo_aval": "219",
+  "segundo_stars": "5.0",
+  "avaliacoes_sr": "4",
+  "avaliacoes_sc": "2",
+  "descricao_chars": "279",
+  "estrelas_media_seg": "5.0",
+  "ranking": [
+    { "pos": "1º", "nome": "Sciampaglia Advogados", "aval": 722, "pct": 100 },
+    { "pos": "2º", "nome": "Neves Pádua Advocacia", "aval": 219, "pct": 30 },
+    { "pos": "3º", "nome": "Santos & Faleiros", "aval": 164, "pct": 23 },
+    { "pos": "4º", "nome": "Branco Gonçalves", "aval": 156, "pct": 22 }
+  ],
+  "preenchidos": [
+    { "item": "Horário de funcionamento", "note": "Precisa ser atualizado em feriados e datas especiais", "badge": "Existe", "positive": false },
+    { "item": "Descrição do negócio", "note": "279 caracteres — existe, mas não está otimizada com palavras-chave estratégicas", "badge": "Existe", "positive": false },
+    { "item": "Imagem do logotipo", "note": "Presente, mas sem atualização recente de fotos", "badge": "Existe", "positive": false },
+    { "item": "Fotos 360°", "note": "2 fotos 360° publicadas — bom recurso visual", "badge": "✓ Ok", "positive": true },
+    { "item": "Redes sociais vinculadas", "note": "Facebook e Instagram conectados ao perfil", "badge": "✓ Ok", "positive": true },
+    { "item": "Nome, telefone e website", "note": "Configurados corretamente", "badge": "✓ Ok", "positive": true }
+  ],
+  "lacunas": [
+    { "title": "Postagens no perfil", "text": "Nenhuma postagem publicada. Seu perfil aparece como inativo para o Google — e perde relevância a cada mês sem atividade." },
+    { "title": "Fotos recentes do proprietário", "text": "Já faz mais de 1 ano desde a última foto publicada. O perfil passa uma impressão desatualizada para quem pesquisa." },
+    { "title": "Respostas às avaliações", "text": "Todas as 4 avaliações estão sem resposta. Responder demonstra cuidado e melhora a confiança — o Google também leva isso em conta." },
+    { "title": "Serviços cadastrados", "text": "Nenhum serviço cadastrado no perfil. Os serviços ajudam o Google a entender exatamente o que você oferece e a te mostrar nas buscas certas — é um dos itens que mais impactam a relevância." }
+  ],
+  "melhorias": [
+    { "title": "Volume de avaliações", "text": "Apenas 4 avaliações — a média do segmento na região é 613. O líder (Sciampaglia) tem 722. Poucas avaliações fazem o Google te considerar menos relevante." },
+    { "title": "Avaliações sem comentário", "text": "2 das 4 avaliações são apenas nota, sem texto. Avaliações com comentário têm mais peso no algoritmo." },
+    { "title": "Vídeos no perfil", "text": "Nenhum vídeo adicionado ao perfil. Vídeos aumentam o engajamento e ajudam o Google a destacar seu perfil." },
+    { "title": "Última avaliação recebida", "text": "A última avaliação foi em junho de 2021 — mais de 4 anos atrás. O Google prioriza negócios com avaliações recentes e frequentes." },
+    { "title": "Categorias adicionais", "text": "Apenas 1 categoria cadastrada. Adicionar categorias relevantes (como Advogado trabalhista, Advogado civil, etc.) amplia as buscas em que seu perfil aparece." }
+  ],
+  "cards_metricas": [
+    {
+      "label": "Suas avaliações",
+      "badge": "Crítico",
+      "badgeTip": "impacta diretamente sua posição",
+      "badgeColor": "#C0392B",
+      "badgeBg": "#FEE2E2",
+      "barColor": "#C0392B",
+      "valueType": "counter",
+      "valueColor": "#C0392B",
+      "explain": "Pro Google, mais avaliações = mais relevante. Você tem 4. O líder do segmento tem 722."
+    },
+    {
+      "label": "Sua nota média",
+      "badge": "Bom",
+      "badgeTip": "sua nota está excelente",
+      "badgeColor": "#15803D",
+      "badgeBg": "rgba(21,128,61,0.08)",
+      "barColor": "#15803D",
+      "valueType": "stars",
+      "valueColor": "#15803D",
+      "explain": "5.0★ é a nota máxima — ótimo sinal. Mas com apenas 4 avaliações, o Google não dá o mesmo peso que daria com centenas."
+    },
+    {
+      "label": "Nota do perfil",
+      "badge": "Atenção",
+      "badgeTip": "perfil incompleto perde visibilidade",
+      "badgeColor": "#B45309",
+      "badgeBg": "#FEF3C7",
+      "barColor": "#D97706",
+      "valueType": "score",
+      "valueColor": "#B45309",
+      "explain": "Alguns itens básicos estão preenchidos, mas faltam configurações estratégicas que fariam o Google mostrar você antes dos concorrentes."
+    }
+  ]
+}

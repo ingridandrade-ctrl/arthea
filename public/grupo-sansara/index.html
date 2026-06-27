@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arthea · Proposta de Parceria · Grupo Sansara</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@1,400;1,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --verde: #1D7070;
+      --verde-escuro: #0D4A4A;
+      --verde-claro: #7ED4D4;
+      --creme: #FAF9F6;
+      --creme-medio: #EDE9E0;
+      --creme-escuro: #E2DDD3;
+      --tinta: #2A2A2A;
+      --borda: #D8D3C8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--creme); color: var(--tinta); line-height: 1.65; -webkit-text-size-adjust: 100%; overflow-x: hidden; }
+    img { max-width: 100%; height: auto; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: var(--verde-escuro);
+      padding: 16px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-marca { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--creme); letter-spacing: 0.18em; text-transform: uppercase; }
+    .nav-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--verde-claro); letter-spacing: 0.12em; text-transform: uppercase; }
+
+    /* HERO */
+    .hero {
+      background: var(--verde-escuro);
+      padding: 160px 64px 120px;
+      min-height: 560px;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      align-items: center;
+      text-align: center;
+    }
+    .hero-eyebrow { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--verde-claro); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 28px; }
+    .hero h1 { font-size: clamp(52px, 8vw, 88px); font-weight: 600; color: var(--creme); line-height: 1.05; max-width: 700px; }
+    .hero h1 em { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 400; color: var(--verde-claro); display: block; }
+
+    /* MAIN */
+    main { max-width: 880px; margin: 0 auto; padding: 0 64px 120px; }
+
+    /* SECTION HEADER */
+    .section-header { border-top: 2px solid var(--creme-escuro); padding-top: 40px; margin-top: 88px; margin-bottom: 40px; }
+    .eyebrow { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--verde); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 12px; }
+    .section-title { font-size: 28px; font-weight: 600; color: var(--tinta); line-height: 1.2; }
+    .section-title em { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 400; color: var(--verde); }
+    .section-desc { font-size: 15px; color: #666; margin-top: 14px; line-height: 1.6; }
+
+    /* LOJA CARD */
+    .loja-card { background: #fff; border: 1px solid var(--borda); border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
+    .loja-header { background: var(--verde-escuro); padding: 26px 36px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .loja-nome { font-size: 20px; font-weight: 500; color: var(--creme); }
+    .loja-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--verde-claro); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+    .loja-badge { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--verde-claro); border: 1px solid rgba(126,212,212,0.3); padding: 5px 14px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+    .loja-badge.novo { background: var(--verde); color: #fff; border-color: var(--verde); }
+
+    .loja-body { padding: 32px 36px; }
+
+    /* SERVIÇO PRINCIPAL */
+    .servico-principal {
+      background: var(--creme);
+      border: 1px solid var(--creme-escuro);
+      border-left: 4px solid var(--verde);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+    }
+    .servico-titulo { font-size: 16px; font-weight: 600; color: var(--verde-escuro); margin-bottom: 6px; }
+    .servico-desc { font-size: 14px; color: #555; line-height: 1.55; margin-bottom: 20px; }
+    .campanhas-label { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--verde-escuro); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; }
+    .campanhas-lista { display: flex; flex-wrap: wrap; gap: 8px; }
+    .campanha-tag { font-size: 13px; color: var(--verde-escuro); background: #fff; border: 1px solid var(--borda); border-radius: 20px; padding: 5px 14px; }
+
+    /* BLOCOS SECUNDÁRIOS */
+    .blocos-sec { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .bloco-sec { background: var(--creme); border: 1px solid var(--creme-escuro); border-radius: 12px; padding: 18px 20px; }
+    .bloco-sec-titulo { font-size: 14px; font-weight: 600; color: var(--verde-escuro); margin-bottom: 6px; }
+    .bloco-sec-desc { font-size: 13px; color: #666; line-height: 1.5; }
+
+    /* CARDS VALOR POR MARCA */
+    .valor-marcas { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .valor-marca-card { background: #fff; border: 1px solid var(--borda); border-radius: 14px; padding: 28px 24px; text-align: center; }
+    .vmarca-nome { font-family: 'DM Mono', monospace; font-size: 10px; color: #aaa; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 16px; }
+    .vmarca-valor { font-size: 26px; font-weight: 600; color: #ccc; text-decoration: line-through; line-height: 1; }
+    .vmarca-valor span { font-size: 14px; font-weight: 400; }
+    .vmarca-note { font-size: 11px; color: #ccc; margin-top: 8px; font-style: italic; }
+
+    /* BLOCO INVESTIMENTO */
+    .bloco-inv {
+      background: var(--verde-escuro);
+      border-radius: 16px;
+      padding: 52px 52px;
+      margin-bottom: 16px;
+    }
+    .inv-titulo { font-size: 13px; font-family: 'DM Mono', monospace; letter-spacing: 0.18em; text-transform: uppercase; color: var(--verde-claro); margin-bottom: 24px; }
+    .inv-valor-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+    .inv-subtitulo { font-size: 17px; font-weight: 500; color: var(--verde-claro); margin-bottom: 28px; }
+    .inv-valor { font-size: clamp(64px, 9vw, 96px); font-weight: 700; color: var(--creme); line-height: 1; letter-spacing: -2px; }
+    .inv-mes { font-size: 20px; font-weight: 300; color: rgba(250,249,246,0.45); align-self: flex-end; margin-bottom: 8px; }
+    .inv-divider { border: none; border-top: 1px solid rgba(250,249,246,0.12); margin-bottom: 24px; }
+    .inv-detalhe { font-size: 15px; color: rgba(250,249,246,0.65); margin-bottom: 8px; }
+    .inv-detalhe:last-child { margin-bottom: 0; color: rgba(250,249,246,0.4); font-size: 13px; }
+
+    /* SITES */
+    .sites-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .site-card { background: #fff; border: 1px solid var(--borda); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+    .site-header { background: var(--verde-escuro); padding: 22px 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .site-nome { font-size: 18px; font-weight: 500; color: var(--creme); }
+    .site-badge { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--verde-claro); border: 1px solid rgba(126,212,212,0.3); padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+    .site-body { padding: 24px 28px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    .site-item-titulo { font-size: 14px; font-weight: 600; color: var(--verde-escuro); margin-bottom: 4px; }
+    .site-item-desc { font-size: 13px; color: #666; line-height: 1.5; }
+    .site-footer { border-top: 1px solid var(--creme-escuro); padding: 24px 28px; background: var(--creme); }
+    .site-riscado { font-size: 14px; color: #c0c0c0; text-decoration: line-through; margin-bottom: 6px; }
+    .site-riscado span { font-style: italic; text-decoration: none; color: #ccc; margin-left: 6px; }
+    .site-preco { font-size: 40px; font-weight: 700; color: var(--verde-escuro); line-height: 1; }
+    .site-preco span { display: block; font-size: 13px; font-weight: 400; color: #888; margin-top: 6px; }
+
+    /* CARD TOTAL SITES */
+    .card-total {
+      background: var(--creme-medio);
+      border: 1px solid var(--creme-escuro);
+      border-radius: 14px;
+      padding: 36px 40px;
+      margin-top: 16px;
+      text-align: center;
+    }
+    .ct-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--verde); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 12px; }
+    .ct-valor { font-size: 48px; font-weight: 700; color: var(--verde-escuro); line-height: 1; margin-bottom: 10px; }
+    .ct-parcela { font-size: 14px; color: #777; }
+
+    /* SÍNTESE */
+    .sintese {
+      background: var(--verde-escuro);
+      border-radius: 16px;
+      padding: 64px 64px;
+      margin-top: 88px;
+      text-align: center;
+    }
+    .sintese p {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: clamp(22px, 3.5vw, 32px);
+      color: var(--verde-claro);
+      line-height: 1.45;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* FOOTER */
+    footer { background: var(--verde-escuro); padding: 36px 64px; display: flex; align-items: center; justify-content: space-between; }
+    .f-marca { font-family: 'DM Mono', monospace; font-size: 12px; color: rgba(250,249,246,0.35); letter-spacing: 0.15em; text-transform: uppercase; }
+    .f-contato { font-size: 13px; color: rgba(250,249,246,0.35); }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 680px) {
+      nav { padding: 14px 20px; gap: 12px; }
+      .nav-label { font-size: 10px; letter-spacing: 0.04em; text-align: right; }
+      .hero { padding: 96px 24px 56px; min-height: auto; }
+      .hero h1 { font-size: clamp(40px, 11vw, 72px); }
+      .hero img { height: 72px !important; }
+      main { padding: 0 24px 60px; }
+      .section-header { margin-top: 64px; padding-top: 32px; }
+      .loja-header { flex-direction: column; align-items: flex-start; padding: 22px 24px; }
+      .loja-body { padding: 24px; }
+      .servico-principal { padding: 22px 20px; }
+      .blocos-sec { grid-template-columns: 1fr; }
+      .valor-marcas { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .valor-marca-card { padding: 16px 8px; border-radius: 12px; }
+      .vmarca-nome { font-size: 9px; letter-spacing: 0.08em; margin-bottom: 10px; }
+      .vmarca-valor { font-size: clamp(14px, 4.2vw, 22px); }
+      .vmarca-valor span { display: block; font-size: 10px; margin-top: 2px; }
+      .vmarca-note { font-size: 9px; margin-top: 6px; }
+      .sites-grid { grid-template-columns: 1fr; }
+      .bloco-inv { padding: 36px 26px; }
+      .inv-valor { font-size: clamp(46px, 13vw, 72px); letter-spacing: -1px; }
+      .card-total { padding: 32px 26px; }
+      .sintese { padding: 48px 26px; margin-top: 64px; }
+      footer { flex-direction: column; gap: 8px; text-align: center; padding: 28px 24px; }
+    }
+
+    /* Telas muito estreitas — evita estouro dos números grandes */
+    @media (max-width: 360px) {
+      .nav-label { display: none; }
+      .hero h1 { font-size: 36px; }
+      .inv-valor { font-size: 42px; }
+      .ct-valor { font-size: 40px; }
+      .site-preco { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <span class="nav-marca">Arthea</span>
+    <span class="nav-label">Proposta de Parceria · Junho 2026</span>
+  </nav>
+
+  <div class="hero">
+    <img src="/assets/logo-arthea.svg" alt="Arthea" style="height: 96px; margin-bottom: 40px; opacity: 0.9;" />
+    <div class="hero-eyebrow">Sansara · Dona Carmen · Sansara Semijoias</div>
+    <h1>Proposta de <em>Parceria.</em></h1>
+    <div style="margin-top: 36px; color: rgba(126,212,212,0.6); font-size: 28px; animation: bounce 2s infinite;">↓</div>
+  </div>
+
+  <main>
+
+    <!-- SEÇÃO 01 · ENTREGAS -->
+    <div class="section-header">
+      <div class="eyebrow">01 · Entregas</div>
+      <div class="section-title">O que a Arthea entrega <em>por cada marca.</em></div>
+      <p class="section-desc">Gestão de Tráfego, edição de criativos, textos estratégicos para anúncios e suporte nas três lojas, com o mesmo padrão de dedicação.</p>
+    </div>
+
+    <!-- SANSARA -->
+    <div class="loja-card">
+      <div class="loja-header">
+        <div>
+          <div class="loja-nome">Sansara Boutique</div>
+        </div>
+        <div class="loja-badge">Ativa</div>
+      </div>
+      <div class="loja-body">
+        <div class="servico-principal">
+          <div class="servico-titulo">Gestão de Tráfego Estratégico · Meta Ads</div>
+          <div class="servico-desc">Estratégia de anúncios, otimizações e acompanhamento diário. A Arthea acompanha os dados e ajusta as campanhas continuamente para melhorar os resultados.</div>
+          <div class="campanhas-label">Tipos de campanha inclusos</div>
+          <div class="campanhas-lista">
+            <span class="campanha-tag">Catálogo de produtos</span>
+            <span class="campanha-tag">Reconhecimento de marca</span>
+            <span class="campanha-tag">Crescimento de seguidores</span>
+            <span class="campanha-tag">Captação via WhatsApp</span>
+            <span class="campanha-tag">Engajamento de marca</span>
+          </div>
+        </div>
+        <div class="blocos-sec">
+          <div class="bloco-sec">
+            <div class="bloco-sec-titulo">Edição de criativos</div>
+            <div class="bloco-sec-desc">Vídeos com legenda e trilha sonora. Carrosséis com fotos em formato feed e stories. Quantidade de acordo com a demanda.</div>
+          </div>
+          <div class="bloco-sec">
+            <div class="bloco-sec-titulo">Textos estratégicos para anúncios</div>
+            <div class="bloco-sec-desc">Criação das legendas e copies dos anúncios, alinhadas à estratégia de cada campanha.</div>
+          </div>
+          <div class="bloco-sec">
+            <div class="bloco-sec-titulo">Suporte via WhatsApp</div>
+            <div class="bloco-sec-desc">Disponível em dias úteis para dúvidas, ajustes e alinhamentos.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DONA CARMEN -->
+    <div class="loja-card">
+      <div class="loja-header">
+        <div>
+          <div class="loja-nome">Dona Carmen</div>
+        </div>
+        <div class="loja-badge">Ativa</div>
+      </div>
+      <div class="loja-body">
+        <div class="servico-principal">
+          <div class="servico-titulo">Gestão de Tráfego Estratégico · Meta Ads</div>
+          <div class="servico-desc">Estratégia de anúncios, otimizações e acompanhamento diário. A Arthea acompanha os dados e ajusta as campanhas continuamente para melhorar os resultados.</div>
+          <div class="campanhas-label">Tipos de campanha inclusos</div>
+          <div class="campanhas-lista">
+            <span class="campanha-tag">Catálogo de produtos</span>
+            <span class="campanha-tag">Reconhecimento de marca</span>
+            <span class="campanha-tag">Crescimento de seguidores</span>
+            <span class="campanha-tag">Captação via WhatsApp</span>
+            <span class="campanha-tag">Engajamento de marca</span>
+          </div>
+        </div>
+        <div class="blocos-sec">
+          <div class="bloco-sec">
+            <div class="bloco-sec-titulo">Edição de criativos</div>
+            <div class="bloco-sec-desc">Vídeos com legenda e trilha sonora. Carrosséis com fotos em formato feed e stories. Quantidade de acordo com a demanda.</div>
+          </div>
+          <div class="bloco-sec">
+            <div class="bloco-sec-titulo">Textos estratégicos para anúncios</div>
+            <div class="bloco-sec-desc">Criação das legendas e copies dos anúncios, alinhadas à estratégia de cada campanha.</div>
+          </div>
+          <div class="bloco-sec">
+            <div class="bloco-sec-titulo">Suporte via WhatsApp</div>
+            <div class="bloco-sec-desc">Disponível em dias úteis para dúvidas, ajustes e alinhamentos.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SANSARA SEMIJOIAS -->
+    <div class="loja-card">
+      <div class="loja-header">
+        <div>
+          <div class="loja-nome">Sansara Semijoias</div>
+          <div class="loja-sub">A partir de julho 2026</div>
+        </div>
+        <div class="loja-badge novo">Nova</div>
+      </div>
+      <div class="loja-body">
+        <div class="servico-principal">
+          <div class="servico-titulo">Gestão de Tráfego Estratégico · Meta Ads</div>
+          <div class="servico-desc">Estratégia de anúncios, otimizações e acompanhamento diário para consumidor final e vendedoras de maleta.</div>
+          <div class="campanhas-label">Tipos de campanha inclusos</div>
+          <div class="campanhas-lista">
+            <span class="campanha-tag">Catálogo de produtos</span>
+            <span class="campanha-tag">Reconhecimento de marca</span>
+            <span class="campanha-tag">Crescimento de seguidores</span>
+            <span class="campanha-tag">Captação via WhatsApp</span>
+            <span class="campanha-tag">Engajamento de marca</span>
+          </div>
+        </div>
+        <div class="blocos-sec">
+          <div class="bloco-sec">
+            <div class="bloco-sec-titulo">Edição de criativos</div>
+            <div class="bloco-sec-desc">Vídeos com legenda e trilha sonora. Carrosséis com fotos em formato feed e stories. Quantidade de acordo com a demanda.</div>
+          </div>
+          <div class="bloco-sec">
+            <div class="bloco-sec-titulo">Textos estratégicos para anúncios</div>
+            <div class="bloco-sec-desc">Criação das legendas e copies dos anúncios, alinhadas à estratégia de cada campanha.</div>
+          </div>
+          <div class="bloco-sec">
+            <div class="bloco-sec-titulo">Suporte via WhatsApp</div>
+            <div class="bloco-sec-desc">Disponível em dias úteis para dúvidas, ajustes e alinhamentos.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- SEÇÃO 02 · INVESTIMENTO -->
+    <div class="section-header">
+      <div class="eyebrow">02 · Investimento</div>
+      <div class="section-title">O valor da <em>parceria.</em></div>
+    </div>
+
+    <div class="valor-marcas">
+      <div class="valor-marca-card">
+        <div class="vmarca-nome">Sansara Boutique</div>
+        <div class="vmarca-valor">R$ 1.600<span>/mês</span></div>
+        <div class="vmarca-note">valor para cliente nova</div>
+      </div>
+      <div class="valor-marca-card">
+        <div class="vmarca-nome">Dona Carmen</div>
+        <div class="vmarca-valor">R$ 1.600<span>/mês</span></div>
+        <div class="vmarca-note">valor para cliente nova</div>
+      </div>
+      <div class="valor-marca-card">
+        <div class="vmarca-nome">Sansara Semijoias</div>
+        <div class="vmarca-valor">R$ 1.600<span>/mês</span></div>
+        <div class="vmarca-note">valor para cliente nova</div>
+      </div>
+    </div>
+
+    <div class="bloco-inv">
+      <div class="inv-titulo">Investimento no projeto</div>
+      <div class="inv-valor-row">
+        <div class="inv-valor">R$ 2.500</div>
+        <div class="inv-mes">/mês</div>
+      </div>
+      <div class="inv-subtitulo">Gestão de Tráfego para 03 lojas</div>
+      <hr class="inv-divider" />
+      <div class="inv-detalhe">Contrato de 6 meses</div>
+      <div class="inv-detalhe">A partir de julho de 2026</div>
+    </div>
+
+
+    <!-- SEÇÃO 03 · SITES -->
+    <div class="section-header">
+      <div class="eyebrow">03 · Sites</div>
+      <div class="section-title">Link na bio com <em>identidade própria.</em></div>
+      <p class="section-desc">A Arthea constrói um site para cada marca no mesmo padrão do sansaraboutique.com.br, adaptado com a identidade visual, fotos e textos da loja. Entregue hospedado e pronto para uso.</p>
+    </div>
+
+    <div class="sites-grid">
+      <div class="site-card">
+        <div class="site-header">
+          <div class="site-nome">Dona Carmen</div>
+          <div class="site-badge">Domínio próprio</div>
+        </div>
+        <div class="site-body">
+          <div>
+            <div class="site-item-titulo">Site com identidade da marca</div>
+            <div class="site-item-desc">Estrutura completa no padrão Sansara Boutique, adaptada com as cores, fotos e textos da Dona Carmen.</div>
+          </div>
+          <div>
+            <div class="site-item-titulo">Domínio registrado</div>
+            <div class="site-item-desc">O endereço do site é adquirido por você. A Arthea orienta o registro e faz toda a configuração.</div>
+          </div>
+          <div>
+            <div class="site-item-titulo">Hospedagem e publicação</div>
+            <div class="site-item-desc">O site é hospedado e publicado pela Arthea. Entregue no ar, pronto para uso.</div>
+          </div>
+        </div>
+        <div class="site-footer">
+          <div class="site-riscado">R$ 700 <span>valor para clientes novos</span></div>
+          <div class="site-preco">R$ 400 <span>para você</span></div>
+        </div>
+      </div>
+
+      <div class="site-card">
+        <div class="site-header">
+          <div class="site-nome">Sansara Semijoias</div>
+          <div class="site-badge">Subdomínio Sansara</div>
+        </div>
+        <div class="site-body">
+          <div>
+            <div class="site-item-titulo">Site com identidade da marca</div>
+            <div class="site-item-desc">Estrutura completa no padrão Sansara Boutique, adaptada com as cores, fotos e textos da Sansara Semijoias.</div>
+          </div>
+          <div>
+            <div class="site-item-titulo">Subdomínio da Sansara</div>
+            <div class="site-item-desc">O site roda dentro do domínio da Sansara Boutique. Sem custo de domínio adicional.</div>
+          </div>
+          <div>
+            <div class="site-item-titulo">Hospedagem e publicação</div>
+            <div class="site-item-desc">O site é hospedado e publicado pela Arthea. Entregue no ar, pronto para uso.</div>
+          </div>
+        </div>
+        <div class="site-footer">
+          <div class="site-riscado">R$ 700 <span>valor para clientes novos</span></div>
+          <div class="site-preco">R$ 400 <span>para você</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-total">
+      <div class="ct-label">Total dos dois sites</div>
+      <div class="ct-valor">R$ 800</div>
+      <div class="ct-parcela">em até 4× sem juros</div>
+    </div>
+
+
+    <!-- SÍNTESE -->
+    <div class="sintese">
+      <p>Seguimos juntas no crescimento do Grupo Sansara.</p>
+    </div>
+
+  </main>
+
+  <footer>
+    <span class="f-marca">Arthea · 2026</span>
+    <span class="f-contato">ingridandrade@arthea.com.br</span>
+  </footer>
+
+</body>
+</html>

@@ -59,7 +59,8 @@ export const HANDOFF_KEYWORDS = [
   "contratar",
 ];
 
-export function shouldHandoff(message: string): boolean {
+export function shouldHandoff(message: string, keywords?: string[]): boolean {
   const lower = message.toLowerCase();
-  return HANDOFF_KEYWORDS.some((keyword) => lower.includes(keyword));
+  const list = keywords && keywords.length > 0 ? keywords : HANDOFF_KEYWORDS;
+  return list.some((keyword) => lower.includes(keyword));
 }

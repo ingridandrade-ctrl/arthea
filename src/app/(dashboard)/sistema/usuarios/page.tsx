@@ -21,8 +21,13 @@ export default function UsuariosPage() {
   useEffect(() => { fetchUsers(); }, []);
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`Excluir o usuario "${name}"? Esta acao nao pode ser desfeita.`)) return;
-    await fetch(`/api/users/${id}`, { method: "DELETE" });
+    if (!confirm(`Excluir o usuário "${name}"? Esta ação não pode ser desfeita.`)) return;
+    const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error || "Erro ao excluir usuário");
+      return;
+    }
     fetchUsers();
   }
 

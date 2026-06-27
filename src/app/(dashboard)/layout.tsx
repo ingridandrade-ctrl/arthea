@@ -23,7 +23,7 @@ export default async function DashboardLayout({
         <Sidebar />
         <DashboardShell>
           <Header />
-          <main className="p-6">{children}</main>
+          <main className="p-6 min-w-0 overflow-x-auto">{children}</main>
         </DashboardShell>
       </div>
     </SidebarProvider>

@@ -5,7 +5,6 @@ import { ArrowLeft } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MetaClient } from "../../../clientes/meta/_components/meta-client";
-import { MetaDashboard } from "../../../clientes/meta/_components/meta-dashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -38,8 +37,6 @@ export default async function IntegracoesMetaPage({
     }),
   ]);
 
-  const hasAccounts = connections.some((c) => c.adAccounts.length > 0);
-
   return (
     <div className="space-y-6">
       <Link
@@ -48,7 +45,6 @@ export default async function IntegracoesMetaPage({
       >
         <ArrowLeft className="w-4 h-4" /> Integrações
       </Link>
-      <MetaDashboard hasConnections={hasAccounts} />
       <MetaClient
         initialConnections={JSON.parse(JSON.stringify(connections))}
         engagements={engagements.map((e) => ({

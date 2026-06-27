@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Megaphone, BarChart3, CheckCircle2, AlertTriangle, ArrowRight } from "lucide-react";
+import { Megaphone, BarChart3, Bot, MessageCircle, CheckCircle2, AlertTriangle, ArrowRight } from "lucide-react";
 
 // Landing das integrações da agência (OAuth Meta + Google + futuro WhatsApp).
 // Esta camada é CONFIGURAÇÃO TÉCNICA da agência — 1× por agência.
@@ -19,7 +19,7 @@ export default async function IntegracoesPage() {
 
   const userId = session.user.id;
 
-  const [metaConnections, googleConnection, metaAccountCount, googleAccountCount] = await Promise.all([
+  const [metaConnections, googleConnection, metaAccountCount, googleAccountCount, aiConfig] = await Promise.all([
     prisma.metaConnection.findMany({
       where: { userId },
       select: { id: true, status: true, metaUserName: true, tokenExpiresAt: true },
@@ -30,10 +30,21 @@ export default async function IntegracoesPage() {
     }),
     prisma.metaAdAccount.count({ where: { connection: { userId } } }),
     prisma.googleAdsAccount.count({ where: { connection: { userId } } }),
+    prisma.aiConfig.findUnique({ where: { id: "default" } }),
   ]);
 
   const metaActive = metaConnections.some((c) => c.status === "ACTIVE");
   const googleActive = googleConnection?.status === "ACTIVE";
+  const whatsappConfigured = !!(process.env.WHATSAPP_API_TOKEN && process.env.WHATSAPP_PHONE_ID);
+  const whatsappProvider = process.env.WHATSAPP_PROVIDER?.toLowerCase() === "official" ? "Meta Oficial" : "Evolution API";
+  const aiConfigured = !!process.env.ANTHROPIC_API_KEY;
+  const MODEL_LABELS: Record<string, string> = {
+    "claude-sonnet-4-6": "Sonnet 4.6",
+    "claude-opus-4-8": "Opus 4.8",
+    "claude-sonnet-4-20250514": "Sonnet 4",
+    "claude-haiku-4-5-20251001": "Haiku 4.5",
+  };
+  const aiModelLabel = MODEL_LABELS[aiConfig?.model || ""] || "Sonnet 4";
 
   return (
     <div className="space-y-6">
@@ -45,6 +56,32 @@ export default async function IntegracoesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <IntegrationCard
+          href="/sistema/integracoes/whatsapp"
+          icon={MessageCircle}
+          color="#25D366"
+          name="WhatsApp"
+          sub="Mensagens automáticas e chatbot"
+          connected={whatsappConfigured}
+          subStatus={
+            whatsappConfigured
+              ? `Provider: ${whatsappProvider} · Conectado`
+              : "Tokens não configurados"
+          }
+        />
+        <IntegrationCard
+          href="/sistema/integracoes/ia"
+          icon={Bot}
+          color="#F97316"
+          name="IA / Chatbot"
+          sub="Atendimento automático via WhatsApp"
+          connected={aiConfigured}
+          subStatus={
+            aiConfigured
+              ? `Claude ${aiModelLabel} · ${aiConfig?.active !== false ? "Ativo" : "Desativado"}`
+              : "API key não configurada"
+          }
+        />
         <IntegrationCard
           href="/sistema/integracoes/meta"
           icon={Megaphone}
