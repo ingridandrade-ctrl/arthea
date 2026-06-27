@@ -7,6 +7,7 @@ import { Plus, Search, X, Pencil, Trash2, CheckSquare, Square, MinusSquare } fro
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
 import { getServiceFields, type ServiceField } from "@/lib/service-fields";
+import { LEAD_STATUSES, getLeadStatusLabel, getLeadStatusColor } from "@/lib/lead-status";
 
 interface LeadService {
   service: { id: string; name: string; color: string; slug: string };
@@ -37,7 +38,7 @@ export default function LeadsPage() {
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<"delete" | "status" | null>(null);
-  const [bulkStatus, setBulkStatus] = useState("NEW");
+  const [bulkStatus, setBulkStatus] = useState("ATIVO");
   const [bulkLoading, setBulkLoading] = useState(false);
 
   async function fetchLeads() {
@@ -135,7 +136,7 @@ export default function LeadsPage() {
           </span>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => { setBulkAction("status"); setBulkStatus("NEW"); }}
+              onClick={() => { setBulkAction("status"); setBulkStatus("ATIVO"); }}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-border hover:bg-muted transition"
             >
               Alterar Status
@@ -371,10 +372,11 @@ export default function LeadsPage() {
               onChange={(e) => setBulkStatus(e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="NEW">Novo</option>
-              <option value="CONTACTED">Contatado</option>
-              <option value="QUALIFIED">Qualificado</option>
-              <option value="UNQUALIFIED">Desqualificado</option>
+              {LEAD_STATUSES.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
             </select>
             <div className="flex gap-3">
               <button
@@ -631,10 +633,11 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
       <div>
         <label className="block text-sm font-medium mb-1">Status</label>
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-          <option value="NEW">Novo</option>
-          <option value="CONTACTED">Contatado</option>
-          <option value="QUALIFIED">Qualificado</option>
-          <option value="UNQUALIFIED">Desqualificado</option>
+          {LEAD_STATUSES.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
         </select>
       </div>
       {services.length > 0 && (
@@ -667,21 +670,9 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    NEW: "bg-blue-100 text-blue-700",
-    CONTACTED: "bg-yellow-100 text-yellow-700",
-    QUALIFIED: "bg-green-100 text-green-700",
-    UNQUALIFIED: "bg-red-100 text-red-700",
-  };
-  const labels: Record<string, string> = {
-    NEW: "Novo",
-    CONTACTED: "Contatado",
-    QUALIFIED: "Qualificado",
-    UNQUALIFIED: "Desqualificado",
-  };
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status] || ""}`}>
-      {labels[status] || status}
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLeadStatusColor(status)}`}>
+      {getLeadStatusLabel(status)}
     </span>
   );
 }

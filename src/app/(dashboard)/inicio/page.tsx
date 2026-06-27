@@ -25,7 +25,7 @@ export default async function InicioPage() {
 
   const [leadsCount, activeConversations, clientsCount, activeEngagements] =
     await Promise.all([
-      prisma.lead.count({ where: { status: { not: "UNQUALIFIED" } } }),
+      prisma.lead.count({ where: { status: { notIn: ["DESQUALIFICADO", "PERDIDO"] } } }),
       prisma.conversation.count({ where: { isAiActive: false } }).catch(() => 0),
       prisma.user.count({ where: { role: "CLIENT" } }),
       prisma.clientEngagement.count({ where: { isActive: true } }),

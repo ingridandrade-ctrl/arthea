@@ -26,7 +26,7 @@ export async function processIncomingMessage(
         name: senderName,
         phone,
         source: "WHATSAPP",
-        status: "NEW",
+        status: "ATIVO",
       },
     });
     lead = await prisma.lead.findUnique({
@@ -141,13 +141,6 @@ export async function processIncomingMessage(
       data: { status: "sent", sentAt: new Date() },
     });
 
-    if (lead.status === "NEW") {
-      await prisma.lead.update({
-        where: { id: lead.id },
-        data: { status: "CONTACTED" },
-      });
-    }
-
     return { handled: true, reason: "template_response", response: message };
   }
 
@@ -182,13 +175,6 @@ export async function processIncomingMessage(
         evolutionMsgId: null,
       },
       data: { evolutionMsgId: msgId },
-    });
-  }
-
-  if (lead.status === "NEW") {
-    await prisma.lead.update({
-      where: { id: lead.id },
-      data: { status: "CONTACTED" },
     });
   }
 

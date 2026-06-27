@@ -12,6 +12,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import type { DashboardStats } from "@/types";
+import { getLeadStatusLabel, getLeadStatusColor } from "@/lib/lead-status";
 
 export default function DashboardPage() {
   const { activeService } = useServiceFilter();
@@ -218,23 +219,9 @@ function StatsCard({
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    NEW: "bg-blue-100 text-blue-700",
-    CONTACTED: "bg-yellow-100 text-yellow-700",
-    QUALIFIED: "bg-green-100 text-green-700",
-    UNQUALIFIED: "bg-red-100 text-red-700",
-  };
-
-  const labels: Record<string, string> = {
-    NEW: "Novo",
-    CONTACTED: "Contatado",
-    QUALIFIED: "Qualificado",
-    UNQUALIFIED: "Desqualificado",
-  };
-
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status] || ""}`}>
-      {labels[status] || status}
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLeadStatusColor(status)}`}>
+      {getLeadStatusLabel(status)}
     </span>
   );
 }
