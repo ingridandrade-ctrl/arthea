@@ -1,17 +1,17 @@
 import { prisma } from "@/lib/prisma";
-import { ensureGmbTemplates } from "@/lib/followups/bootstrap";
+import { ensureGmnTemplates } from "@/lib/followups/bootstrap";
 
 // Hooks chamados ao criar o pipeline de um serviço.
 // Garante que templates / config dependentes do pipeline também sejam criados.
 const POST_CREATE_HOOKS: Record<string, () => Promise<unknown>> = {
-  "google-meu-negocio": ensureGmbTemplates,
+  "google-meu-negocio": ensureGmnTemplates,
 };
 
 // Define stages per service. If a service has no entry here, falls back
 // to the default (shared) pipeline.
 const SERVICE_PIPELINES: Record<string, { name: string; stages: { name: string; order: number; color: string }[] }> = {
   "google-meu-negocio": {
-    name: "Pipeline GMB",
+    name: "Pipeline GMN",
     stages: [
       { name: "Novo lead", order: 0, color: "#6366f1" },
       { name: "Análise gerada", order: 1, color: "#3b82f6" },
@@ -30,10 +30,17 @@ export async function ensurePipelineForService(serviceSlug: string): Promise<str
   const svc = await prisma.service.findUnique({ where: { slug: serviceSlug }, select: { id: true } });
   if (!svc) return null;
 
-  const existing = await prisma.pipeline.findUnique({ where: { serviceId: svc.id }, select: { id: true } });
+  const existing = await prisma.pipeline.findUnique({
+    where: { serviceId: svc.id },
+    select: { id: true, name: true },
+  });
   if (existing) {
-    // Pipeline já existe; ainda assim garante que templates do serviço estejam plugados
-    // (idempotente, custo baixo). Roda em background pra não atrasar o request.
+    // Renomeia se o nome ficou legacy (ex: "Pipeline GMB" -> "Pipeline GMN").
+    const config = SERVICE_PIPELINES[serviceSlug];
+    if (config && existing.name !== config.name) {
+      await prisma.pipeline.update({ where: { id: existing.id }, data: { name: config.name } });
+    }
+    // Garante que templates do serviço estejam plugados (idempotente).
     POST_CREATE_HOOKS[serviceSlug]?.().catch((err) =>
       console.error(`post-create hook for ${serviceSlug} failed:`, err)
     );

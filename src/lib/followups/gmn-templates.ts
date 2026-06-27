@@ -1,5 +1,5 @@
 // Templates de follow-up exclusivos do serviço Google Meu Negócio.
-// Stage order (pipeline GMB):
+// Stage order (pipeline GMN):
 //   0 = Novo lead, 1 = Análise gerada, 2 = Em contato,
 //   3 = Em negociação, 4 = Ganho, 5 = Perdido
 //
@@ -7,7 +7,7 @@
 // delayHoursOverride: horas após entrar no estágio. Null = imediato.
 // channel: "whatsapp" = enviado automaticamente; "internal" = lembrete pra equipe
 
-export interface GmbTemplate {
+export interface GmnTemplate {
   code: string;
   name: string;
   stageOrder: number;
@@ -19,9 +19,9 @@ export interface GmbTemplate {
   messageTemplate: string;
 }
 
-export const GMB_TEMPLATES: GmbTemplate[] = [
+export const GMN_TEMPLATES: GmnTemplate[] = [
   {
-    code: "GMB_T1",
+    code: "GMN_T1",
     name: "T1 — Boas-vindas (Forms site)",
     stageOrder: 0,
     followUpOrder: 1,
@@ -37,7 +37,7 @@ Vamos começar a análise e em breve te mando tudo por aqui, combinado?
 Obrigada! 😊`,
   },
   {
-    code: "GMB_T2A",
+    code: "GMN_T2A",
     name: "T2A — Envia análise (Forms site)",
     stageOrder: 1,
     followUpOrder: 1,
@@ -53,7 +53,7 @@ Você pode acessar por esse link: {{linkAnalise}}
 Esperamos que goste bastante e aguardamos seu feedback! 😊`,
   },
   {
-    code: "GMB_T2B",
+    code: "GMN_T2B",
     name: "T2B — Primeiro contato (Prospecção)",
     stageOrder: 0,
     followUpOrder: 1,
@@ -71,7 +71,7 @@ Essa análise mostra exatamente como está a sua presença hoje e como podemos t
 A análise da ficha é gratuita — você gostaria que eu mandasse a análise do {{empresa}}? 😊`,
   },
   {
-    code: "GMB_T3",
+    code: "GMN_T3",
     name: 'T3 — Envia análise após "sim" (Prospecção)',
     stageOrder: 1,
     followUpOrder: 1,
@@ -88,7 +88,7 @@ Aqui está a análise da ficha do {{empresa}}:
 Ela mostra exatamente como está sua presença hoje no Google e o que podemos fazer juntos para melhorar. Qualquer dúvida, pode falar comigo por aqui!`,
   },
   {
-    code: "GMB_T4",
+    code: "GMN_T4",
     name: "T4 — Follow-up sem resposta ao T2B (Prospecção)",
     stageOrder: 0,
     followUpOrder: 2,
@@ -104,7 +104,7 @@ Sei como pode ser corrida a vida de quem tem empresa, mas queria confirmar se vo
 Ainda consigo encaixar com a minha equipe para fazer a análise do {{empresa}} essa semana. Você tem interesse em receber? 😊`,
   },
   {
-    code: "GMB_T5",
+    code: "GMN_T5",
     name: "T5 — Follow-up 1 da análise (Ambos)",
     stageOrder: 2,
     followUpOrder: 1,
@@ -120,7 +120,7 @@ Queria saber se você teve a chance de conferir a análise da ficha do {{empresa
 O que achou? 😊`,
   },
   {
-    code: "GMB_T6",
+    code: "GMN_T6",
     name: "T6 — Follow-up 2 da análise (Ambos)",
     stageOrder: 2,
     followUpOrder: 2,
@@ -135,7 +135,7 @@ Oii, {{nome}}! Tudo bem?
 Prometo que é a última vez que pergunto sobre a análise do {{empresa}} por enquanto. 😄 Conseguiu dar uma olhada?`,
   },
   {
-    code: "GMB_T7",
+    code: "GMN_T7",
     name: "T7 — Último toque da análise (Ambos)",
     stageOrder: 2,
     followUpOrder: 3,
@@ -151,7 +151,7 @@ Passando para avisar que o link com a análise da ficha do {{empresa}} vai sair 
 Se tiver interesse em conferir antes, é só me falar! 😊`,
   },
   {
-    code: "GMB_T8",
+    code: "GMN_T8",
     name: "T8 — Apresenta proposta após feedback (Ambos)",
     stageOrder: 3,
     followUpOrder: 1,
@@ -167,7 +167,7 @@ Que bom que você conferiu, {{nome}}!
 E aí, o que acha de a gente começar a melhorar a visibilidade do {{empresa}} no Google? 😊`,
   },
   {
-    code: "GMB_T9",
+    code: "GMN_T9",
     name: "T9 — Follow-up da proposta (Ambos)",
     stageOrder: 3,
     followUpOrder: 2,

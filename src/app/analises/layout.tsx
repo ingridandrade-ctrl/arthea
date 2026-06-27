@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    default: "Análise GMB · Arthea",
+    default: "Análise GMN · Arthea",
     template: "Análise · %s · Arthea",
   },
   description: "Diagnóstico exclusivo do Google Meu Negócio.",

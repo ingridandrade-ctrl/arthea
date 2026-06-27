@@ -156,7 +156,7 @@ const PAID_TRAFFIC_TEMPLATE: EngagementTemplate = {
 
 export const ENGAGEMENT_TEMPLATES: Partial<Record<EngagementType, EngagementTemplate>> = {
   PAID_TRAFFIC: PAID_TRAFFIC_TEMPLATE,
-  // STRATEGY, LANDING_PAGE, GMB virão depois — pra cada uma vamos modelar
+  // STRATEGY, LANDING_PAGE, GMN virão depois — pra cada uma vamos modelar
   // junto, igual fizemos com a Perso pra Tráfego Pago.
 };
 

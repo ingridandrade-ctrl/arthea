@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { ensureGmbTemplates } from "@/lib/followups/bootstrap";
+import { ensureGmnTemplates } from "@/lib/followups/bootstrap";
 
 export async function POST() {
   const session = (await getServerSession(authOptions)) as any;
@@ -9,6 +9,6 @@ export async function POST() {
   if (session.user?.role !== "ADMIN") {
     return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
-  const result = await ensureGmbTemplates();
+  const result = await ensureGmnTemplates();
   return NextResponse.json({ ok: true, ...result });
 }
