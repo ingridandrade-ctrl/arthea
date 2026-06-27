@@ -1,59 +1,42 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  FileText,
-  Edit3,
-  Check,
-  X,
-  ToggleLeft,
-  ToggleRight,
-  Zap,
-  Bell,
-} from "lucide-react";
-
-const STAGE_NAMES: Record<number, string> = {
-  0: "Novo Lead",
-  1: "Em Contato",
-  2: "Briefing Realizado",
-  3: "Proposta Enviada",
-  4: "Negociação",
-  5: "Fechado Ganho",
-  6: "Fechado Perdido",
-};
-
-const STAGE_COLORS: Record<number, string> = {
-  0: "#94a3b8",
-  1: "#3b82f6",
-  2: "#8b5cf6",
-  3: "#f59e0b",
-  4: "#f97316",
-  5: "#22c55e",
-  6: "#ef4444",
-};
+import { useEffect, useState, useMemo } from "react";
+import { Edit3, Check, X, ToggleLeft, ToggleRight, Zap, Bell } from "lucide-react";
 
 const VARIABLES = [
   { key: "{{nome}}", label: "Nome do lead" },
-  { key: "{{servico}}", label: "Serviço(s)" },
   { key: "{{empresa}}", label: "Empresa" },
   { key: "{{telefone}}", label: "Telefone" },
   { key: "{{email}}", label: "Email" },
+  { key: "{{servico}}", label: "Serviço(s)" },
+  { key: "{{segmento}}", label: "Segmento (GMB)" },
+  { key: "{{cidadeEstado}}", label: "Cidade/Estado (GMB)" },
+  { key: "{{linkAnalise}}", label: "Link da análise (GMB)" },
 ];
 
 interface Template {
   id: string;
+  code: string | null;
   name: string;
+  serviceId: string | null;
   stageOrder: number;
   followUpOrder: number;
   channel: string;
   messageTemplate: string;
   isAutomatic: boolean;
   isActive: boolean;
+  condition: any;
+  service: { id: string; name: string; slug: string; color: string } | null;
+  stageName: string;
+  stageColor: string;
 }
+
+const GENERIC_KEY = "__generic__";
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>(GENERIC_KEY);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Template>>({});
 
@@ -61,7 +44,7 @@ export default function TemplatesPage() {
     setLoading(true);
     const res = await fetch("/api/followup-templates");
     const data = await res.json();
-    setTemplates(data);
+    setTemplates(Array.isArray(data) ? data : []);
     setLoading(false);
   }
 
@@ -116,17 +99,49 @@ export default function TemplatesPage() {
   function previewMessage(template: string) {
     return template
       .replace(/\{\{nome\}\}/g, "Maria Silva")
-      .replace(/\{\{servico\}\}/g, "Trafego Pago")
-      .replace(/\{\{empresa\}\}/g, "Silva & Associados")
+      .replace(/\{\{servico\}\}/g, "Google Meu Negócio")
+      .replace(/\{\{empresa\}\}/g, "Clínica Exemplo")
       .replace(/\{\{telefone\}\}/g, "+5511999001001")
-      .replace(/\{\{email\}\}/g, "maria@empresa.com");
+      .replace(/\{\{email\}\}/g, "maria@empresa.com")
+      .replace(/\{\{segmento\}\}/g, "Saúde")
+      .replace(/\{\{cidadeEstado\}\}/g, "São Paulo / SP")
+      .replace(/\{\{linkAnalise\}\}/g, "https://gbpcheck.com/exemplo");
   }
 
-  // Group templates by stage
-  const groupedByStage: Record<number, Template[]> = {};
-  for (const t of templates) {
-    if (!groupedByStage[t.stageOrder]) groupedByStage[t.stageOrder] = [];
-    groupedByStage[t.stageOrder].push(t);
+  const tabs = useMemo(() => {
+    const map = new Map<string, { key: string; label: string; color: string }>();
+    map.set(GENERIC_KEY, { key: GENERIC_KEY, label: "Genérico", color: "#94a3b8" });
+    for (const t of templates) {
+      if (t.service) {
+        if (!map.has(t.service.id)) {
+          map.set(t.service.id, { key: t.service.id, label: t.service.name, color: t.service.color });
+        }
+      }
+    }
+    return Array.from(map.values());
+  }, [templates]);
+
+  const filtered = useMemo(() => {
+    if (activeTab === GENERIC_KEY) return templates.filter((t) => !t.serviceId);
+    return templates.filter((t) => t.serviceId === activeTab);
+  }, [templates, activeTab]);
+
+  const grouped = useMemo(() => {
+    const m = new Map<number, { name: string; color: string; items: Template[] }>();
+    for (const t of filtered) {
+      const g = m.get(t.stageOrder);
+      if (g) g.items.push(t);
+      else m.set(t.stageOrder, { name: t.stageName, color: t.stageColor, items: [t] });
+    }
+    return Array.from(m.entries()).sort(([a], [b]) => a - b);
+  }, [filtered]);
+
+  function conditionLabel(condition: any) {
+    if (!condition || typeof condition !== "object") return null;
+    if (condition.origem === "forms") return "Forms site";
+    if (condition.origem === "prospeccao") return "Prospecção";
+    if (condition.origem === "indicacao") return "Indicação";
+    return null;
   }
 
   if (loading) {
@@ -139,24 +154,43 @@ export default function TemplatesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Templates de Follow-up</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Edite os templates para economizar creditos da IA. Mensagens automaticas usam estes templates em vez de chamar a IA.
-          </p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold">Templates de Follow-up</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Mensagens prontas que disparam quando o lead entra num estágio. Cada serviço pode ter seus próprios templates.
+        </p>
+      </div>
+
+      {/* Tabs por serviço */}
+      <div className="flex gap-1 border-b border-border overflow-x-auto">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                isActive
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+              style={isActive ? { borderColor: tab.color } : undefined}
+            >
+              <span className="inline-flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full" style={{ background: tab.color }} />
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Variables reference */}
       <div className="bg-card rounded-xl border border-border p-4">
-        <h3 className="text-sm font-semibold mb-2">Variaveis disponiveis</h3>
+        <h3 className="text-sm font-semibold mb-2">Variáveis disponíveis</h3>
         <div className="flex flex-wrap gap-2">
           {VARIABLES.map((v) => (
-            <span
-              key={v.key}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs"
-            >
+            <span key={v.key} className="inline-flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs">
               <code className="font-mono text-primary">{v.key}</code>
               <span className="text-muted-foreground">- {v.label}</span>
             </span>
@@ -164,190 +198,157 @@ export default function TemplatesPage() {
         </div>
       </div>
 
-      {/* Templates by stage */}
-      {Object.entries(groupedByStage)
-        .sort(([a], [b]) => Number(a) - Number(b))
-        .map(([stageOrder, stageTemplates]) => (
+      {grouped.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          Nenhum template cadastrado pra esse serviço.
+        </div>
+      ) : (
+        grouped.map(([stageOrder, group]) => (
           <div key={stageOrder} className="space-y-3">
             <div className="flex items-center gap-2">
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: STAGE_COLORS[Number(stageOrder)] }}
-              />
-              <h2 className="text-lg font-semibold">
-                {STAGE_NAMES[Number(stageOrder)] || `Etapa ${stageOrder}`}
-              </h2>
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: group.color }} />
+              <h2 className="text-lg font-semibold">{group.name}</h2>
               <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                {stageTemplates.length} template{stageTemplates.length !== 1 ? "s" : ""}
+                {group.items.length} template{group.items.length !== 1 ? "s" : ""}
               </span>
             </div>
 
             <div className="space-y-2">
-              {stageTemplates
+              {group.items
                 .sort((a, b) => a.followUpOrder - b.followUpOrder)
-                .map((template) => (
-                  <div
-                    key={template.id}
-                    className={`bg-card rounded-xl border p-4 transition ${
-                      template.isActive
-                        ? "border-border"
-                        : "border-border opacity-50"
-                    }`}
-                  >
-                    {editingId === template.id ? (
-                      /* Edit mode */
-                      <div className="space-y-3">
-                        <input
-                          type="text"
-                          value={editForm.name || ""}
-                          onChange={(e) =>
-                            setEditForm({ ...editForm, name: e.target.value })
-                          }
-                          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
-                          placeholder="Nome do template"
-                        />
-                        <textarea
-                          value={editForm.messageTemplate || ""}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              messageTemplate: e.target.value,
-                            })
-                          }
-                          rows={4}
-                          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono"
-                          placeholder="Mensagem do template..."
-                        />
-                        <div className="flex items-center gap-4">
-                          <label className="flex items-center gap-2 text-sm">
+                .map((template) => {
+                  const cond = conditionLabel(template.condition);
+                  return (
+                    <div
+                      key={template.id}
+                      className={`bg-card rounded-xl border p-4 transition ${
+                        template.isActive ? "border-border" : "border-border opacity-50"
+                      }`}
+                    >
+                      {editingId === template.id ? (
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            value={editForm.name || ""}
+                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                            placeholder="Nome do template"
+                          />
+                          <textarea
+                            value={editForm.messageTemplate || ""}
+                            onChange={(e) => setEditForm({ ...editForm, messageTemplate: e.target.value })}
+                            rows={6}
+                            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono"
+                            placeholder="Mensagem do template..."
+                          />
+                          <div className="flex items-center gap-4">
                             <select
                               value={editForm.channel || "whatsapp"}
-                              onChange={(e) =>
-                                setEditForm({
-                                  ...editForm,
-                                  channel: e.target.value,
-                                })
-                              }
+                              onChange={(e) => setEditForm({ ...editForm, channel: e.target.value })}
                               className="px-2 py-1 rounded border border-border bg-background text-sm"
                             >
                               <option value="whatsapp">WhatsApp</option>
                               <option value="internal">Lembrete interno</option>
                             </select>
-                          </label>
-                          <label className="flex items-center gap-2 text-sm">
-                            <input
-                              type="checkbox"
-                              checked={editForm.isAutomatic || false}
-                              onChange={(e) =>
-                                setEditForm({
-                                  ...editForm,
-                                  isAutomatic: e.target.checked,
-                                })
-                              }
-                            />
-                            Envio automatico
-                          </label>
-                        </div>
-                        {/* Preview */}
-                        <div className="bg-muted/50 rounded-lg p-3">
-                          <p className="text-xs font-semibold text-muted-foreground mb-1">
-                            Preview:
-                          </p>
-                          <p className="text-sm">
-                            {previewMessage(editForm.messageTemplate || "")}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => saveEdit(template.id)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm"
-                          >
-                            <Check className="w-4 h-4" /> Salvar
-                          </button>
-                          <button
-                            onClick={cancelEdit}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-sm"
-                          >
-                            <X className="w-4 h-4" /> Cancelar
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      /* View mode */
-                      <div>
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
-                              #{template.followUpOrder}
-                            </span>
-                            <h3 className="text-sm font-semibold">
-                              {template.name}
-                            </h3>
-                            {template.isAutomatic ? (
-                              <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                                <Zap className="w-3 h-3" /> Automatico
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                                <Bell className="w-3 h-3" /> Lembrete
-                              </span>
-                            )}
-                            <span className="text-xs text-muted-foreground">
-                              {template.channel === "whatsapp"
-                                ? "WhatsApp"
-                                : "Interno"}
-                            </span>
+                            <label className="flex items-center gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={editForm.isAutomatic || false}
+                                onChange={(e) => setEditForm({ ...editForm, isAutomatic: e.target.checked })}
+                              />
+                              Envio automático
+                            </label>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="bg-muted/50 rounded-lg p-3">
+                            <p className="text-xs font-semibold text-muted-foreground mb-1">Preview:</p>
+                            <p className="text-sm whitespace-pre-wrap">{previewMessage(editForm.messageTemplate || "")}</p>
+                          </div>
+                          <div className="flex gap-2">
                             <button
-                              onClick={() => startEdit(template)}
-                              className="p-1.5 hover:bg-muted rounded-lg transition"
-                              title="Editar"
+                              onClick={() => saveEdit(template.id)}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm"
                             >
-                              <Edit3 className="w-4 h-4 text-muted-foreground" />
+                              <Check className="w-4 h-4" /> Salvar
                             </button>
                             <button
-                              onClick={() => toggleAutomatic(template)}
-                              className="p-1.5 hover:bg-muted rounded-lg transition"
-                              title={
-                                template.isAutomatic
-                                  ? "Mudar para lembrete"
-                                  : "Mudar para automatico"
-                              }
+                              onClick={cancelEdit}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-sm"
                             >
-                              {template.isAutomatic ? (
-                                <ToggleRight className="w-5 h-5 text-green-600" />
-                              ) : (
-                                <ToggleLeft className="w-5 h-5 text-muted-foreground" />
+                              <X className="w-4 h-4" /> Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex items-start justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
+                                #{template.followUpOrder}
+                              </span>
+                              <h3 className="text-sm font-semibold">{template.name}</h3>
+                              {template.code && (
+                                <span className="text-[10px] font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                                  {template.code}
+                                </span>
                               )}
-                            </button>
-                            <button
-                              onClick={() => toggleActive(template)}
-                              className={`px-2 py-1 rounded text-xs font-medium ${
-                                template.isActive
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-red-100 text-red-700"
-                              }`}
-                            >
-                              {template.isActive ? "Ativo" : "Inativo"}
-                            </button>
+                              {template.isAutomatic ? (
+                                <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                                  <Zap className="w-3 h-3" /> Automático
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                                  <Bell className="w-3 h-3" /> Lembrete
+                                </span>
+                              )}
+                              <span className="text-xs text-muted-foreground">
+                                {template.channel === "whatsapp" ? "WhatsApp" : "Interno"}
+                              </span>
+                              {cond && (
+                                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                                  Origem: {cond}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => startEdit(template)}
+                                className="p-1.5 hover:bg-muted rounded-lg transition"
+                                title="Editar"
+                              >
+                                <Edit3 className="w-4 h-4 text-muted-foreground" />
+                              </button>
+                              <button
+                                onClick={() => toggleAutomatic(template)}
+                                className="p-1.5 hover:bg-muted rounded-lg transition"
+                                title={template.isAutomatic ? "Mudar para lembrete" : "Mudar para automático"}
+                              >
+                                {template.isAutomatic ? (
+                                  <ToggleRight className="w-5 h-5 text-green-600" />
+                                ) : (
+                                  <ToggleLeft className="w-5 h-5 text-muted-foreground" />
+                                )}
+                              </button>
+                              <button
+                                onClick={() => toggleActive(template)}
+                                className={`px-2 py-1 rounded text-xs font-medium ${
+                                  template.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                }`}
+                              >
+                                {template.isActive ? "Ativo" : "Inativo"}
+                              </button>
+                            </div>
                           </div>
+                          <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">
+                            {template.messageTemplate}
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">
-                          {template.messageTemplate}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           </div>
-        ))}
-
-      {templates.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          Nenhum template encontrado. Execute o seed para criar os templates padrao.
-        </div>
+        ))
       )}
     </div>
   );
