@@ -9,9 +9,9 @@ const VARIABLES = [
   { key: "{{telefone}}", label: "Telefone" },
   { key: "{{email}}", label: "Email" },
   { key: "{{servico}}", label: "Serviço(s)" },
-  { key: "{{segmento}}", label: "Segmento (GMB)" },
-  { key: "{{cidadeEstado}}", label: "Cidade/Estado (GMB)" },
-  { key: "{{linkAnalise}}", label: "Link da análise (GMB)" },
+  { key: "{{segmento}}", label: "Segmento (GMN)" },
+  { key: "{{cidadeEstado}}", label: "Cidade/Estado (GMN)" },
+  { key: "{{linkAnalise}}", label: "Link da análise (GMN)" },
 ];
 
 interface Template {

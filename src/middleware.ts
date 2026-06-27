@@ -70,7 +70,7 @@ export default withAuth(
       return NextResponse.next();
     }
 
-    // ── Subdomínio análises GMB — páginas públicas para leads.
+    // ── Subdomínio análises GMN — páginas públicas para leads.
     if (isAnalisesHost(host)) {
       return NextResponse.next();
     }

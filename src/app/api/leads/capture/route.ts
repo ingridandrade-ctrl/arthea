@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     await scheduleFollowUpsForLeadService(leadService.id, firstStage.id);
 
     // Send any follow-ups scheduled for immediate delivery (delayHours = 0,
-    // whatsapp, automatic) — these are the welcome templates like GMB T1/T2B.
+    // whatsapp, automatic) — these are the welcome templates like GMN T1/T2B.
     const dueNow = await prisma.followUp.findMany({
       where: {
         leadServiceId: leadService.id,
