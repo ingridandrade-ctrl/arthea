@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ensurePipelineForService } from "@/lib/pipeline/bootstrap";
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions) as any;
@@ -15,11 +16,8 @@ export async function GET(request: NextRequest) {
 
   if (serviceSlug && serviceSlug !== "all") {
     lsWhere.service = { slug: serviceSlug };
-    const svc = await prisma.service.findUnique({ where: { slug: serviceSlug }, select: { id: true } });
-    if (svc) {
-      const dedicated = await prisma.pipeline.findUnique({ where: { serviceId: svc.id }, select: { id: true } });
-      pipelineWhere = dedicated ? { id: dedicated.id } : { serviceId: null };
-    }
+    const pipelineId = await ensurePipelineForService(serviceSlug);
+    if (pipelineId) pipelineWhere = { id: pipelineId };
   }
 
   const pipeline = await prisma.pipeline.findFirst({
