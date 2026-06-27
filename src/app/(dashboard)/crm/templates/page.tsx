@@ -35,6 +35,7 @@ const GENERIC_KEY = "__generic__";
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [services, setServices] = useState<{ id: string; name: string; slug: string; color: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>(GENERIC_KEY);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -42,9 +43,14 @@ export default function TemplatesPage() {
 
   async function fetchTemplates() {
     setLoading(true);
-    const res = await fetch("/api/followup-templates");
-    const data = await res.json();
-    setTemplates(Array.isArray(data) ? data : []);
+    const [tRes, sRes] = await Promise.all([
+      fetch("/api/followup-templates"),
+      fetch("/api/services"),
+    ]);
+    const tData = await tRes.json();
+    const sData = await sRes.json();
+    setTemplates(Array.isArray(tData) ? tData : []);
+    setServices(Array.isArray(sData) ? sData : []);
     setLoading(false);
   }
 
@@ -109,17 +115,24 @@ export default function TemplatesPage() {
   }
 
   const tabs = useMemo(() => {
-    const map = new Map<string, { key: string; label: string; color: string }>();
-    map.set(GENERIC_KEY, { key: GENERIC_KEY, label: "Genérico", color: "#94a3b8" });
+    const countByService = new Map<string | null, number>();
     for (const t of templates) {
-      if (t.service) {
-        if (!map.has(t.service.id)) {
-          map.set(t.service.id, { key: t.service.id, label: t.service.name, color: t.service.color });
-        }
-      }
+      const key = t.serviceId ?? null;
+      countByService.set(key, (countByService.get(key) || 0) + 1);
     }
-    return Array.from(map.values());
-  }, [templates]);
+    const list: { key: string; label: string; color: string; count: number }[] = [
+      { key: GENERIC_KEY, label: "Genérico", color: "#94a3b8", count: countByService.get(null) || 0 },
+    ];
+    for (const s of services) {
+      list.push({
+        key: s.id,
+        label: s.name,
+        color: s.color,
+        count: countByService.get(s.id) || 0,
+      });
+    }
+    return list;
+  }, [templates, services]);
 
   const filtered = useMemo(() => {
     if (activeTab === GENERIC_KEY) return templates.filter((t) => !t.serviceId);
@@ -179,6 +192,9 @@ export default function TemplatesPage() {
               <span className="inline-flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full" style={{ background: tab.color }} />
                 {tab.label}
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-mono">
+                  {tab.count}
+                </span>
               </span>
             </button>
           );
