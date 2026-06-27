@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
+import { getServiceFields, type ServiceField } from "@/lib/service-fields";
 
 export default function LeadDetailPage() {
   const params = useParams();
@@ -150,6 +151,8 @@ export default function LeadDetailPage() {
                     stages={stages}
                     onChanged={fetchLead}
                   />
+
+                  <ServiceCustomFields leadService={ls} onSaved={fetchLead} />
 
                   {ls.followUps?.length > 0 && (
                     <div className="mt-2 space-y-1">
@@ -663,5 +666,132 @@ function EditLeadForm({
         {loading ? "Salvando..." : "Salvar"}
       </button>
     </form>
+  );
+}
+
+function ServiceCustomFields({
+  leadService,
+  onSaved,
+}: {
+  leadService: any;
+  onSaved: () => void;
+}) {
+  const fields = getServiceFields(leadService.service.slug);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [values, setValues] = useState<Record<string, string>>(
+    () => (leadService.customData as Record<string, string>) || {}
+  );
+
+  if (fields.length === 0) return null;
+
+  const filled = fields.filter((f) => values[f.key] && String(values[f.key]).trim() !== "");
+
+  async function save() {
+    setSaving(true);
+    const res = await fetch(`/api/deals/${leadService.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customData: values }),
+    });
+    setSaving(false);
+    if (res.ok) {
+      setEditing(false);
+      onSaved();
+    }
+  }
+
+  function getOptionLabel(field: ServiceField, value: string) {
+    if (field.type !== "select" || !field.options) return value;
+    return field.options.find((o) => o.value === value)?.label || value;
+  }
+
+  if (!editing) {
+    return (
+      <div className="mt-2 border-t border-border pt-2">
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-xs font-semibold text-muted-foreground">
+            Detalhes do serviço ({filled.length}/{fields.length} preenchidos)
+          </p>
+          <button
+            onClick={() => setEditing(true)}
+            className="text-xs text-primary hover:underline"
+          >
+            {filled.length === 0 ? "Preencher" : "Editar"}
+          </button>
+        </div>
+        {filled.length > 0 && (
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+            {filled.map((f) => (
+              <div key={f.key} className="truncate">
+                <span className="text-muted-foreground">{f.label}: </span>
+                <span className="font-medium">{getOptionLabel(f, values[f.key])}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2 border-t border-border pt-2 space-y-2 bg-muted/30 -mx-3 -mb-3 px-3 pb-3 rounded-b-lg">
+      <p className="text-xs font-semibold text-muted-foreground">Detalhes do serviço</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {fields.map((f) => (
+          <div key={f.key} className={f.type === "textarea" ? "md:col-span-2" : ""}>
+            <label className="text-xs text-muted-foreground block mb-0.5">{f.label}</label>
+            {f.type === "select" ? (
+              <select
+                value={values[f.key] || ""}
+                onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
+                className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">—</option>
+                {f.options?.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            ) : f.type === "textarea" ? (
+              <textarea
+                value={values[f.key] || ""}
+                onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
+                rows={2}
+                placeholder={f.placeholder}
+                className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            ) : (
+              <input
+                type="text"
+                value={values[f.key] || ""}
+                onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
+                placeholder={f.placeholder}
+                className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2 justify-end">
+        <button
+          onClick={() => {
+            setValues((leadService.customData as Record<string, string>) || {});
+            setEditing(false);
+          }}
+          className="px-3 py-1 text-xs rounded border border-border hover:bg-muted"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={save}
+          disabled={saving}
+          className="px-3 py-1 text-xs rounded bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+        >
+          {saving ? "Salvando..." : "Salvar"}
+        </button>
+      </div>
+    </div>
   );
 }

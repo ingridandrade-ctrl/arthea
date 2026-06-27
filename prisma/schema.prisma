@@ -200,6 +200,7 @@ model LeadService {
   stage     PipelineStage? @relation(fields: [stageId], references: [id])
   value     Float?
   closedAt  DateTime?
+  customData Json?
   createdAt DateTime       @default(now())
   updatedAt DateTime       @default(now()) @updatedAt
   followUps FollowUp[]
