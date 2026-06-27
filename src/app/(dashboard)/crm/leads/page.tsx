@@ -6,6 +6,7 @@ import { formatPhone } from "@/lib/utils";
 import { Plus, Search, X, Pencil, Trash2, CheckSquare, Square, MinusSquare } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
+import { getServiceFields, type ServiceField } from "@/lib/service-fields";
 
 interface LeadService {
   service: { id: string; name: string; color: string; slug: string };
@@ -408,6 +409,7 @@ function LeadFormModal({
   const [error, setError] = useState("");
   const [services, setServices] = useState<any[]>([]);
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+  const [serviceCustomData, setServiceCustomData] = useState<Record<string, Record<string, string>>>({});
 
   useEffect(() => {
     fetch("/api/services")
@@ -424,12 +426,26 @@ function LeadFormModal({
     );
   }
 
+  function updateCustomField(serviceId: string, key: string, value: string) {
+    setServiceCustomData((prev) => ({
+      ...prev,
+      [serviceId]: { ...(prev[serviceId] || {}), [key]: value },
+    }));
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     const formData = new FormData(e.currentTarget);
+    const customDataForSubmit: Record<string, Record<string, string>> = {};
+    for (const id of selectedServiceIds) {
+      const data = serviceCustomData[id];
+      if (data && Object.values(data).some((v) => v && String(v).trim() !== "")) {
+        customDataForSubmit[id] = data;
+      }
+    }
     const body = {
       name: formData.get("name"),
       phone: formData.get("phone"),
@@ -437,6 +453,7 @@ function LeadFormModal({
       company: formData.get("company") || undefined,
       source: formData.get("source"),
       serviceIds: selectedServiceIds.length > 0 ? selectedServiceIds : undefined,
+      serviceCustomData: Object.keys(customDataForSubmit).length > 0 ? customDataForSubmit : undefined,
       notes: formData.get("notes") || undefined,
     };
 
@@ -511,6 +528,16 @@ function LeadFormModal({
                   </button>
                 ))}
               </div>
+              {services
+                .filter((s: any) => selectedServiceIds.includes(s.id) && getServiceFields(s.slug).length > 0)
+                .map((s: any) => (
+                  <ServiceFieldsBlock
+                    key={s.id}
+                    service={s}
+                    values={serviceCustomData[s.id] || {}}
+                    onChange={(k, v) => updateCustomField(s.id, k, v)}
+                  />
+                ))}
             </div>
           )}
           <div>
@@ -671,5 +698,66 @@ function SourceBadge({ source }: { source: string }) {
     <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
       {labels[source] || source}
     </span>
+  );
+}
+
+function ServiceFieldsBlock({
+  service,
+  values,
+  onChange,
+}: {
+  service: { name: string; slug: string; color: string };
+  values: Record<string, string>;
+  onChange: (key: string, value: string) => void;
+}) {
+  const fields = getServiceFields(service.slug);
+  if (fields.length === 0) return null;
+
+  return (
+    <div
+      className="mt-3 border-l-2 pl-3 py-2 bg-muted/30 rounded-r"
+      style={{ borderColor: service.color }}
+    >
+      <p className="text-xs font-semibold text-muted-foreground mb-2">
+        Detalhes — {service.name}
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {fields.map((f: ServiceField) => (
+          <div key={f.key} className={f.type === "textarea" ? "md:col-span-2" : ""}>
+            <label className="text-xs text-muted-foreground block mb-0.5">{f.label}</label>
+            {f.type === "select" ? (
+              <select
+                value={values[f.key] || ""}
+                onChange={(e) => onChange(f.key, e.target.value)}
+                className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">—</option>
+                {f.options?.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            ) : f.type === "textarea" ? (
+              <textarea
+                value={values[f.key] || ""}
+                onChange={(e) => onChange(f.key, e.target.value)}
+                rows={2}
+                placeholder={f.placeholder}
+                className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            ) : (
+              <input
+                type="text"
+                value={values[f.key] || ""}
+                onChange={(e) => onChange(f.key, e.target.value)}
+                placeholder={f.placeholder}
+                className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

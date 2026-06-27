@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { name, phone, email, company, source, serviceIds, notes } = body;
+  const { name, phone, email, company, source, serviceIds, serviceCustomData, notes } = body;
 
   if (!name || !phone) {
     return NextResponse.json({ error: "Nome e telefone são obrigatórios" }, { status: 400 });
@@ -71,11 +71,11 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  // Associate services (many-to-many)
   if (serviceIds && Array.isArray(serviceIds)) {
     for (const serviceId of serviceIds) {
+      const customData = serviceCustomData?.[serviceId] || undefined;
       await prisma.leadService.create({
-        data: { leadId: lead.id, serviceId },
+        data: { leadId: lead.id, serviceId, customData },
       });
     }
   }
