@@ -41,9 +41,13 @@ export async function ensurePipelineForService(serviceSlug: string): Promise<str
       await prisma.pipeline.update({ where: { id: existing.id }, data: { name: config.name } });
     }
     // Garante que templates do serviço estejam plugados (idempotente).
-    POST_CREATE_HOOKS[serviceSlug]?.().catch((err) =>
-      console.error(`post-create hook for ${serviceSlug} failed:`, err)
-    );
+    // Aguarda pra que migrações de código (ex: GMB_T1 -> GMN_T1) completem
+    // antes de devolver o controle pra rota que pediu.
+    try {
+      await POST_CREATE_HOOKS[serviceSlug]?.();
+    } catch (err) {
+      console.error(`post-create hook for ${serviceSlug} failed:`, err);
+    }
     return existing.id;
   }
 
