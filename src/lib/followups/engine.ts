@@ -9,7 +9,11 @@ export async function scheduleFollowUpsForLeadService(
     prisma.pipelineStage.findUnique({ where: { id: stageId } }),
     prisma.leadService.findUnique({
       where: { id: leadServiceId },
-      select: { serviceId: true, customData: true },
+      select: {
+        serviceId: true,
+        customData: true,
+        lead: { select: { source: true, status: true } },
+      },
     }),
   ]);
   if (!stage || !leadService) return;
@@ -29,10 +33,15 @@ export async function scheduleFollowUpsForLeadService(
       });
 
   const customData = (leadService.customData || {}) as Record<string, any>;
+  const matchCtx: Record<string, any> = {
+    ...customData,
+    source: leadService.lead.source,
+    status: leadService.lead.status,
+  };
   const now = new Date();
 
   for (const template of templates) {
-    if (!matchesCondition(template.condition as any, customData)) continue;
+    if (!matchesCondition(template.condition as any, matchCtx)) continue;
 
     const existing = await prisma.followUp.findFirst({
       where: {
@@ -65,11 +74,11 @@ export async function scheduleFollowUpsForLeadService(
 
 function matchesCondition(
   condition: Record<string, any> | null,
-  customData: Record<string, any>,
+  ctx: Record<string, any>,
 ): boolean {
   if (!condition) return true;
   for (const [key, expected] of Object.entries(condition)) {
-    if (customData[key] !== expected) return false;
+    if (ctx[key] !== expected) return false;
   }
   return true;
 }

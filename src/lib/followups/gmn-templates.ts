@@ -15,7 +15,7 @@ export interface GmnTemplate {
   channel: "whatsapp" | "internal";
   isAutomatic: boolean;
   delayHoursOverride: number | null;
-  condition: { origem?: "forms" | "prospeccao" } | null;
+  condition: { source?: "FORMS" | "PROSPECCAO" | "INDICACAO" } | null;
   messageTemplate: string;
 }
 
@@ -28,7 +28,7 @@ export const GMN_TEMPLATES: GmnTemplate[] = [
     channel: "whatsapp",
     isAutomatic: true,
     delayHoursOverride: 0,
-    condition: { origem: "forms" },
+    condition: { source: "FORMS" },
     messageTemplate:
 `Oii, {{nome}}! Tudo bem?
 Aqui é a Ingrid, estrategista da Arthea!
@@ -44,7 +44,7 @@ Obrigada! 😊`,
     channel: "whatsapp",
     isAutomatic: true,
     delayHoursOverride: 0,
-    condition: { origem: "forms" },
+    condition: { source: "FORMS" },
     messageTemplate:
 `Oii, {{nome}}! Tudo bem por aí?
 Ótimas notícias! A análise da ficha do {{empresa}} no Google já está pronta.
@@ -60,7 +60,7 @@ Esperamos que goste bastante e aguardamos seu feedback! 😊`,
     channel: "whatsapp",
     isAutomatic: true,
     delayHoursOverride: 0,
-    condition: { origem: "prospeccao" },
+    condition: { source: "PROSPECCAO" },
     messageTemplate:
 `Oii, {{nome}}! Tudo bem?
 Me chamo Ingrid, sou estrategista digital da Arthea. A Arthea é uma agência de marketing especializada em posicionamento para negócios através do Google Meu Negócio.
@@ -78,7 +78,7 @@ A análise da ficha é gratuita — você gostaria que eu mandasse a análise do
     channel: "internal",
     isAutomatic: false,
     delayHoursOverride: 0,
-    condition: { origem: "prospeccao" },
+    condition: { source: "PROSPECCAO" },
     messageTemplate:
 `Sugestão de mensagem pra {{nome}}:
 
@@ -95,7 +95,7 @@ Ela mostra exatamente como está sua presença hoje no Google e o que podemos fa
     channel: "internal",
     isAutomatic: false,
     delayHoursOverride: 60,
-    condition: { origem: "prospeccao" },
+    condition: { source: "PROSPECCAO" },
     messageTemplate:
 `Sugestão de mensagem pra {{nome}}:
 

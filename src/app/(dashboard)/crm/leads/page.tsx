@@ -8,7 +8,7 @@ import { Modal } from "@/components/ui/modal";
 import { getServiceFields, type ServiceField } from "@/lib/service-fields";
 import { LEAD_STATUSES, getLeadStatusLabel, getLeadStatusColor } from "@/lib/lead-status";
 import { FilterBar, getDateRange, type DatePreset, type FilterService } from "@/components/crm/filter-bar";
-import { getSourceLabel, getSourceColor } from "@/lib/lead-source";
+import { LEAD_SOURCES, getSourceLabel, getSourceColor } from "@/lib/lead-source";
 
 interface LeadService {
   id: string;
@@ -446,8 +446,12 @@ function LeadFormModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [services, setServices] = useState<any[]>([]);
+  const [stagesByService, setStagesByService] = useState<Record<string, any[]>>({});
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [serviceCustomData, setServiceCustomData] = useState<Record<string, Record<string, string>>>({});
+  const [serviceStages, setServiceStages] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState("ATIVO");
+  const [source, setSource] = useState("PROSPECCAO");
 
   useEffect(() => {
     fetch("/api/services")
@@ -457,6 +461,24 @@ function LeadFormModal({
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    for (const id of selectedServiceIds) {
+      if (stagesByService[id]) continue;
+      const svc = services.find((s: any) => s.id === id);
+      if (!svc) continue;
+      fetch(`/api/pipeline/stages?service=${svc.slug}`)
+        .then((r) => r.json())
+        .then((data) => {
+          const stages = data?.stages || [];
+          setStagesByService((prev) => ({ ...prev, [id]: stages }));
+          setServiceStages((prev) =>
+            prev[id] ? prev : { ...prev, [id]: stages[0]?.id || "" }
+          );
+        })
+        .catch(() => {});
+    }
+  }, [selectedServiceIds, services, stagesByService]);
 
   function toggleService(id: string) {
     setSelectedServiceIds((prev) =>
@@ -484,14 +506,20 @@ function LeadFormModal({
         customDataForSubmit[id] = data;
       }
     }
+    const stageForSubmit: Record<string, string> = {};
+    for (const id of selectedServiceIds) {
+      if (serviceStages[id]) stageForSubmit[id] = serviceStages[id];
+    }
     const body = {
       name: formData.get("name"),
       phone: formData.get("phone"),
       email: formData.get("email") || undefined,
       company: formData.get("company") || undefined,
-      source: formData.get("source"),
+      source,
+      status,
       serviceIds: selectedServiceIds.length > 0 ? selectedServiceIds : undefined,
       serviceCustomData: Object.keys(customDataForSubmit).length > 0 ? customDataForSubmit : undefined,
+      serviceStages: Object.keys(stageForSubmit).length > 0 ? stageForSubmit : undefined,
       notes: formData.get("notes") || undefined,
     };
 
@@ -513,7 +541,7 @@ function LeadFormModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-card rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Novo Lead</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
@@ -542,6 +570,33 @@ function LeadFormModal({
             <label className="block text-sm font-medium mb-1">Empresa</label>
             <input name="company" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1">Origem *</label>
+              <select
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {LEAD_SOURCES.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Status *</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {LEAD_STATUSES.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           {services.length > 0 && (
             <div>
               <label className="block text-sm font-medium mb-1">Serviços</label>
@@ -566,27 +621,50 @@ function LeadFormModal({
                   </button>
                 ))}
               </div>
+
               {services
-                .filter((s: any) => selectedServiceIds.includes(s.id) && getServiceFields(s.slug).length > 0)
-                .map((s: any) => (
-                  <ServiceFieldsBlock
-                    key={s.id}
-                    service={s}
-                    values={serviceCustomData[s.id] || {}}
-                    onChange={(k, v) => updateCustomField(s.id, k, v)}
-                  />
-                ))}
+                .filter((s: any) => selectedServiceIds.includes(s.id))
+                .map((s: any) => {
+                  const stages = stagesByService[s.id] || [];
+                  const fields = getServiceFields(s.slug);
+                  return (
+                    <div
+                      key={s.id}
+                      className="mt-3 border-l-2 pl-3 py-2 bg-muted/30 rounded-r space-y-2"
+                      style={{ borderColor: s.color }}
+                    >
+                      <p className="text-xs font-semibold text-muted-foreground">
+                        {s.name}
+                      </p>
+                      {stages.length > 0 && (
+                        <div>
+                          <label className="text-xs text-muted-foreground block mb-0.5">Etapa inicial</label>
+                          <select
+                            value={serviceStages[s.id] || ""}
+                            onChange={(e) =>
+                              setServiceStages((prev) => ({ ...prev, [s.id]: e.target.value }))
+                            }
+                            className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                          >
+                            {stages.map((st: any) => (
+                              <option key={st.id} value={st.id}>{st.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      {fields.length > 0 && (
+                        <ServiceFieldsBlock
+                          service={s}
+                          values={serviceCustomData[s.id] || {}}
+                          onChange={(k, v) => updateCustomField(s.id, k, v)}
+                          inline
+                        />
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           )}
-          <div>
-            <label className="block text-sm font-medium mb-1">Origem</label>
-            <select name="source" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-              <option value="MANUAL">Manual</option>
-              <option value="WHATSAPP">WhatsApp</option>
-              <option value="WEBSITE">Website</option>
-              <option value="REFERRAL">Indicação</option>
-            </select>
-          </div>
           <div>
             <label className="block text-sm font-medium mb-1">Observações</label>
             <textarea name="notes" rows={3} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
@@ -752,13 +830,55 @@ function ServiceFieldsBlock({
   service,
   values,
   onChange,
+  inline = false,
 }: {
   service: { name: string; slug: string; color: string };
   values: Record<string, string>;
   onChange: (key: string, value: string) => void;
+  inline?: boolean;
 }) {
   const fields = getServiceFields(service.slug);
   if (fields.length === 0) return null;
+
+  const grid = (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      {fields.map((f: ServiceField) => (
+        <div key={f.key} className={f.type === "textarea" ? "md:col-span-2" : ""}>
+          <label className="text-xs text-muted-foreground block mb-0.5">{f.label}</label>
+          {f.type === "select" ? (
+            <select
+              value={values[f.key] || ""}
+              onChange={(e) => onChange(f.key, e.target.value)}
+              className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="">—</option>
+              {f.options?.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          ) : f.type === "textarea" ? (
+            <textarea
+              value={values[f.key] || ""}
+              onChange={(e) => onChange(f.key, e.target.value)}
+              rows={2}
+              placeholder={f.placeholder}
+              className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          ) : (
+            <input
+              type="text"
+              value={values[f.key] || ""}
+              onChange={(e) => onChange(f.key, e.target.value)}
+              placeholder={f.placeholder}
+              className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
+  if (inline) return grid;
 
   return (
     <div
@@ -768,43 +888,7 @@ function ServiceFieldsBlock({
       <p className="text-xs font-semibold text-muted-foreground mb-2">
         Detalhes — {service.name}
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        {fields.map((f: ServiceField) => (
-          <div key={f.key} className={f.type === "textarea" ? "md:col-span-2" : ""}>
-            <label className="text-xs text-muted-foreground block mb-0.5">{f.label}</label>
-            {f.type === "select" ? (
-              <select
-                value={values[f.key] || ""}
-                onChange={(e) => onChange(f.key, e.target.value)}
-                className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="">—</option>
-                {f.options?.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            ) : f.type === "textarea" ? (
-              <textarea
-                value={values[f.key] || ""}
-                onChange={(e) => onChange(f.key, e.target.value)}
-                rows={2}
-                placeholder={f.placeholder}
-                className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            ) : (
-              <input
-                type="text"
-                value={values[f.key] || ""}
-                onChange={(e) => onChange(f.key, e.target.value)}
-                placeholder={f.placeholder}
-                className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            )}
-          </div>
-        ))}
-      </div>
+      {grid}
     </div>
   );
 }

@@ -151,9 +151,9 @@ export default function TemplatesPage() {
 
   function conditionLabel(condition: any) {
     if (!condition || typeof condition !== "object") return null;
-    if (condition.origem === "forms") return "Forms site";
-    if (condition.origem === "prospeccao") return "Prospecção";
-    if (condition.origem === "indicacao") return "Indicação";
+    if (condition.source === "FORMS") return "Forms site";
+    if (condition.source === "PROSPECCAO") return "Prospecção";
+    if (condition.source === "INDICACAO") return "Indicação";
     return null;
   }
 
