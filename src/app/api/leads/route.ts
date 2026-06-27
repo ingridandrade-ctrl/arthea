@@ -4,10 +4,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
-  // TEMP DIAG: confirm new deploy is live
-  if (new URL(request.url).searchParams.get("ping") === "1") {
-    return NextResponse.json({ pong: true, commit: "diag-v2" });
-  }
   try {
     const session = await getServerSession(authOptions) as any;
     if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
