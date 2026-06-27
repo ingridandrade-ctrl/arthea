@@ -10,24 +10,21 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const serviceSlug = searchParams.get("service");
 
-  // Build deal filter for service tag filtering
-  const dealWhere: any = {};
+  const lsWhere: any = {};
   if (serviceSlug && serviceSlug !== "all") {
-    dealWhere.service = { slug: serviceSlug };
+    lsWhere.service = { slug: serviceSlug };
   }
 
-  // Single pipeline — get the first (and only) pipeline
   const pipeline = await prisma.pipeline.findFirst({
     include: {
       stages: {
         orderBy: { order: "asc" },
         include: {
-          deals: {
-            where: dealWhere,
+          leadServices: {
+            where: lsWhere,
             take: 20,
             select: {
               id: true,
-              title: true,
               value: true,
               stageId: true,
               createdAt: true,
@@ -39,7 +36,6 @@ export async function GET(request: NextRequest) {
                 },
               },
               service: { select: { id: true, name: true, color: true } },
-              assignedTo: { select: { id: true, name: true } },
             },
             orderBy: { createdAt: "desc" },
           },

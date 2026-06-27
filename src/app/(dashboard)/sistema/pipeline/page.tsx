@@ -19,7 +19,7 @@ interface Stage {
   name: string;
   order: number;
   color: string;
-  dealCount: number;
+  leadServiceCount: number;
 }
 
 const PRESET_COLORS = [
@@ -120,7 +120,7 @@ export default function PipelineSettingsPage() {
               <span />
               <span>Fase</span>
               <span className="text-center">Cor</span>
-              <span className="text-center">Deals</span>
+              <span className="text-center">Servicos</span>
               <span className="text-right">Ações</span>
             </div>
 
@@ -170,10 +170,10 @@ export default function PipelineSettingsPage() {
                   </span>
                 </div>
 
-                {/* Deal count */}
+                {/* Service count */}
                 <div className="text-center">
-                  <span className={`text-sm font-medium ${stage.dealCount > 0 ? "text-foreground" : "text-muted-foreground"}`}>
-                    {stage.dealCount}
+                  <span className={`text-sm font-medium ${stage.leadServiceCount > 0 ? "text-foreground" : "text-muted-foreground"}`}>
+                    {stage.leadServiceCount}
                   </span>
                 </div>
 
@@ -251,14 +251,14 @@ export default function PipelineSettingsPage() {
       {deletingStage && (
         <Modal title="Excluir Fase" onClose={() => setDeletingStage(null)}>
           <div className="space-y-4">
-            {deletingStage.dealCount > 0 ? (
+            {deletingStage.leadServiceCount > 0 ? (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-amber-800">
                   <p className="font-medium">Não é possível excluir</p>
                   <p className="mt-0.5">
-                    Existem <strong>{deletingStage.dealCount} deal(s)</strong> nesta fase.
-                    Mova os deals para outra fase antes de excluir.
+                    Existem <strong>{deletingStage.leadServiceCount} servico(s)</strong> nesta fase.
+                    Mova os servicos para outra fase antes de excluir.
                   </p>
                 </div>
               </div>
@@ -272,9 +272,9 @@ export default function PipelineSettingsPage() {
                 onClick={() => setDeletingStage(null)}
                 className="flex-1 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-muted transition"
               >
-                {deletingStage.dealCount > 0 ? "Entendi" : "Cancelar"}
+                {deletingStage.leadServiceCount > 0 ? "Entendi" : "Cancelar"}
               </button>
-              {deletingStage.dealCount === 0 && (
+              {deletingStage.leadServiceCount === 0 && (
                 <button
                   onClick={handleDelete}
                   disabled={deletingLoading}

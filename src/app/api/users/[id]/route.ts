@@ -51,7 +51,6 @@ export async function DELETE(
     await prisma.$transaction([
       prisma.task.updateMany({ where: { assignedToId: params.id }, data: { assignedToId: null } }),
       prisma.task.deleteMany({ where: { createdById: params.id } }),
-      prisma.deal.updateMany({ where: { assignedToId: params.id }, data: { assignedToId: null } }),
       prisma.message.updateMany({ where: { sentByUserId: params.id }, data: { sentByUserId: null } }),
       prisma.activity.deleteMany({ where: { userId: params.id } }),
       prisma.notification.deleteMany({ where: { userId: params.id } }),

@@ -31,7 +31,7 @@ export default async function SobreSistemaPage() {
   const [
     userCount,
     leadCount,
-    dealCount,
+    leadServiceCount,
     serviceCount,
     automationCount,
     templateCount,
@@ -40,7 +40,7 @@ export default async function SobreSistemaPage() {
   ] = await Promise.all([
     prisma.user.count(),
     prisma.lead.count(),
-    prisma.deal.count(),
+    prisma.leadService.count(),
     prisma.service.count(),
     prisma.automation.count(),
     prisma.followUpTemplate.count(),
@@ -52,20 +52,10 @@ export default async function SobreSistemaPage() {
     }),
   ]);
 
-  const aiConfig = await prisma.aiConfig.findUnique({ where: { id: "default" } });
-
   const whatsappConfigured = !!(process.env.WHATSAPP_API_TOKEN && process.env.WHATSAPP_PHONE_ID);
   const aiConfigured = !!(process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY);
   const metaConnected = metaConnections.some((c) => c.status === "ACTIVE");
   const googleConnected = googleConnection?.status === "ACTIVE";
-
-  const MODEL_LABELS: Record<string, string> = {
-    "claude-sonnet-4-6": "Claude Sonnet 4.6",
-    "claude-opus-4-8": "Claude Opus 4.8",
-    "claude-sonnet-4-20250514": "Claude Sonnet 4",
-    "claude-haiku-4-5-20251001": "Claude Haiku 4.5",
-  };
-  const aiModelLabel = MODEL_LABELS[aiConfig?.model || ""] || "Claude Sonnet 4";
 
   return (
     <div className="space-y-6">
@@ -92,7 +82,7 @@ export default async function SobreSistemaPage() {
           <IntegrationStatus
             icon={Bot}
             name="IA / Chatbot"
-            description={`${aiModelLabel} · ${aiConfig?.active !== false ? "Ativo" : "Desativado"}`}
+            description={aiConfigured ? "Ativo" : "Desativado"}
             configured={aiConfigured}
             color="text-orange-600"
             bg="bg-orange-50"
@@ -125,7 +115,7 @@ export default async function SobreSistemaPage() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <StatCard icon={Users} label="Usuários" value={userCount} color="text-blue-600" bg="bg-blue-50" />
           <StatCard icon={Users} label="Leads" value={leadCount} color="text-teal-600" bg="bg-teal-50" />
-          <StatCard icon={KanbanSquare} label="Deals" value={dealCount} color="text-indigo-600" bg="bg-indigo-50" />
+          <StatCard icon={KanbanSquare} label="Serviços em negociação" value={leadServiceCount} color="text-indigo-600" bg="bg-indigo-50" />
           <StatCard icon={Briefcase} label="Serviços" value={serviceCount} color="text-orange-600" bg="bg-orange-50" />
           <StatCard icon={Zap} label="Automações" value={automationCount} color="text-yellow-600" bg="bg-yellow-50" />
           <StatCard icon={FileText} label="Templates" value={templateCount} color="text-purple-600" bg="bg-purple-50" />

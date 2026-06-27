@@ -153,33 +153,33 @@ export default function RelatoriosPage() {
           </div>
         </div>
 
-        {/* Top Deals */}
+        {/* Top Servicos */}
         <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-yellow-50 p-2 rounded-lg">
               <Trophy className="w-5 h-5 text-yellow-600" />
             </div>
-            <h2 className="text-lg font-semibold">Top Deals</h2>
+            <h2 className="text-lg font-semibold">Maiores Negociacoes</h2>
           </div>
           <div className="space-y-3">
-            {data.topDeals.map((deal, i) => (
-              <div key={deal.id} className="flex items-center gap-3">
+            {data.topDeals.map((item, i) => (
+              <div key={item.id} className="flex items-center gap-3">
                 <span className="text-lg font-bold text-muted-foreground w-6">
                   {i + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{deal.title}</p>
+                  <p className="text-sm font-medium truncate">{item.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    {deal.leadName} · {deal.stage}
+                    {item.leadName} · {item.stage}
                   </p>
                 </div>
                 <span className="text-sm font-semibold text-green-600">
-                  {formatCurrency(deal.value)}
+                  {formatCurrency(item.value)}
                 </span>
               </div>
             ))}
             {data.topDeals.length === 0 && (
-              <p className="text-sm text-muted-foreground">Nenhum deal encontrado</p>
+              <p className="text-sm text-muted-foreground">Nenhuma negociacao encontrada</p>
             )}
           </div>
         </div>

@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const leadId = searchParams.get("leadId");
-  const dealId = searchParams.get("dealId");
+  const leadServiceId = searchParams.get("leadServiceId");
   const type = searchParams.get("type");
 
   const where: any = {};
@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
   if (leadId) {
     where.leadId = leadId;
   }
-  if (dealId) {
-    where.dealId = dealId;
+  if (leadServiceId) {
+    where.leadServiceId = leadServiceId;
   }
   if (type) {
     where.type = type;
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { type, description, leadId, dealId, metadata } = body;
+  const { type, description, leadId, leadServiceId, metadata } = body;
 
   if (!type || !description) {
     return NextResponse.json({ error: "Tipo e descrição são obrigatórios" }, { status: 400 });
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       type,
       description,
       leadId: leadId || undefined,
-      dealId: dealId || undefined,
+      leadServiceId: leadServiceId || undefined,
       metadata: metadata || undefined,
       userId: (session.user as any).id,
     },

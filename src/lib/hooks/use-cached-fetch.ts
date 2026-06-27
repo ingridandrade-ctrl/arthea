@@ -18,7 +18,10 @@ export function useCachedFetch<T>(url: string, ttlMs = 30000) {
   const refetch = useCallback(async () => {
     try {
       const res = await fetch(url);
-      if (!res.ok) return;
+      if (!res.ok) {
+        if (mountedRef.current) setLoading(false);
+        return;
+      }
       const json = await res.json();
       cache.set(url, { data: json, timestamp: Date.now() });
       if (mountedRef.current) {

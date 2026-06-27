@@ -53,16 +53,16 @@ export async function DELETE(
   try {
     const stage = await prisma.pipelineStage.findUnique({
       where: { id: params.id },
-      include: { _count: { select: { deals: true } } },
+      include: { _count: { select: { leadServices: true } } },
     });
 
     if (!stage) {
       return NextResponse.json({ error: "Fase não encontrada" }, { status: 404 });
     }
 
-    if (stage._count.deals > 0) {
+    if (stage._count.leadServices > 0) {
       return NextResponse.json(
-        { error: `Não é possível excluir: existem ${stage._count.deals} deal(s) nesta fase. Mova os deals antes de excluir.` },
+        { error: `Não é possível excluir: existem ${stage._count.leadServices} lead(s) nesta fase. Mova-os antes de excluir.` },
         { status: 400 }
       );
     }

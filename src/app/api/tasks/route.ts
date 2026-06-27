@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const completed = searchParams.get("completed");
   const priority = searchParams.get("priority");
   const leadId = searchParams.get("leadId");
-  const dealId = searchParams.get("dealId");
+  const leadServiceId = searchParams.get("leadServiceId");
   const overdue = searchParams.get("overdue");
 
   const where: any = {};
@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
   if (leadId) {
     where.leadId = leadId;
   }
-  if (dealId) {
-    where.dealId = dealId;
+  if (leadServiceId) {
+    where.leadServiceId = leadServiceId;
   }
   if (overdue === "true") {
     where.completed = false;
@@ -62,10 +62,10 @@ export async function GET(request: NextRequest) {
       priority: true,
       createdAt: true,
       leadId: true,
-      dealId: true,
+      leadServiceId: true,
       assignedToId: true,
       lead: { select: { id: true, name: true } },
-      deal: { select: { id: true, title: true } },
+      leadService: { select: { id: true, service: { select: { name: true } } } },
       assignedTo: { select: { id: true, name: true, email: true } },
       createdBy: { select: { id: true, name: true } },
     },
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { title, description, dueDate, priority, leadId, dealId, assignedToId } = body;
+  const { title, description, dueDate, priority, leadId, leadServiceId, assignedToId } = body;
 
   if (!title) {
     return NextResponse.json({ error: "Título é obrigatório" }, { status: 400 });
@@ -97,13 +97,13 @@ export async function POST(request: NextRequest) {
       dueDate: dueDate ? new Date(dueDate) : undefined,
       priority: priority || "medium",
       leadId: leadId || undefined,
-      dealId: dealId || undefined,
+      leadServiceId: leadServiceId || undefined,
       assignedToId: assignedToId || undefined,
       createdById: (session.user as any).id,
     },
     include: {
       lead: true,
-      deal: true,
+      leadService: { include: { service: true } },
       assignedTo: true,
       createdBy: true,
     },

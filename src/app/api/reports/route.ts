@@ -10,18 +10,17 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const serviceSlug = searchParams.get("service");
 
-  const dealWhere: any = {};
+  const lsWhere: any = {};
   if (serviceSlug && serviceSlug !== "all") {
-    dealWhere.service = { slug: serviceSlug };
+    lsWhere.service = { slug: serviceSlug };
   }
 
-  // Revenue by month (last 6 months)
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-  const closedDeals = await prisma.deal.findMany({
+  const closedLS = await prisma.leadService.findMany({
     where: {
-      ...dealWhere,
+      ...lsWhere,
       stage: { name: "Fechado Ganho" },
       closedAt: { gte: sixMonthsAgo },
     },
@@ -39,34 +38,35 @@ export async function GET(request: NextRequest) {
     months.push({ key, label });
   }
 
-  for (const deal of closedDeals) {
-    const date = deal.closedAt || deal.createdAt;
+  for (const ls of closedLS) {
+    const date = ls.closedAt || ls.createdAt;
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     if (revenueByMonth[key] !== undefined) {
-      revenueByMonth[key] += deal.value || 0;
+      revenueByMonth[key] += ls.value || 0;
     }
   }
 
-  // Conversion by service
   const services = await prisma.service.findMany({
     include: {
       leads: { select: { id: true } },
-      deals: {
-        where: { stage: { name: "Fechado Ganho" } },
-        select: { id: true },
-      },
     },
   });
+
+  const wonByService = await prisma.leadService.groupBy({
+    by: ["serviceId"],
+    where: { stage: { name: "Fechado Ganho" } },
+    _count: { id: true },
+  });
+  const wonMap = new Map(wonByService.map((w) => [w.serviceId, w._count.id]));
 
   const conversionByService = services.map((s) => ({
     service: s.name,
     rate: s.leads.length > 0
-      ? Math.round((s.deals.length / s.leads.length) * 100 * 10) / 10
+      ? Math.round(((wonMap.get(s.id) || 0) / s.leads.length) * 100 * 10) / 10
       : 0,
     color: s.color,
   }));
 
-  // Leads by source
   const leadWhere: any = {};
   if (serviceSlug && serviceSlug !== "all") {
     leadWhere.services = { some: { service: { slug: serviceSlug } } };
@@ -91,9 +91,8 @@ export async function GET(request: NextRequest) {
     count: item._count.id,
   }));
 
-  // Pipeline velocity
-  const allDeals = await prisma.deal.findMany({
-    where: dealWhere,
+  const allLS = await prisma.leadService.findMany({
+    where: { ...lsWhere, stageId: { not: null } },
     select: {
       stageId: true,
       stage: { select: { name: true, order: true, color: true } },
@@ -103,11 +102,12 @@ export async function GET(request: NextRequest) {
   });
 
   const stageGroups: Record<string, { name: string; totalDays: number; count: number; order: number }> = {};
-  for (const deal of allDeals) {
-    const key = deal.stage.name;
-    const days = Math.max(1, Math.ceil((deal.updatedAt.getTime() - deal.createdAt.getTime()) / (1000 * 60 * 60 * 24)));
+  for (const ls of allLS) {
+    if (!ls.stage) continue;
+    const key = ls.stage.name;
+    const days = Math.max(1, Math.ceil((ls.updatedAt.getTime() - ls.createdAt.getTime()) / (1000 * 60 * 60 * 24)));
     if (!stageGroups[key]) {
-      stageGroups[key] = { name: key, totalDays: 0, count: 0, order: deal.stage.order };
+      stageGroups[key] = { name: key, totalDays: 0, count: 0, order: ls.stage.order };
     }
     stageGroups[key].totalDays += days;
     stageGroups[key].count += 1;
@@ -120,16 +120,16 @@ export async function GET(request: NextRequest) {
       avgDays: Math.round(g.totalDays / g.count),
     }));
 
-  // Top deals
-  const topDeals = await prisma.deal.findMany({
+  const topLeadServices = await prisma.leadService.findMany({
     where: {
-      ...dealWhere,
+      ...lsWhere,
       value: { not: null },
     },
     orderBy: { value: "desc" },
     take: 5,
     include: {
       lead: { select: { name: true } },
+      service: { select: { name: true } },
       stage: { select: { name: true } },
     },
   });
@@ -139,12 +139,12 @@ export async function GET(request: NextRequest) {
     conversionByService,
     leadsBySource,
     pipelineVelocity,
-    topDeals: topDeals.map((d) => ({
-      id: d.id,
-      title: d.title,
-      value: d.value || 0,
-      stage: d.stage.name,
-      leadName: d.lead.name,
+    topDeals: topLeadServices.map((ls) => ({
+      id: ls.id,
+      title: `${ls.service.name} - ${ls.lead.name}`,
+      value: ls.value || 0,
+      stage: ls.stage?.name || "",
+      leadName: ls.lead.name,
     })),
   });
   response.headers.set('Cache-Control', 's-maxage=120, stale-while-revalidate=600');

@@ -13,12 +13,10 @@ export async function GET(
   const lead = await prisma.lead.findUnique({
     where: { id: params.id },
     include: {
-      services: { include: { service: true } },
-      deals: {
+      services: {
         include: {
-          stage: true,
           service: true,
-          assignedTo: true,
+          stage: true,
           followUps: { orderBy: { order: "asc" } },
         },
         orderBy: { createdAt: "desc" },
@@ -53,43 +51,39 @@ export async function PUT(
   const session = await getServerSession(authOptions) as any;
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-  try {
-    const body = await request.json();
-    const { name, phone, email, company, status, notes, serviceIds } = body;
+  const body = await request.json();
+  const { name, phone, email, company, status, notes, serviceIds } = body;
 
-    const lead = await prisma.lead.update({
-      where: { id: params.id },
-      data: {
-        ...(name !== undefined && { name }),
-        ...(phone !== undefined && { phone }),
-        ...(email !== undefined && { email }),
-        ...(company !== undefined && { company }),
-        ...(status !== undefined && { status }),
-        ...(notes !== undefined && { notes }),
-      },
-    });
+  const lead = await prisma.lead.update({
+    where: { id: params.id },
+    data: {
+      ...(name !== undefined && { name }),
+      ...(phone !== undefined && { phone }),
+      ...(email !== undefined && { email }),
+      ...(company !== undefined && { company }),
+      ...(status !== undefined && { status }),
+      ...(notes !== undefined && { notes }),
+    },
+  });
 
-    if (serviceIds && Array.isArray(serviceIds)) {
-      await prisma.leadService.deleteMany({ where: { leadId: params.id } });
-      for (const serviceId of serviceIds) {
-        await prisma.leadService.create({
-          data: { leadId: params.id, serviceId },
-        });
-      }
+  // Update service associations if provided
+  if (serviceIds && Array.isArray(serviceIds)) {
+    // Remove existing associations
+    await prisma.leadService.deleteMany({ where: { leadId: params.id } });
+    // Create new ones
+    for (const serviceId of serviceIds) {
+      await prisma.leadService.create({
+        data: { leadId: params.id, serviceId },
+      });
     }
-
-    const result = await prisma.lead.findUnique({
-      where: { id: params.id },
-      include: { services: { include: { service: true } } },
-    });
-
-    return NextResponse.json(result);
-  } catch (err: any) {
-    if (err?.code === "P2025") {
-      return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 });
-    }
-    return NextResponse.json({ error: "Erro ao atualizar lead" }, { status: 500 });
   }
+
+  const result = await prisma.lead.findUnique({
+    where: { id: params.id },
+    include: { services: { include: { service: true } } },
+  });
+
+  return NextResponse.json(result);
 }
 
 export async function DELETE(
@@ -101,18 +95,13 @@ export async function DELETE(
 
   try {
     await prisma.$transaction(async (tx) => {
-      // Delete invoices linked to this lead
       await tx.invoice.deleteMany({ where: { leadId: params.id } });
-      // Delete contracts linked to this lead
       await tx.contract.deleteMany({ where: { leadId: params.id } });
-      // Delete follow-ups from deals of this lead
-      const deals = await tx.deal.findMany({ where: { leadId: params.id }, select: { id: true } });
-      const dealIds = deals.map((d) => d.id);
-      if (dealIds.length > 0) {
-        await tx.followUp.deleteMany({ where: { dealId: { in: dealIds } } });
+      const leadServices = await tx.leadService.findMany({ where: { leadId: params.id }, select: { id: true } });
+      const lsIds = leadServices.map((ls) => ls.id);
+      if (lsIds.length > 0) {
+        await tx.followUp.deleteMany({ where: { leadServiceId: { in: lsIds } } });
       }
-      // Delete deals
-      await tx.deal.deleteMany({ where: { leadId: params.id } });
       // Delete conversations and their messages
       const convs = await tx.conversation.findMany({ where: { leadId: params.id }, select: { id: true } });
       const convIds = convs.map((c) => c.id);

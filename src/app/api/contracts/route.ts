@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     where,
     include: {
       lead: { select: { id: true, name: true, phone: true, email: true, company: true } },
-      deal: { select: { id: true, title: true } },
+      leadService: { select: { id: true, service: { select: { name: true } } } },
       service: { select: { id: true, name: true, color: true } },
       _count: { select: { invoices: true } },
       invoices: {
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const {
-    dealId,
+    leadServiceId,
     leadId,
     clientName,
     clientPhone,
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
   const contract = await prisma.contract.create({
     data: {
       number,
-      dealId: dealId || null,
+      leadServiceId: leadServiceId || null,
       leadId: resolvedLeadId,
       serviceId: primaryServiceId,
       serviceIds: resolvedServiceIds,
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       tags: Array.isArray(tags) ? tags : [],
       paymentLink: paymentLink || null,
     },
-    include: { lead: true, deal: true, service: true },
+    include: { lead: true, leadService: true, service: true },
   });
 
   // Auto-generate installments when explicitly requested by the form

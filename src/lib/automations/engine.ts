@@ -3,7 +3,7 @@ import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { AutomationTrigger } from "@prisma/client";
 
 interface EventContext {
-  dealId?: string;
+  leadServiceId?: string;
   leadId: string;
   fromStageId?: string;
   toStageId?: string;
@@ -47,7 +47,6 @@ export async function runEventAutomations(
 export async function runCronAutomations() {
   const now = new Date();
 
-  // TIME_AFTER_STAGE automations
   const timeAutomations = await prisma.automation.findMany({
     where: { trigger: "TIME_AFTER_STAGE", isActive: true },
   });
@@ -61,7 +60,7 @@ export async function runCronAutomations() {
 
     const threshold = new Date(now.getTime() - delayMinutes * 60 * 1000);
 
-    const deals = await prisma.deal.findMany({
+    const leadServices = await prisma.leadService.findMany({
       where: {
         stageId,
         updatedAt: { lt: threshold },
@@ -69,21 +68,20 @@ export async function runCronAutomations() {
       include: { lead: true },
     });
 
-    for (const deal of deals) {
+    for (const ls of leadServices) {
       const recentLog = await prisma.automationLog.findFirst({
         where: {
           automationId: automation.id,
-          leadId: deal.leadId,
+          leadId: ls.leadId,
           executedAt: { gt: threshold },
         },
       });
 
       if (recentLog) continue;
-      await executeAction(automation, deal.leadId);
+      await executeAction(automation, ls.leadId);
     }
   }
 
-  // NO_RESPONSE automations
   const noResponseAutomations = await prisma.automation.findMany({
     where: { trigger: "NO_RESPONSE", isActive: true },
   });
@@ -151,37 +149,15 @@ async function executeAction(automation: any, leadId: string) {
     case "MOVE_STAGE": {
       const targetStageId = actionConfig.targetStageId;
       if (targetStageId) {
-        await prisma.deal.updateMany({
+        await prisma.leadService.updateMany({
           where: { leadId },
           data: { stageId: targetStageId },
         });
       }
       break;
     }
-    case "ASSIGN_AGENT": {
-      const agents = await prisma.user.findMany({
-        where: { role: { in: ["AGENT", "MANAGER"] } },
-        orderBy: { createdAt: "asc" },
-      });
-
-      if (agents.length > 0) {
-        const lastLog = await prisma.automationLog.findFirst({
-          where: { automationId: automation.id, status: "success" },
-          orderBy: { executedAt: "desc" },
-        });
-
-        let nextIndex = 0;
-        if (lastLog?.result && (lastLog.result as any).agentIndex !== undefined) {
-          nextIndex = ((lastLog.result as any).agentIndex + 1) % agents.length;
-        }
-
-        await prisma.deal.updateMany({
-          where: { leadId },
-          data: { assignedToId: agents[nextIndex].id },
-        });
-      }
+    case "ASSIGN_AGENT":
       break;
-    }
     case "CREATE_REMINDER":
       break;
   }

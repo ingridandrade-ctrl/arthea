@@ -1,24 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { generateChatResponse } from "@/lib/anthropic";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
-import { SYSTEM_PROMPT, HANDOFF_KEYWORDS, shouldHandoff } from "./prompts";
+import { SYSTEM_PROMPT, shouldHandoff } from "./prompts";
 import { performHandoff } from "./handoff";
-import { scheduleFollowUpsForDeal } from "@/lib/followups/engine";
+import { scheduleFollowUpsForLeadService } from "@/lib/followups/engine";
 import { renderTemplate } from "@/lib/followups/engine";
-
-async function getAiConfig() {
-  const config = await prisma.aiConfig.findUnique({ where: { id: "default" } });
-  if (!config) {
-    return {
-      model: "claude-sonnet-4-20250514",
-      maxTokens: 1024,
-      systemPrompt: SYSTEM_PROMPT,
-      handoffKeywords: HANDOFF_KEYWORDS,
-      active: true,
-    };
-  }
-  return config;
-}
 
 export async function processIncomingMessage(
   phone: string,
@@ -26,7 +12,6 @@ export async function processIncomingMessage(
   senderName: string,
   evolutionMsgId: string
 ) {
-  // 1. Find or create lead
   let lead = await prisma.lead.findUnique({
     where: { phone },
     include: { services: { include: { service: true } } },
@@ -49,23 +34,20 @@ export async function processIncomingMessage(
       include: { services: { include: { service: true } } },
     })!;
 
-    // Create deal in "Novo Lead" stage
     const firstStage = await prisma.pipelineStage.findFirst({
       where: { order: 0 },
     });
     const defaultService = await prisma.service.findFirst();
 
     if (firstStage && defaultService && lead) {
-      const deal = await prisma.deal.create({
+      const ls = await prisma.leadService.create({
         data: {
-          title: `Novo - ${senderName}`,
           leadId: lead.id,
           serviceId: defaultService.id,
           stageId: firstStage.id,
         },
       });
-      // Schedule follow-ups for new lead stage
-      await scheduleFollowUpsForDeal(deal.id, firstStage.id);
+      await scheduleFollowUpsForLeadService(ls.id, firstStage.id);
     }
   }
 
@@ -73,7 +55,6 @@ export async function processIncomingMessage(
     return { handled: false, reason: "lead_creation_failed" };
   }
 
-  // 2. Find or create conversation
   let conversation = await prisma.conversation.findFirst({
     where: { leadId: lead.id },
     orderBy: { createdAt: "desc" },
@@ -88,7 +69,6 @@ export async function processIncomingMessage(
     });
   }
 
-  // 3. Save incoming message
   await prisma.message.create({
     data: {
       conversationId: conversation.id,
@@ -98,36 +78,27 @@ export async function processIncomingMessage(
     },
   });
 
-  // Update last message timestamp
   await prisma.conversation.update({
     where: { id: conversation.id },
     data: { lastMessageAt: new Date() },
   });
 
-  // 4. Load AI config
-  const aiConfig = await getAiConfig();
-
-  // If AI is globally disabled, skip
-  if (!aiConfig.active) {
+  if (!process.env.ANTHROPIC_API_KEY) {
     return { handled: false, reason: "ai_disabled" };
   }
 
-  // If AI is not active on this conversation (human took over), skip
   if (!conversation.isAiActive) {
     return { handled: false, reason: "human_active" };
   }
 
-  // 5. Check if handoff is needed
-  const keywords = aiConfig.handoffKeywords.length > 0 ? aiConfig.handoffKeywords : HANDOFF_KEYWORDS;
-  if (shouldHandoff(content, keywords)) {
+  if (shouldHandoff(content)) {
     await performHandoff(conversation.id, lead.phone);
     return { handled: true, reason: "handoff" };
   }
 
-  // 6. Check for pending follow-up template to use instead of AI
   const pendingFollowUp = await prisma.followUp.findFirst({
     where: {
-      deal: { leadId: lead.id },
+      leadService: { leadId: lead.id },
       status: "pending",
       isAutomatic: true,
       channel: "whatsapp",
@@ -136,7 +107,6 @@ export async function processIncomingMessage(
   });
 
   if (pendingFollowUp) {
-    // Use the template instead of calling AI (saves credits)
     const serviceNames = lead.services.map((ls) => ls.service.name).join(", ");
     const message = renderTemplate(pendingFollowUp.messageTemplate, {
       nome: lead.name,
@@ -146,7 +116,6 @@ export async function processIncomingMessage(
       email: lead.email || "",
     });
 
-    // Save and send
     await prisma.message.create({
       data: {
         conversationId: conversation.id,
@@ -167,13 +136,11 @@ export async function processIncomingMessage(
       });
     }
 
-    // Mark follow-up as sent
     await prisma.followUp.update({
       where: { id: pendingFollowUp.id },
       data: { status: "sent", sentAt: new Date() },
     });
 
-    // Update lead status
     if (lead.status === "NEW") {
       await prisma.lead.update({
         where: { id: lead.id },
@@ -184,7 +151,6 @@ export async function processIncomingMessage(
     return { handled: true, reason: "template_response", response: message };
   }
 
-  // 7. No template available — use AI
   const history = await prisma.message.findMany({
     where: { conversationId: conversation.id },
     orderBy: { createdAt: "asc" },
@@ -192,13 +158,11 @@ export async function processIncomingMessage(
   });
 
   const messages = history.map((msg) => ({
-    role: (msg.sender === "LEAD" ? "user" : "assistant") as
-      | "user"
-      | "assistant",
+    role: (msg.sender === "LEAD" ? "user" : "assistant") as "user" | "assistant",
     content: msg.content,
   }));
 
-  const aiResponse = await generateChatResponse(aiConfig.systemPrompt, messages, aiConfig.model, aiConfig.maxTokens);
+  const aiResponse = await generateChatResponse(SYSTEM_PROMPT, messages);
 
   await prisma.message.create({
     data: {

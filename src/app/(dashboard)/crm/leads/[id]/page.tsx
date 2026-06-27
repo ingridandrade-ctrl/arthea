@@ -9,7 +9,6 @@ import {
   Mail,
   Building,
   MessageCircle,
-  AlertCircle,
   Clock,
   Tag,
   Pencil,
@@ -20,12 +19,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
-
-const PRIORITY_STYLES: Record<string, string> = {
-  high: "bg-red-100 text-red-700",
-  medium: "bg-yellow-100 text-yellow-700",
-  low: "bg-green-100 text-green-700",
-};
 
 export default function LeadDetailPage() {
   const params = useParams();
@@ -82,7 +75,6 @@ export default function LeadDetailPage() {
         <button onClick={() => setShowDelete(true)} className="p-1.5 rounded-lg hover:bg-red-50" title="Excluir">
           <Trash2 className="w-4 h-4 text-muted-foreground hover:text-red-600" />
         </button>
-        {/* Service tags */}
         <div className="flex gap-1">
           {lead.services?.map((ls: any) => (
             <span
@@ -98,7 +90,6 @@ export default function LeadDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Info Card */}
         <div className="bg-card rounded-xl border border-border p-6 space-y-4">
           <h2 className="text-lg font-semibold">Informacoes</h2>
           <div className="space-y-3">
@@ -130,61 +121,42 @@ export default function LeadDetailPage() {
           </div>
         </div>
 
-        {/* Deals + Diagnostics */}
         <div className="bg-card rounded-xl border border-border p-6">
-          <h2 className="text-lg font-semibold mb-4">Deals</h2>
-          {lead.deals.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum deal</p>
+          <h2 className="text-lg font-semibold mb-4">Servicos</h2>
+          {(!lead.services || lead.services.length === 0) ? (
+            <p className="text-sm text-muted-foreground">Nenhum servico associado</p>
           ) : (
             <div className="space-y-3">
-              {lead.deals.map((deal: any) => (
-                <div key={deal.id} className="border border-border rounded-lg p-3 space-y-2">
-                  <p className="font-medium text-sm">{deal.title}</p>
+              {lead.services.map((ls: any) => (
+                <div key={ls.id} className="border border-border rounded-lg p-3 space-y-2">
                   <div className="flex items-center gap-2">
-                    <StageSelector
-                      dealId={deal.id}
-                      currentStage={deal.stage}
-                      stages={stages}
-                      onChanged={fetchLead}
-                    />
-                    {deal.value && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatCurrency(deal.value)}
+                    <span
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs text-white font-medium"
+                      style={{ backgroundColor: ls.service.color }}
+                    >
+                      <Tag className="w-3 h-3" />
+                      {ls.service.name}
+                    </span>
+                    {ls.value && (
+                      <span className="text-xs font-semibold text-green-600">
+                        {formatCurrency(ls.value)}
                       </span>
                     )}
                   </div>
 
-                  {/* Diagnostic notes */}
-                  {deal.diagnosticNotes?.problems?.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" /> Problemas identificados
-                      </p>
-                      {deal.diagnosticNotes.problems.map((p: any) => (
-                        <div
-                          key={p.id}
-                          className={`flex items-start gap-2 text-xs p-1.5 rounded ${
-                            PRIORITY_STYLES[p.priority] || ""
-                          }`}
-                        >
-                          <span className="font-medium">{p.description}</span>
-                          {p.suggestedService && (
-                            <span className="text-[10px] opacity-75">
-                              → {p.suggestedService}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <StageSelector
+                    leadServiceId={ls.id}
+                    currentStage={ls.stage}
+                    stages={stages}
+                    onChanged={fetchLead}
+                  />
 
-                  {/* Follow-ups */}
-                  {deal.followUps?.length > 0 && (
+                  {ls.followUps?.length > 0 && (
                     <div className="mt-2 space-y-1">
                       <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
                         <Clock className="w-3 h-3" /> Follow-ups
                       </p>
-                      {deal.followUps.map((fu: any) => (
+                      {ls.followUps.map((fu: any) => (
                         <div
                           key={fu.id}
                           className={`text-xs p-1.5 rounded flex items-center justify-between ${
@@ -215,7 +187,6 @@ export default function LeadDetailPage() {
           )}
         </div>
 
-        {/* Conversations */}
         <div className="bg-card rounded-xl border border-border p-6">
           <h2 className="text-lg font-semibold mb-4">Conversas</h2>
           {lead.conversations.length === 0 ? (
@@ -261,7 +232,7 @@ export default function LeadDetailPage() {
         <Modal title="Excluir Lead" onClose={() => setShowDelete(false)}>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Tem certeza que deseja excluir o lead <strong>{lead.name}</strong>? Todos os dados associados (deals, conversas, tarefas) serao perdidos. Esta acao nao pode ser desfeita.
+              Tem certeza que deseja excluir o lead <strong>{lead.name}</strong>? Todos os dados associados (servicos, conversas, tarefas) serao perdidos. Esta acao nao pode ser desfeita.
             </p>
             <div className="flex gap-3">
               <button
@@ -296,12 +267,12 @@ export default function LeadDetailPage() {
 }
 
 function StageSelector({
-  dealId,
+  leadServiceId,
   currentStage,
   stages,
   onChanged,
 }: {
-  dealId: string;
+  leadServiceId: string;
   currentStage: any;
   stages: any[];
   onChanged: () => void;
@@ -322,13 +293,51 @@ function StageSelector({
     if (stageId === currentStage?.id) { setOpen(false); return; }
     setUpdating(true);
     setOpen(false);
-    await fetch(`/api/deals/${dealId}`, {
+    await fetch(`/api/deals/${leadServiceId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stageId }),
     });
     setUpdating(false);
     onChanged();
+  }
+
+  if (!currentStage) {
+    return (
+      <div className="relative" ref={ref}>
+        <button
+          onClick={() => setOpen(!open)}
+          disabled={updating}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground cursor-pointer hover:bg-muted/80 transition"
+        >
+          {updating ? (
+            <Loader2 className="w-3 h-3 animate-spin" />
+          ) : (
+            <>
+              Sem estagio
+              <ChevronDown className="w-3 h-3" />
+            </>
+          )}
+        </button>
+        {open && (
+          <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[160px] py-1">
+            {stages.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => changeStage(s.id)}
+                className="w-full text-left px-3 py-1.5 text-xs hover:bg-muted/50 transition flex items-center gap-2"
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: s.color }}
+                />
+                {s.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -384,18 +393,21 @@ function EditLeadForm({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [deals, setDeals] = useState<any[]>(
-    lead.deals.map((d: any) => ({
-      id: d.id,
-      title: d.title,
-      value: d.value || "",
-      stageId: d.stageId,
-      serviceId: d.serviceId,
-      isNew: false,
+  const [leadServices, setLeadServices] = useState<any[]>(
+    (lead.services || []).map((ls: any) => ({
+      id: ls.id,
+      serviceId: ls.serviceId || ls.service?.id,
+      serviceName: ls.service?.name,
+      value: ls.value || "",
+      stageId: ls.stageId || ls.stage?.id || "",
+      isExisting: true,
     }))
   );
-  const [showNewDeal, setShowNewDeal] = useState(false);
-  const [newDeal, setNewDeal] = useState({ title: "", value: "", serviceId: "", stageId: stages[0]?.id || "" });
+  const [showAddService, setShowAddService] = useState(false);
+  const [newService, setNewService] = useState({ serviceId: "", value: "", stageId: stages[0]?.id || "" });
+
+  const existingServiceIds = leadServices.map((ls: any) => ls.serviceId);
+  const availableServices = services.filter((s: any) => !existingServiceIds.includes(s.id));
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -422,44 +434,41 @@ function EditLeadForm({
       return;
     }
 
-    for (const deal of deals) {
-      if (deal.isNew) {
+    for (const ls of leadServices) {
+      if (!ls.isExisting) {
         const res = await fetch("/api/deals", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            title: deal.title,
             leadId: lead.id,
-            serviceId: deal.serviceId,
-            stageId: deal.stageId,
-            value: deal.value ? parseFloat(deal.value) : null,
+            serviceId: ls.serviceId,
+            stageId: ls.stageId || null,
+            value: ls.value ? parseFloat(ls.value) : null,
           }),
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          setError(data.error || "Erro ao criar deal");
+          setError(data.error || "Erro ao adicionar servico");
           setLoading(false);
           return;
         }
       } else {
-        const original = lead.deals.find((d: any) => d.id === deal.id);
+        const original = (lead.services || []).find((s: any) => s.id === ls.id);
         const changed =
-          deal.title !== original?.title ||
-          String(deal.value || "") !== String(original?.value || "") ||
-          deal.stageId !== original?.stageId;
+          String(ls.value || "") !== String(original?.value || "") ||
+          ls.stageId !== (original?.stageId || original?.stage?.id || "");
         if (changed) {
-          const res = await fetch(`/api/deals/${deal.id}`, {
+          const res = await fetch(`/api/deals/${ls.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              title: deal.title,
-              value: deal.value ? parseFloat(deal.value) : null,
-              stageId: deal.stageId,
+              value: ls.value ? parseFloat(ls.value) : null,
+              stageId: ls.stageId || null,
             }),
           });
           if (!res.ok) {
             const data = await res.json().catch(() => ({}));
-            setError(data.error || "Erro ao atualizar deal");
+            setError(data.error || "Erro ao atualizar servico");
             setLoading(false);
             return;
           }
@@ -470,17 +479,25 @@ function EditLeadForm({
     onSaved();
   }
 
-  function addNewDeal() {
-    if (!newDeal.title || !newDeal.serviceId || !newDeal.stageId) return;
-    setDeals([...deals, { ...newDeal, id: `new-${Date.now()}`, isNew: true }]);
-    setNewDeal({ title: "", value: "", serviceId: "", stageId: stages[0]?.id || "" });
-    setShowNewDeal(false);
+  function addNewService() {
+    if (!newService.serviceId) return;
+    const svc = services.find((s: any) => s.id === newService.serviceId);
+    setLeadServices([...leadServices, {
+      id: `new-${Date.now()}`,
+      serviceId: newService.serviceId,
+      serviceName: svc?.name || "",
+      value: newService.value,
+      stageId: newService.stageId,
+      isExisting: false,
+    }]);
+    setNewService({ serviceId: "", value: "", stageId: stages[0]?.id || "" });
+    setShowAddService(false);
   }
 
-  function updateDeal(index: number, field: string, value: string) {
-    const updated = [...deals];
+  function updateLeadService(index: number, field: string, value: string) {
+    const updated = [...leadServices];
     updated[index] = { ...updated[index], [field]: value };
-    setDeals(updated);
+    setLeadServices(updated);
   }
 
   const inputClass = "w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary";
@@ -507,38 +524,35 @@ function EditLeadForm({
           <input name="company" defaultValue={lead.company || ""} className={inputClass} />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Observações</label>
+          <label className="block text-sm font-medium mb-1">Observacoes</label>
           <textarea name="notes" rows={2} defaultValue={lead.notes || ""} className={inputClass} />
         </div>
       </div>
 
-      {/* Deals section */}
       <div className="border-t border-border pt-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold">Deals</p>
-          <button
-            type="button"
-            onClick={() => setShowNewDeal(true)}
-            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-          >
-            <Plus className="w-3.5 h-3.5" /> Adicionar
-          </button>
+          <p className="text-sm font-semibold">Servicos</p>
+          {availableServices.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowAddService(true)}
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            >
+              <Plus className="w-3.5 h-3.5" /> Adicionar
+            </button>
+          )}
         </div>
 
-        {deals.length === 0 && !showNewDeal && (
-          <p className="text-xs text-muted-foreground">Nenhum deal</p>
+        {leadServices.length === 0 && !showAddService && (
+          <p className="text-xs text-muted-foreground">Nenhum servico</p>
         )}
 
         <div className="space-y-3">
-          {deals.map((deal, i) => (
-            <div key={deal.id} className="border border-border rounded-lg p-3 space-y-2">
-              <div>
-                <label className="block text-xs text-muted-foreground mb-0.5">Título</label>
-                <input
-                  value={deal.title}
-                  onChange={(e) => updateDeal(i, "title", e.target.value)}
-                  className={inputClass}
-                />
+          {leadServices.map((ls, i) => (
+            <div key={ls.id} className="border border-border rounded-lg p-3 space-y-2">
+              <div className="bg-muted/50 rounded-lg px-3 py-1.5">
+                <p className="text-xs text-muted-foreground">Servico</p>
+                <p className="text-sm font-medium">{ls.serviceName}</p>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -546,29 +560,30 @@ function EditLeadForm({
                   <input
                     type="number"
                     step="0.01"
-                    value={deal.value}
-                    onChange={(e) => updateDeal(i, "value", e.target.value)}
+                    value={ls.value}
+                    onChange={(e) => updateLeadService(i, "value", e.target.value)}
                     className={inputClass}
                     placeholder="0,00"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-muted-foreground mb-0.5">Estágio</label>
+                  <label className="block text-xs text-muted-foreground mb-0.5">Estagio</label>
                   <select
-                    value={deal.stageId}
-                    onChange={(e) => updateDeal(i, "stageId", e.target.value)}
+                    value={ls.stageId}
+                    onChange={(e) => updateLeadService(i, "stageId", e.target.value)}
                     className={inputClass + " bg-card"}
                   >
+                    <option value="">Sem estagio</option>
                     {stages.map((s) => (
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
                   </select>
                 </div>
               </div>
-              {deal.isNew && (
+              {!ls.isExisting && (
                 <button
                   type="button"
-                  onClick={() => setDeals(deals.filter((_, j) => j !== i))}
+                  onClick={() => setLeadServices(leadServices.filter((_, j) => j !== i))}
                   className="text-xs text-red-500 hover:underline"
                 >
                   Remover
@@ -577,16 +592,20 @@ function EditLeadForm({
             </div>
           ))}
 
-          {showNewDeal && (
+          {showAddService && (
             <div className="border border-dashed border-primary/40 rounded-lg p-3 space-y-2">
               <div>
-                <label className="block text-xs text-muted-foreground mb-0.5">Título</label>
-                <input
-                  value={newDeal.title}
-                  onChange={(e) => setNewDeal({ ...newDeal, title: e.target.value })}
-                  className={inputClass}
-                  placeholder="Nome do deal"
-                />
+                <label className="block text-xs text-muted-foreground mb-0.5">Servico</label>
+                <select
+                  value={newService.serviceId}
+                  onChange={(e) => setNewService({ ...newService, serviceId: e.target.value })}
+                  className={inputClass + " bg-card"}
+                >
+                  <option value="" disabled>Selecione...</option>
+                  {availableServices.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -594,50 +613,38 @@ function EditLeadForm({
                   <input
                     type="number"
                     step="0.01"
-                    value={newDeal.value}
-                    onChange={(e) => setNewDeal({ ...newDeal, value: e.target.value })}
+                    value={newService.value}
+                    onChange={(e) => setNewService({ ...newService, value: e.target.value })}
                     className={inputClass}
                     placeholder="0,00"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-muted-foreground mb-0.5">Serviço</label>
+                  <label className="block text-xs text-muted-foreground mb-0.5">Estagio</label>
                   <select
-                    value={newDeal.serviceId}
-                    onChange={(e) => setNewDeal({ ...newDeal, serviceId: e.target.value })}
+                    value={newService.stageId}
+                    onChange={(e) => setNewService({ ...newService, stageId: e.target.value })}
                     className={inputClass + " bg-card"}
                   >
-                    <option value="" disabled>Selecione...</option>
-                    {services.map((s) => (
+                    <option value="">Sem estagio</option>
+                    {stages.map((s) => (
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-xs text-muted-foreground mb-0.5">Estágio</label>
-                <select
-                  value={newDeal.stageId}
-                  onChange={(e) => setNewDeal({ ...newDeal, stageId: e.target.value })}
-                  className={inputClass + " bg-card"}
-                >
-                  {stages.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={addNewDeal}
-                  disabled={!newDeal.title || !newDeal.serviceId}
+                  onClick={addNewService}
+                  disabled={!newService.serviceId}
                   className="px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50"
                 >
                   Adicionar
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowNewDeal(false)}
+                  onClick={() => setShowAddService(false)}
                   className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
                 >
                   Cancelar

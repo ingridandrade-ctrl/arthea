@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     where.service = { slug: serviceSlug };
   }
 
-  const deals = await prisma.deal.findMany({
+  const leadServices = await prisma.leadService.findMany({
     where,
     include: {
       lead: {
@@ -23,12 +23,11 @@ export async function GET(request: NextRequest) {
       },
       service: true,
       stage: true,
-      assignedTo: true,
     },
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(deals);
+  return NextResponse.json(leadServices);
 }
 
 export async function POST(request: NextRequest) {
@@ -36,25 +35,25 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { title, value, leadId, serviceId, stageId, assignedToId, diagnosticNotes } = body;
+  const { leadId, serviceId, stageId, value } = body;
 
-  if (!title || !leadId || !serviceId || !stageId) {
+  if (!leadId || !serviceId || !stageId) {
     return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
   }
 
-  const deal = await prisma.deal.create({
-    data: { title, value, leadId, serviceId, stageId, assignedToId, diagnosticNotes },
+  const leadService = await prisma.leadService.upsert({
+    where: { leadId_serviceId: { leadId, serviceId } },
+    update: { stageId, value },
+    create: { leadId, serviceId, stageId, value },
     include: {
       lead: { include: { services: { include: { service: true } } } },
       service: true,
       stage: true,
-      assignedTo: true,
     },
   });
 
-  // Schedule follow-ups for the initial stage
-  const { scheduleFollowUpsForDeal } = await import("@/lib/followups/engine");
-  await scheduleFollowUpsForDeal(deal.id, stageId);
+  const { scheduleFollowUpsForLeadService } = await import("@/lib/followups/engine");
+  await scheduleFollowUpsForLeadService(leadService.id, stageId);
 
-  return NextResponse.json(deal, { status: 201 });
+  return NextResponse.json(leadService, { status: 201 });
 }
