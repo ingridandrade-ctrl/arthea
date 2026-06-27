@@ -16,9 +16,9 @@ const prisma = new PrismaClient();
 
 async function main() {
   const existed = await prisma.$queryRawUnsafe(
-    `SELECT to_regclass('"_arthea_migrations"') AS reg`,
+    `SELECT to_regclass('"_arthea_migrations"')::text AS reg`,
   );
-  const tableAlreadyExisted = existed[0]?.reg !== null;
+  const tableAlreadyExisted = existed[0]?.reg !== null && existed[0]?.reg !== undefined;
 
   await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "_arthea_migrations" (
