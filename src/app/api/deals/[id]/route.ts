@@ -60,6 +60,25 @@ export async function PUT(
     });
     const isLastStage = allStages[0]?.id === stageId;
 
+    const stageName = (newStage?.name || "").toLowerCase();
+    if (stageName.includes("ganho")) {
+      await prisma.lead.update({
+        where: { id: leadService.leadId },
+        data: { status: "CLIENTE" },
+      });
+    } else if (stageName.includes("perdido")) {
+      const lead = await prisma.lead.findUnique({
+        where: { id: leadService.leadId },
+        select: { status: true },
+      });
+      if (lead?.status !== "CLIENTE") {
+        await prisma.lead.update({
+          where: { id: leadService.leadId },
+          data: { status: "PERDIDO" },
+        });
+      }
+    }
+
     if (isLastStage) {
       const existingContract = await prisma.contract.findUnique({ where: { leadServiceId: params.id } });
       if (!existingContract) {
