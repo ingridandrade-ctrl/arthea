@@ -54,14 +54,19 @@ export default function AutomacoesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Automacoes</h1>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Fluxo de Automações</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Regras que o sistema executa sozinho — mover lead, atribuir agente, criar lembrete. Pra enviar mensagens, use Templates.
+          </p>
+        </div>
         <Link
           href="/crm/automacoes/new"
           className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition"
         >
           <Plus className="w-4 h-4" />
-          Nova Automacao
+          Novo Fluxo
         </Link>
       </div>
 
