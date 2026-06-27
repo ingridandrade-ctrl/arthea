@@ -11,11 +11,19 @@ export async function GET(request: NextRequest) {
   const serviceSlug = searchParams.get("service");
 
   const lsWhere: any = {};
+  let pipelineWhere: any = { serviceId: null };
+
   if (serviceSlug && serviceSlug !== "all") {
     lsWhere.service = { slug: serviceSlug };
+    const svc = await prisma.service.findUnique({ where: { slug: serviceSlug }, select: { id: true } });
+    if (svc) {
+      const dedicated = await prisma.pipeline.findUnique({ where: { serviceId: svc.id }, select: { id: true } });
+      pipelineWhere = dedicated ? { id: dedicated.id } : { serviceId: null };
+    }
   }
 
   const pipeline = await prisma.pipeline.findFirst({
+    where: pipelineWhere,
     include: {
       stages: {
         orderBy: { order: "asc" },

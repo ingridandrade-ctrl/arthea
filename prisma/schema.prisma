@@ -137,6 +137,7 @@ model Service {
   contracts   Contract[]
   invoices    Invoice[]
   deliverableTemplates ServiceDeliverableTemplate[]
+  pipeline    Pipeline?
 }
 
 // Template de entregável atrelado a um Service.
@@ -216,6 +217,8 @@ model LeadService {
 model Pipeline {
   id        String          @id @default(cuid())
   name      String
+  serviceId String?         @unique
+  service   Service?        @relation(fields: [serviceId], references: [id])
   stages    PipelineStage[]
   createdAt DateTime        @default(now())
 }
