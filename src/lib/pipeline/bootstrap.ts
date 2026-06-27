@@ -1,4 +1,11 @@
 import { prisma } from "@/lib/prisma";
+import { ensureGmbTemplates } from "@/lib/followups/bootstrap";
+
+// Hooks chamados ao criar o pipeline de um serviço.
+// Garante que templates / config dependentes do pipeline também sejam criados.
+const POST_CREATE_HOOKS: Record<string, () => Promise<unknown>> = {
+  "google-meu-negocio": ensureGmbTemplates,
+};
 
 // Define stages per service. If a service has no entry here, falls back
 // to the default (shared) pipeline.
@@ -24,7 +31,14 @@ export async function ensurePipelineForService(serviceSlug: string): Promise<str
   if (!svc) return null;
 
   const existing = await prisma.pipeline.findUnique({ where: { serviceId: svc.id }, select: { id: true } });
-  if (existing) return existing.id;
+  if (existing) {
+    // Pipeline já existe; ainda assim garante que templates do serviço estejam plugados
+    // (idempotente, custo baixo). Roda em background pra não atrasar o request.
+    POST_CREATE_HOOKS[serviceSlug]?.().catch((err) =>
+      console.error(`post-create hook for ${serviceSlug} failed:`, err)
+    );
+    return existing.id;
+  }
 
   const config = SERVICE_PIPELINES[serviceSlug];
   if (!config) {
@@ -40,5 +54,7 @@ export async function ensurePipelineForService(serviceSlug: string): Promise<str
     },
     select: { id: true },
   });
+
+  await POST_CREATE_HOOKS[serviceSlug]?.();
   return pipeline.id;
 }
