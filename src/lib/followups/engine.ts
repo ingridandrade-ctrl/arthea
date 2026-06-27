@@ -5,19 +5,35 @@ export async function scheduleFollowUpsForLeadService(
   leadServiceId: string,
   stageId: string
 ) {
-  const stage = await prisma.pipelineStage.findUnique({
-    where: { id: stageId },
-  });
-  if (!stage) return;
+  const [stage, leadService] = await Promise.all([
+    prisma.pipelineStage.findUnique({ where: { id: stageId } }),
+    prisma.leadService.findUnique({
+      where: { id: leadServiceId },
+      select: { serviceId: true, customData: true },
+    }),
+  ]);
+  if (!stage || !leadService) return;
 
-  const templates = await prisma.followUpTemplate.findMany({
-    where: { stageOrder: stage.order, isActive: true },
+  // Templates can be service-scoped (serviceId set) or generic (serviceId null).
+  // Prefer service-specific ones; fall back to generic only if no service-specific
+  // template exists for that stageOrder.
+  const serviceTemplates = await prisma.followUpTemplate.findMany({
+    where: { serviceId: leadService.serviceId, stageOrder: stage.order, isActive: true },
     orderBy: { followUpOrder: "asc" },
   });
+  const templates = serviceTemplates.length > 0
+    ? serviceTemplates
+    : await prisma.followUpTemplate.findMany({
+        where: { serviceId: null, stageOrder: stage.order, isActive: true },
+        orderBy: { followUpOrder: "asc" },
+      });
 
+  const customData = (leadService.customData || {}) as Record<string, any>;
   const now = new Date();
 
   for (const template of templates) {
+    if (!matchesCondition(template.condition as any, customData)) continue;
+
     const existing = await prisma.followUp.findFirst({
       where: {
         leadServiceId,
@@ -27,7 +43,8 @@ export async function scheduleFollowUpsForLeadService(
     });
     if (existing) continue;
 
-    const delayHours = getDelayHours(template.stageOrder, template.followUpOrder);
+    const delayHours = template.delayHoursOverride
+      ?? getDelayHours(template.stageOrder, template.followUpOrder);
     const scheduledAt = new Date(now.getTime() + delayHours * 60 * 60 * 1000);
 
     await prisma.followUp.create({
@@ -44,6 +61,17 @@ export async function scheduleFollowUpsForLeadService(
       },
     });
   }
+}
+
+function matchesCondition(
+  condition: Record<string, any> | null,
+  customData: Record<string, any>,
+): boolean {
+  if (!condition) return true;
+  for (const [key, expected] of Object.entries(condition)) {
+    if (customData[key] !== expected) return false;
+  }
+  return true;
 }
 
 export async function cancelPendingFollowUps(
@@ -82,12 +110,14 @@ export async function processDueFollowUps() {
     const lead = followUp.leadService.lead;
     const serviceNames = lead.services.map((ls) => ls.service.name).join(", ");
 
+    const customData = (followUp.leadService.customData || {}) as Record<string, string>;
     const message = renderTemplate(followUp.messageTemplate, {
       nome: lead.name,
       servico: serviceNames || "nossos serviços",
       empresa: lead.company || "",
       telefone: lead.phone,
       email: lead.email || "",
+      ...customData,
     });
 
     if (followUp.isAutomatic && followUp.channel === "whatsapp") {
