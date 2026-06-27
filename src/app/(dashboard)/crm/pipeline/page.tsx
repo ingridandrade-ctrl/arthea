@@ -8,13 +8,21 @@ import { Modal } from "@/components/ui/modal";
 import Link from "next/link";
 
 export default function PipelinePage() {
-  const { activeService } = useServiceFilter();
+  const { activeService, setActiveService } = useServiceFilter();
   const [pipeline, setPipeline] = useState<any>(null);
+  const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [draggedItem, setDraggedItem] = useState<any>(null);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [deletingItem, setDeletingItem] = useState<any>(null);
   const [deletingLoading, setDeletingLoading] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/services")
+      .then((r) => r.json())
+      .then((data) => setServices(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
 
   async function fetchPipeline() {
     setLoading(true);
@@ -77,15 +85,34 @@ export default function PipelinePage() {
     0
   );
 
+  const activeServiceName =
+    activeService === "all"
+      ? "Todos"
+      : services.find((s: any) => s.slug === activeService)?.name || activeService;
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold">Pipeline Comercial</h1>
+          <h1 className="text-2xl font-bold">{pipeline?.name || "Pipeline"}</h1>
           <p className="text-sm text-muted-foreground">
-            {totalItems} lead{totalItems !== 1 ? "s" : ""} no pipeline
-            {activeService !== "all" && " (filtrado)"}
+            {totalItems} {totalItems === 1 ? "item" : "itens"} · serviço: {activeServiceName}
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-muted-foreground">Serviço:</label>
+          <select
+            value={activeService}
+            onChange={(e) => setActiveService(e.target.value)}
+            className="px-3 py-1.5 border border-border rounded-lg text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="all">Todos (pipeline genérico)</option>
+            {services.map((s: any) => (
+              <option key={s.id} value={s.slug}>
+                {s.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
