@@ -254,17 +254,22 @@ model FollowUp {
 
 model FollowUpTemplate {
   id              String   @id @default(cuid())
+  code            String?  @unique
   name            String
+  serviceId       String?
   stageOrder      Int
   followUpOrder   Int
   channel         String   @default("whatsapp")
   messageTemplate String
   isAutomatic     Boolean  @default(false)
   isActive        Boolean  @default(true)
+  delayHoursOverride Int?
+  condition       Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([stageOrder, followUpOrder])
+  @@index([serviceId, stageOrder])
 }
 
 model Conversation {

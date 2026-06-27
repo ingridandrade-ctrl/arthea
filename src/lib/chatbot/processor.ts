@@ -103,17 +103,20 @@ export async function processIncomingMessage(
       isAutomatic: true,
       channel: "whatsapp",
     },
+    include: { leadService: { select: { customData: true } } },
     orderBy: { scheduledAt: "asc" },
   });
 
   if (pendingFollowUp) {
     const serviceNames = lead.services.map((ls) => ls.service.name).join(", ");
+    const customData = (pendingFollowUp.leadService.customData || {}) as Record<string, string>;
     const message = renderTemplate(pendingFollowUp.messageTemplate, {
       nome: lead.name,
       servico: serviceNames || "nossos serviços",
       empresa: lead.company || "",
       telefone: lead.phone,
       email: lead.email || "",
+      ...customData,
     });
 
     await prisma.message.create({

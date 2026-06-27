@@ -93,35 +93,44 @@ export async function POST(request: NextRequest) {
 
     await scheduleFollowUpsForLeadService(leadService.id, firstStage.id);
 
-    const welcomeTemplate = await prisma.followUpTemplate.findFirst({
-      where: { stageOrder: 0, followUpOrder: 1, isActive: true, isAutomatic: true },
+    // Send any follow-ups scheduled for immediate delivery (delayHours = 0,
+    // whatsapp, automatic) — these are the welcome templates like GMB T1/T2B.
+    const dueNow = await prisma.followUp.findMany({
+      where: {
+        leadServiceId: leadService.id,
+        status: "pending",
+        isAutomatic: true,
+        channel: "whatsapp",
+        scheduledAt: { lte: new Date() },
+      },
     });
 
-    if (welcomeTemplate) {
-      const message = renderTemplate(welcomeTemplate.messageTemplate, {
-        nome: name,
-        servico: serviceName,
-        empresa: "",
-        telefone: phone,
-        email: email || "",
-      });
-      await sendWhatsAppMessage(phone, message);
-
+    if (dueNow.length > 0) {
       const conversation = await prisma.conversation.create({
-        data: {
-          leadId: lead.id,
-          isAiActive: true,
-          lastMessageAt: new Date(),
-        },
+        data: { leadId: lead.id, isAiActive: true, lastMessageAt: new Date() },
       });
 
-      await prisma.message.create({
-        data: {
-          conversationId: conversation.id,
-          content: message,
-          sender: "AI",
-        },
-      });
+      const customDataMerged = (customData || {}) as Record<string, string>;
+
+      for (const fu of dueNow) {
+        const message = renderTemplate(fu.messageTemplate, {
+          nome: name,
+          servico: serviceName,
+          empresa: company || "",
+          telefone: phone,
+          email: email || "",
+          ...customDataMerged,
+        });
+
+        await sendWhatsAppMessage(phone, message);
+        await prisma.message.create({
+          data: { conversationId: conversation.id, content: message, sender: "AI" },
+        });
+        await prisma.followUp.update({
+          where: { id: fu.id },
+          data: { status: "sent", sentAt: new Date() },
+        });
+      }
     }
 
     await prisma.activity.create({
