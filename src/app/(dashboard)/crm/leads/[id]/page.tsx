@@ -60,7 +60,7 @@ export default function LeadDetailPage() {
   }
 
   if (!lead) {
-    return <div className="text-center py-8 text-muted-foreground">Lead nao encontrado</div>;
+    return <div className="text-center py-8 text-muted-foreground">Lead não encontrado</div>;
   }
 
   return (
@@ -92,7 +92,7 @@ export default function LeadDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-card rounded-xl border border-border p-6 space-y-4">
-          <h2 className="text-lg font-semibold">Informacoes</h2>
+          <h2 className="text-lg font-semibold">Informações</h2>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <Phone className="w-4 h-4 text-muted-foreground" />
@@ -113,7 +113,7 @@ export default function LeadDetailPage() {
           </div>
           {lead.notes && (
             <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">Observacoes</p>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Observações</p>
               <p className="text-sm">{lead.notes}</p>
             </div>
           )}
@@ -123,9 +123,9 @@ export default function LeadDetailPage() {
         </div>
 
         <div className="bg-card rounded-xl border border-border p-6">
-          <h2 className="text-lg font-semibold mb-4">Servicos</h2>
+          <h2 className="text-lg font-semibold mb-4">Serviços</h2>
           {(!lead.services || lead.services.length === 0) ? (
-            <p className="text-sm text-muted-foreground">Nenhum servico associado</p>
+            <p className="text-sm text-muted-foreground">Nenhum serviço associado</p>
           ) : (
             <div className="space-y-3">
               {lead.services.map((ls: any) => (
@@ -235,7 +235,7 @@ export default function LeadDetailPage() {
         <Modal title="Excluir Lead" onClose={() => setShowDelete(false)}>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Tem certeza que deseja excluir o lead <strong>{lead.name}</strong>? Todos os dados associados (servicos, conversas, tarefas) serao perdidos. Esta acao nao pode ser desfeita.
+              Tem certeza que deseja excluir o lead <strong>{lead.name}</strong>? Todos os dados associados (serviços, conversas, tarefas) serão perdidos. Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-3">
               <button
@@ -527,14 +527,14 @@ function EditLeadForm({
           <input name="company" defaultValue={lead.company || ""} className={inputClass} />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Observacoes</label>
+          <label className="block text-sm font-medium mb-1">Observações</label>
           <textarea name="notes" rows={2} defaultValue={lead.notes || ""} className={inputClass} />
         </div>
       </div>
 
       <div className="border-t border-border pt-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold">Servicos</p>
+          <p className="text-sm font-semibold">Serviços</p>
           {availableServices.length > 0 && (
             <button
               type="button"
@@ -547,7 +547,7 @@ function EditLeadForm({
         </div>
 
         {leadServices.length === 0 && !showAddService && (
-          <p className="text-xs text-muted-foreground">Nenhum servico</p>
+          <p className="text-xs text-muted-foreground">Nenhum serviço</p>
         )}
 
         <div className="space-y-3">
@@ -576,7 +576,7 @@ function EditLeadForm({
                     onChange={(e) => updateLeadService(i, "stageId", e.target.value)}
                     className={inputClass + " bg-card"}
                   >
-                    <option value="">Sem estagio</option>
+                    <option value="">Sem estágio</option>
                     {stages.map((s) => (
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
@@ -629,7 +629,7 @@ function EditLeadForm({
                     onChange={(e) => setNewService({ ...newService, stageId: e.target.value })}
                     className={inputClass + " bg-card"}
                   >
-                    <option value="">Sem estagio</option>
+                    <option value="">Sem estágio</option>
                     {stages.map((s) => (
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}

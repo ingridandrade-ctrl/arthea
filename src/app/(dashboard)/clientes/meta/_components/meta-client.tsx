@@ -51,10 +51,10 @@ interface EngagementOption {
 
 const STATUS_BANNER: Record<string, { tone: "ok" | "warn" | "err"; text: string }> = {
   connected: { tone: "ok", text: "Conta Meta conectada com sucesso." },
-  denied: { tone: "warn", text: "Voce negou a permissao no Facebook. Tente novamente." },
-  invalid_state: { tone: "err", text: "Sessao OAuth invalida. Tente reconectar." },
+  denied: { tone: "warn", text: "Você negou a permissão no Facebook. Tente novamente." },
+  invalid_state: { tone: "err", text: "Sessão OAuth inválida. Tente reconectar." },
   error: { tone: "err", text: "Erro ao conectar com a Meta. Veja os logs do servidor." },
-  unauthorized: { tone: "err", text: "Sessao expirada. Faca login de novo." },
+  unauthorized: { tone: "err", text: "Sessão expirada. Faça login de novo." },
 };
 
 export function MetaClient({

@@ -75,7 +75,7 @@ export default function AutomacoesPage() {
           <Zap className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
           <p className="text-muted-foreground">Nenhuma automacao configurada</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Crie automacoes para enviar mensagens, mover estagios e mais
+            Crie automações para enviar mensagens, mover estágios e mais
           </p>
         </div>
       ) : (
@@ -108,7 +108,7 @@ export default function AutomacoesPage() {
                   </div>
                   {automation.logs.length > 0 && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      Ultima execucao: {formatDate(automation.logs[0].executedAt)} -{" "}
+                      Última execução: {formatDate(automation.logs[0].executedAt)} -{" "}
                       {automation.logs[0].status}
                     </p>
                   )}
