@@ -22,13 +22,6 @@ enum LeadSource {
   QUIZ
 }
 
-enum LeadStatus {
-  NEW
-  CONTACTED
-  QUALIFIED
-  UNQUALIFIED
-}
-
 enum MessageSender {
   LEAD
   AI
@@ -165,7 +158,7 @@ model Lead {
   email          String?
   company        String?
   source         LeadSource      @default(WHATSAPP)
-  status         LeadStatus      @default(NEW)
+  status         String          @default("ATIVO")
   tags           String[]
   score          Int             @default(0)
   notes          String?
