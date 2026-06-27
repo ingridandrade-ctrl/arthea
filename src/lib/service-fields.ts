@@ -17,19 +17,27 @@ export const SERVICE_FIELDS: Record<string, ServiceField[]> = {
   "google-meu-negocio": [
     {
       key: "segmento",
-      label: "Segmento",
+      label: "Segmento de atuação",
       type: "select",
       options: [
-        { value: "dermatologista", label: "Dermatologista" },
-        { value: "odonto", label: "Odontologia" },
-        { value: "fisio", label: "Fisioterapia" },
-        { value: "psicologo", label: "Psicologia" },
-        { value: "cirurgiao-plastico", label: "Cirurgião Plástico" },
+        { value: "saude", label: "Saúde" },
+        { value: "gastronomia", label: "Gastronomia" },
+        { value: "varejo", label: "Varejo" },
+        { value: "servicos", label: "Serviços" },
+        { value: "corporativo", label: "Corporativo" },
         { value: "outro", label: "Outro" },
       ],
     },
-    { key: "cidade", label: "Cidade", type: "text" },
-    { key: "estado", label: "Estado (UF)", type: "text", placeholder: "SP" },
+    { key: "cidadeEstado", label: "Cidade e Estado", type: "text", placeholder: "São Paulo / SP" },
+    {
+      key: "enderecoFisico",
+      label: "Endereço físico?",
+      type: "select",
+      options: [
+        { value: "sim", label: "Sim" },
+        { value: "nao", label: "Não" },
+      ],
+    },
     {
       key: "temGmn",
       label: "Tem Google Meu Negócio?",
@@ -42,14 +50,13 @@ export const SERVICE_FIELDS: Record<string, ServiceField[]> = {
     },
     {
       key: "temSite",
-      label: "Tem site?",
+      label: "Site oficial?",
       type: "select",
       options: [
         { value: "sim", label: "Sim" },
         { value: "nao", label: "Não" },
       ],
     },
-    { key: "endereco", label: "Endereço físico", type: "text" },
     {
       key: "origem",
       label: "Origem do lead",

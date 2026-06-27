@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { scheduleFollowUpsForLeadService } from "@/lib/followups/engine";
 import { renderTemplate } from "@/lib/followups/engine";
+import { ensurePipelineForService } from "@/lib/pipeline/bootstrap";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,8 +12,10 @@ export async function POST(request: NextRequest) {
       name,
       phone,
       email,
+      company,
       source,
       serviceSlug,
+      customData,
       quizAnswers,
       utmSource,
       utmMedium,
@@ -39,6 +42,7 @@ export async function POST(request: NextRequest) {
         name,
         phone,
         email,
+        company,
         source: source || "WEBSITE",
         quizAnswers,
         utmSource,
@@ -56,12 +60,22 @@ export async function POST(request: NextRequest) {
       serviceName = service.name;
     }
 
-    const firstStage = await prisma.pipelineStage.findFirst({
-      where: { order: 0 },
-      orderBy: { order: "asc" },
-    });
+    if (!service) {
+      return NextResponse.json(
+        { success: true, leadId: lead.id },
+        { status: 201 }
+      );
+    }
 
-    if (!firstStage || !service) {
+    const pipelineId = await ensurePipelineForService(service.slug);
+    const firstStage = pipelineId
+      ? await prisma.pipelineStage.findFirst({
+          where: { pipelineId },
+          orderBy: { order: "asc" },
+        })
+      : null;
+
+    if (!firstStage) {
       return NextResponse.json(
         { success: true, leadId: lead.id },
         { status: 201 }
@@ -73,6 +87,7 @@ export async function POST(request: NextRequest) {
         leadId: lead.id,
         serviceId: service.id,
         stageId: firstStage.id,
+        customData: customData || undefined,
       },
     });
 
