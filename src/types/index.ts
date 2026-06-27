@@ -143,6 +143,7 @@ export interface DashboardStats {
   totalRevenue: number;
   conversionRate: number;
   leadsByService: { service: string; count: number; color: string }[];
+  revenueByService: { service: string; value: number; color: string }[];
   dealsByStage: { stage: string; count: number; color: string }[];
   recentLeads: LeadWithServices[];
   pendingFollowUpsToday: number;

@@ -37,39 +37,60 @@ export async function GET(request: NextRequest) {
     lsWhere.createdAt = dateFilter;
   }
 
-  const [totalLeads, totalLeadServices, closedLeadServices, recentLeads, services] =
+  const [totalLeads, totalLeadServices, closedLeadServices, recentLeads, services, lsCountsByService] =
     await Promise.all([
       prisma.lead.count({ where: leadWhere }),
       prisma.leadService.count({ where: lsWhere }),
       prisma.leadService.findMany({
         where: {
           ...lsWhere,
-          stage: { name: "Fechado Ganho" },
+          OR: [
+            { stage: { name: { contains: "Ganho" } } },
+            { lead: { status: "CLIENTE" } },
+          ],
         },
-        select: { value: true },
+        select: { value: true, serviceId: true },
       }),
       prisma.lead.findMany({
         where: leadWhere,
         orderBy: { createdAt: "desc" },
-        take: 5,
+        take: 8,
         include: { services: { include: { service: true, stage: true } } },
       }),
-      prisma.service.findMany({
-        include: {
-          _count: { select: { leads: true } },
-        },
+      prisma.service.findMany({ select: { id: true, name: true, color: true, slug: true } }),
+      prisma.leadService.groupBy({
+        by: ["serviceId"],
+        where: lsWhere,
+        _count: { _all: true },
       }),
     ]);
+
+  const countByServiceId = new Map(lsCountsByService.map((r) => [r.serviceId, r._count._all]));
 
   const totalRevenue = closedLeadServices.reduce((sum, d) => sum + (d.value || 0), 0);
   const conversionRate =
     totalLeads > 0 ? (closedLeadServices.length / totalLeads) * 100 : 0;
 
-  const leadsByService = services.map((s) => ({
-    service: s.name,
-    count: s._count.leads,
-    color: s.color,
-  }));
+  const revenueByServiceId = new Map<string, number>();
+  for (const ls of closedLeadServices) {
+    revenueByServiceId.set(ls.serviceId, (revenueByServiceId.get(ls.serviceId) || 0) + (ls.value || 0));
+  }
+
+  const leadsByService = services
+    .filter((s) => !serviceSlug || serviceSlug === "all" || s.slug === serviceSlug)
+    .map((s) => ({
+      service: s.name,
+      count: countByServiceId.get(s.id) || 0,
+      color: s.color,
+    }));
+
+  const revenueByService = services
+    .filter((s) => !serviceSlug || serviceSlug === "all" || s.slug === serviceSlug)
+    .map((s) => ({
+      service: s.name,
+      value: revenueByServiceId.get(s.id) || 0,
+      color: s.color,
+    }));
 
   const pipeline = await prisma.pipeline.findFirst({
     include: {
@@ -116,6 +137,7 @@ export async function GET(request: NextRequest) {
     totalRevenue,
     conversionRate: Math.round(conversionRate * 10) / 10,
     leadsByService,
+    revenueByService,
     dealsByStage,
     recentLeads,
     pendingFollowUpsToday,
