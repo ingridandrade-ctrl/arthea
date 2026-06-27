@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useState, useDeferredValue } from "react";
-import { useServiceFilter } from "@/lib/hooks/use-service-filter";
+import { useEffect, useState, useDeferredValue, useMemo } from "react";
 import { formatPhone } from "@/lib/utils";
 import { Plus, Search, X, Pencil, Trash2, CheckSquare, Square, MinusSquare } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
 import { getServiceFields, type ServiceField } from "@/lib/service-fields";
 import { LEAD_STATUSES, getLeadStatusLabel, getLeadStatusColor } from "@/lib/lead-status";
+import { FilterBar, getDateRange, type DatePreset, type FilterService } from "@/components/crm/filter-bar";
+import { getSourceLabel, getSourceColor } from "@/lib/lead-source";
 
 interface LeadService {
+  id: string;
   service: { id: string; name: string; color: string; slug: string };
+  stage: { id: string; name: string; color: string } | null;
 }
 
 interface Lead {
@@ -26,8 +29,8 @@ interface Lead {
 }
 
 export default function LeadsPage() {
-  const { activeService } = useServiceFilter();
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [services, setServices] = useState<FilterService[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
@@ -36,17 +39,38 @@ export default function LeadsPage() {
   const [deletingLead, setDeletingLead] = useState<Lead | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const [activeService, setActiveService] = useState("all");
+  const [datePreset, setDatePreset] = useState<DatePreset>("all");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<"delete" | "status" | null>(null);
   const [bulkStatus, setBulkStatus] = useState("ATIVO");
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  async function fetchLeads() {
-    setLoading(true);
+  useEffect(() => {
+    fetch("/api/services")
+      .then((r) => r.json())
+      .then((data) => setServices(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  const url = useMemo(() => {
     const params = new URLSearchParams();
     if (activeService !== "all") params.set("service", activeService);
     if (deferredSearch) params.set("search", deferredSearch);
-    const res = await fetch(`/api/leads?${params}`);
+    const range = getDateRange(datePreset, customFrom, customTo);
+    if (range) {
+      params.set("from", range.from);
+      params.set("to", range.to);
+    }
+    return `/api/leads?${params}`;
+  }, [activeService, deferredSearch, datePreset, customFrom, customTo]);
+
+  async function fetchLeads() {
+    setLoading(true);
+    const res = await fetch(url);
     const data = await res.json();
     setLeads(Array.isArray(data) ? data : []);
     setLoading(false);
@@ -55,7 +79,7 @@ export default function LeadsPage() {
 
   useEffect(() => {
     fetchLeads();
-  }, [activeService, deferredSearch]);
+  }, [url]);
 
   function toggleSelect(id: string) {
     setSelectedIds((prev) => {
@@ -105,7 +129,7 @@ export default function LeadsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-bold">Leads</h1>
         <button
           onClick={() => setShowForm(true)}
@@ -115,6 +139,18 @@ export default function LeadsPage() {
           Novo Lead
         </button>
       </div>
+
+      {/* Filtros */}
+      <FilterBar
+        services={services}
+        activeService={activeService}
+        onServiceChange={setActiveService}
+        datePreset={datePreset}
+        onDatePresetChange={setDatePreset}
+        customFrom={customFrom}
+        customTo={customTo}
+        onCustomChange={(f, t) => { setCustomFrom(f); setCustomTo(t); }}
+      />
 
       {/* Search */}
       <div className="relative">
@@ -177,9 +213,8 @@ export default function LeadsPage() {
                 </th>
                 <th className="px-4 py-3 font-medium">Nome</th>
                 <th className="px-4 py-3 font-medium">Telefone</th>
-                <th className="px-4 py-3 font-medium">Email</th>
-                <th className="px-4 py-3 font-medium">Empresa</th>
-                <th className="px-4 py-3 font-medium">Serviços</th>
+                <th className="px-4 py-3 font-medium">Serviço</th>
+                <th className="px-4 py-3 font-medium">Etapa</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Origem</th>
                 <th className="px-4 py-3 font-medium">Data</th>
@@ -189,13 +224,13 @@ export default function LeadsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                     Carregando...
                   </td>
                 </tr>
               ) : leads.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                     Nenhum lead encontrado
                   </td>
                 </tr>
@@ -221,21 +256,22 @@ export default function LeadsPage() {
                         {lead.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3">{formatPhone(lead.phone)}</td>
-                    <td className="px-4 py-3">{lead.email || "-"}</td>
-                    <td className="px-4 py-3">{lead.company || "-"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{formatPhone(lead.phone)}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {lead.services.length > 0 ? (
-                          lead.services.map((ls) => (
-                            <span
-                              key={ls.service.id}
-                              className="px-2 py-0.5 rounded-full text-[10px] font-medium text-white"
-                              style={{ backgroundColor: ls.service.color }}
-                            >
-                              {ls.service.name}
-                            </span>
-                          ))
+                          lead.services.map((ls) => <ServiceTag key={ls.service.id} service={ls.service} />)
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {lead.services.length > 0 ? (
+                          lead.services.map((ls) =>
+                            ls.stage ? <StageTag key={ls.id} stage={ls.stage} /> : <span key={ls.id} className="text-xs text-muted-foreground">—</span>
+                          )
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
@@ -671,23 +707,43 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
 
 function StatusBadge({ status }: { status: string }) {
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLeadStatusColor(status)}`}>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getLeadStatusColor(status)}`}>
       {getLeadStatusLabel(status)}
     </span>
   );
 }
 
 function SourceBadge({ source }: { source: string }) {
-  const labels: Record<string, string> = {
-    WHATSAPP: "WhatsApp",
-    WEBSITE: "Website",
-    MANUAL: "Manual",
-    REFERRAL: "Indicação",
-    QUIZ: "Quiz",
-  };
   return (
-    <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-      {labels[source] || source}
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getSourceColor(source)}`}>
+      {getSourceLabel(source)}
+    </span>
+  );
+}
+
+function ServiceTag({ service }: { service: { name: string; color: string } }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium text-white shadow-sm"
+      style={{ backgroundColor: service.color }}
+    >
+      {service.name}
+    </span>
+  );
+}
+
+function StageTag({ stage }: { stage: { name: string; color: string } }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border"
+      style={{
+        backgroundColor: stage.color + "1A",
+        borderColor: stage.color + "55",
+        color: stage.color,
+      }}
+    >
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background: stage.color }} />
+      {stage.name}
     </span>
   );
 }

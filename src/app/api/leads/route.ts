@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
   const serviceSlug = searchParams.get("service");
   const status = searchParams.get("status");
   const search = searchParams.get("search");
+  const dateFrom = searchParams.get("from");
+  const dateTo = searchParams.get("to");
 
   const where: any = {};
 
@@ -29,6 +31,15 @@ export async function GET(request: NextRequest) {
       { email: { contains: search, mode: "insensitive" } },
       { company: { contains: search, mode: "insensitive" } },
     ];
+  }
+  if (dateFrom || dateTo) {
+    where.createdAt = {};
+    if (dateFrom) where.createdAt.gte = new Date(dateFrom);
+    if (dateTo) {
+      const to = new Date(dateTo);
+      to.setHours(23, 59, 59, 999);
+      where.createdAt.lte = to;
+    }
   }
 
   const leads = await prisma.lead.findMany({
