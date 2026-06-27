@@ -16,7 +16,7 @@ export async function PUT(
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { value, stageId, closedAt } = body;
+  const { value, stageId, closedAt, customData } = body;
 
   const current = await prisma.leadService.findUnique({
     where: { id: params.id },
@@ -29,6 +29,7 @@ export async function PUT(
       ...(value !== undefined && { value }),
       ...(stageId !== undefined && { stageId }),
       ...(closedAt !== undefined && { closedAt }),
+      ...(customData !== undefined && { customData }),
     },
     include: {
       lead: { include: { services: { include: { service: true } } } },
