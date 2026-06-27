@@ -52,8 +52,8 @@ const SECTIONS: NavSection[] = [
       { name: "Conversas", href: "/crm/conversations", icon: MessageCircle },
       { name: "Tarefas", href: "/crm/tarefas", icon: CheckSquare },
       { name: "Relatórios", href: "/crm/relatorios", icon: BarChart3 },
-      { name: "Automações", href: "/crm/automacoes", icon: Zap },
       { name: "Templates", href: "/crm/templates", icon: FileText },
+      { name: "Fluxo de Automações", href: "/crm/automacoes", icon: Zap },
     ],
   },
   {
