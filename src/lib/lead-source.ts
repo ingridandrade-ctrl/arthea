@@ -1,9 +1,7 @@
 export const LEAD_SOURCES = [
-  { value: "WHATSAPP", label: "WhatsApp", color: "bg-green-100 text-green-700" },
-  { value: "WEBSITE", label: "Website", color: "bg-sky-100 text-sky-700" },
-  { value: "MANUAL", label: "Manual", color: "bg-slate-100 text-slate-700" },
-  { value: "REFERRAL", label: "Indicação", color: "bg-purple-100 text-purple-700" },
-  { value: "QUIZ", label: "Quiz", color: "bg-pink-100 text-pink-700" },
+  { value: "PROSPECCAO", label: "Prospecção", color: "bg-purple-100 text-purple-700 border border-purple-200" },
+  { value: "INDICACAO", label: "Indicação", color: "bg-pink-100 text-pink-700 border border-pink-200" },
+  { value: "FORMS", label: "Forms site", color: "bg-sky-100 text-sky-700 border border-sky-200" },
 ] as const;
 
 export function getSourceLabel(value: string): string {

@@ -14,14 +14,6 @@ enum Role {
   CLIENT
 }
 
-enum LeadSource {
-  WHATSAPP
-  WEBSITE
-  MANUAL
-  REFERRAL
-  QUIZ
-}
-
 enum MessageSender {
   LEAD
   AI
@@ -157,7 +149,7 @@ model Lead {
   phone          String          @unique
   email          String?
   company        String?
-  source         LeadSource      @default(WHATSAPP)
+  source         String          @default("PROSPECCAO")
   status         String          @default("ATIVO")
   tags           String[]
   score          Int             @default(0)

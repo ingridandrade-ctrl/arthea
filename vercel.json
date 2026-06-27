@@ -1,6 +1,6 @@
 {
   "installCommand": "npm ci && npx prisma generate",
-  "buildCommand": "npx prisma generate && npx prisma db execute --file prisma/migrations-manual/2026-06-27_lead_status_string.sql --schema prisma/schema.prisma && npx prisma db push --skip-generate --accept-data-loss && next build",
+  "buildCommand": "npx prisma generate && npx prisma db execute --file prisma/migrations-manual/2026-06-27_lead_status_string.sql --schema prisma/schema.prisma && npx prisma db execute --file prisma/migrations-manual/2026-06-27_lead_source_string.sql --schema prisma/schema.prisma && npx prisma db push --skip-generate --accept-data-loss && next build",
   "regions": ["gru1"],
   "functions": {
     "src/app/api/**/*.ts": {

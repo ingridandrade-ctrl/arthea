@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { name, phone, email, company, source, serviceIds, serviceCustomData, notes } = body;
+  const { name, phone, email, company, source, status, serviceIds, serviceCustomData, serviceStages, notes } = body;
 
   if (!name || !phone) {
     return NextResponse.json({ error: "Nome e telefone são obrigatórios" }, { status: 400 });
@@ -77,17 +77,23 @@ export async function POST(request: NextRequest) {
       phone,
       email,
       company,
-      source: source || "MANUAL",
+      source: source || "PROSPECCAO",
+      status: status || "ATIVO",
       notes,
     },
   });
 
   if (serviceIds && Array.isArray(serviceIds)) {
+    const { scheduleFollowUpsForLeadService } = await import("@/lib/followups/engine");
     for (const serviceId of serviceIds) {
       const customData = serviceCustomData?.[serviceId] || undefined;
-      await prisma.leadService.create({
-        data: { leadId: lead.id, serviceId, customData },
+      const stageId = serviceStages?.[serviceId] || undefined;
+      const ls = await prisma.leadService.create({
+        data: { leadId: lead.id, serviceId, customData, stageId },
       });
+      if (stageId) {
+        await scheduleFollowUpsForLeadService(ls.id, stageId);
+      }
     }
   }
 

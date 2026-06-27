@@ -57,16 +57,6 @@ export const SERVICE_FIELDS: Record<string, ServiceField[]> = {
         { value: "nao", label: "Não" },
       ],
     },
-    {
-      key: "origem",
-      label: "Origem do lead",
-      type: "select",
-      options: [
-        { value: "prospeccao", label: "Prospecção" },
-        { value: "indicacao", label: "Indicação" },
-        { value: "forms", label: "Forms site" },
-      ],
-    },
     { key: "linkAnalise", label: "Link da análise (GBP Check)", type: "text" },
     { key: "problemaPrincipal", label: "Problema principal da ficha", type: "textarea" },
     { key: "motivoPerda", label: "Motivo da perda (se aplicável)", type: "textarea" },
