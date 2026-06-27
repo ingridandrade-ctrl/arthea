@@ -153,13 +153,13 @@ export default function RelatoriosPage() {
           </div>
         </div>
 
-        {/* Top Servicos */}
+        {/* Top Serviços */}
         <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-yellow-50 p-2 rounded-lg">
               <Trophy className="w-5 h-5 text-yellow-600" />
             </div>
-            <h2 className="text-lg font-semibold">Maiores Negociacoes</h2>
+            <h2 className="text-lg font-semibold">Maiores Negociações</h2>
           </div>
           <div className="space-y-3">
             {data.topDeals.map((item, i) => (

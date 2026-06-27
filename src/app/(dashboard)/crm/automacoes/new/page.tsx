@@ -115,17 +115,17 @@ export default function NewAutomationPage() {
             onChange={(e) => setTrigger(e.target.value)}
             className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="STAGE_CHANGE">Quando servico mudar de estagio</option>
-            <option value="TIME_AFTER_STAGE">Apos tempo no estagio</option>
+            <option value="STAGE_CHANGE">Quando serviço mudar de estágio</option>
+            <option value="TIME_AFTER_STAGE">Após tempo no estágio</option>
             <option value="NEW_LEAD">Quando novo lead for criado</option>
-            <option value="NO_RESPONSE">Quando lead nao responder</option>
+            <option value="NO_RESPONSE">Quando lead não responder</option>
           </select>
 
           {trigger === "STAGE_CHANGE" && (
             <div className="mt-3">
-              <label className="block text-xs text-muted-foreground mb-1">Quando mover para o estagio:</label>
+              <label className="block text-xs text-muted-foreground mb-1">Quando mover para o estágio:</label>
               <select name="toStageId" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-                <option value="">Qualquer estagio</option>
+                <option value="">Qualquer estágio</option>
                 {stages.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -172,14 +172,14 @@ export default function NewAutomationPage() {
 
         {/* Action */}
         <div className="border-t border-border pt-5">
-          <label className="block text-sm font-semibold mb-2">Acao (O que fazer?)</label>
+          <label className="block text-sm font-semibold mb-2">Ação (O que fazer?)</label>
           <select
             value={action}
             onChange={(e) => setAction(e.target.value)}
             className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="SEND_WHATSAPP">Enviar mensagem WhatsApp</option>
-            <option value="MOVE_STAGE">Mover para outro estagio</option>
+            <option value="MOVE_STAGE">Mover para outro estágio</option>
             <option value="ASSIGN_AGENT">Atribuir a um agente</option>
             <option value="CREATE_REMINDER">Criar lembrete</option>
           </select>
@@ -187,12 +187,12 @@ export default function NewAutomationPage() {
           {action === "SEND_WHATSAPP" && (
             <div className="mt-3">
               <label className="block text-xs text-muted-foreground mb-1">
-                Template da mensagem (use {"{{nome}}"}, {"{{empresa}}"}, {"{{servico}}"} como variaveis):
+                Template da mensagem (use {"{{nome}}"}, {"{{empresa}}"}, {"{{servico}}"} como variáveis):
               </label>
               <textarea
                 name="template"
                 rows={4}
-                placeholder={"Ola {{nome}}! Tudo bem? Notamos que faz um tempo desde nosso ultimo contato. Gostaria de saber se ainda tem interesse em {{servico}}."}
+                placeholder={"Olá {{nome}}! Tudo bem? Notamos que faz um tempo desde nosso último contato. Gostaria de saber se ainda tem interesse em {{servico}}."}
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -200,7 +200,7 @@ export default function NewAutomationPage() {
 
           {action === "MOVE_STAGE" && (
             <div className="mt-3">
-              <label className="block text-xs text-muted-foreground mb-1">Mover para estagio:</label>
+              <label className="block text-xs text-muted-foreground mb-1">Mover para estágio:</label>
               <select name="targetStageId" className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                 {stages.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>

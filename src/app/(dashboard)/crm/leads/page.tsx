@@ -339,7 +339,7 @@ export default function LeadsPage() {
         <Modal title="Excluir Leads Selecionados" onClose={() => setBulkAction(null)}>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Tem certeza que deseja excluir <strong>{selectedIds.size} lead{selectedIds.size !== 1 ? "s" : ""}</strong>? Todos os dados associados (servicos, conversas, tarefas) serão perdidos. Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir <strong>{selectedIds.size} lead{selectedIds.size !== 1 ? "s" : ""}</strong>? Todos os dados associados (serviços, conversas, tarefas) serão perdidos. Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-3">
               <button
