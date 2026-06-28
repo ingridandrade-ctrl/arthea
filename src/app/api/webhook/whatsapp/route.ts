@@ -221,7 +221,7 @@ export async function POST(request: NextRequest) {
     // Wrapped: a processor failure must not 5xx the webhook.
     let result: unknown = null;
     try {
-      result = await processIncomingMessage(phone, content, name, messageId);
+      result = await processIncomingMessage(phone, content, name, messageId, buttonId);
     } catch (procErr) {
       console.error(
         `WhatsApp processIncomingMessage failed (phone=${phone}, type=${messageType}):`,

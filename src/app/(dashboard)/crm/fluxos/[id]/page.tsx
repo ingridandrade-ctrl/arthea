@@ -20,13 +20,28 @@ import {
   Copy,
   AlertCircle,
   GitBranch,
+  MousePointerClick,
+  HelpCircle,
+  CalendarDays,
+  XCircle,
 } from "lucide-react";
+
+type ActionType =
+  | "send_whatsapp"
+  | "internal_reminder"
+  | "move_stage"
+  | "create_task"
+  | "check_response"
+  | "button_clicked"
+  | "field_check"
+  | "wait_business_days"
+  | "set_loss_reason";
 
 interface Step {
   id?: string;
   order: number;
   delayHours: number;
-  actionType: "send_whatsapp" | "internal_reminder" | "move_stage" | "create_task" | "check_response";
+  actionType: ActionType;
   actionConfig: Record<string, any>;
   condition: Record<string, any> | null;
   isActive: boolean;
@@ -42,6 +57,10 @@ const ACTION_META: Record<string, { icon: any; color: string; label: string; bg:
   move_stage: { icon: MoveRight, color: "#6366f1", bg: "bg-indigo-50", label: "Mover estágio" },
   create_task: { icon: Bell, color: "#3b82f6", bg: "bg-blue-50", label: "Tarefa" },
   check_response: { icon: GitBranch, color: "#9333ea", bg: "bg-purple-50", label: "Condição: lead respondeu?" },
+  button_clicked: { icon: MousePointerClick, color: "#0891b2", bg: "bg-cyan-50", label: "Condição: botão clicado?" },
+  field_check: { icon: HelpCircle, color: "#0d9488", bg: "bg-teal-50", label: "Condição: campo preenchido?" },
+  wait_business_days: { icon: CalendarDays, color: "#65a30d", bg: "bg-lime-50", label: "Espera: dias úteis" },
+  set_loss_reason: { icon: XCircle, color: "#dc2626", bg: "bg-red-50", label: "Registrar motivo da perda" },
 };
 
 const DELAY_PRESETS: Array<{ label: string; hours: number }> = [
@@ -79,6 +98,29 @@ function validateFlow(steps: Step[]): StepError[] {
     }
     if (step.actionType === "check_response" && idx === 0) {
       errors.push({ index: idx, message: `Passo #${idx + 1}: a condição "lead respondeu?" precisa vir depois de um passo de envio.` });
+    }
+    if (step.actionType === "button_clicked") {
+      if (idx === 0) {
+        errors.push({ index: idx, message: `Passo #${idx + 1}: "botão clicado?" precisa vir depois de um passo de envio com botões.` });
+      }
+      const branches = (cfg.branches || []) as any[];
+      if (!Array.isArray(branches) || branches.length === 0) {
+        errors.push({ index: idx, message: `Passo #${idx + 1}: configure ao menos uma ramificação no nó "botão clicado?".` });
+      } else {
+        branches.forEach((b, bi) => {
+          if (!b?.buttonId) errors.push({ index: idx, message: `Passo #${idx + 1}, ramificação ${bi + 1}: faltou o ID do botão.` });
+        });
+      }
+    }
+    if (step.actionType === "field_check" && !cfg.field) {
+      errors.push({ index: idx, message: `Passo #${idx + 1}: selecione qual campo verificar.` });
+    }
+    if (step.actionType === "wait_business_days") {
+      const d = Number(cfg.days || 0);
+      if (!Number.isFinite(d) || d < 1) errors.push({ index: idx, message: `Passo #${idx + 1}: informe quantos dias úteis aguardar (mínimo 1).` });
+    }
+    if (step.actionType === "set_loss_reason" && !cfg.reason) {
+      errors.push({ index: idx, message: `Passo #${idx + 1}: informe o motivo da perda.` });
     }
   });
   return errors;
@@ -691,7 +733,11 @@ function StepNode({
               <option value="send_whatsapp">💬 Enviar WhatsApp (automático)</option>
               <option value="internal_reminder">🔔 Lembrete interno (vira tarefa)</option>
               <option value="check_response">⚡ Condição: o lead respondeu?</option>
+              <option value="button_clicked">🖱️ Condição: botão clicado?</option>
+              <option value="field_check">❔ Condição: campo preenchido?</option>
+              <option value="wait_business_days">📅 Espera: dias úteis</option>
               <option value="move_stage">➡️ Mover pra outro estágio</option>
+              <option value="set_loss_reason">❌ Registrar motivo da perda</option>
               <option value="create_task">📋 Criar tarefa separada</option>
             </select>
           </div>
@@ -813,6 +859,65 @@ function StepNode({
             </div>
           )}
 
+          {step.actionType === "button_clicked" && (
+            <ButtonClickedConfig config={config} templates={templates} stages={stages} onUpdate={onUpdate} />
+          )}
+
+          {step.actionType === "field_check" && (
+            <div className="space-y-2">
+              <div className="p-2 bg-teal-50 border border-teal-200 rounded text-[11px] text-teal-900">
+                Verifica se um campo do "Dados do serviço" tá preenchido. Se sim, segue o fluxo. Se vazio, notifica a admin e aguarda 1h pra checar de novo — pausa as próximas mensagens até o campo ser preenchido.
+              </div>
+              <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Campo a verificar</label>
+              <select
+                value={(config.field as string) || ""}
+                onChange={(e) => onUpdate({ actionConfig: { ...config, field: e.target.value } })}
+                className="w-full px-2 py-1.5 border border-border rounded text-sm bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">— Selecione —</option>
+                <option value="linkAnalise">Link da análise</option>
+                <option value="segmento">Segmento</option>
+                <option value="cidadeEstado">Cidade / UF</option>
+              </select>
+            </div>
+          )}
+
+          {step.actionType === "wait_business_days" && (
+            <div className="space-y-2">
+              <div className="p-2 bg-lime-50 border border-lime-200 rounded text-[11px] text-lime-900">
+                Espera N dias úteis (seg-sex, pulando feriados nacionais brasileiros). Carnaval, Sexta Santa e Corpus Christi entram. Não envia mensagem nem dispara nada em fim de semana / feriado.
+              </div>
+              <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Quantos dias úteis aguardar?</label>
+              <input
+                type="number"
+                min={1}
+                max={30}
+                value={Number(config.days || 1)}
+                onChange={(e) => onUpdate({ actionConfig: { ...config, days: Math.max(1, Number(e.target.value) || 1) } })}
+                className="w-24 px-2 py-1.5 border border-border rounded text-sm bg-card focus:outline-none focus:ring-1 focus:ring-primary text-center"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                Substitui o delay em horas — quando usa esse nó, o campo "Esperar" acima é ignorado.
+              </p>
+            </div>
+          )}
+
+          {step.actionType === "set_loss_reason" && (
+            <div className="space-y-2">
+              <div className="p-2 bg-red-50 border border-red-200 rounded text-[11px] text-red-900">
+                Marca o lead como <strong>Perdido</strong> (status + estágio "Perdido" do pipeline) e grava o motivo nos notes do lead. Útil pra finalizar cadências sem resposta.
+              </div>
+              <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Motivo da perda</label>
+              <input
+                type="text"
+                value={(config.reason as string) || ""}
+                onChange={(e) => onUpdate({ actionConfig: { ...config, reason: e.target.value } })}
+                placeholder="Ex: Sem resposta após cadência completa"
+                className="w-full px-2 py-1.5 border border-border rounded text-sm bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+          )}
+
           {/* Ações */}
           <div className="flex items-center justify-between pt-2 border-t border-border">
             <div className="flex items-center gap-1">
@@ -868,4 +973,185 @@ function formatHours(h: number): string {
   const d = Math.floor(h / 24);
   const rest = h % 24;
   return rest > 0 ? `${d}d ${rest}h` : `${d} dia${d > 1 ? "s" : ""}`;
+}
+
+// ─── Editor da branch de "botão clicado?" ──────────────────────────
+function ButtonClickedConfig({
+  config,
+  templates,
+  stages,
+  onUpdate,
+}: {
+  config: Record<string, any>;
+  templates: Template[];
+  stages: Stage[];
+  onUpdate: (patch: Partial<Step>) => void;
+}) {
+  const branches = (config.branches || []) as Array<{ buttonId: string; label?: string; actions: any[] }>;
+
+  function updateBranches(next: typeof branches) {
+    onUpdate({ actionConfig: { ...config, branches: next } });
+  }
+
+  function addBranch() {
+    updateBranches([...branches, { buttonId: "", label: "", actions: [] }]);
+  }
+
+  function removeBranch(i: number) {
+    updateBranches(branches.filter((_, idx) => idx !== i));
+  }
+
+  function updateBranch(i: number, patch: Partial<(typeof branches)[0]>) {
+    updateBranches(branches.map((b, idx) => (idx === i ? { ...b, ...patch } : b)));
+  }
+
+  function addAction(branchIdx: number, type: string) {
+    const next = [...branches];
+    const defaults: Record<string, any> = {
+      trigger_template: { type: "trigger_template", templateId: "" },
+      move_stage_by_name: { type: "move_stage_by_name", stageNamePattern: "" },
+      mark_lost: { type: "mark_lost", reason: "" },
+      notify_team: { type: "notify_team", title: "", body: "" },
+    };
+    next[branchIdx].actions = [...(next[branchIdx].actions || []), defaults[type] || {}];
+    updateBranches(next);
+  }
+
+  function updateAction(branchIdx: number, actionIdx: number, patch: any) {
+    const next = [...branches];
+    next[branchIdx].actions = next[branchIdx].actions.map((a: any, i: number) =>
+      i === actionIdx ? { ...a, ...patch } : a,
+    );
+    updateBranches(next);
+  }
+
+  function removeAction(branchIdx: number, actionIdx: number) {
+    const next = [...branches];
+    next[branchIdx].actions = next[branchIdx].actions.filter((_: any, i: number) => i !== actionIdx);
+    updateBranches(next);
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="p-2 bg-cyan-50 border border-cyan-200 rounded text-[11px] text-cyan-900">
+        Detecta qual botão o lead clicou no último template enviado. Cada ramificação executa suas ações se o botão correspondente foi clicado. Use ID <code className="bg-cyan-100 px-1 rounded">_none</code> pra leads que não clicaram em botão nenhum.
+      </div>
+
+      {branches.length === 0 && (
+        <p className="text-xs text-muted-foreground italic">Nenhuma ramificação. Adicione abaixo.</p>
+      )}
+
+      {branches.map((branch, bi) => (
+        <div key={bi} className="border border-border rounded p-2 space-y-2 bg-muted/20">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={branch.buttonId}
+              onChange={(e) => updateBranch(bi, { buttonId: e.target.value })}
+              placeholder="ID do botão (ex: gmn_t2b_yes ou _none)"
+              className="flex-1 px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <input
+              type="text"
+              value={branch.label || ""}
+              onChange={(e) => updateBranch(bi, { label: e.target.value })}
+              placeholder="Apelido"
+              className="w-28 px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button onClick={() => removeBranch(bi)} className="p-1 hover:bg-red-50 rounded" title="Remover ramificação">
+              <Trash2 className="w-3 h-3 text-red-600" />
+            </button>
+          </div>
+
+          <div className="pl-2 space-y-1.5">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Ações dessa ramificação:</p>
+            {(branch.actions || []).map((action: any, ai: number) => (
+              <div key={ai} className="flex items-start gap-1.5">
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-200">{actionLabel(action.type)}</span>
+                    <button onClick={() => removeAction(bi, ai)} className="ml-auto p-0.5 hover:bg-red-50 rounded">
+                      <Trash2 className="w-2.5 h-2.5 text-red-600" />
+                    </button>
+                  </div>
+                  {action.type === "trigger_template" && (
+                    <select
+                      value={action.templateId || ""}
+                      onChange={(e) => updateAction(bi, ai, { templateId: e.target.value })}
+                      className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">— Template —</option>
+                      {templates.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  )}
+                  {action.type === "move_stage_by_name" && (
+                    <select
+                      value={action.stageNamePattern || ""}
+                      onChange={(e) => updateAction(bi, ai, { stageNamePattern: e.target.value })}
+                      className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      <option value="">— Estágio —</option>
+                      {stages.map((s) => (
+                        <option key={s.id} value={s.name.toLowerCase()}>{s.name}</option>
+                      ))}
+                    </select>
+                  )}
+                  {action.type === "mark_lost" && (
+                    <input
+                      type="text"
+                      value={action.reason || ""}
+                      onChange={(e) => updateAction(bi, ai, { reason: e.target.value })}
+                      placeholder="Motivo (ex: Sem interesse)"
+                      className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  )}
+                  {action.type === "notify_team" && (
+                    <div className="space-y-1">
+                      <input
+                        type="text"
+                        value={action.title || ""}
+                        onChange={(e) => updateAction(bi, ai, { title: e.target.value })}
+                        placeholder="Título da notificação"
+                        className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      <input
+                        type="text"
+                        value={action.body || ""}
+                        onChange={(e) => updateAction(bi, ai, { body: e.target.value })}
+                        placeholder="Corpo (opcional)"
+                        className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            <div className="flex flex-wrap gap-1 pt-1">
+              <button onClick={() => addAction(bi, "trigger_template")} className="text-[10px] px-2 py-0.5 rounded border border-border hover:bg-muted">+ template</button>
+              <button onClick={() => addAction(bi, "move_stage_by_name")} className="text-[10px] px-2 py-0.5 rounded border border-border hover:bg-muted">+ mover estágio</button>
+              <button onClick={() => addAction(bi, "mark_lost")} className="text-[10px] px-2 py-0.5 rounded border border-border hover:bg-muted">+ marcar perdido</button>
+              <button onClick={() => addAction(bi, "notify_team")} className="text-[10px] px-2 py-0.5 rounded border border-border hover:bg-muted">+ notificar</button>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <button onClick={addBranch} className="w-full px-2 py-1.5 border border-dashed border-border rounded text-xs hover:bg-muted">
+        + Nova ramificação
+      </button>
+    </div>
+  );
+}
+
+function actionLabel(type: string): string {
+  return (
+    {
+      trigger_template: "Enviar template",
+      move_stage_by_name: "Mover estágio",
+      mark_lost: "Marcar perdido",
+      notify_team: "Notificar equipe",
+    } as Record<string, string>
+  )[type] || type;
 }

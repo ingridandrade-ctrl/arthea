@@ -21,7 +21,8 @@ export async function processIncomingMessage(
   phoneRaw: string,
   content: string,
   senderName: string,
-  evolutionMsgId: string
+  evolutionMsgId: string,
+  buttonId?: string,
 ) {
   // Normaliza pra `5511...` antes de qualquer lookup/save — webhook do Meta
   // já manda só dígitos, mas é defensivo (e o sentinel de serialização
@@ -36,7 +37,7 @@ export async function processIncomingMessage(
       // ignore — the prior call's own error handling already ran
     }
   }
-  const run = doProcessIncomingMessage(phone, content, senderName, evolutionMsgId);
+  const run = doProcessIncomingMessage(phone, content, senderName, evolutionMsgId, buttonId);
   inflightByPhone.set(phone, run);
   try {
     return await run;
@@ -52,6 +53,7 @@ async function doProcessIncomingMessage(
   content: string,
   senderName: string,
   evolutionMsgId: string,
+  buttonId?: string,
 ) {
   // Idempotency guard: if we've already stored a Message for this delivery,
   // skip. The webhook already checks this, but a duplicate delivery could
@@ -156,10 +158,14 @@ async function doProcessIncomingMessage(
     });
   }
 
+  // Se foi clique de botão, marca o ID no início do content. Engine usa esse
+  // prefixo pra parsear qual botão o lead clicou (nó button_clicked do builder).
+  const messageContent = buttonId ? `[Botão: ${buttonId}] ${content}` : content;
+
   await prisma.message.create({
     data: {
       conversationId: conversation.id,
-      content,
+      content: messageContent,
       sender: "LEAD",
       evolutionMsgId,
     },
