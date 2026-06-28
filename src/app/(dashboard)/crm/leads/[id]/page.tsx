@@ -21,6 +21,9 @@ import {
   XCircle,
   PauseCircle,
   AlertTriangle,
+  ToggleLeft,
+  ToggleRight,
+  Bot,
 } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
@@ -204,23 +207,7 @@ export default function LeadDetailPage() {
           ) : (
             <div className="space-y-3">
               {lead.conversations.map((conv: any) => (
-                <Link
-                  key={conv.id}
-                  href={`/crm/conversations/${conv.id}`}
-                  className="block border border-border rounded-lg p-3 hover:bg-muted/30 transition"
-                >
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">
-                      {conv.isAiActive ? "IA ativa" : "Atendimento humano"}
-                    </span>
-                  </div>
-                  {conv.messages[0] && (
-                    <p className="text-xs text-muted-foreground mt-1 truncate">
-                      {conv.messages[0].content}
-                    </p>
-                  )}
-                </Link>
+                <ConversationRow key={conv.id} conv={conv} onChanged={fetchLead} />
               ))}
             </div>
           )}
@@ -797,6 +784,70 @@ function ServiceCustomFields({
           className="px-3 py-1 text-xs rounded bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
         >
           {saving ? "Salvando..." : "Salvar"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ConversationRow({ conv, onChanged }: { conv: any; onChanged: () => void }) {
+  const [aiActive, setAiActive] = useState<boolean>(!!conv.isAiActive);
+  const [toggling, setToggling] = useState(false);
+
+  async function toggleAi(e: React.MouseEvent) {
+    e.preventDefault(); // não navega pro link
+    e.stopPropagation();
+    if (toggling) return;
+    setToggling(true);
+    const newState = !aiActive;
+    setAiActive(newState);
+    const res = await fetch(`/api/conversations/${conv.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isAiActive: newState }),
+    });
+    setToggling(false);
+    if (!res.ok) {
+      setAiActive(!newState);
+      alert("Erro ao atualizar status da IA");
+    } else {
+      onChanged();
+    }
+  }
+
+  return (
+    <div className="border border-border rounded-lg p-3 hover:bg-muted/30 transition">
+      <div className="flex items-center justify-between gap-3">
+        <Link href={`/crm/conversations/${conv.id}`} className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium">
+              {aiActive ? "🤖 IA ativa" : "👤 Atendimento humano"}
+            </span>
+          </div>
+          {conv.messages[0] && (
+            <p className="text-xs text-muted-foreground mt-1 truncate">
+              {conv.messages[0].content}
+            </p>
+          )}
+        </Link>
+        <button
+          onClick={toggleAi}
+          disabled={toggling}
+          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted transition disabled:opacity-50 shrink-0"
+          title={aiActive ? "Desligar IA — quem responder será humano" : "Ligar IA — bot responderá automaticamente"}
+        >
+          {aiActive ? (
+            <>
+              <ToggleRight className="w-4 h-4 text-blue-600" />
+              <span className="text-blue-600 font-medium">IA Ligada</span>
+            </>
+          ) : (
+            <>
+              <ToggleLeft className="w-4 h-4 text-muted-foreground" />
+              <span className="text-muted-foreground">IA Desligada</span>
+            </>
+          )}
         </button>
       </div>
     </div>
