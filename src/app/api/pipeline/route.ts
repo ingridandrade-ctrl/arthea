@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
                 select: {
                   id: true,
                   name: true,
+                  source: true,
                   createdAt: true,
                   services: { select: { service: { select: { id: true, name: true, color: true } } } },
                 },
