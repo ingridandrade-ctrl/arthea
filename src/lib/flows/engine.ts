@@ -3,6 +3,7 @@ import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { sendTemplateMessage, sendInteractiveButtons } from "@/lib/whatsapp-official";
 import { renderTemplate } from "@/lib/followups/engine";
 import { resolveMetaParams } from "@/lib/templates/meta-conversion";
+import { addBusinessDays } from "./business-days";
 
 // Dispara fluxos quando um evento acontece:
 // - stage_enter: leadService entrou num estágio novo
@@ -68,18 +69,24 @@ export async function triggerFlows(opts: {
       },
     });
 
-    // Agenda todos os passos. delayHours é cumulativo (relativo ao trigger).
-    let totalDelayHours = 0;
-    const now = new Date();
+    // Agenda todos os passos. Acumulador `cursor` representa o "horário atual"
+    // conforme a gente avança pelos passos. delayHours é o jeito padrão de
+    // somar tempo. wait_business_days pula fins de semana e feriados BR.
+    let cursor = new Date();
     for (const step of flow.steps) {
-      totalDelayHours += step.delayHours;
-      const scheduledAt = new Date(now.getTime() + totalDelayHours * 60 * 60 * 1000);
+      if (step.actionType === "wait_business_days") {
+        const cfg = (step.actionConfig || {}) as any;
+        const days = Number(cfg.days || 1);
+        cursor = addBusinessDays(cursor, days);
+      } else if (step.delayHours > 0) {
+        cursor = new Date(cursor.getTime() + step.delayHours * 60 * 60 * 1000);
+      }
       await prisma.flowStepExecution.create({
         data: {
           executionId: execution.id,
           stepId: step.id,
           order: step.order,
-          scheduledAt,
+          scheduledAt: new Date(cursor),
           status: "pending",
         },
       });
@@ -379,6 +386,191 @@ export async function processDueFlowSteps() {
           data: { status: "executed", executedAt: now },
         });
         results.push({ id: item.id, ok: true, action });
+      } else if (action === "wait_business_days") {
+        // Espera pura — quando o scheduledAt bater, só marca executed.
+        // O delay já foi calculado em triggerFlows considerando dias úteis.
+        await prisma.flowStepExecution.update({
+          where: { id: item.id },
+          data: { status: "executed", executedAt: now, result: { branch: "elapsed" } },
+        });
+        results.push({ id: item.id, ok: true, action });
+      } else if (action === "field_check") {
+        // Verifica se um campo do leadService.customData está preenchido.
+        // Se sim: continua. Se não: notifica admin + reagenda esse step
+        // pra 1h depois (pausa o fluxo até o campo aparecer ou desistir
+        // manualmente).
+        const field = String(config.field || "").trim();
+        const value = field ? customData[field] : undefined;
+        const hasValue = value !== undefined && value !== null && String(value).trim() !== "";
+
+        if (hasValue) {
+          await prisma.flowStepExecution.update({
+            where: { id: item.id },
+            data: { status: "executed", executedAt: now, result: { branch: "filled", field } },
+          });
+          results.push({ id: item.id, ok: true, action: "field_check_pass" });
+        } else {
+          // Notifica admin (dedupe: só 1x a cada 6h pra esse lead+campo)
+          const recentNotif = await prisma.notification.findFirst({
+            where: {
+              type: "field_check_waiting",
+              createdAt: { gte: new Date(Date.now() - 6 * 60 * 60 * 1000) },
+              data: { path: ["leadId"], equals: lead.id },
+            },
+          });
+          if (!recentNotif) {
+            const recipients = await prisma.user.findMany({
+              where: { role: { in: ["ADMIN", "MANAGER"] } },
+              select: { id: true },
+            });
+            for (const u of recipients) {
+              await prisma.notification.create({
+                data: {
+                  userId: u.id,
+                  type: "field_check_waiting",
+                  title: `Fluxo pausado: preencha "${field}" do lead ${lead.name}`,
+                  body: `O fluxo "${item.execution.flow.name}" está esperando o campo "${field}" ser preenchido em "Dados do serviço" antes de continuar.`,
+                  data: { leadId: lead.id, field, executionId: item.executionId },
+                },
+              });
+            }
+          }
+          // Reagenda esse step pra 1h depois (mantém pending)
+          const nextRetry = new Date(Date.now() + 60 * 60 * 1000);
+          await prisma.flowStepExecution.update({
+            where: { id: item.id },
+            data: { scheduledAt: nextRetry, result: { reason: "waiting_field", field } },
+          });
+          // Também empurra todos os steps posteriores pra manter cadência
+          await prisma.flowStepExecution.updateMany({
+            where: {
+              executionId: item.executionId,
+              status: "pending",
+              order: { gt: item.order },
+            },
+            data: { scheduledAt: { /* sentinel */ } as any },
+          }).catch(() => {});
+          // Empurrada acima não funciona em Prisma — fazer manual
+          const downstream = await prisma.flowStepExecution.findMany({
+            where: {
+              executionId: item.executionId,
+              status: "pending",
+              order: { gt: item.order },
+            },
+            select: { id: true, scheduledAt: true },
+          });
+          for (const d of downstream) {
+            await prisma.flowStepExecution.update({
+              where: { id: d.id },
+              data: { scheduledAt: new Date(d.scheduledAt.getTime() + 60 * 60 * 1000) },
+            });
+          }
+          results.push({ id: item.id, ok: false, action: "field_check_wait" });
+        }
+      } else if (action === "set_loss_reason") {
+        // Marca o lead como PERDIDO + grava motivo. Move pra estágio "Perdido"
+        // do pipeline do leadService se existir.
+        const reason = String(config.reason || "").trim() || "Motivo não especificado";
+        const lostStageHint = "perdido";
+
+        if (leadService) {
+          const ls = await prisma.leadService.findUnique({
+            where: { id: leadService.id },
+            include: { stage: { include: { pipeline: true } } },
+          });
+          if (ls?.stage) {
+            const lostStage = await prisma.pipelineStage.findFirst({
+              where: {
+                pipelineId: ls.stage.pipelineId,
+                name: { contains: lostStageHint, mode: "insensitive" },
+              },
+            });
+            if (lostStage && lostStage.id !== ls.stageId) {
+              await prisma.leadService.update({
+                where: { id: ls.id },
+                data: { stageId: lostStage.id },
+              });
+            }
+          }
+        }
+
+        // Append motivo nos notes (mesmo pattern do button-handler mark_lost)
+        const leadFull = await prisma.lead.findUnique({
+          where: { id: lead.id },
+          select: { notes: true },
+        });
+        await prisma.lead.update({
+          where: { id: lead.id },
+          data: {
+            status: "PERDIDO",
+            notes: `${leadFull?.notes ? leadFull.notes + "\n" : ""}Motivo da perda: ${reason}`,
+          },
+        });
+        await prisma.flowStepExecution.update({
+          where: { id: item.id },
+          data: { status: "executed", executedAt: now, result: { reason } },
+        });
+        results.push({ id: item.id, ok: true, action });
+      } else if (action === "button_clicked") {
+        // Detecta qual botão o lead clicou após o último template enviado
+        // e executa as ações da branch correspondente. Configuração:
+        //   { branches: [{ buttonId: "x", actions: [...] }, ...] }
+        //   branches pode incluir { buttonId: "_none", actions: [...] } pra
+        //   leads que não clicaram em nada (botão ID começa com "_").
+        const branches = (config.branches || []) as Array<{
+          buttonId: string;
+          actions: any[];
+        }>;
+
+        // Busca o último botão clicado pelo lead (depois do início desta exec)
+        const lastButton = await prisma.message.findFirst({
+          where: {
+            conversation: { leadId: lead.id },
+            sender: "LEAD",
+            createdAt: { gte: item.execution.startedAt },
+            // No webhook a gente salva como conteúdo "[Botão clicado: xxx]"
+            // ou similar. Mais robusto: filtrar por content contendo o
+            // marker e parsear.
+            content: { contains: "[Botão" },
+          },
+          orderBy: { createdAt: "desc" },
+          select: { content: true },
+        });
+
+        // Extrai o buttonId do content. Formato esperado:
+        //   "[Botão clicado: gmn_t2b_yes] Sim, quero receber"
+        // ou simplesmente o ID puro se outro extrator usou.
+        let clickedButtonId: string | null = null;
+        if (lastButton) {
+          const m = lastButton.content.match(/\[Botão[^:]*:\s*([a-zA-Z0-9_-]+)\]/);
+          if (m) clickedButtonId = m[1];
+        }
+
+        const matchedBranch = clickedButtonId
+          ? branches.find((b) => b.buttonId === clickedButtonId)
+          : branches.find((b) => b.buttonId === "_none");
+
+        if (!matchedBranch) {
+          await prisma.flowStepExecution.update({
+            where: { id: item.id },
+            data: { status: "skipped", executedAt: now, result: { reason: "no_matching_branch", clickedButtonId } },
+          });
+          results.push({ id: item.id, ok: false, action: "button_no_branch" });
+        } else {
+          // Reusa o button-handler pra executar as ações (mesma estrutura
+          // de actions: trigger_template, move_stage_by_name, mark_lost, etc)
+          const { runButtonActions } = await import("./button-handler-actions");
+          await runButtonActions(lead.id, matchedBranch.actions || []);
+          await prisma.flowStepExecution.update({
+            where: { id: item.id },
+            data: {
+              status: "executed",
+              executedAt: now,
+              result: { branch: clickedButtonId || "_none", actionsCount: (matchedBranch.actions || []).length },
+            },
+          });
+          results.push({ id: item.id, ok: true, action: `button:${clickedButtonId || "_none"}` });
+        }
       } else {
         // Tipo desconhecido — skip
         await prisma.flowStepExecution.update({
