@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useServiceFilter } from "@/lib/hooks/use-service-filter";
 import { formatCurrency } from "@/lib/utils";
-import { GripVertical, Tag, Pencil, Trash2 } from "lucide-react";
+import { GripVertical, Tag, Pencil, Trash2, Settings } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
+import { StageManagerModal } from "@/components/crm/stage-manager-modal";
 import Link from "next/link";
 
 export default function PipelinePage() {
@@ -16,6 +17,7 @@ export default function PipelinePage() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [deletingItem, setDeletingItem] = useState<any>(null);
   const [deletingLoading, setDeletingLoading] = useState(false);
+  const [showStagesModal, setShowStagesModal] = useState(false);
 
   useEffect(() => {
     fetch("/api/services")
@@ -120,6 +122,14 @@ export default function PipelinePage() {
               </option>
             ))}
           </select>
+          <button
+            onClick={() => setShowStagesModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-border rounded-lg text-sm font-medium hover:bg-muted transition"
+            title="Editar etapas do funil"
+          >
+            <Settings className="w-3.5 h-3.5" />
+            Editar etapas
+          </button>
         </div>
       </div>
 
@@ -211,6 +221,15 @@ export default function PipelinePage() {
           </div>
         ))}
       </div>
+
+      {showStagesModal && (
+        <StageManagerModal
+          serviceSlug={activeService}
+          serviceName={activeServiceName}
+          onClose={() => setShowStagesModal(false)}
+          onChanged={fetchPipeline}
+        />
+      )}
 
       {editingItem && (
         <Modal title="Editar" onClose={() => setEditingItem(null)}>

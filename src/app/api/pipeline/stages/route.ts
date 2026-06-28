@@ -55,15 +55,24 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, color } = body;
+  const { name, color, service: serviceSlug } = body;
 
   if (!name?.trim()) {
     return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 });
   }
 
-  let pipeline = await prisma.pipeline.findFirst();
+  let pipeline = null;
+  if (serviceSlug && serviceSlug !== "all") {
+    const pipelineId = await ensurePipelineForService(serviceSlug);
+    if (pipelineId) pipeline = await prisma.pipeline.findUnique({ where: { id: pipelineId } });
+  } else {
+    pipeline = await prisma.pipeline.findFirst({ where: { serviceId: null } });
+    if (!pipeline) {
+      pipeline = await prisma.pipeline.create({ data: { name: "Pipeline Comercial" } });
+    }
+  }
   if (!pipeline) {
-    pipeline = await prisma.pipeline.create({ data: { name: "Pipeline Comercial" } });
+    return NextResponse.json({ error: "Não foi possível resolver o pipeline" }, { status: 400 });
   }
 
   const maxOrder = await prisma.pipelineStage.aggregate({
