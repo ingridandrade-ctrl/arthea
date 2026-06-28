@@ -49,18 +49,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status: "no_message" });
     }
 
-    const { phone, content, name, messageId } = extracted;
+    const { phone, content, name, messageId, buttonId } = extracted;
 
     // Mark as read (non-blocking)
     markAsRead(messageId).catch(() => {});
 
-    // Process through the chatbot pipeline
-    const result = await processIncomingMessage(
-      phone,
-      content,
-      name,
-      messageId
-    );
+    // Process through the chatbot pipeline (grava no histórico, cancela fluxos, etc)
+    const result = await processIncomingMessage(phone, content, name, messageId);
+
+    // Se foi clique em botão, executa as ações configuradas no template
+    if (buttonId) {
+      const { prisma } = await import("@/lib/prisma");
+      const lead = await prisma.lead.findUnique({ where: { phone }, select: { id: true } });
+      if (lead) {
+        const { handleButtonClick } = await import("@/lib/flows/button-handler");
+        handleButtonClick({ leadId: lead.id, buttonId }).catch((err) =>
+          console.error("handleButtonClick falhou:", err),
+        );
+      }
+    }
 
     return NextResponse.json({ status: "processed", ...result });
   } catch (error) {

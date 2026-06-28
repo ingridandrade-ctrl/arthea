@@ -269,6 +269,7 @@ model FollowUpTemplate {
   metaSubmittedAt      DateTime?
   metaApprovedAt       DateTime?
   metaParamOrder       Json?     // ["nome", "empresa", "linkAnalise"] — ordem dos params {{1}}..{{N}}
+  buttons              Json?     // Array<{ id, label, actions: Array<{ type, ... }> }>
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

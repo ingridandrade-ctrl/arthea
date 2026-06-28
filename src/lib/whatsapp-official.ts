@@ -48,6 +48,36 @@ export async function sendTextMessage(
   }
 }
 
+export async function sendInteractiveButtons(
+  to: string,
+  bodyText: string,
+  buttons: { id: string; label: string }[],
+): Promise<string | null> {
+  try {
+    const phone = normalizePhone(to);
+    const response = await api.post(`/${phoneNumberId}/messages`, {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: phone,
+      type: "interactive",
+      interactive: {
+        type: "button",
+        body: { text: bodyText },
+        action: {
+          buttons: buttons.slice(0, 3).map((b) => ({
+            type: "reply",
+            reply: { id: b.id, title: b.label.slice(0, 20) },
+          })),
+        },
+      },
+    });
+    return response.data?.messages?.[0]?.id || null;
+  } catch (error: any) {
+    console.error("WhatsApp interactive error:", error.response?.data || error.message);
+    return null;
+  }
+}
+
 export async function sendTemplateMessage(
   to: string,
   templateName: string,
@@ -91,6 +121,7 @@ export interface MetaTemplateBody {
   header?: string;
   footer?: string;
   exampleParams?: string[];
+  buttons?: { label: string }[]; // até 3 botões de quick reply
 }
 
 export async function submitMetaTemplate(t: MetaTemplateBody): Promise<{ id: string; status: string } | { error: string }> {
@@ -104,6 +135,12 @@ export async function submitMetaTemplate(t: MetaTemplateBody): Promise<{ id: str
       ...(t.exampleParams && t.exampleParams.length > 0 ? { example: { body_text: [t.exampleParams] } } : {}),
     });
     if (t.footer) components.push({ type: "FOOTER", text: t.footer });
+    if (t.buttons && t.buttons.length > 0) {
+      components.push({
+        type: "BUTTONS",
+        buttons: t.buttons.slice(0, 3).map((b) => ({ type: "QUICK_REPLY", text: b.label.slice(0, 20) })),
+      });
+    }
 
     const res = await api.post(`/${wabaId}/message_templates`, {
       name: t.name,
@@ -217,6 +254,7 @@ export function extractOfficialMessageContent(payload: WhatsAppWebhookPayload): 
   content: string;
   name: string;
   messageId: string;
+  buttonId?: string;
 } | null {
   if (payload.object !== "whatsapp_business_account") return null;
 
@@ -234,18 +272,21 @@ export function extractOfficialMessageContent(payload: WhatsAppWebhookPayload): 
 
       // Extract text content from various message types
       let content = "";
+      let buttonId: string | undefined = undefined;
       switch (msg.type) {
         case "text":
           content = msg.text?.body || "";
           break;
         case "button":
           content = msg.button?.text || "";
+          buttonId = msg.button?.payload || undefined;
           break;
         case "interactive":
           content =
             msg.interactive?.button_reply?.title ||
             msg.interactive?.list_reply?.title ||
             "";
+          buttonId = msg.interactive?.button_reply?.id || msg.interactive?.list_reply?.id || undefined;
           break;
         case "image":
           content = msg.image?.caption || "[Imagem]";
@@ -273,6 +314,7 @@ export function extractOfficialMessageContent(payload: WhatsAppWebhookPayload): 
         content,
         name: contact?.profile?.name || msg.from,
         messageId: msg.id,
+        buttonId,
       };
     }
   }
