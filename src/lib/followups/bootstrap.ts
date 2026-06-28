@@ -33,14 +33,14 @@ export async function ensureGmnTemplates() {
   for (const t of GMN_TEMPLATES) {
     const existing = await prisma.followUpTemplate.findUnique({ where: { code: t.code } });
     if (existing) {
-      // NÃO sobrescreve conteúdo editável pela UI (name, messageTemplate,
-      // channel, isAutomatic, delayHoursOverride). Só ajusta vínculos
-      // estruturais que mudam com refactors (serviceId, stageOrder,
-      // followUpOrder, condition) se estiverem fora do esperado.
+      // NÃO sobrescreve `messageTemplate` (copy editável pela UI). O `name`
+      // É alinhado ao canônico — se a admin renomear pela UI, o próximo
+      // setup-gmn reverte (decisão consciente: padronização de naming).
       const drift: any = {};
       if (existing.serviceId !== gmn.id) drift.serviceId = gmn.id;
       if (existing.stageOrder !== t.stageOrder) drift.stageOrder = t.stageOrder;
       if (existing.followUpOrder !== t.followUpOrder) drift.followUpOrder = t.followUpOrder;
+      if (existing.name !== t.name) drift.name = t.name;
       const wantCond = JSON.stringify(t.condition || null);
       const haveCond = JSON.stringify(existing.condition ?? null);
       if (wantCond !== haveCond) drift.condition = t.condition || undefined;
