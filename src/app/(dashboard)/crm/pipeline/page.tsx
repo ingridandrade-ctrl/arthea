@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useServiceFilter } from "@/lib/hooks/use-service-filter";
 import { formatCurrency } from "@/lib/utils";
-import { GripVertical, Tag, Pencil, Trash2, Settings } from "lucide-react";
+import { GripVertical, Tag, Pencil, Trash2, Settings, Zap } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { StageManagerModal } from "@/components/crm/stage-manager-modal";
 import Link from "next/link";
@@ -194,6 +194,25 @@ export default function PipelinePage() {
                           {ls.service.name}
                         </span>
                         {ls.lead.source && <SourceTag source={ls.lead.source} />}
+                        {ls.flowCounts && (ls.flowCounts.running > 0 || ls.flowCounts.total > 0) && (
+                          <span
+                            className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                              ls.flowCounts.running > 0
+                                ? "bg-amber-50 border-amber-300 text-amber-700"
+                                : "bg-gray-50 border-gray-300 text-gray-600"
+                            }`}
+                            title={
+                              ls.flowCounts.running > 0
+                                ? `${ls.flowCounts.running} fluxo(s) em execução · ${ls.flowCounts.total} total`
+                                : `${ls.flowCounts.total} fluxo(s) já executado(s)`
+                            }
+                          >
+                            <Zap className="w-2.5 h-2.5" />
+                            {ls.flowCounts.running > 0
+                              ? `${ls.flowCounts.running} ativo${ls.flowCounts.running > 1 ? "s" : ""}`
+                              : `${ls.flowCounts.total} ok`}
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between mt-2 gap-2">
