@@ -52,35 +52,81 @@ export async function PUT(
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { name, phone, email, company, status, notes, serviceIds } = body;
+  const { name, phone, email, company, source, status, notes, serviceIds, services } = body;
 
-  const lead = await prisma.lead.update({
+  await prisma.lead.update({
     where: { id: params.id },
     data: {
       ...(name !== undefined && { name }),
       ...(phone !== undefined && { phone }),
       ...(email !== undefined && { email }),
       ...(company !== undefined && { company }),
+      ...(source !== undefined && { source }),
       ...(status !== undefined && { status }),
       ...(notes !== undefined && { notes }),
     },
   });
 
-  // Update service associations if provided
-  if (serviceIds && Array.isArray(serviceIds)) {
-    // Remove existing associations
-    await prisma.leadService.deleteMany({ where: { leadId: params.id } });
-    // Create new ones
+  // Reconciliação rica: services = Array<{ serviceId, stageId?, value?, customData? }>
+  // Preserva customData/stageId/value existentes; só recria os que mudam.
+  if (services && Array.isArray(services)) {
+    const existing = await prisma.leadService.findMany({
+      where: { leadId: params.id },
+      select: { id: true, serviceId: true },
+    });
+    const existingByService = new Map(existing.map((ls) => [ls.serviceId, ls.id]));
+    const keptServiceIds = new Set<string>();
+
+    for (const item of services) {
+      if (!item?.serviceId) continue;
+      keptServiceIds.add(item.serviceId);
+      const existingId = existingByService.get(item.serviceId);
+      const data: any = {};
+      if (item.stageId !== undefined) data.stageId = item.stageId || null;
+      if (item.value !== undefined) data.value = item.value !== null && item.value !== "" ? Number(item.value) : null;
+      if (item.customData !== undefined) data.customData = item.customData || undefined;
+      if (existingId) {
+        if (Object.keys(data).length > 0) {
+          await prisma.leadService.update({ where: { id: existingId }, data });
+        }
+      } else {
+        await prisma.leadService.create({
+          data: { leadId: params.id, serviceId: item.serviceId, ...data },
+        });
+      }
+    }
+
+    // Remove serviços que sumiram
+    const toRemove = existing.filter((ls) => !keptServiceIds.has(ls.serviceId));
+    for (const ls of toRemove) {
+      await prisma.followUp.deleteMany({ where: { leadServiceId: ls.id } });
+      await prisma.leadService.delete({ where: { id: ls.id } });
+    }
+  } else if (serviceIds && Array.isArray(serviceIds)) {
+    // Legacy: apenas IDs (sem detalhes). Adiciona faltantes, remove sumidos. Não toca em campos.
+    const existing = await prisma.leadService.findMany({
+      where: { leadId: params.id },
+      select: { id: true, serviceId: true },
+    });
+    const existingIds = new Set(existing.map((ls) => ls.serviceId));
+    const want = new Set<string>(serviceIds);
+
     for (const serviceId of serviceIds) {
-      await prisma.leadService.create({
-        data: { leadId: params.id, serviceId },
-      });
+      if (!existingIds.has(serviceId)) {
+        await prisma.leadService.create({ data: { leadId: params.id, serviceId } });
+      }
+    }
+    for (const ls of existing) {
+      if (!want.has(ls.serviceId)) {
+        await prisma.followUp.deleteMany({ where: { leadServiceId: ls.id } });
+        await prisma.leadService.delete({ where: { id: ls.id } });
+      }
     }
   }
 
   const result = await prisma.lead.findUnique({
     where: { id: params.id },
-    include: { services: { include: { service: true } } },
+    include: { services: { include: { service: true, stage: true } } },
   });
 
   return NextResponse.json(result);
