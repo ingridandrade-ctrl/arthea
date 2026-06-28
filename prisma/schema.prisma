@@ -260,6 +260,15 @@ model FollowUpTemplate {
   isActive        Boolean  @default(true)
   delayHoursOverride Int?
   condition       Json?
+  // Meta WhatsApp Cloud API — submissão e aprovação de template
+  metaName             String?   @unique
+  metaCategory         String?   // UTILITY | MARKETING | AUTHENTICATION
+  metaLanguage         String    @default("pt_BR")
+  metaStatus           String?   // DRAFT | PENDING | APPROVED | REJECTED | DISABLED
+  metaRejectionReason  String?
+  metaSubmittedAt      DateTime?
+  metaApprovedAt       DateTime?
+  metaParamOrder       Json?     // ["nome", "empresa", "linkAnalise"] — ordem dos params {{1}}..{{N}}
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

@@ -24,6 +24,13 @@ interface Template {
   messageTemplate: string;
   isActive: boolean;
   service: { id: string; name: string; slug: string; color: string } | null;
+  metaName?: string | null;
+  metaCategory?: string | null;
+  metaLanguage?: string;
+  metaStatus?: string | null;
+  metaRejectionReason?: string | null;
+  metaSubmittedAt?: string | null;
+  metaApprovedAt?: string | null;
 }
 
 interface Service {
@@ -168,10 +175,16 @@ export default function TemplatesPage() {
                     {!t.isActive && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Inativo</span>
                     )}
+                    <MetaStatusBadge status={t.metaStatus} category={t.metaCategory} />
                   </div>
                   <p className="text-sm text-muted-foreground mt-1.5 whitespace-pre-wrap line-clamp-3">
                     {t.messageTemplate}
                   </p>
+                  {t.metaStatus === "REJECTED" && t.metaRejectionReason && (
+                    <p className="text-xs text-red-600 mt-2 bg-red-50 border border-red-200 rounded px-2 py-1">
+                      <strong>Rejeitado:</strong> {t.metaRejectionReason}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => toggleActive(t)} className="p-1.5 rounded hover:bg-muted" title={t.isActive ? "Desativar" : "Ativar"}>
@@ -220,6 +233,26 @@ export default function TemplatesPage() {
   );
 }
 
+function MetaStatusBadge({ status, category }: { status?: string | null; category?: string | null }) {
+  if (!status) return null;
+  const colorMap: Record<string, string> = {
+    APPROVED: "bg-green-100 text-green-700 border-green-200",
+    PENDING: "bg-amber-100 text-amber-700 border-amber-200",
+    REJECTED: "bg-red-100 text-red-700 border-red-200",
+    DISABLED: "bg-gray-100 text-gray-600 border-gray-200",
+    DRAFT: "bg-slate-100 text-slate-600 border-slate-200",
+  };
+  const cls = colorMap[status] || colorMap.DRAFT;
+  const label = status === "PENDING" ? "Aprovação Meta · Pendente"
+    : status === "APPROVED" ? `Meta · Aprovado${category ? ` · ${category}` : ""}`
+    : status === "REJECTED" ? "Meta · Rejeitado"
+    : status === "DISABLED" ? "Meta · Desativado"
+    : "Meta · Rascunho";
+  return (
+    <span className={`text-[10px] px-2 py-0.5 rounded-full border ${cls}`}>{label}</span>
+  );
+}
+
 function TemplateFormModal({
   template,
   services,
@@ -234,31 +267,64 @@ function TemplateFormModal({
   const [name, setName] = useState(template?.name || "");
   const [message, setMessage] = useState(template?.messageTemplate || "");
   const [serviceId, setServiceId] = useState(template?.serviceId || "");
+  const [metaName, setMetaName] = useState(template?.metaName || "");
+  const [metaCategory, setMetaCategory] = useState(template?.metaCategory || "");
   const [saving, setSaving] = useState(false);
+  const [submittingMeta, setSubmittingMeta] = useState(false);
   const [error, setError] = useState("");
 
-  async function save() {
+  async function save(): Promise<Template | null> {
     setSaving(true);
     setError("");
     const body = {
       name,
       messageTemplate: message,
       serviceId: serviceId || null,
+      metaName: metaName.trim() || null,
+      metaCategory: metaCategory || null,
     };
     const url = template ? `/api/followup-templates/${template.id}` : "/api/followup-templates";
     const method = template ? "PUT" : "POST";
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     setSaving(false);
+    if (res.ok) {
+      const data = await res.json();
+      onSaved();
+      return data;
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Erro ao salvar");
+      return null;
+    }
+  }
+
+  async function submitToMeta() {
+    if (!template) {
+      setError("Salve o template primeiro pra poder submeter pra Meta");
+      return;
+    }
+    if (!metaName.trim() || !metaCategory) {
+      setError("Preencha Nome Meta e Categoria antes de submeter");
+      return;
+    }
+    setSubmittingMeta(true);
+    setError("");
+    // Salva primeiro pra garantir que os campos estão no banco
+    await save();
+    const res = await fetch(`/api/followup-templates/${template.id}/meta`, { method: "POST" });
+    setSubmittingMeta(false);
     if (res.ok) {
       onSaved();
     } else {
       const data = await res.json().catch(() => ({}));
-      setError(data.error || "Erro ao salvar");
+      setError(data.error || "Erro ao submeter pra Meta");
     }
+  }
+
+  async function refreshMetaStatus() {
+    if (!template) return;
+    const res = await fetch(`/api/followup-templates/${template.id}/meta`, { method: "PUT" });
+    if (res.ok) onSaved();
   }
 
   return (
@@ -302,6 +368,74 @@ function TemplateFormModal({
             Use {"{{nome}}, {{empresa}}, {{linkAnalise}}"} e outras variáveis listadas no topo da página.
           </p>
         </div>
+        {/* Bloco Meta */}
+        <div className="border-t border-border pt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Aprovação Meta (WhatsApp oficial)</h3>
+            {template?.metaStatus && (
+              <MetaStatusBadge status={template.metaStatus} category={template.metaCategory} />
+            )}
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Pra disparar essa mensagem FORA da janela de 24h (follow-up automático, prospecção fria), a Meta exige aprovação. Configure abaixo e clique em "Submeter".
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Nome Meta</label>
+              <input
+                value={metaName}
+                onChange={(e) => setMetaName(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_"))}
+                placeholder="gmn_t1_boas_vindas"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <p className="text-[10px] text-muted-foreground mt-0.5">snake_case, sem espaços</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Categoria</label>
+              <select
+                value={metaCategory}
+                onChange={(e) => setMetaCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="">— Selecione —</option>
+                <option value="UTILITY">Utility (atualizações operacionais)</option>
+                <option value="MARKETING">Marketing (promoções/aproximação)</option>
+                <option value="AUTHENTICATION">Authentication (códigos OTP)</option>
+              </select>
+            </div>
+          </div>
+          {template?.metaStatus === "REJECTED" && template?.metaRejectionReason && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+              <strong>Motivo:</strong> {template.metaRejectionReason}
+            </p>
+          )}
+          {template && (
+            <div className="flex gap-2">
+              <button
+                onClick={submitToMeta}
+                disabled={submittingMeta || !metaName.trim() || !metaCategory}
+                className="flex-1 px-3 py-2 border border-primary text-primary rounded-lg text-sm font-medium hover:bg-primary/5 disabled:opacity-50"
+              >
+                {submittingMeta ? "Submetendo..." : template.metaStatus === "PENDING" ? "Re-submeter" : "Submeter pra Meta"}
+              </button>
+              {template.metaStatus && (
+                <button
+                  onClick={refreshMetaStatus}
+                  className="px-3 py-2 border border-border rounded-lg text-sm hover:bg-muted"
+                  title="Atualizar status da Meta"
+                >
+                  ↻
+                </button>
+              )}
+            </div>
+          )}
+          {!template && (
+            <p className="text-[11px] text-muted-foreground italic">
+              Salve o template primeiro pra habilitar a submissão Meta.
+            </p>
+          )}
+        </div>
+
         <div className="flex gap-2">
           <button onClick={onClose} className="flex-1 px-4 py-2 border border-border rounded-lg text-sm hover:bg-muted">
             Cancelar

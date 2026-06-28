@@ -79,6 +79,69 @@ export async function sendTemplateMessage(
   }
 }
 
+// ─── Templates (Meta WhatsApp Business API) ──────────────────────
+
+const wabaId = process.env.WHATSAPP_WABA_ID || "";
+
+export interface MetaTemplateBody {
+  name: string;
+  category: "UTILITY" | "MARKETING" | "AUTHENTICATION";
+  language: string;
+  body: string; // texto com {{1}}, {{2}}...
+  header?: string;
+  footer?: string;
+  exampleParams?: string[];
+}
+
+export async function submitMetaTemplate(t: MetaTemplateBody): Promise<{ id: string; status: string } | { error: string }> {
+  if (!wabaId) return { error: "WHATSAPP_WABA_ID não configurado no servidor" };
+  try {
+    const components: any[] = [];
+    if (t.header) components.push({ type: "HEADER", format: "TEXT", text: t.header });
+    components.push({
+      type: "BODY",
+      text: t.body,
+      ...(t.exampleParams && t.exampleParams.length > 0 ? { example: { body_text: [t.exampleParams] } } : {}),
+    });
+    if (t.footer) components.push({ type: "FOOTER", text: t.footer });
+
+    const res = await api.post(`/${wabaId}/message_templates`, {
+      name: t.name,
+      category: t.category,
+      language: t.language,
+      components,
+    });
+    return { id: res.data?.id, status: res.data?.status || "PENDING" };
+  } catch (err: any) {
+    const msg = err.response?.data?.error?.message || err.message || "Erro ao submeter template";
+    return { error: msg };
+  }
+}
+
+export async function fetchMetaTemplateStatus(name: string): Promise<{ status: string; rejectionReason?: string } | { error: string }> {
+  if (!wabaId) return { error: "WHATSAPP_WABA_ID não configurado" };
+  try {
+    const res = await api.get(`/${wabaId}/message_templates`, {
+      params: { name, fields: "name,status,rejected_reason,quality_score", limit: 1 },
+    });
+    const tpl = res.data?.data?.[0];
+    if (!tpl) return { error: "Template não encontrado na Meta" };
+    return { status: tpl.status, rejectionReason: tpl.rejected_reason };
+  } catch (err: any) {
+    return { error: err.response?.data?.error?.message || err.message };
+  }
+}
+
+export async function deleteMetaTemplate(name: string): Promise<{ ok: true } | { error: string }> {
+  if (!wabaId) return { error: "WHATSAPP_WABA_ID não configurado" };
+  try {
+    await api.delete(`/${wabaId}/message_templates`, { params: { name } });
+    return { ok: true };
+  } catch (err: any) {
+    return { error: err.response?.data?.error?.message || err.message };
+  }
+}
+
 export async function markAsRead(messageId: string): Promise<void> {
   try {
     await api.post(`/${phoneNumberId}/messages`, {
