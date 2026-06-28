@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { sendTemplateMessage } from "@/lib/whatsapp-official";
 import { renderTemplate } from "@/lib/followups/engine";
+import { resolveMetaParams } from "@/lib/templates/meta-conversion";
 
 // Dispara fluxos quando um evento acontece:
 // - stage_enter: leadService entrou num estágio novo
@@ -133,26 +135,50 @@ export async function processDueFlowSteps() {
 
     try {
       if (action === "send_whatsapp" || action === "internal_reminder") {
-        // Resolve mensagem: prioriza templateId (sempre fresh do banco) sobre message inline
+        // Resolve template (sempre busca versão atual do banco)
         let raw = (config.message as string) || "";
+        let metaName: string | null = null;
+        let metaParamOrder: string[] = [];
+        let metaApproved = false;
         if (config.templateId) {
           const tpl = await prisma.followUpTemplate.findUnique({
             where: { id: config.templateId as string },
-            select: { messageTemplate: true, isActive: true },
+            select: {
+              messageTemplate: true,
+              isActive: true,
+              metaName: true,
+              metaStatus: true,
+              metaParamOrder: true,
+            },
           });
-          if (tpl && tpl.isActive) raw = tpl.messageTemplate;
+          if (tpl && tpl.isActive) {
+            raw = tpl.messageTemplate;
+            metaName = tpl.metaName;
+            metaParamOrder = (tpl.metaParamOrder as string[]) || [];
+            metaApproved = tpl.metaStatus === "APPROVED";
+          }
         }
-        const message = renderTemplate(raw, {
+        const variables = {
           nome: lead.name,
           servico: leadService?.service?.name || "",
           empresa: lead.company || "",
           telefone: lead.phone,
           email: lead.email || "",
           ...customData,
-        });
+        };
+        const message = renderTemplate(raw, variables);
 
         if (action === "send_whatsapp") {
-          await sendWhatsAppMessage(lead.phone, message);
+          // Se tem template Meta aprovado, manda como template (funciona fora da janela 24h)
+          if (metaApproved && metaName) {
+            const params = resolveMetaParams(metaParamOrder, variables);
+            await sendTemplateMessage(lead.phone, metaName, "pt_BR", [
+              { type: "body", parameters: params.map((p) => ({ type: "text", text: p })) },
+            ]);
+          } else {
+            // Fallback: texto livre (só funciona em janela de 24h aberta)
+            await sendWhatsAppMessage(lead.phone, message);
+          }
           // Registra na conversa
           let conv = await prisma.conversation.findFirst({ where: { leadId: lead.id }, orderBy: { createdAt: "desc" } });
           if (!conv) {
