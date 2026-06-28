@@ -28,26 +28,26 @@ export async function ensureGmnTemplates() {
   }
 
   let created = 0;
-  let updated = 0;
+  let touched = 0;
 
   for (const t of GMN_TEMPLATES) {
     const existing = await prisma.followUpTemplate.findUnique({ where: { code: t.code } });
     if (existing) {
-      await prisma.followUpTemplate.update({
-        where: { code: t.code },
-        data: {
-          name: t.name,
-          serviceId: gmn.id,
-          stageOrder: t.stageOrder,
-          followUpOrder: t.followUpOrder,
-          channel: t.channel,
-          messageTemplate: t.messageTemplate,
-          isAutomatic: t.isAutomatic,
-          delayHoursOverride: t.delayHoursOverride,
-          condition: t.condition || undefined,
-        },
-      });
-      updated++;
+      // NÃO sobrescreve conteúdo editável pela UI (name, messageTemplate,
+      // channel, isAutomatic, delayHoursOverride). Só ajusta vínculos
+      // estruturais que mudam com refactors (serviceId, stageOrder,
+      // followUpOrder, condition) se estiverem fora do esperado.
+      const drift: any = {};
+      if (existing.serviceId !== gmn.id) drift.serviceId = gmn.id;
+      if (existing.stageOrder !== t.stageOrder) drift.stageOrder = t.stageOrder;
+      if (existing.followUpOrder !== t.followUpOrder) drift.followUpOrder = t.followUpOrder;
+      const wantCond = JSON.stringify(t.condition || null);
+      const haveCond = JSON.stringify(existing.condition ?? null);
+      if (wantCond !== haveCond) drift.condition = t.condition || undefined;
+      if (Object.keys(drift).length > 0) {
+        await prisma.followUpTemplate.update({ where: { code: t.code }, data: drift });
+        touched++;
+      }
     } else {
       await prisma.followUpTemplate.create({
         data: {
@@ -67,5 +67,5 @@ export async function ensureGmnTemplates() {
     }
   }
 
-  return { created, updated, total: GMN_TEMPLATES.length };
+  return { created, touched, total: GMN_TEMPLATES.length };
 }
