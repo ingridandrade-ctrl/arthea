@@ -601,10 +601,17 @@ export default function TarefasPage() {
       )}
 
       {deletingTask && (
-        <Modal title="Excluir Tarefa" onClose={() => setDeletingTask(null)}>
+        <Modal
+          title={deletingTask.kind === "followup" ? "Remover follow-up" : "Excluir Tarefa"}
+          onClose={() => setDeletingTask(null)}
+        >
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Tem certeza que deseja excluir a tarefa <strong>{deletingTask.title}</strong>?
+              {deletingTask.kind === "followup" ? (
+                <>Remover o follow-up <strong>{deletingTask.title}</strong> da lista de tarefas? (Vai marcar como pulado)</>
+              ) : (
+                <>Tem certeza que deseja excluir a tarefa <strong>{deletingTask.title}</strong>?</>
+              )}
             </p>
             <div className="flex gap-3">
               <button
@@ -616,15 +623,22 @@ export default function TarefasPage() {
               <button
                 onClick={async () => {
                   setDeletingLoading(true);
-                  const res = await fetch(`/api/tasks/${deletingTask.id}`, {
-                    method: "DELETE",
-                  });
+                  let res: Response;
+                  if (deletingTask.kind === "followup") {
+                    res = await fetch(`/api/followups/${deletingTask.id}/complete`, {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ action: "skip" }),
+                    });
+                  } else {
+                    res = await fetch(`/api/tasks/${deletingTask.id}`, { method: "DELETE" });
+                  }
                   if (res.ok) {
                     setDeletingTask(null);
-                    fetchTasks();
+                    await fetchTasks();
                   } else {
                     const data = await res.json().catch(() => ({}));
-                    alert(data.error || "Erro ao excluir tarefa");
+                    alert(data.error || `Erro ao excluir (HTTP ${res.status})`);
                   }
                   setDeletingLoading(false);
                 }}
@@ -835,24 +849,22 @@ function TaskRow({
 
       <div className="flex items-center gap-1 shrink-0">
         {task.kind !== "followup" && (
-          <>
-            <button
-              onClick={onEdit}
-              className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition"
-              title="Editar tarefa"
-            >
-              <Pencil className="w-3 h-3" />
-              Editar
-            </button>
-            <button
-              onClick={onDelete}
-              className="p-1.5 rounded-md text-muted-foreground hover:bg-red-50 hover:text-red-600 transition"
-              title="Excluir tarefa"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </>
+          <button
+            onClick={onEdit}
+            className="flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-muted-foreground border border-border hover:bg-muted hover:text-foreground transition"
+            title="Editar tarefa"
+          >
+            <Pencil className="w-3 h-3" />
+            Editar
+          </button>
         )}
+        <button
+          onClick={onDelete}
+          className="p-1.5 rounded-md text-muted-foreground hover:bg-red-50 hover:text-red-600 transition"
+          title={task.kind === "followup" ? "Remover follow-up" : "Excluir tarefa"}
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
       </div>
     </li>
   );
