@@ -160,6 +160,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Notifica admin/manager — sininho sempre, WhatsApp só pra FORMS
+    const { notifyNewLead } = await import("@/lib/notifications/new-lead");
+    notifyNewLead({
+      leadId: lead.id,
+      leadName: name,
+      leadPhone: normalizedPhone,
+      leadCompany: company,
+      source: resolvedSource,
+      serviceName: service?.name,
+    }).catch(() => {});
+
     return NextResponse.json(
       { success: true, leadId: lead.id, leadServiceId: leadService.id },
       { status: 201 }
