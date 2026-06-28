@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sortByCanonicalOrder } from "@/lib/service-order";
 
 export async function GET() {
   const session = await getServerSession(authOptions) as any;
@@ -9,13 +10,13 @@ export async function GET() {
 
   const services = await prisma.service.findMany({
     where: { isActive: true },
-    orderBy: { name: "asc" },
     include: {
       _count: { select: { leads: true, contracts: true } },
     },
   });
 
-  const response = NextResponse.json(services);
+  const sorted = sortByCanonicalOrder(services);
+  const response = NextResponse.json(sorted);
   response.headers.set('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
   return response;
 }
