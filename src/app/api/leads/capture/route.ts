@@ -124,8 +124,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (dueNow.length > 0) {
+      // IA só liga por padrão se o lead tem serviço GMN — pra outros serviços
+      // o atendimento já começa humano (preferência da admin).
+      const { shouldEnableAiByDefault } = await import("@/lib/chatbot/should-enable-ai");
+      const aiOn = await shouldEnableAiByDefault(lead.id);
       const conversation = await prisma.conversation.create({
-        data: { leadId: lead.id, isAiActive: true, lastMessageAt: new Date() },
+        data: { leadId: lead.id, isAiActive: aiOn, lastMessageAt: new Date() },
       });
 
       const customDataMerged = (customData || {}) as Record<string, string>;

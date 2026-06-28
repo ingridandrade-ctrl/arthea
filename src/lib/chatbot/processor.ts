@@ -144,10 +144,14 @@ async function doProcessIncomingMessage(
   });
 
   if (!conversation) {
+    // IA só liga por padrão se o lead tem serviço GMN — pra outros serviços
+    // o atendimento começa humano (preferência da admin).
+    const { shouldEnableAiByDefault } = await import("@/lib/chatbot/should-enable-ai");
+    const aiOn = await shouldEnableAiByDefault(lead.id);
     conversation = await prisma.conversation.create({
       data: {
         leadId: lead.id,
-        isAiActive: true,
+        isAiActive: aiOn,
       },
     });
   }
@@ -181,6 +185,14 @@ async function doProcessIncomingMessage(
 
   if (!conversation.isAiActive) {
     return { handled: false, reason: "human_active" };
+  }
+
+  // Defesa: IA só atende leads que têm GMN como serviço. Cobre o caso
+  // de admin trocar serviços do lead sem desligar a IA, ou conversation
+  // criada antes da regra existir.
+  const hasGmn = lead.services.some((ls) => ls.service.slug === "google-meu-negocio");
+  if (!hasGmn) {
+    return { handled: false, reason: "ai_disabled_for_non_gmn" };
   }
 
   if (shouldHandoff(content)) {
