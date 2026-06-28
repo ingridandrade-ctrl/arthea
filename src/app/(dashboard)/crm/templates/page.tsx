@@ -31,6 +31,18 @@ interface Template {
   metaRejectionReason?: string | null;
   metaSubmittedAt?: string | null;
   metaApprovedAt?: string | null;
+  condition?: { source?: string } | null;
+}
+
+const SOURCE_OPTIONS = [
+  { value: "FORMS", label: "Forms site", color: "#0ea5e9" },
+  { value: "PROSPECCAO", label: "Prospecção", color: "#a855f7" },
+  { value: "INDICACAO", label: "Indicação", color: "#ec4899" },
+];
+
+function getSourceMeta(value?: string | null) {
+  if (!value) return null;
+  return SOURCE_OPTIONS.find((o) => o.value === value);
 }
 
 interface Service {
@@ -46,6 +58,7 @@ export default function TemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterService, setFilterService] = useState("all");
+  const [filterSource, setFilterSource] = useState("all");
   const [editing, setEditing] = useState<Template | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<Template | null>(null);
@@ -84,13 +97,17 @@ export default function TemplatesPage() {
   const filtered = useMemo(() => {
     return templates.filter((t) => {
       if (filterService !== "all" && t.service?.slug !== filterService) return false;
+      if (filterSource !== "all") {
+        const src = t.condition?.source || "";
+        if (filterSource === "none" ? src !== "" : src !== filterSource) return false;
+      }
       if (search) {
         const q = search.toLowerCase();
         if (!t.name.toLowerCase().includes(q) && !t.messageTemplate.toLowerCase().includes(q)) return false;
       }
       return true;
     });
-  }, [templates, filterService, search]);
+  }, [templates, filterService, filterSource, search]);
 
   return (
     <div className="space-y-5">
@@ -126,6 +143,16 @@ export default function TemplatesPage() {
           onChange={setFilterService}
           defaultLabel="Todos"
           options={services.map((s) => ({ value: s.slug, label: s.name, color: s.color }))}
+        />
+        <FilterDropdown
+          label="Origem"
+          value={filterSource}
+          onChange={setFilterSource}
+          defaultLabel="Todas"
+          options={[
+            ...SOURCE_OPTIONS.map((s) => ({ value: s.value, label: s.label, color: s.color })),
+            { value: "none", label: "Sem origem definida", color: "#94a3b8" },
+          ]}
         />
       </div>
 
@@ -175,6 +202,7 @@ export default function TemplatesPage() {
                     {!t.isActive && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Inativo</span>
                     )}
+                    <SourceBadge source={t.condition?.source} />
                     <MetaStatusBadge status={t.metaStatus} category={t.metaCategory} />
                   </div>
                   <p className="text-sm text-muted-foreground mt-1.5 whitespace-pre-wrap line-clamp-3">
@@ -233,6 +261,19 @@ export default function TemplatesPage() {
   );
 }
 
+function SourceBadge({ source }: { source?: string | null }) {
+  const meta = getSourceMeta(source);
+  if (!meta) return null;
+  return (
+    <span
+      className="text-[10px] px-2 py-0.5 rounded-full border"
+      style={{ background: meta.color + "15", borderColor: meta.color + "55", color: meta.color }}
+    >
+      Origem: {meta.label}
+    </span>
+  );
+}
+
 function MetaStatusBadge({ status, category }: { status?: string | null; category?: string | null }) {
   if (!status) return null;
   const colorMap: Record<string, string> = {
@@ -267,6 +308,7 @@ function TemplateFormModal({
   const [name, setName] = useState(template?.name || "");
   const [message, setMessage] = useState(template?.messageTemplate || "");
   const [serviceId, setServiceId] = useState(template?.serviceId || "");
+  const [sourceTag, setSourceTag] = useState(template?.condition?.source || "");
   const [metaName, setMetaName] = useState(template?.metaName || "");
   const [metaCategory, setMetaCategory] = useState(template?.metaCategory || "");
   const [saving, setSaving] = useState(false);
@@ -280,6 +322,7 @@ function TemplateFormModal({
       name,
       messageTemplate: message,
       serviceId: serviceId || null,
+      condition: sourceTag ? { source: sourceTag } : null,
       metaName: metaName.trim() || null,
       metaCategory: metaCategory || null,
     };
@@ -341,20 +384,37 @@ function TemplateFormModal({
             autoFocus
           />
         </div>
-        <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Serviço (opcional)</label>
-          <select
-            value={serviceId}
-            onChange={(e) => setServiceId(e.target.value)}
-            className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="">— Qualquer serviço —</option>
-            {services.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-          <p className="text-[10px] text-muted-foreground mt-1">Marcar serviço deixa esse template aparecendo só pra ele nos fluxos.</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Serviço (opcional)</label>
+            <select
+              value={serviceId}
+              onChange={(e) => setServiceId(e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">— Qualquer —</option>
+              {services.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Origem (opcional)</label>
+            <select
+              value={sourceTag}
+              onChange={(e) => setSourceTag(e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">— Qualquer —</option>
+              {SOURCE_OPTIONS.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
+        <p className="text-[10px] text-muted-foreground -mt-2">
+          Marcar serviço/origem ajuda a filtrar e a se lembrar onde usar esse template.
+        </p>
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-1">Mensagem</label>
           <textarea

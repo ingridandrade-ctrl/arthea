@@ -13,6 +13,7 @@ export async function PUT(
   const body = await request.json();
   const {
     name, messageTemplate, isAutomatic, isActive, channel, serviceId,
+    condition,
     metaName, metaCategory, metaLanguage,
   } = body;
 
@@ -25,6 +26,7 @@ export async function PUT(
       ...(isActive !== undefined && { isActive }),
       ...(channel !== undefined && { channel }),
       ...(serviceId !== undefined && { serviceId: serviceId || null }),
+      ...(condition !== undefined && { condition: condition || undefined }),
       ...(metaName !== undefined && { metaName: metaName || null }),
       ...(metaCategory !== undefined && { metaCategory: metaCategory || null }),
       ...(metaLanguage !== undefined && { metaLanguage: metaLanguage || "pt_BR" }),

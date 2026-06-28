@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
     channel,
     messageTemplate,
     isAutomatic,
+    condition,
   } = body;
 
   if (!name || !messageTemplate) {
@@ -78,6 +79,7 @@ export async function POST(request: NextRequest) {
       channel: channel || "whatsapp",
       messageTemplate,
       isAutomatic: isAutomatic ?? false,
+      ...(condition !== undefined && { condition: condition || undefined }),
     },
   });
 
