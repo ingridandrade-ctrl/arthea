@@ -185,13 +185,16 @@ export default function PipelinePage() {
                         {ls.lead.name}
                       </Link>
 
-                      <span
-                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium text-white mt-1"
-                        style={{ backgroundColor: ls.service.color }}
-                      >
-                        <Tag className="w-2.5 h-2.5" />
-                        {ls.service.name}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-1 mt-1">
+                        <span
+                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium text-white"
+                          style={{ backgroundColor: ls.service.color }}
+                        >
+                          <Tag className="w-2.5 h-2.5" />
+                          {ls.service.name}
+                        </span>
+                        {ls.lead.source && <SourceTag source={ls.lead.source} />}
+                      </div>
 
                       <div className="flex items-center justify-between mt-2 gap-2">
                         {ls.value ? (
@@ -328,5 +331,24 @@ function EditLeadServiceForm({ item, onSaved }: { item: any; onSaved: () => void
         {loading ? "Salvando..." : "Salvar"}
       </button>
     </form>
+  );
+}
+
+function SourceTag({ source }: { source: string }) {
+  const META: Record<string, { label: string; color: string }> = {
+    FORMS: { label: "Forms", color: "#0ea5e9" },
+    PROSPECCAO: { label: "Prospecção", color: "#a855f7" },
+    INDICACAO: { label: "Indicação", color: "#ec4899" },
+  };
+  const m = META[source];
+  if (!m) return null;
+  return (
+    <span
+      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium border"
+      style={{ backgroundColor: m.color + "15", borderColor: m.color + "55", color: m.color }}
+      title={`Origem: ${m.label}`}
+    >
+      {m.label}
+    </span>
   );
 }
