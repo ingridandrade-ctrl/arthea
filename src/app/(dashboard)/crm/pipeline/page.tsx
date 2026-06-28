@@ -183,13 +183,18 @@ export default function PipelinePage() {
                         {ls.service.name}
                       </span>
 
-                      <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center justify-between mt-2 gap-2">
                         {ls.value ? (
                           <span className="text-xs font-semibold text-green-600">
                             {formatCurrency(ls.value)}
                           </span>
                         ) : (
                           <span />
+                        )}
+                        {ls.lead.createdAt && (
+                          <span className="text-[10px] text-muted-foreground" title={`Lead entrou em ${new Date(ls.lead.createdAt).toLocaleString("pt-BR")}`}>
+                            {new Date(ls.lead.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                          </span>
                         )}
                       </div>
                     </div>
