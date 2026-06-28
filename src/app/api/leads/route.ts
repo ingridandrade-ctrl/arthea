@@ -10,9 +10,11 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const serviceSlug = searchParams.get("service");
   const status = searchParams.get("status");
+  const source = searchParams.get("source");
   const search = searchParams.get("search");
   const dateFrom = searchParams.get("from");
   const dateTo = searchParams.get("to");
+  const sort = searchParams.get("sort") || "recent";
 
   const where: any = {};
 
@@ -21,8 +23,11 @@ export async function GET(request: NextRequest) {
       some: { service: { slug: serviceSlug } },
     };
   }
-  if (status) {
+  if (status && status !== "all") {
     where.status = status;
+  }
+  if (source && source !== "all") {
+    where.source = source;
   }
   if (search) {
     where.OR = [
@@ -42,6 +47,13 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  const orderByMap: Record<string, any> = {
+    recent: { createdAt: "desc" },
+    oldest: { createdAt: "asc" },
+    name_asc: { name: "asc" },
+    name_desc: { name: "desc" },
+  };
+
   const leads = await prisma.lead.findMany({
     where,
     take: 50,
@@ -49,7 +61,7 @@ export async function GET(request: NextRequest) {
       services: { include: { service: true, stage: true } },
       _count: { select: { conversations: true } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: orderByMap[sort] || orderByMap.recent,
   });
 
   return NextResponse.json(leads);
