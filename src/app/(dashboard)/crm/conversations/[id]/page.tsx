@@ -21,16 +21,10 @@ export default function ConversationPage() {
   }
 
   async function fetchConversation() {
-    // Get conversation details through leads API
-    const res = await fetch("/api/leads?service=all");
-    const leads = await res.json();
-    for (const lead of leads) {
-      const conv = lead.conversations?.find((c: any) => c.id === params.id);
-      if (conv) {
-        setConversation({ ...conv, lead });
-        break;
-      }
-    }
+    const res = await fetch(`/api/conversations/${params.id}`);
+    if (!res.ok) return;
+    const conv = await res.json();
+    setConversation(conv);
   }
 
   useEffect(() => {
@@ -65,14 +59,19 @@ export default function ConversationPage() {
 
   async function toggleAi() {
     if (!conversation) return;
-    // Toggle AI through a simple endpoint
     const newState = !conversation.isAiActive;
-    await fetch(`/api/leads/${conversation.lead.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
+    // Optimistic update
     setConversation({ ...conversation, isAiActive: newState });
+    const res = await fetch(`/api/conversations/${conversation.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isAiActive: newState }),
+    });
+    if (!res.ok) {
+      // Reverte se falhou
+      setConversation({ ...conversation, isAiActive: !newState });
+      alert("Erro ao atualizar status da IA");
+    }
   }
 
   return (
