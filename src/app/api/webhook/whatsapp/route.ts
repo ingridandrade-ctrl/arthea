@@ -4,6 +4,7 @@ import {
   WhatsAppWebhookPayload,
   extractOfficialMessageContent,
   extractStatusUpdates,
+  extractTemplateStatusUpdates,
   markAsRead,
 } from "@/lib/whatsapp-official";
 import { processIncomingMessage } from "@/lib/chatbot/processor";
@@ -147,6 +148,41 @@ export async function POST(request: NextRequest) {
     } catch (statusErr) {
       console.error("WhatsApp webhook: status handling failed:", statusErr);
       // Don't abort — keep processing inbound messages below.
+    }
+
+    // ── Template status updates (APPROVED/REJECTED/etc) ──────────
+    // Requer inscrição no campo `message_template_status_update` no painel
+    // Meta Developers. Atualiza FollowUpTemplate.metaStatus na hora — sem
+    // isso, o usuário precisava clicar no 🔄 manualmente.
+    try {
+      const tplUpdates = extractTemplateStatusUpdates(payload);
+      for (const u of tplUpdates) {
+        console.log(
+          `WhatsApp template status: name=${u.templateName} event=${u.event} reason=${u.reason ?? "-"}`,
+        );
+        const tpl = await prisma.followUpTemplate.findUnique({
+          where: { metaName: u.templateName },
+          select: { id: true },
+        });
+        if (!tpl) {
+          console.warn(`WhatsApp template status: template ${u.templateName} não existe no CRM — ignorado`);
+          continue;
+        }
+        await prisma.followUpTemplate.update({
+          where: { id: tpl.id },
+          data: {
+            metaStatus: u.event,
+            metaRejectionReason: u.event === "REJECTED" ? (u.reason || "Sem motivo informado") : null,
+            ...(u.event === "APPROVED" ? { metaApprovedAt: new Date() } : {}),
+          },
+        });
+      }
+      if (tplUpdates.length > 0 && !payload.entry.some((e) => e.changes.some((c) => c.field === "messages"))) {
+        // Webhook só de template update — não tem mensagem pra processar
+        return NextResponse.json({ status: "template_status_processed", count: tplUpdates.length });
+      }
+    } catch (tplErr) {
+      console.error("WhatsApp webhook: template status handling failed:", tplErr);
     }
 
     const extracted = extractOfficialMessageContent(payload);
