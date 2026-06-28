@@ -83,6 +83,15 @@ export async function processIncomingMessage(
     data: { lastMessageAt: new Date() },
   });
 
+  // Lead respondeu → cancela fluxos em andamento, move estágio se aplicável,
+  // notifica equipe. Não bloqueia o resto do processamento se falhar.
+  if (!isNewLead) {
+    const { onLeadReplied } = await import("@/lib/flows/lead-replied");
+    onLeadReplied({ leadId: lead.id, lastMessage: content }).catch((err) =>
+      console.error("onLeadReplied falhou:", err)
+    );
+  }
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return { handled: false, reason: "ai_disabled" };
   }
