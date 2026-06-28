@@ -200,6 +200,22 @@ async function doProcessIncomingMessage(
     return { handled: true, reason: "handoff" };
   }
 
+  // Áudio/vídeo: IA não escuta. Responde amigável e desliga IA pra humano
+  // assumir (lead precisa de resposta agora, não dá pra ignorar).
+  if (/\[Mensagem de voz\]|\[Audio\]|\[Video\]/.test(content)) {
+    const polite = `Oii, ${lead.name.split(" ")[0]}! Não consigo escutar áudios por aqui, me responde por escrito que eu te respondo na hora 😊`;
+    await sendWhatsAppMessage(phone, polite);
+    await prisma.message.create({
+      data: { conversationId: conversation.id, content: polite, sender: "AI" },
+    });
+    // Desliga IA pra humano cuidar do áudio se o lead insistir
+    await prisma.conversation.update({
+      where: { id: conversation.id },
+      data: { isAiActive: false },
+    });
+    return { handled: true, reason: "audio_polite_redirect" };
+  }
+
   const pendingFollowUp = await prisma.followUp.findFirst({
     where: {
       leadService: { leadId: lead.id },
@@ -262,9 +278,18 @@ async function doProcessIncomingMessage(
     content: msg.content,
   }));
 
+  // Monta system prompt enriquecido com contexto desse lead específico
+  // (nome, empresa, estágio, templates já enviados). Sem isso, a IA age
+  // como se fosse a 1ª conversa todo dia.
+  const { buildLeadContext } = await import("./lead-context");
+  const leadContext = await buildLeadContext(lead.id);
+  const enrichedPrompt = leadContext
+    ? `${SYSTEM_PROMPT}\n\n${leadContext}`
+    : SYSTEM_PROMPT;
+
   let aiResponse: string;
   try {
-    aiResponse = await generateChatResponse(SYSTEM_PROMPT, messages);
+    aiResponse = await generateChatResponse(enrichedPrompt, messages);
   } catch (aiErr: any) {
     console.error(
       `IA falhou pro lead ${lead.id} (${lead.phone}):`,
