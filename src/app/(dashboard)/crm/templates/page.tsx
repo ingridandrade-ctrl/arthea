@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { Plus, Pencil, Trash2, Check, X, Search } from "lucide-react";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { Plus, Pencil, Trash2, Check, X, Search, Copy, ChevronDown, ChevronUp, Link2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { FilterDropdown } from "@/components/crm/filter-dropdown";
 
@@ -68,6 +68,13 @@ interface Service {
   color: string;
 }
 
+interface UsageInfo {
+  flowCount: number;
+  activeFlowCount: number;
+  stepCount: number;
+  flows: { id: string; name: string; isActive: boolean; stepCount: number }[];
+}
+
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -77,7 +84,10 @@ export default function TemplatesPage() {
   const [filterSource, setFilterSource] = useState("all");
   const [editing, setEditing] = useState<Template | null>(null);
   const [creating, setCreating] = useState(false);
+  const [duplicateSeed, setDuplicateSeed] = useState<Template | null>(null);
   const [deleting, setDeleting] = useState<Template | null>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [usage, setUsage] = useState<Record<string, UsageInfo>>({});
 
   async function fetchAll() {
     setLoading(true);
@@ -85,9 +95,32 @@ export default function TemplatesPage() {
       fetch("/api/followup-templates").then((r) => r.json()),
       fetch("/api/services").then((r) => r.json()),
     ]);
-    setTemplates(Array.isArray(t) ? t : []);
+    const list: Template[] = Array.isArray(t) ? t : [];
+    setTemplates(list);
     setServices(Array.isArray(s) ? s : []);
     setLoading(false);
+    // Carrega usage em paralelo (não bloqueia listagem)
+    fetchUsageBulk(list.map((x) => x.id));
+  }
+
+  async function fetchUsageBulk(ids: string[]) {
+    const results = await Promise.all(
+      ids.map(async (id) => {
+        try {
+          const r = await fetch(`/api/followup-templates/${id}/usage`);
+          if (!r.ok) return [id, null] as const;
+          const data: UsageInfo = await r.json();
+          return [id, data] as const;
+        } catch {
+          return [id, null] as const;
+        }
+      })
+    );
+    const map: Record<string, UsageInfo> = {};
+    for (const [id, data] of results) {
+      if (data) map[id] = data;
+    }
+    setUsage(map);
   }
 
   useEffect(() => { fetchAll(); }, []);
@@ -108,6 +141,23 @@ export default function TemplatesPage() {
       body: JSON.stringify({ isActive: !t.isActive }),
     });
     fetchAll();
+  }
+
+  function duplicate(t: Template) {
+    // Limpa campos Meta (cada template Meta precisa de nome único) e id
+    const seed: Template = {
+      ...t,
+      id: "",
+      code: null,
+      name: `${t.name} (cópia)`,
+      metaName: null,
+      metaCategory: t.metaCategory || null,
+      metaStatus: null,
+      metaRejectionReason: null,
+      metaSubmittedAt: null,
+      metaApprovedAt: null,
+    };
+    setDuplicateSeed(seed);
   }
 
   const filtered = useMemo(() => {
@@ -206,7 +256,11 @@ export default function TemplatesPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {filtered.map((t) => (
+          {filtered.map((t) => {
+            const isExpanded = !!expanded[t.id];
+            const isLong = t.messageTemplate.length > 240 || t.messageTemplate.split("\n").length > 3;
+            const u = usage[t.id];
+            return (
             <div key={t.id} className={`bg-card rounded-xl border p-4 transition ${t.isActive ? "border-border" : "border-border opacity-60"}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
@@ -230,10 +284,27 @@ export default function TemplatesPage() {
                     )}
                     <SourceBadge source={t.condition?.source} />
                     <MetaStatusBadge status={t.metaStatus} category={t.metaCategory} />
+                    <UsageBadge usage={u} />
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1.5 whitespace-pre-wrap line-clamp-3">
+                  <p className={`text-sm text-muted-foreground mt-1.5 whitespace-pre-wrap ${isExpanded ? "" : "line-clamp-3"}`}>
                     {t.messageTemplate}
                   </p>
+                  {isLong && (
+                    <button
+                      onClick={() => setExpanded((p) => ({ ...p, [t.id]: !p[t.id] }))}
+                      className="mt-1 inline-flex items-center gap-0.5 text-[11px] text-primary hover:underline"
+                    >
+                      {isExpanded ? (
+                        <>
+                          <ChevronUp className="w-3 h-3" /> Ver menos
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-3 h-3" /> Ver completo
+                        </>
+                      )}
+                    </button>
+                  )}
                   {t.metaStatus === "REJECTED" && t.metaRejectionReason && (
                     <p className="text-xs text-red-600 mt-2 bg-red-50 border border-red-200 rounded px-2 py-1">
                       <strong>Rejeitado:</strong> {t.metaRejectionReason}
@@ -247,22 +318,27 @@ export default function TemplatesPage() {
                   <button onClick={() => setEditing(t)} className="p-1.5 rounded hover:bg-muted" title="Editar">
                     <Pencil className="w-4 h-4 text-muted-foreground" />
                   </button>
+                  <button onClick={() => duplicate(t)} className="p-1.5 rounded hover:bg-muted" title="Duplicar">
+                    <Copy className="w-4 h-4 text-muted-foreground" />
+                  </button>
                   <button onClick={() => setDeleting(t)} className="p-1.5 rounded hover:bg-red-50 hover:text-red-600" title="Excluir">
                     <Trash2 className="w-4 h-4 text-muted-foreground" />
                   </button>
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {(creating || editing) && (
+      {(creating || editing || duplicateSeed) && (
         <TemplateFormModal
           template={editing || undefined}
+          seed={duplicateSeed || undefined}
           services={services}
-          onClose={() => { setCreating(false); setEditing(null); }}
-          onSaved={() => { setCreating(false); setEditing(null); fetchAll(); }}
+          onClose={() => { setCreating(false); setEditing(null); setDuplicateSeed(null); }}
+          onSaved={() => { setCreating(false); setEditing(null); setDuplicateSeed(null); fetchAll(); }}
         />
       )}
 
@@ -320,27 +396,169 @@ function MetaStatusBadge({ status, category }: { status?: string | null; categor
   );
 }
 
+function UsageBadge({ usage }: { usage?: UsageInfo }) {
+  if (!usage) return null;
+  if (usage.flowCount === 0) {
+    return (
+      <span
+        className="text-[10px] px-2 py-0.5 rounded-full border bg-gray-50 text-gray-500 border-gray-200 inline-flex items-center gap-1"
+        title="Esse template não é usado por nenhum fluxo. Considere excluir se não for mais necessário."
+      >
+        <Link2 className="w-2.5 h-2.5" />
+        Não usado
+      </span>
+    );
+  }
+  const allInactive = usage.activeFlowCount === 0;
+  const label = usage.flowCount === 1 ? "Usado em 1 fluxo" : `Usado em ${usage.flowCount} fluxos`;
+  const cls = allInactive
+    ? "bg-amber-50 text-amber-700 border-amber-200"
+    : "bg-blue-50 text-blue-700 border-blue-200";
+  const title = usage.flows
+    .map((f) => `${f.name}${f.isActive ? "" : " (inativo)"} · ${f.stepCount}x`)
+    .join("\n");
+  return (
+    <span className={`text-[10px] px-2 py-0.5 rounded-full border inline-flex items-center gap-1 ${cls}`} title={title}>
+      <Link2 className="w-2.5 h-2.5" />
+      {label}
+      {allInactive && " (todos inativos)"}
+    </span>
+  );
+}
+
+// Resolve variáveis pra mostrar preview realista
+const PREVIEW_SAMPLE: Record<string, string> = {
+  "{{nome}}": "João",
+  "{{empresa}}": "Pizzaria do João",
+  "{{telefone}}": "(11) 99999-0000",
+  "{{email}}": "joao@pizzaria.com",
+  "{{servico}}": "Google Meu Negócio",
+  "{{segmento}}": "Restaurante",
+  "{{cidadeEstado}}": "São Paulo/SP",
+  "{{linkAnalise}}": "https://arthea.com.br/a/abc123",
+};
+
+function resolveVars(text: string): string {
+  return text.replace(/\{\{[^}]+\}\}/g, (m) => PREVIEW_SAMPLE[m] ?? m);
+}
+
+function WhatsAppPreview({ message, buttons }: { message: string; buttons: ButtonDef[] }) {
+  const rendered = resolveVars(message || "Sua mensagem aparece aqui...");
+  // WhatsApp markdown leve: *bold*, _italic_, ~strike~
+  const html = rendered
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/\*([^*\n]+)\*/g, "<strong>$1</strong>")
+    .replace(/_([^_\n]+)_/g, "<em>$1</em>")
+    .replace(/~([^~\n]+)~/g, "<s>$1</s>")
+    .replace(/\n/g, "<br/>");
+  return (
+    <div
+      className="rounded-lg p-3"
+      style={{
+        background:
+          "linear-gradient(135deg, #e6dcd0 0%, #d9cdb9 100%)",
+      }}
+    >
+      <p className="text-[10px] uppercase tracking-wider text-stone-600 mb-2 font-medium">Preview WhatsApp</p>
+      <div className="flex flex-col items-start gap-1 max-w-[85%]">
+        <div
+          className="relative bg-[#dcf8c6] text-[#111b21] text-[13px] leading-snug px-2.5 py-1.5 rounded-lg shadow-sm whitespace-pre-wrap break-words"
+          style={{ borderTopLeftRadius: 2 }}
+        >
+          <span dangerouslySetInnerHTML={{ __html: html }} />
+          <span className="block text-[9px] text-stone-500 text-right mt-1">
+            12:34 ✓✓
+          </span>
+        </div>
+        {buttons.length > 0 && (
+          <div className="w-full flex flex-col gap-0.5 mt-0.5">
+            {buttons.map((b) => (
+              <div
+                key={b.id}
+                className="bg-white text-[#00a884] text-[12px] font-medium text-center py-2 rounded-lg shadow-sm border border-stone-200"
+              >
+                {b.label || <span className="italic text-stone-400">Sem rótulo</span>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <p className="text-[10px] text-stone-600 mt-2 italic">
+        Variáveis preenchidas com dados de exemplo.
+      </p>
+    </div>
+  );
+}
+
+const META_BODY_LIMIT = 1024;
+
 function TemplateFormModal({
   template,
+  seed,
   services,
   onClose,
   onSaved,
 }: {
   template?: Template;
+  seed?: Template;
   services: Service[];
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [name, setName] = useState(template?.name || "");
-  const [message, setMessage] = useState(template?.messageTemplate || "");
-  const [serviceId, setServiceId] = useState(template?.serviceId || "");
-  const [sourceTag, setSourceTag] = useState(template?.condition?.source || "");
-  const [buttons, setButtons] = useState<ButtonDef[]>(template?.buttons || []);
-  const [metaName, setMetaName] = useState(template?.metaName || "");
-  const [metaCategory, setMetaCategory] = useState(template?.metaCategory || "");
+  // Template = edição; Seed = duplicação (sem id); senão = criação em branco.
+  const src = template || seed;
+  const [name, setName] = useState(src?.name || "");
+  const [message, setMessage] = useState(src?.messageTemplate || "");
+  const [serviceId, setServiceId] = useState(src?.serviceId || "");
+  const [sourceTag, setSourceTag] = useState(src?.condition?.source || "");
+  const [buttons, setButtons] = useState<ButtonDef[]>(src?.buttons || []);
+  const [metaName, setMetaName] = useState(src?.metaName || "");
+  const [metaCategory, setMetaCategory] = useState(src?.metaCategory || "");
   const [saving, setSaving] = useState(false);
   const [submittingMeta, setSubmittingMeta] = useState(false);
   const [error, setError] = useState("");
+  const [currentTemplate, setCurrentTemplate] = useState<Template | undefined>(template);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Sincroniza currentTemplate quando muda o template prop (raro mas defensivo)
+  useEffect(() => {
+    setCurrentTemplate(template);
+  }, [template]);
+
+  // Auto-refresh do status Meta a cada 30s quando está PENDING
+  useEffect(() => {
+    if (!currentTemplate || currentTemplate.metaStatus !== "PENDING") {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+      return;
+    }
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/followup-templates/${currentTemplate.id}/meta`, { method: "PUT" });
+        if (res.ok) {
+          const updated = await res.json();
+          setCurrentTemplate((prev) => (prev ? { ...prev, ...updated } : prev));
+          // Avisa lista pai pra sincronizar (sem fechar modal)
+          if (updated.metaStatus && updated.metaStatus !== "PENDING") {
+            onSaved();
+          }
+        }
+      } catch {
+        // ignora erro de polling — usuária pode dar ↻ manual
+      }
+    }, 30_000);
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, [currentTemplate?.id, currentTemplate?.metaStatus, onSaved]);
+
+  const charCount = message.length;
+  const charOverLimit = charCount > META_BODY_LIMIT;
 
   async function save(): Promise<Template | null> {
     setSaving(true);
@@ -354,8 +572,9 @@ function TemplateFormModal({
       metaName: metaName.trim() || null,
       metaCategory: metaCategory || null,
     };
-    const url = template ? `/api/followup-templates/${template.id}` : "/api/followup-templates";
-    const method = template ? "PUT" : "POST";
+    // Edição = PUT existente. Criação E duplicação = POST (seed não tem id).
+    const url = currentTemplate?.id ? `/api/followup-templates/${currentTemplate.id}` : "/api/followup-templates";
+    const method = currentTemplate?.id ? "PUT" : "POST";
     const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     setSaving(false);
     if (res.ok) {
@@ -370,7 +589,7 @@ function TemplateFormModal({
   }
 
   async function submitToMeta() {
-    if (!template) {
+    if (!currentTemplate?.id) {
       setError("Salve o template primeiro pra poder submeter pra Meta");
       return;
     }
@@ -378,13 +597,19 @@ function TemplateFormModal({
       setError("Preencha Nome Meta e Categoria antes de submeter");
       return;
     }
+    if (charOverLimit) {
+      setError(`Mensagem tem ${charCount} chars — Meta limita a ${META_BODY_LIMIT}. Encurte antes de submeter.`);
+      return;
+    }
     setSubmittingMeta(true);
     setError("");
     // Salva primeiro pra garantir que os campos estão no banco
     await save();
-    const res = await fetch(`/api/followup-templates/${template.id}/meta`, { method: "POST" });
+    const res = await fetch(`/api/followup-templates/${currentTemplate.id}/meta`, { method: "POST" });
     setSubmittingMeta(false);
     if (res.ok) {
+      const updated = await res.json();
+      setCurrentTemplate((prev) => (prev ? { ...prev, ...updated } : prev));
       onSaved();
     } else {
       const data = await res.json().catch(() => ({}));
@@ -393,14 +618,20 @@ function TemplateFormModal({
   }
 
   async function refreshMetaStatus() {
-    if (!template) return;
-    const res = await fetch(`/api/followup-templates/${template.id}/meta`, { method: "PUT" });
-    if (res.ok) onSaved();
+    if (!currentTemplate?.id) return;
+    const res = await fetch(`/api/followup-templates/${currentTemplate.id}/meta`, { method: "PUT" });
+    if (res.ok) {
+      const updated = await res.json();
+      setCurrentTemplate((prev) => (prev ? { ...prev, ...updated } : prev));
+      onSaved();
+    }
   }
 
+  const title = template ? "Editar template" : seed ? "Duplicar template" : "Novo template";
   return (
-    <Modal title={template ? "Editar template" : "Novo template"} onClose={onClose} maxWidth="max-w-xl">
-      <div className="space-y-4">
+    <Modal title={title} onClose={onClose} maxWidth="max-w-4xl">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-5">
+        <div className="space-y-4 min-w-0">
         {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-1">Nome</label>
@@ -444,13 +675,30 @@ function TemplateFormModal({
           Marcar serviço/origem ajuda a filtrar e a se lembrar onde usar esse template.
         </p>
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Mensagem</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-xs font-medium text-muted-foreground">Mensagem</label>
+            <span
+              className={`text-[10px] tabular-nums ${
+                charOverLimit
+                  ? "text-red-600 font-semibold"
+                  : charCount > META_BODY_LIMIT * 0.9
+                  ? "text-amber-600"
+                  : "text-muted-foreground"
+              }`}
+              title={charOverLimit ? `${charCount - META_BODY_LIMIT} chars acima do limite Meta` : "Limite Meta: 1024 chars"}
+            >
+              {charCount}/{META_BODY_LIMIT}
+              {charOverLimit && " — Meta vai rejeitar"}
+            </span>
+          </div>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={8}
             placeholder={"Oi {{nome}}! Tudo bem? Aqui é a Ingrid da Arthea..."}
-            className="w-full px-3 py-2 border border-border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary"
+            className={`w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 ${
+              charOverLimit ? "border-red-400 focus:ring-red-500" : "border-border focus:ring-primary"
+            }`}
           />
           <p className="text-[10px] text-muted-foreground mt-1">
             Use {"{{nome}}, {{empresa}}, {{linkAnalise}}"} e outras variáveis listadas no topo da página.
@@ -490,11 +738,22 @@ function TemplateFormModal({
 
         {/* Bloco Meta */}
         <div className="border-t border-border pt-4 space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Aprovação Meta (WhatsApp oficial)</h3>
-            {template?.metaStatus && (
-              <MetaStatusBadge status={template.metaStatus} category={template.metaCategory} />
-            )}
+            <div className="flex items-center gap-1.5">
+              {currentTemplate?.metaStatus && (
+                <MetaStatusBadge status={currentTemplate.metaStatus} category={currentTemplate.metaCategory} />
+              )}
+              {currentTemplate?.metaStatus === "PENDING" && (
+                <span
+                  className="text-[10px] text-amber-700 inline-flex items-center gap-1"
+                  title="Auto-atualizando status da Meta a cada 30s"
+                >
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  auto-refresh
+                </span>
+              )}
+            </div>
           </div>
           <p className="text-[11px] text-muted-foreground">
             Pra disparar essa mensagem FORA da janela de 24h (follow-up automático, prospecção fria), a Meta exige aprovação. Configure abaixo e clique em "Submeter".
@@ -524,21 +783,21 @@ function TemplateFormModal({
               </select>
             </div>
           </div>
-          {template?.metaStatus === "REJECTED" && template?.metaRejectionReason && (
+          {currentTemplate?.metaStatus === "REJECTED" && currentTemplate?.metaRejectionReason && (
             <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
-              <strong>Motivo:</strong> {template.metaRejectionReason}
+              <strong>Motivo:</strong> {currentTemplate.metaRejectionReason}
             </p>
           )}
-          {template && (
+          {currentTemplate?.id ? (
             <div className="flex gap-2">
               <button
                 onClick={submitToMeta}
-                disabled={submittingMeta || !metaName.trim() || !metaCategory}
+                disabled={submittingMeta || !metaName.trim() || !metaCategory || charOverLimit}
                 className="flex-1 px-3 py-2 border border-primary text-primary rounded-lg text-sm font-medium hover:bg-primary/5 disabled:opacity-50"
               >
-                {submittingMeta ? "Submetendo..." : template.metaStatus === "PENDING" ? "Re-submeter" : "Submeter pra Meta"}
+                {submittingMeta ? "Submetendo..." : currentTemplate.metaStatus === "PENDING" ? "Re-submeter" : "Submeter pra Meta"}
               </button>
-              {template.metaStatus && (
+              {currentTemplate.metaStatus && (
                 <button
                   onClick={refreshMetaStatus}
                   className="px-3 py-2 border border-border rounded-lg text-sm hover:bg-muted"
@@ -548,8 +807,7 @@ function TemplateFormModal({
                 </button>
               )}
             </div>
-          )}
-          {!template && (
+          ) : (
             <p className="text-[11px] text-muted-foreground italic">
               Salve o template primeiro pra habilitar a submissão Meta.
             </p>
@@ -567,6 +825,12 @@ function TemplateFormModal({
           >
             {saving ? "Salvando..." : "Salvar"}
           </button>
+        </div>
+        </div>
+
+        {/* Preview lateral (sticky em telas grandes) */}
+        <div className="lg:sticky lg:top-0 self-start space-y-3">
+          <WhatsAppPreview message={message} buttons={buttons} />
         </div>
       </div>
     </Modal>
