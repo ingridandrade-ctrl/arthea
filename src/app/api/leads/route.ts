@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { normalizeLeadPhone } from "@/lib/phone";
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions) as any;
@@ -30,9 +31,17 @@ export async function GET(request: NextRequest) {
     where.source = source;
   }
   if (search) {
+    // Pra busca por telefone: tenta tanto o texto cru quanto o normalizado
+    // (só dígitos), pra cobrir buscas como "(11) 99999-1234" achando o
+    // lead salvo como "5511999991234".
+    const phoneDigits = search.replace(/\D/g, "");
+    const phoneOR: any[] = [{ phone: { contains: search } }];
+    if (phoneDigits && phoneDigits !== search) {
+      phoneOR.push({ phone: { contains: phoneDigits } });
+    }
     where.OR = [
       { name: { contains: search, mode: "insensitive" } },
-      { phone: { contains: search } },
+      ...phoneOR,
       { email: { contains: search, mode: "insensitive" } },
       { company: { contains: search, mode: "insensitive" } },
     ];
@@ -78,7 +87,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Nome e telefone são obrigatórios" }, { status: 400 });
   }
 
-  const existing = await prisma.lead.findUnique({ where: { phone } });
+  const normalizedPhone = normalizeLeadPhone(phone);
+
+  const existing = await prisma.lead.findUnique({ where: { phone: normalizedPhone } });
   if (existing) {
     return NextResponse.json({ error: "Já existe um lead com este telefone" }, { status: 409 });
   }
@@ -86,7 +97,7 @@ export async function POST(request: NextRequest) {
   const lead = await prisma.lead.create({
     data: {
       name,
-      phone,
+      phone: normalizedPhone,
       email,
       company,
       source: source || "PROSPECCAO",
@@ -95,10 +106,12 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  if (serviceIds && Array.isArray(serviceIds)) {
+  const resolvedSource = source || "PROSPECCAO";
+  const isIndicacao = resolvedSource === "INDICACAO";
+
+  if (serviceIds && Array.isArray(serviceIds) && serviceIds.length > 0) {
     const { scheduleFollowUpsForLeadService } = await import("@/lib/followups/engine");
     const { triggerFlows } = await import("@/lib/flows/engine");
-    const isIndicacao = (source || "PROSPECCAO") === "INDICACAO";
     for (const serviceId of serviceIds) {
       const customData = serviceCustomData?.[serviceId] || undefined;
       const stageId = serviceStages?.[serviceId] || undefined;
@@ -116,25 +129,38 @@ export async function POST(request: NextRequest) {
         });
       }
     }
+  }
 
-    if (isIndicacao) {
-      const recipients = await prisma.user.findMany({
-        where: { role: { in: ["ADMIN", "MANAGER"] } },
-        select: { id: true },
+  // Indicação SEMPRE notifica — mesmo se serviceIds vazio. Antes só
+  // notificava dentro do bloco de serviceIds, então um lead INDICACAO sem
+  // serviços passava silencioso.
+  if (isIndicacao) {
+    const recipients = await prisma.user.findMany({
+      where: { role: { in: ["ADMIN", "MANAGER"] } },
+      select: { id: true },
+    });
+    for (const u of recipients) {
+      await prisma.notification.create({
+        data: {
+          userId: u.id,
+          type: "lead_indicacao",
+          title: `Novo lead por indicação: ${lead.name}`,
+          body: `${lead.company ? lead.company + " · " : ""}Atendimento manual. Telefone: ${lead.phone}`,
+          data: { leadId: lead.id },
+        },
       });
-      for (const u of recipients) {
-        await prisma.notification.create({
-          data: {
-            userId: u.id,
-            type: "lead_indicacao",
-            title: `Novo lead por indicação: ${lead.name}`,
-            body: `${lead.company ? lead.company + " · " : ""}Atendimento manual. Telefone: ${lead.phone}`,
-            data: { leadId: lead.id },
-          },
-        });
-      }
     }
   }
+
+  // Audit trail: registra criação manual de lead (paridade com /api/leads/capture).
+  await prisma.activity.create({
+    data: {
+      type: "lead_created",
+      description: `Lead criado manualmente: ${lead.name} (${resolvedSource})`,
+      leadId: lead.id,
+      userId: session.user?.id || undefined,
+    },
+  }).catch((err) => console.error("activity log failed:", err));
 
   const result = await prisma.lead.findUnique({
     where: { id: lead.id },

@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { NotificationsBell } from "@/components/notifications/bell";
 
 export function Header() {
   const { data: session } = useSession();
@@ -8,6 +9,7 @@ export function Header() {
   return (
     <header className="h-16 border-b border-border bg-card flex items-center justify-end px-6">
       <div className="flex items-center gap-3">
+        <NotificationsBell />
         <div className="text-right">
           <p className="text-sm font-medium">{session?.user?.name}</p>
           <p className="text-xs text-muted-foreground">{session?.user?.email}</p>

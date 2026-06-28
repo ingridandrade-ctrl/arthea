@@ -4,6 +4,7 @@ import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { scheduleFollowUpsForLeadService } from "@/lib/followups/engine";
 import { renderTemplate } from "@/lib/followups/engine";
 import { ensurePipelineForService } from "@/lib/pipeline/bootstrap";
+import { normalizeLeadPhone } from "@/lib/phone";
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +30,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existing = await prisma.lead.findUnique({ where: { phone } });
+    const normalizedPhone = normalizeLeadPhone(phone);
+
+    const existing = await prisma.lead.findUnique({ where: { phone: normalizedPhone } });
     if (existing) {
       return NextResponse.json(
         { success: true, leadId: existing.id, existing: true },
@@ -37,13 +40,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Default source=FORMS: este endpoint é consumido exclusivamente por
+    // formulários públicos. O fluxo GMN Forms-Boas-vindas tem condition
+    // {source: "FORMS"} — sem este default, leads vinham como WEBSITE e
+    // o fluxo nunca disparava. Callers que não são formulários devem
+    // mandar source explícito.
+    const resolvedSource = source || "FORMS";
+
     const lead = await prisma.lead.create({
       data: {
         name,
-        phone,
+        phone: normalizedPhone,
         email,
         company,
-        source: source || "WEBSITE",
+        source: resolvedSource,
         quizAnswers,
         utmSource,
         utmMedium,
@@ -130,7 +140,7 @@ export async function POST(request: NextRequest) {
           ...customDataMerged,
         });
 
-        await sendWhatsAppMessage(phone, message);
+        await sendWhatsAppMessage(normalizedPhone, message);
         await prisma.message.create({
           data: { conversationId: conversation.id, content: message, sender: "AI" },
         });
@@ -144,7 +154,7 @@ export async function POST(request: NextRequest) {
     await prisma.activity.create({
       data: {
         type: "lead_captured",
-        description: `Novo lead capturado: ${name} (${source || "WEBSITE"})`,
+        description: `Novo lead capturado: ${name} (${resolvedSource})`,
         leadId: lead.id,
         leadServiceId: leadService.id,
       },

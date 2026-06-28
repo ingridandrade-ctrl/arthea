@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processDueFlowSteps } from "@/lib/flows/engine";
+import { isAuthorizedCron } from "@/lib/cron-auth";
 
 export async function POST(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const results = await processDueFlowSteps();

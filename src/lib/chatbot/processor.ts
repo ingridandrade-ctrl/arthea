@@ -5,13 +5,67 @@ import { SYSTEM_PROMPT, shouldHandoff } from "./prompts";
 import { performHandoff } from "./handoff";
 import { scheduleFollowUpsForLeadService } from "@/lib/followups/engine";
 import { renderTemplate } from "@/lib/followups/engine";
+import { normalizeLeadPhone } from "@/lib/phone";
+
+/**
+ * In-process guard against concurrent webhook processing for the same lead.
+ * If two messages from the same phone arrive almost simultaneously, the second
+ * waits on the first's promise so we don't race on flow cancellation, stage
+ * moves or AI replies. This is per-instance — it does not coordinate across
+ * Node processes; cross-process safety relies on the DB-level idempotency
+ * check on `evolutionMsgId` (see below).
+ */
+const inflightByPhone = new Map<string, Promise<unknown>>();
 
 export async function processIncomingMessage(
-  phone: string,
+  phoneRaw: string,
   content: string,
   senderName: string,
   evolutionMsgId: string
 ) {
+  // Normaliza pra `5511...` antes de qualquer lookup/save — webhook do Meta
+  // já manda só dígitos, mas é defensivo (e o sentinel de serialização
+  // também precisa bater).
+  const phone = normalizeLeadPhone(phoneRaw);
+  // Per-phone serialization: wait for any in-flight processing to finish.
+  const prior = inflightByPhone.get(phone);
+  if (prior) {
+    try {
+      await prior;
+    } catch {
+      // ignore — the prior call's own error handling already ran
+    }
+  }
+  const run = doProcessIncomingMessage(phone, content, senderName, evolutionMsgId);
+  inflightByPhone.set(phone, run);
+  try {
+    return await run;
+  } finally {
+    if (inflightByPhone.get(phone) === run) {
+      inflightByPhone.delete(phone);
+    }
+  }
+}
+
+async function doProcessIncomingMessage(
+  phone: string,  // já normalizado pelo wrapper
+  content: string,
+  senderName: string,
+  evolutionMsgId: string,
+) {
+  // Idempotency guard: if we've already stored a Message for this delivery,
+  // skip. The webhook already checks this, but a duplicate delivery could
+  // race past that check between two concurrent requests.
+  if (evolutionMsgId) {
+    const existing = await prisma.message.findFirst({
+      where: { evolutionMsgId, sender: "LEAD" },
+      select: { id: true },
+    });
+    if (existing) {
+      return { handled: false, reason: "duplicate" };
+    }
+  }
+
   let lead = await prisma.lead.findUnique({
     where: { phone },
     include: { services: { include: { service: true } } },
@@ -34,20 +88,34 @@ export async function processIncomingMessage(
       include: { services: { include: { service: true } } },
     })!;
 
-    const firstStage = await prisma.pipelineStage.findFirst({
-      where: { order: 0 },
+    // Pega o primeiro estágio do PIPELINE do serviço default. O findFirst
+    // genérico por order:0 pode pegar o stage de qualquer pipeline (GMN,
+    // tráfego, etc) — não necessariamente o do serviço que vamos atribuir.
+    const defaultService = await prisma.service.findFirst({
+      where: { isActive: true },
+      orderBy: { createdAt: "asc" },
     });
-    const defaultService = await prisma.service.findFirst();
-
-    if (firstStage && defaultService && lead) {
-      const ls = await prisma.leadService.create({
-        data: {
-          leadId: lead.id,
-          serviceId: defaultService.id,
-          stageId: firstStage.id,
-        },
+    if (defaultService && lead) {
+      const pipeline = await prisma.pipeline.findUnique({
+        where: { serviceId: defaultService.id },
+        include: { stages: { orderBy: { order: "asc" }, take: 1 } },
       });
-      await scheduleFollowUpsForLeadService(ls.id, firstStage.id);
+      const firstStage = pipeline?.stages[0]
+        ?? await prisma.pipelineStage.findFirst({
+          where: { pipeline: { serviceId: null } },
+          orderBy: { order: "asc" },
+        });
+
+      if (firstStage) {
+        const ls = await prisma.leadService.create({
+          data: {
+            leadId: lead.id,
+            serviceId: defaultService.id,
+            stageId: firstStage.id,
+          },
+        });
+        await scheduleFollowUpsForLeadService(ls.id, firstStage.id);
+      }
     }
   }
 

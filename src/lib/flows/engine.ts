@@ -159,6 +159,23 @@ export async function processDueFlowSteps() {
             metaParamOrder = (tpl.metaParamOrder as string[]) || [];
             metaApproved = tpl.metaStatus === "APPROVED";
             templateButtons = ((tpl.buttons as any[]) || []).map((b: any) => ({ id: b.id, label: b.label }));
+          } else if (!tpl) {
+            // Template foi deletado mas o FlowStep ainda referencia. Skip ao
+            // invés de mandar uma string vazia (config.message provavelmente
+            // também está vazio).
+            await prisma.flowStepExecution.update({
+              where: { id: item.id },
+              data: { status: "skipped", executedAt: now, result: { reason: "template_deleted", templateId: config.templateId } },
+            });
+            results.push({ id: item.id, ok: false, action: "template_missing" });
+            continue;
+          } else if (!tpl.isActive) {
+            await prisma.flowStepExecution.update({
+              where: { id: item.id },
+              data: { status: "skipped", executedAt: now, result: { reason: "template_inactive", templateId: config.templateId } },
+            });
+            results.push({ id: item.id, ok: false, action: "template_inactive" });
+            continue;
           }
         }
         const variables = {
@@ -170,6 +187,49 @@ export async function processDueFlowSteps() {
           ...customData,
         };
         const message = renderTemplate(raw, variables);
+
+        // Guarda: se a mensagem ainda contém placeholders {{var}} não resolvidos,
+        // notifica a equipe em vez de enviar texto quebrado. Cobre o caso clássico
+        // de T2A/T3 dispararem antes da Ingrid preencher {{linkAnalise}} em
+        // LeadService.customData.
+        if (action === "send_whatsapp") {
+          const unresolved = message.match(/\{\{\s*\w+\s*\}\}/g);
+          if (unresolved && unresolved.length > 0) {
+            const recipients = await prisma.user.findMany({
+              where: { role: { in: ["ADMIN", "MANAGER"] } },
+              select: { id: true },
+            });
+            const missing = Array.from(new Set(unresolved.map((s) => s.replace(/[{}\s]/g, ""))));
+            for (const u of recipients) {
+              await prisma.notification.create({
+                data: {
+                  userId: u.id,
+                  type: "flow_missing_vars",
+                  title: `Mensagem do fluxo bloqueada: faltam variáveis`,
+                  body: `Lead ${lead.name}: o passo do fluxo "${item.execution.flow.name}" tem variáveis não preenchidas (${missing.join(", ")}). Preencha em "Dados do serviço" antes que o lead receba mensagem quebrada.`,
+                  data: { leadId: lead.id, missing, executionId: item.executionId },
+                },
+              });
+            }
+            await prisma.flowStepExecution.update({
+              where: { id: item.id },
+              data: { status: "skipped", executedAt: now, result: { reason: "unresolved_variables", missing } },
+            });
+            results.push({ id: item.id, ok: false, action: "missing_variables" });
+            continue;
+          }
+        }
+
+        // Guarda: se a mensagem final ficou vazia (template vazio + config.message
+        // vazio), não envia — pra evitar erro na API ou WhatsApp em branco.
+        if (action === "send_whatsapp" && !message.trim()) {
+          await prisma.flowStepExecution.update({
+            where: { id: item.id },
+            data: { status: "skipped", executedAt: now, result: { reason: "empty_message" } },
+          });
+          results.push({ id: item.id, ok: false, action: "empty_message" });
+          continue;
+        }
 
         if (action === "send_whatsapp") {
           // Se tem template Meta aprovado, manda como template (funciona fora da janela 24h)
@@ -212,13 +272,36 @@ export async function processDueFlowSteps() {
         results.push({ id: item.id, ok: true, action });
       } else if (action === "move_stage") {
         if (leadServiceId && config.stageId) {
-          await prisma.leadService.update({ where: { id: leadServiceId }, data: { stageId: config.stageId } });
+          // Guarda: confere que o stage destino ainda existe antes de mover,
+          // pra evitar foreign key error se o estágio foi deletado depois
+          // que o fluxo foi configurado.
+          const target = await prisma.pipelineStage.findUnique({
+            where: { id: config.stageId as string },
+            select: { id: true },
+          });
+          if (target) {
+            await prisma.leadService.update({ where: { id: leadServiceId }, data: { stageId: target.id } });
+            await prisma.flowStepExecution.update({
+              where: { id: item.id },
+              data: { status: "executed", executedAt: now },
+            });
+            results.push({ id: item.id, ok: true, action });
+          } else {
+            await prisma.flowStepExecution.update({
+              where: { id: item.id },
+              data: { status: "skipped", executedAt: now, result: { reason: "target_stage_deleted", stageId: config.stageId } },
+            });
+            results.push({ id: item.id, ok: false, action: "move_stage_skipped" });
+          }
+        } else {
+          // stageId não foi configurado (ex: pipeline sem "Perdido") — skip
+          // em vez de quebrar o fluxo todo.
+          await prisma.flowStepExecution.update({
+            where: { id: item.id },
+            data: { status: "skipped", executedAt: now, result: { reason: "missing_stage_id" } },
+          });
+          results.push({ id: item.id, ok: false, action: "move_stage_skipped" });
         }
-        await prisma.flowStepExecution.update({
-          where: { id: item.id },
-          data: { status: "executed", executedAt: now },
-        });
-        results.push({ id: item.id, ok: true, action });
       } else if (action === "check_response") {
         // Verifica se o lead enviou alguma mensagem (sender=LEAD) APÓS o
         // início desta execução. Se sim, para o fluxo + notifica.
