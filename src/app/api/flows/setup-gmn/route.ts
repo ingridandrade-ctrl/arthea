@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ensurePipelineForService } from "@/lib/pipeline/bootstrap";
 import { ensureGmnFlows } from "@/lib/flows/gmn-flows";
+import { ensureAdminTemplates } from "@/lib/notifications/bootstrap-admin-templates";
 
 // Configura/reconfigura os fluxos canônicos do GMN: pipeline, templates,
 // botões do T2B e os 5 fluxos pré-construídos.
@@ -47,5 +48,8 @@ export async function POST() {
   // 3. Cria/recria os 5 fluxos
   const flowResult = await ensureGmnFlows();
 
-  return NextResponse.json({ ok: true, ...flowResult });
+  // 4. Cria templates de notificação interna (admin)
+  const adminResult = await ensureAdminTemplates();
+
+  return NextResponse.json({ ok: true, ...flowResult, adminTemplates: adminResult });
 }

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { sendTemplateMessage } from "@/lib/whatsapp-official";
 import { normalizeLeadPhone } from "@/lib/phone";
 
 /**
@@ -64,11 +65,39 @@ export async function notifyNewLead(opts: {
     }
 
     const adminPhoneNormalized = normalizeLeadPhone(adminPhone);
-    const message = `🆕 *Novo lead Forms*\n\n*${opts.leadName}*${
-      opts.leadCompany ? ` (${opts.leadCompany})` : ""
-    }\n${opts.serviceName ? `Serviço: ${opts.serviceName}\n` : ""}Tel: ${opts.leadPhone}\n\nAcompanhe em adm.arthea.com.br/crm/leads/${opts.leadId}`;
 
-    await sendWhatsAppMessage(adminPhoneNormalized, message);
+    // Procura o template ADMIN_NOVO_LEAD_FORMS aprovado. Se existe e está
+    // APPROVED, usa via sendTemplateMessage (funciona fora da janela 24h,
+    // mas Meta cobra). Senão, tenta texto livre (grátis, só funciona se
+    // janela tá aberta — falha silenciosa se não tá).
+    const tpl = await prisma.followUpTemplate.findUnique({
+      where: { code: "ADMIN_NOVO_LEAD_FORMS" },
+      select: { metaName: true, metaStatus: true },
+    });
+
+    if (tpl?.metaName && tpl.metaStatus === "APPROVED") {
+      // Ordem dos params no template: {{1}}=nome, {{2}}=empresa,
+      // {{3}}=servico, {{4}}=telefone — bate com convertToMeta() pra
+      // ADMIN_NOVO_LEAD_FORMS.
+      await sendTemplateMessage(adminPhoneNormalized, tpl.metaName, "pt_BR", [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: opts.leadName },
+            { type: "text", text: opts.leadCompany || "—" },
+            { type: "text", text: opts.serviceName || "—" },
+            { type: "text", text: opts.leadPhone },
+          ],
+        },
+      ]);
+    } else {
+      // Sem template aprovado — manda texto livre. Vai chegar se a admin
+      // mandou alguma msg pro número da Arthea nas últimas 24h.
+      const message = `🆕 *Novo lead Forms*\n\n*${opts.leadName}*${
+        opts.leadCompany ? ` (${opts.leadCompany})` : ""
+      }\n${opts.serviceName ? `Serviço: ${opts.serviceName}\n` : ""}Tel: ${opts.leadPhone}\n\nAcompanhe em adm.arthea.com.br/crm/leads/${opts.leadId}`;
+      await sendWhatsAppMessage(adminPhoneNormalized, message);
+    }
   } catch (err) {
     console.error("notifyNewLead falhou (ignorando, não bloqueia lead):", err);
   }
