@@ -19,13 +19,14 @@ import {
   Pencil,
   Check,
   X,
+  GitBranch,
 } from "lucide-react";
 
 interface Step {
   id?: string;
   order: number;
   delayHours: number;
-  actionType: "send_whatsapp" | "internal_reminder" | "move_stage" | "create_task";
+  actionType: "send_whatsapp" | "internal_reminder" | "move_stage" | "create_task" | "check_response";
   actionConfig: Record<string, any>;
   condition: Record<string, any> | null;
   isActive: boolean;
@@ -40,6 +41,7 @@ const ACTION_META: Record<string, { icon: any; color: string; label: string; bg:
   internal_reminder: { icon: Bell, color: "#d97706", bg: "bg-amber-50", label: "Lembrete" },
   move_stage: { icon: MoveRight, color: "#6366f1", bg: "bg-indigo-50", label: "Mover estágio" },
   create_task: { icon: Bell, color: "#3b82f6", bg: "bg-blue-50", label: "Tarefa" },
+  check_response: { icon: GitBranch, color: "#9333ea", bg: "bg-purple-50", label: "Condição: lead respondeu?" },
 };
 
 export default function FlowEditorPage() {
@@ -520,6 +522,7 @@ function StepNode({
               >
                 <option value="send_whatsapp">💬 Enviar WhatsApp (automático)</option>
                 <option value="internal_reminder">🔔 Lembrete interno (vira tarefa)</option>
+                <option value="check_response">⚡ Condição: o lead respondeu?</option>
                 <option value="move_stage">➡️ Mover pra outro estágio</option>
                 <option value="create_task">📋 Criar tarefa separada</option>
               </select>
@@ -570,6 +573,15 @@ function StepNode({
               <p className="text-[10px] text-muted-foreground mt-1">
                 Edita o conteúdo em <Link href="/crm/templates" className="text-primary hover:underline">/crm/templates</Link>
               </p>
+            </div>
+          )}
+
+          {step.actionType === "check_response" && (
+            <div className="p-3 bg-purple-50 border border-purple-200 rounded text-xs text-purple-900 space-y-1">
+              <p className="font-semibold">Como funciona:</p>
+              <p>• Se o lead enviou QUALQUER mensagem após esse fluxo começar → <strong>cancela o fluxo</strong> e <strong>notifica a equipe</strong>.</p>
+              <p>• Se NÃO respondeu → segue pro próximo passo.</p>
+              <p className="text-purple-700 italic">Não tem configuração — é checagem automática.</p>
             </div>
           )}
 
