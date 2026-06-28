@@ -56,7 +56,38 @@ export async function GET(request: NextRequest) {
     return NextResponse.json([]);
   }
 
-  const response = NextResponse.json(pipeline);
+  // Anexa contagem de fluxos por lead (rodando + completados), pra mostrar
+  // badge no card do pipeline. Faz uma query única agrupando por leadId
+  // pra evitar N+1 (cada lead ia disparar uma consulta separada).
+  const allLeadIds = pipeline.stages
+    .flatMap((s) => s.leadServices.map((ls) => ls.lead.id));
+  const flowCounts =
+    allLeadIds.length > 0
+      ? await prisma.flowExecution.groupBy({
+          by: ["leadId", "status"],
+          where: { leadId: { in: allLeadIds } },
+          _count: { _all: true },
+        })
+      : [];
+  const countsByLead = new Map<string, { running: number; total: number }>();
+  for (const c of flowCounts) {
+    const cur = countsByLead.get(c.leadId) || { running: 0, total: 0 };
+    cur.total += c._count._all;
+    if (c.status === "running") cur.running += c._count._all;
+    countsByLead.set(c.leadId, cur);
+  }
+  const enriched = {
+    ...pipeline,
+    stages: pipeline.stages.map((s) => ({
+      ...s,
+      leadServices: s.leadServices.map((ls) => ({
+        ...ls,
+        flowCounts: countsByLead.get(ls.lead.id) || { running: 0, total: 0 },
+      })),
+    })),
+  };
+
+  const response = NextResponse.json(enriched);
   response.headers.set('Cache-Control', 's-maxage=10, stale-while-revalidate=60');
   return response;
 }

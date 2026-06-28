@@ -232,17 +232,42 @@ export async function processDueFlowSteps() {
         }
 
         if (action === "send_whatsapp") {
-          // Se tem template Meta aprovado, manda como template (funciona fora da janela 24h)
-          if (metaApproved && metaName) {
+          // ── Otimização de custo: usa janela de 24h quando disponível ────
+          // Meta cobra mensagens iniciadas pelo negócio (template), mas
+          // dentro da "janela de atendimento" (24h após qualquer mensagem
+          // recebida do lead) podemos mandar texto livre / interactive
+          // DE GRAÇA. Só caímos pro template se a janela fechou.
+          const lastInbound = await prisma.message.findFirst({
+            where: {
+              conversation: { leadId: lead.id },
+              sender: "LEAD",
+            },
+            orderBy: { createdAt: "desc" },
+            select: { createdAt: true },
+          });
+          const isWithinWindow =
+            !!lastInbound &&
+            Date.now() - lastInbound.createdAt.getTime() < 24 * 60 * 60 * 1000;
+
+          if (isWithinWindow && templateButtons.length > 0) {
+            // Janela aberta + tem botões → interactive (grátis, com botões)
+            await sendInteractiveButtons(lead.phone, message, templateButtons);
+          } else if (isWithinWindow) {
+            // Janela aberta sem botões → texto livre (grátis)
+            await sendWhatsAppMessage(lead.phone, message);
+          } else if (metaApproved && metaName) {
+            // Janela fechada e tem template aprovado → manda template (pago)
             const params = resolveMetaParams(metaParamOrder, variables);
             await sendTemplateMessage(lead.phone, metaName, "pt_BR", [
               { type: "body", parameters: params.map((p) => ({ type: "text", text: p })) },
             ]);
           } else if (templateButtons.length > 0) {
-            // Sem template Meta mas tem botões — manda interactive (só funciona em janela 24h)
+            // Janela fechada sem template aprovado mas com botões — tenta
+            // interactive (vai falhar fora da janela, mas mantém o
+            // comportamento anterior pra não quebrar fluxos legacy)
             await sendInteractiveButtons(lead.phone, message, templateButtons);
           } else {
-            // Fallback: texto livre (só funciona em janela de 24h aberta)
+            // Janela fechada sem template aprovado — texto livre (vai falhar)
             await sendWhatsAppMessage(lead.phone, message);
           }
           // Registra na conversa

@@ -42,7 +42,53 @@ export async function GET(
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 });
   }
 
-  return NextResponse.json(lead);
+  // Carrega fluxos de automação que tocaram esse lead (todas as execuções,
+  // não só as ativas, pra dar audit trail). Junta a info do fluxo (nome) +
+  // estatísticas de passos (qtd executada / pendente / total) + próximo passo.
+  const flowExecutions = await prisma.flowExecution.findMany({
+    where: { leadId: params.id },
+    orderBy: { startedAt: "desc" },
+    include: {
+      flow: { select: { id: true, name: true, description: true, serviceId: true } },
+      steps: {
+        orderBy: { order: "asc" },
+        include: {
+          step: {
+            select: { actionType: true, actionConfig: true, delayHours: true },
+          },
+        },
+      },
+    },
+  });
+
+  const flowExecutionsEnriched = flowExecutions.map((exec) => {
+    const total = exec.steps.length;
+    const executed = exec.steps.filter((s) => s.status === "executed").length;
+    const skipped = exec.steps.filter((s) => s.status === "skipped").length;
+    const pending = exec.steps.filter((s) => s.status === "pending").length;
+    const nextStep = exec.steps.find((s) => s.status === "pending");
+    const lastExecutedStep = [...exec.steps].reverse().find((s) => s.status === "executed");
+    return {
+      ...exec,
+      _counts: { total, executed, skipped, pending },
+      nextStep: nextStep
+        ? {
+            order: nextStep.order,
+            scheduledAt: nextStep.scheduledAt,
+            actionType: nextStep.step?.actionType,
+          }
+        : null,
+      lastExecutedStep: lastExecutedStep
+        ? {
+            order: lastExecutedStep.order,
+            executedAt: lastExecutedStep.executedAt,
+            actionType: lastExecutedStep.step?.actionType,
+          }
+        : null,
+    };
+  });
+
+  return NextResponse.json({ ...lead, flowExecutions: flowExecutionsEnriched });
 }
 
 export async function PUT(

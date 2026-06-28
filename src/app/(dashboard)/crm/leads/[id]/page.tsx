@@ -16,6 +16,11 @@ import {
   ChevronDown,
   Loader2,
   Plus,
+  Zap,
+  CheckCircle2,
+  XCircle,
+  PauseCircle,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/modal";
@@ -189,6 +194,8 @@ export default function LeadDetailPage() {
             </div>
           )}
         </div>
+
+        <FlowExecutionsSection executions={lead.flowExecutions || []} />
 
         <div className="bg-card rounded-xl border border-border p-6">
           <h2 className="text-lg font-semibold mb-4">Conversas</h2>
@@ -794,4 +801,153 @@ function ServiceCustomFields({
       </div>
     </div>
   );
+}
+
+function FlowExecutionsSection({ executions }: { executions: any[] }) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  function toggle(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  if (!executions || executions.length === 0) {
+    return (
+      <div className="bg-card rounded-xl border border-border p-6">
+        <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
+          <Zap className="w-5 h-5 text-amber-500" /> Fluxos de automação
+        </h2>
+        <p className="text-sm text-muted-foreground">Nenhum fluxo disparou pra esse lead ainda.</p>
+      </div>
+    );
+  }
+
+  const running = executions.filter((e) => e.status === "running").length;
+
+  return (
+    <div className="bg-card rounded-xl border border-border p-6">
+      <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <Zap className="w-5 h-5 text-amber-500" />
+        Fluxos de automação
+        <span className="text-xs font-normal text-muted-foreground">
+          {running > 0 ? `${running} em execução · ` : ""}
+          {executions.length} {executions.length === 1 ? "registro" : "registros"}
+        </span>
+      </h2>
+
+      <div className="space-y-3">
+        {executions.map((exec) => {
+          const isOpen = expanded.has(exec.id);
+          const counts = exec._counts || { total: 0, executed: 0, skipped: 0, pending: 0 };
+          const statusInfo = getFlowStatusInfo(exec.status);
+
+          return (
+            <div key={exec.id} className="border border-border rounded-lg overflow-hidden">
+              <button
+                onClick={() => toggle(exec.id)}
+                className="w-full p-3 flex items-start justify-between gap-3 hover:bg-muted/30 transition text-left"
+              >
+                <div className="flex items-start gap-2 flex-1 min-w-0">
+                  <statusInfo.Icon className={`w-4 h-4 mt-0.5 shrink-0 ${statusInfo.iconColor}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium truncate">{exec.flow?.name || "Fluxo deletado"}</span>
+                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${statusInfo.badge}`}>
+                        {statusInfo.label}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
+                      <span>Iniciado em {formatDate(exec.startedAt)}</span>
+                      {exec.completedAt && <span>· Encerrado em {formatDate(exec.completedAt)}</span>}
+                      <span>
+                        · {counts.executed}/{counts.total} passos
+                        {counts.skipped > 0 && ` · ${counts.skipped} pulados`}
+                        {counts.pending > 0 && ` · ${counts.pending} pendentes`}
+                      </span>
+                    </div>
+                    {exec.nextStep && (
+                      <div className="text-xs text-amber-700 mt-1">
+                        Próximo: passo {exec.nextStep.order} ({translateActionType(exec.nextStep.actionType)}) em{" "}
+                        {formatDate(exec.nextStep.scheduledAt)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <ChevronDown className={`w-4 h-4 mt-1 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {isOpen && (
+                <div className="border-t border-border bg-muted/20 px-3 py-2 space-y-1.5">
+                  {exec.steps.map((s: any) => (
+                    <div key={s.id} className="flex items-start gap-2 text-xs">
+                      <StepStatusIcon status={s.status} />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium">
+                          Passo {s.order} · {translateActionType(s.step?.actionType)}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {s.status === "executed" && s.executedAt
+                            ? `Executado em ${formatDate(s.executedAt)}`
+                            : s.status === "skipped"
+                            ? `Pulado em ${formatDate(s.executedAt || s.scheduledAt)}`
+                            : s.status === "failed"
+                            ? `Falhou em ${formatDate(s.executedAt || s.scheduledAt)}`
+                            : `Agendado pra ${formatDate(s.scheduledAt)}`}
+                        </div>
+                        {s.result && s.status !== "executed" && (
+                          <div className="text-[11px] text-muted-foreground mt-0.5 font-mono">
+                            {typeof s.result === "object" ? JSON.stringify(s.result) : String(s.result)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function getFlowStatusInfo(status: string) {
+  switch (status) {
+    case "running":
+      return { Icon: Loader2, iconColor: "text-amber-600 animate-spin", label: "Em execução", badge: "bg-amber-100 text-amber-700" };
+    case "completed":
+      return { Icon: CheckCircle2, iconColor: "text-green-600", label: "Concluído", badge: "bg-green-100 text-green-700" };
+    case "stopped":
+      return { Icon: PauseCircle, iconColor: "text-gray-500", label: "Parado", badge: "bg-gray-100 text-gray-600" };
+    case "failed":
+      return { Icon: XCircle, iconColor: "text-red-600", label: "Falhou", badge: "bg-red-100 text-red-700" };
+    default:
+      return { Icon: AlertTriangle, iconColor: "text-gray-500", label: status, badge: "bg-gray-100 text-gray-600" };
+  }
+}
+
+function StepStatusIcon({ status }: { status: string }) {
+  if (status === "executed") return <CheckCircle2 className="w-3.5 h-3.5 text-green-600 mt-0.5" />;
+  if (status === "skipped") return <PauseCircle className="w-3.5 h-3.5 text-gray-400 mt-0.5" />;
+  if (status === "failed") return <XCircle className="w-3.5 h-3.5 text-red-600 mt-0.5" />;
+  return <Clock className="w-3.5 h-3.5 text-amber-500 mt-0.5" />;
+}
+
+function translateActionType(t?: string) {
+  const m: Record<string, string> = {
+    send_whatsapp: "Enviar WhatsApp",
+    move_stage: "Mover estágio",
+    move_stage_by_name: "Mover estágio",
+    check_response: "Verificar resposta",
+    internal_reminder: "Lembrete interno",
+    trigger_template: "Disparar template",
+    mark_lost: "Marcar perdido",
+    notify_team: "Notificar equipe",
+  };
+  return t ? m[t] || t : "Ação";
 }
