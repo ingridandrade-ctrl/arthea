@@ -45,6 +45,15 @@ export async function PUT(
 
     await scheduleFollowUpsForLeadService(params.id, stageId);
 
+    // Novo: dispara fluxos de automação cujo gatilho é "entrar no estágio"
+    const { triggerFlows } = await import("@/lib/flows/engine");
+    await triggerFlows({
+      type: "STAGE_ENTER",
+      leadId: leadService.leadId,
+      leadServiceId: params.id,
+      stageId,
+    });
+
     runEventAutomations("STAGE_CHANGE", {
       leadServiceId: params.id,
       leadId: leadService.leadId,

@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
 
   if (serviceIds && Array.isArray(serviceIds)) {
     const { scheduleFollowUpsForLeadService } = await import("@/lib/followups/engine");
+    const { triggerFlows } = await import("@/lib/flows/engine");
     for (const serviceId of serviceIds) {
       const customData = serviceCustomData?.[serviceId] || undefined;
       const stageId = serviceStages?.[serviceId] || undefined;
@@ -93,6 +94,12 @@ export async function POST(request: NextRequest) {
       });
       if (stageId) {
         await scheduleFollowUpsForLeadService(ls.id, stageId);
+        await triggerFlows({
+          type: "STAGE_ENTER",
+          leadId: lead.id,
+          leadServiceId: ls.id,
+          stageId,
+        });
       }
     }
   }

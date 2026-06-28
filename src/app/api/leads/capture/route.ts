@@ -93,6 +93,14 @@ export async function POST(request: NextRequest) {
 
     await scheduleFollowUpsForLeadService(leadService.id, firstStage.id);
 
+    const { triggerFlows } = await import("@/lib/flows/engine");
+    await triggerFlows({
+      type: "STAGE_ENTER",
+      leadId: lead.id,
+      leadServiceId: leadService.id,
+      stageId: firstStage.id,
+    });
+
     // Send any follow-ups scheduled for immediate delivery (delayHours = 0,
     // whatsapp, automatic) — these are the welcome templates like GMN T1/T2B.
     const dueNow = await prisma.followUp.findMany({
