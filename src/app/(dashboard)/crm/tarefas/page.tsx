@@ -165,7 +165,9 @@ export default function TarefasPage() {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
-  const [showFilters, setShowFilters] = useState(true);
+  const [activeService, setActiveService] = useState("all");
+  const [kindFilter, setKindFilter] = useState<"all" | "task" | "followup">("all");
+  const [services, setServices] = useState<{ id: string; name: string; slug: string; color: string }[]>([]);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<"delete" | "complete" | null>(null);
@@ -247,6 +249,12 @@ export default function TarefasPage() {
     if (priorityFilter) {
       params.set("priority", priorityFilter);
     }
+    if (activeService !== "all") {
+      params.set("service", activeService);
+    }
+    if (kindFilter !== "all") {
+      params.set("kind", kindFilter);
+    }
 
     const now = new Date();
     if (datePreset === "today") {
@@ -277,7 +285,14 @@ export default function TarefasPage() {
 
   useEffect(() => {
     fetchTasks();
-  }, [activeTab, datePreset, customFrom, customTo, priorityFilter]);
+  }, [activeTab, datePreset, customFrom, customTo, priorityFilter, activeService, kindFilter]);
+
+  useEffect(() => {
+    fetch("/api/services")
+      .then((r) => r.json())
+      .then((data) => setServices(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
 
   async function toggleComplete(task: Task) {
     if (task.kind === "followup") {
@@ -305,7 +320,7 @@ export default function TarefasPage() {
 
   const tabs: { key: FilterTab; label: string; count?: number }[] = [
     { key: "todas", label: "Todas", count: tasks.length },
-    { key: "minhas", label: "Minhas" },
+    { key: "minhas", label: "Atribuídas a mim" },
     { key: "pendentes", label: "Pendentes", count: totalPending },
     { key: "concluidas", label: "Concluídas", count: grouped.completed.length },
     { key: "atrasadas", label: "Atrasadas", count: totalOverdue },
@@ -319,7 +334,17 @@ export default function TarefasPage() {
     { key: "custom", label: "Personalizado" },
   ];
 
-  const hasActiveFilters = datePreset !== "all" || priorityFilter !== "";
+  const hasActiveFilters =
+    datePreset !== "all" || priorityFilter !== "" || activeService !== "all" || kindFilter !== "all";
+
+  function clearAllFilters() {
+    setDatePreset("all");
+    setCustomFrom("");
+    setCustomTo("");
+    setPriorityFilter("");
+    setActiveService("all");
+    setKindFilter("all");
+  }
 
   return (
     <div className="space-y-4">
@@ -337,31 +362,13 @@ export default function TarefasPage() {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition ${
-              hasActiveFilters
-                ? "border-primary bg-primary/5 text-primary"
-                : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            }`}
-          >
-            <Filter className="w-4 h-4" />
-            Filtros
-            {hasActiveFilters && (
-              <span className="w-5 h-5 rounded-full bg-primary text-white text-xs flex items-center justify-center">
-                {(datePreset !== "all" ? 1 : 0) + (priorityFilter ? 1 : 0)}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition"
-          >
-            <Plus className="w-4 h-4" />
-            Nova Tarefa
-          </button>
-        </div>
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition"
+        >
+          <Plus className="w-4 h-4" />
+          Nova Tarefa
+        </button>
       </div>
 
       {/* Status Tabs */}
@@ -422,102 +429,141 @@ export default function TarefasPage() {
         </div>
       )}
 
-      {/* Filters Panel */}
-      {showFilters && (
-        <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-foreground">Filtros</h3>
-            {hasActiveFilters && (
-              <button
-                onClick={() => {
-                  setDatePreset("all");
-                  setCustomFrom("");
-                  setCustomTo("");
-                  setPriorityFilter("");
-                }}
-                className="text-xs text-primary hover:underline"
-              >
-                Limpar filtros
-              </button>
-            )}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Date Filter */}
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                <CalendarDays className="w-3.5 h-3.5 inline mr-1" />
-                Período
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {datePresets.map((p) => (
-                  <button
-                    key={p.key}
-                    onClick={() => setDatePreset(p.key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                      datePreset === p.key
-                        ? "bg-primary text-white"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-              {datePreset === "custom" && (
-                <div className="flex gap-2 mt-2">
-                  <input
-                    type="date"
-                    value={customFrom}
-                    onChange={(e) => setCustomFrom(e.target.value)}
-                    className="flex-1 px-2.5 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="De"
-                  />
-                  <input
-                    type="date"
-                    value={customTo}
-                    onChange={(e) => setCustomTo(e.target.value)}
-                    className="flex-1 px-2.5 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Até"
-                  />
-                </div>
-              )}
-            </div>
+      {/* Filtros sempre visíveis */}
+      <div className="bg-card rounded-xl border border-border p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Filtros</h3>
+          {hasActiveFilters && (
+            <button onClick={clearAllFilters} className="text-xs text-primary hover:underline">
+              Limpar filtros
+            </button>
+          )}
+        </div>
 
-            {/* Priority Filter */}
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                <ListFilter className="w-3.5 h-3.5 inline mr-1" />
-                Prioridade
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  onClick={() => setPriorityFilter("")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                    !priorityFilter
-                      ? "bg-primary text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  Todas
-                </button>
-                {(["urgent", "high", "medium", "low"] as const).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPriorityFilter(p)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                      priorityFilter === p
-                        ? "bg-primary text-white"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    {priorityLabels[p]}
-                  </button>
-                ))}
-              </div>
-            </div>
+        {/* Tipo */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-xs font-medium text-muted-foreground min-w-[60px]">Tipo:</span>
+          <div className="flex gap-1.5">
+            {[
+              { value: "all", label: "Tudo" },
+              { value: "task", label: "Tarefa", color: "sky" },
+              { value: "followup", label: "Follow-up", color: "amber" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setKindFilter(opt.value as any)}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                  kindFilter === opt.value
+                    ? "bg-primary text-white border-primary"
+                    : "bg-card text-muted-foreground border-border hover:text-foreground"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         </div>
-      )}
+
+        {/* Serviço */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-xs font-medium text-muted-foreground min-w-[60px]">Serviço:</span>
+          <div className="flex gap-1.5 flex-wrap">
+            <button
+              onClick={() => setActiveService("all")}
+              className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                activeService === "all"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-card text-muted-foreground border-border hover:text-foreground"
+              }`}
+            >
+              Todos
+            </button>
+            {services.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setActiveService(s.slug)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition ${
+                  activeService === s.slug
+                    ? "text-white border-transparent"
+                    : "bg-card text-muted-foreground border-border hover:text-foreground"
+                }`}
+                style={activeService === s.slug ? { backgroundColor: s.color } : undefined}
+              >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.color }} />
+                {s.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Período */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-xs font-medium text-muted-foreground min-w-[60px]">Período:</span>
+          <div className="flex gap-1.5 flex-wrap">
+            {datePresets.map((p) => (
+              <button
+                key={p.key}
+                onClick={() => setDatePreset(p.key)}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                  datePreset === p.key
+                    ? "bg-primary text-white border-primary"
+                    : "bg-card text-muted-foreground border-border hover:text-foreground"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          {datePreset === "custom" && (
+            <div className="flex gap-2 mt-1 w-full">
+              <input
+                type="date"
+                value={customFrom}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                className="flex-1 px-2.5 py-1 border border-border rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <input
+                type="date"
+                value={customTo}
+                onChange={(e) => setCustomTo(e.target.value)}
+                className="flex-1 px-2.5 py-1 border border-border rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Prioridade (só pra tarefas — Follow-ups não têm) */}
+        {kindFilter !== "followup" && (
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-xs font-medium text-muted-foreground min-w-[60px]">Prioridade:</span>
+            <div className="flex gap-1.5 flex-wrap">
+              <button
+                onClick={() => setPriorityFilter("")}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                  !priorityFilter
+                    ? "bg-primary text-white border-primary"
+                    : "bg-card text-muted-foreground border-border hover:text-foreground"
+                }`}
+              >
+                Todas
+              </button>
+              {(["urgent", "high", "medium", "low"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPriorityFilter(p)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                    priorityFilter === p
+                      ? "bg-primary text-white border-primary"
+                      : "bg-card text-muted-foreground border-border hover:text-foreground"
+                  }`}
+                >
+                  {priorityLabels[p]}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Task Groups */}
       {loading ? (

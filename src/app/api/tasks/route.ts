@@ -14,7 +14,10 @@ export async function GET(request: NextRequest) {
   const leadId = searchParams.get("leadId");
   const leadServiceId = searchParams.get("leadServiceId");
   const overdue = searchParams.get("overdue");
-  const includeFollowUps = searchParams.get("includeFollowUps") !== "false";
+  const serviceSlug = searchParams.get("service");
+  const kind = searchParams.get("kind"); // "task" | "followup" | null (= ambos)
+  const includeTasks = kind !== "followup";
+  const includeFollowUps = kind !== "task" && searchParams.get("includeFollowUps") !== "false";
 
   const where: any = {};
 
@@ -41,6 +44,9 @@ export async function GET(request: NextRequest) {
     where.completed = false;
     where.dueDate = { lt: new Date() };
   }
+  if (serviceSlug && serviceSlug !== "all") {
+    where.leadService = { service: { slug: serviceSlug } };
+  }
 
   const dueDateFrom = searchParams.get("dueDateFrom");
   const dueDateTo = searchParams.get("dueDateTo");
@@ -50,7 +56,7 @@ export async function GET(request: NextRequest) {
     if (dueDateTo) where.dueDate.lte = new Date(dueDateTo);
   }
 
-  const tasks = await prisma.task.findMany({
+  const tasks = includeTasks ? await prisma.task.findMany({
     where,
     take: 100,
     select: {
@@ -75,7 +81,7 @@ export async function GET(request: NextRequest) {
       { dueDate: "asc" },
       { createdAt: "desc" },
     ],
-  });
+  }) : [];
 
   const normalizedTasks = tasks.map((t) => ({ ...t, kind: "task" as const }));
 
@@ -91,8 +97,11 @@ export async function GET(request: NextRequest) {
   const fuWhere: any = { channel: "internal" };
   if (completed === "true") fuWhere.status = { in: ["sent", "skipped"] };
   else if (completed === "false") fuWhere.status = "pending";
-  if (leadId) fuWhere.leadService = { leadId };
+  if (leadId) fuWhere.leadService = { ...(fuWhere.leadService || {}), leadId };
   if (leadServiceId) fuWhere.leadServiceId = leadServiceId;
+  if (serviceSlug && serviceSlug !== "all") {
+    fuWhere.leadService = { ...(fuWhere.leadService || {}), service: { slug: serviceSlug } };
+  }
   if (overdue === "true") {
     fuWhere.status = "pending";
     fuWhere.scheduledAt = { lt: new Date() };
