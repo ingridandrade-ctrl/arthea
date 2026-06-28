@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processDueFollowUps } from "@/lib/followups/engine";
+import { isAuthorizedCron } from "@/lib/cron-auth";
 
 export async function POST(request: NextRequest) {
-  // Verify cron secret
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -16,4 +13,8 @@ export async function POST(request: NextRequest) {
     processed: results.length,
     results,
   });
+}
+
+export async function GET(request: NextRequest) {
+  return POST(request);
 }
