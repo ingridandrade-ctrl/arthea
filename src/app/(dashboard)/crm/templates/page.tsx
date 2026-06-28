@@ -31,13 +31,12 @@ interface Template {
   stageColor: string;
 }
 
-const GENERIC_KEY = "__generic__";
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [services, setServices] = useState<{ id: string; name: string; slug: string; color: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>(GENERIC_KEY);
+  const [activeTab, setActiveTab] = useState<string>("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Template>>({});
 
@@ -115,27 +114,28 @@ export default function TemplatesPage() {
   }
 
   const tabs = useMemo(() => {
-    const countByService = new Map<string | null, number>();
+    const countByService = new Map<string, number>();
     for (const t of templates) {
-      const key = t.serviceId ?? null;
-      countByService.set(key, (countByService.get(key) || 0) + 1);
+      if (!t.serviceId) continue;
+      countByService.set(t.serviceId, (countByService.get(t.serviceId) || 0) + 1);
     }
-    const list: { key: string; label: string; color: string; count: number }[] = [
-      { key: GENERIC_KEY, label: "Genérico", color: "#94a3b8", count: countByService.get(null) || 0 },
-    ];
-    for (const s of services) {
-      list.push({
-        key: s.id,
-        label: s.name,
-        color: s.color,
-        count: countByService.get(s.id) || 0,
-      });
-    }
-    return list;
+    return services.map((s) => ({
+      key: s.id,
+      label: s.name,
+      color: s.color,
+      count: countByService.get(s.id) || 0,
+    }));
   }, [templates, services]);
 
+  // Garante que activeTab esteja sempre num serviço válido
+  useEffect(() => {
+    if (!activeTab && tabs.length > 0) setActiveTab(tabs[0].key);
+    else if (activeTab && tabs.length > 0 && !tabs.some((t) => t.key === activeTab)) {
+      setActiveTab(tabs[0].key);
+    }
+  }, [tabs, activeTab]);
+
   const filtered = useMemo(() => {
-    if (activeTab === GENERIC_KEY) return templates.filter((t) => !t.serviceId);
     return templates.filter((t) => t.serviceId === activeTab);
   }, [templates, activeTab]);
 
