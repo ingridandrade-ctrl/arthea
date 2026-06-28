@@ -123,6 +123,21 @@ async function doProcessIncomingMessage(
     return { handled: false, reason: "lead_creation_failed" };
   }
 
+  // Notifica admin/manager quando lead novo entra via WhatsApp (source=WHATSAPP).
+  // Sininho só — não dispara WhatsApp porque o admin já tá vendo a mensagem
+  // no próprio fluxo do CRM via Conversas.
+  if (isNewLead) {
+    const { notifyNewLead } = await import("@/lib/notifications/new-lead");
+    notifyNewLead({
+      leadId: lead.id,
+      leadName: lead.name,
+      leadPhone: lead.phone,
+      leadCompany: lead.company,
+      source: "WHATSAPP",
+      serviceName: lead.services[0]?.service.name,
+    }).catch(() => {});
+  }
+
   let conversation = await prisma.conversation.findFirst({
     where: { leadId: lead.id },
     orderBy: { createdAt: "desc" },

@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
         const email = pickField(detail.field_data, ["email"]);
         const company = pickField(detail.field_data, ["company_name", "company"]);
 
-        await prisma.lead.upsert({
+        const upserted = await prisma.lead.upsert({
           where: { phone },
           create: {
             name,
@@ -107,7 +107,21 @@ export async function POST(request: NextRequest) {
           update: {
             tags: { push: "meta-lead-ads" },
           },
+          select: { id: true, name: true, phone: true, company: true, createdAt: true, updatedAt: true },
         });
+        // Notifica admin se foi criação (não update). updatedAt === createdAt
+        // num row recém-criado pelo upsert.
+        const isNew = upserted.createdAt.getTime() === upserted.updatedAt.getTime();
+        if (isNew) {
+          const { notifyNewLead } = await import("@/lib/notifications/new-lead");
+          notifyNewLead({
+            leadId: upserted.id,
+            leadName: upserted.name,
+            leadPhone: upserted.phone,
+            leadCompany: upserted.company,
+            source: "WEBSITE",
+          }).catch(() => {});
+        }
       } catch (err: any) {
         console.error("Lead Ads webhook error:", err?.response?.data || err.message);
       }

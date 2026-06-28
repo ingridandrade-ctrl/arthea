@@ -131,26 +131,23 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Indicação SEMPRE notifica — mesmo se serviceIds vazio. Antes só
-  // notificava dentro do bloco de serviceIds, então um lead INDICACAO sem
-  // serviços passava silencioso.
-  if (isIndicacao) {
-    const recipients = await prisma.user.findMany({
-      where: { role: { in: ["ADMIN", "MANAGER"] } },
-      select: { id: true },
-    });
-    for (const u of recipients) {
-      await prisma.notification.create({
-        data: {
-          userId: u.id,
-          type: "lead_indicacao",
-          title: `Novo lead por indicação: ${lead.name}`,
-          body: `${lead.company ? lead.company + " · " : ""}Atendimento manual. Telefone: ${lead.phone}`,
-          data: { leadId: lead.id },
-        },
-      });
-    }
-  }
+  // Notifica admin/manager (sininho + WhatsApp se FORMS — improvável aqui
+  // porque /api/leads é criação manual, mas o helper trata o switch).
+  // Preferência: pra Indicação/Prospecção criadas manualmente, só sininho
+  // (a admin já tá fazendo a criação, não precisa de notif WhatsApp).
+  const serviceForNotif = serviceIds && Array.isArray(serviceIds) && serviceIds.length > 0
+    ? await prisma.service.findUnique({ where: { id: serviceIds[0] }, select: { name: true } })
+    : null;
+  const { notifyNewLead } = await import("@/lib/notifications/new-lead");
+  notifyNewLead({
+    leadId: lead.id,
+    leadName: lead.name,
+    leadPhone: lead.phone,
+    leadCompany: lead.company,
+    source: resolvedSource,
+    serviceName: serviceForNotif?.name,
+    triggeredFromUI: true,
+  }).catch(() => {});
 
   // Audit trail: registra criação manual de lead (paridade com /api/leads/capture).
   await prisma.activity.create({
