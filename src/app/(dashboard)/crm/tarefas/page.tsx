@@ -25,6 +25,7 @@ import {
 import { Modal } from "@/components/ui/modal";
 
 interface Task {
+  kind?: "task" | "followup";
   id: string;
   title: string;
   description: string | null;
@@ -37,9 +38,13 @@ interface Task {
   leadServiceId: string | null;
   assignedToId: string | null;
   lead: { id: string; name: string } | null;
-  leadService: { id: string; service: { name: string } } | null;
+  leadService: { id: string; service: { name: string; color?: string } } | null;
   assignedTo: { id: string; name: string; email: string } | null;
   createdBy: { id: string; name: string } | null;
+  // followup-only
+  followUpOrder?: number;
+  followUpStatus?: string;
+  stage?: { id: string; name: string; color: string } | null;
 }
 
 interface Lead {
@@ -275,6 +280,15 @@ export default function TarefasPage() {
   }, [activeTab, datePreset, customFrom, customTo, priorityFilter]);
 
   async function toggleComplete(task: Task) {
+    if (task.kind === "followup") {
+      const res = await fetch(`/api/followups/${task.id}/complete`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: task.completed ? "reopen" : "complete" }),
+      });
+      if (res.ok) fetchTasks();
+      return;
+    }
     const res = await fetch(`/api/tasks/${task.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -748,13 +762,36 @@ function TaskRow({
           >
             {task.title}
           </span>
-          <span
-            className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
-              priorityStyles[task.priority] || "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {priorityLabels[task.priority] || task.priority}
-          </span>
+          {task.kind === "followup" ? (
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100 text-amber-700 border border-amber-200">
+              Follow-up sugerido
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-sky-100 text-sky-700 border border-sky-200">
+              Tarefa
+            </span>
+          )}
+          {task.kind !== "followup" && (
+            <span
+              className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                priorityStyles[task.priority] || "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {priorityLabels[task.priority] || task.priority}
+            </span>
+          )}
+          {task.kind === "followup" && task.stage && (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border"
+              style={{
+                backgroundColor: task.stage.color + "1A",
+                borderColor: task.stage.color + "55",
+                color: task.stage.color,
+              }}
+            >
+              {task.stage.name}
+            </span>
+          )}
         </div>
 
         {task.description && (
@@ -803,12 +840,16 @@ function TaskRow({
       </div>
 
       <div className="flex items-center gap-0.5 shrink-0">
-        <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-gray-100 transition" title="Editar">
-          <Pencil className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" />
-        </button>
-        <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-red-50 transition" title="Excluir">
-          <Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
-        </button>
+        {task.kind !== "followup" && (
+          <>
+            <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-gray-100 transition" title="Editar">
+              <Pencil className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" />
+            </button>
+            <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-red-50 transition" title="Excluir">
+              <Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
+            </button>
+          </>
+        )}
       </div>
     </li>
   );
