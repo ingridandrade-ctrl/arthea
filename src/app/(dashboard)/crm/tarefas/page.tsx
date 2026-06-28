@@ -295,6 +295,14 @@ export default function TarefasPage() {
       .catch(() => {});
   }, []);
 
+  // Recarrega ao voltar pra aba (evita lista stale após ações em outra aba/dispositivo)
+  useEffect(() => {
+    function onFocus() { fetchTasks(); }
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function toggleComplete(task: Task) {
     if (task.kind === "followup") {
       const res = await fetch(`/api/followups/${task.id}/complete`, {
@@ -633,7 +641,8 @@ export default function TarefasPage() {
                   } else {
                     res = await fetch(`/api/tasks/${deletingTask.id}`, { method: "DELETE" });
                   }
-                  if (res.ok) {
+                  if (res.ok || res.status === 404) {
+                    // 404 = já foi excluída (lista estava desatualizada). Trata como sucesso.
                     setDeletingTask(null);
                     await fetchTasks();
                   } else {

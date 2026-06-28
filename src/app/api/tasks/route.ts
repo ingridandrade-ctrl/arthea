@@ -174,7 +174,9 @@ export async function GET(request: NextRequest) {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
-  return NextResponse.json(all);
+  const res = NextResponse.json(all);
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 }
 
 export async function POST(request: NextRequest) {
