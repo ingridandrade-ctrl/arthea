@@ -8,7 +8,9 @@ import { Modal } from "@/components/ui/modal";
 import { getServiceFields, type ServiceField } from "@/lib/service-fields";
 import { LEAD_STATUSES, getLeadStatusLabel, getLeadStatusColor } from "@/lib/lead-status";
 import { FilterBar, getDateRange, type DatePreset, type FilterService } from "@/components/crm/filter-bar";
+import { FilterDropdown } from "@/components/crm/filter-dropdown";
 import { LEAD_SOURCES, getSourceLabel, getSourceColor } from "@/lib/lead-source";
+import { ArrowUpDown } from "lucide-react";
 
 interface LeadService {
   id: string;
@@ -46,6 +48,9 @@ export default function LeadsPage() {
   const [datePreset, setDatePreset] = useState<DatePreset>("all");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterSource, setFilterSource] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkAction, setBulkAction] = useState<"delete" | "status" | null>(null);
@@ -63,13 +68,16 @@ export default function LeadsPage() {
     const params = new URLSearchParams();
     if (activeService !== "all") params.set("service", activeService);
     if (deferredSearch) params.set("search", deferredSearch);
+    if (filterStatus !== "all") params.set("status", filterStatus);
+    if (filterSource !== "all") params.set("source", filterSource);
+    if (sortBy !== "recent") params.set("sort", sortBy);
     const range = getDateRange(datePreset, customFrom, customTo);
     if (range) {
       params.set("from", range.from);
       params.set("to", range.to);
     }
     return `/api/leads?${params}`;
-  }, [activeService, deferredSearch, datePreset, customFrom, customTo]);
+  }, [activeService, deferredSearch, datePreset, customFrom, customTo, filterStatus, filterSource, sortBy]);
 
   async function fetchLeads() {
     setLoading(true);
@@ -153,6 +161,37 @@ export default function LeadsPage() {
         customFrom={customFrom}
         customTo={customTo}
         onCustomChange={(f, t) => { setCustomFrom(f); setCustomTo(t); }}
+        extra={
+          <>
+            <FilterDropdown
+              label="Status"
+              value={filterStatus}
+              onChange={setFilterStatus}
+              defaultLabel="Todos"
+              options={LEAD_STATUSES.map((s) => ({ value: s.value, label: s.label }))}
+            />
+            <FilterDropdown
+              label="Origem"
+              value={filterSource}
+              onChange={setFilterSource}
+              defaultLabel="Todas"
+              options={LEAD_SOURCES.map((s) => ({ value: s.value, label: s.label }))}
+            />
+            <FilterDropdown
+              icon={<ArrowUpDown className="w-3.5 h-3.5" />}
+              label="Ordenar"
+              value={sortBy}
+              onChange={setSortBy}
+              defaultLabel="Mais recentes"
+              defaultValue="recent"
+              options={[
+                { value: "oldest", label: "Mais antigos" },
+                { value: "name_asc", label: "Nome (A → Z)" },
+                { value: "name_desc", label: "Nome (Z → A)" },
+              ]}
+            />
+          </>
+        }
       />
 
       {/* Search */}
