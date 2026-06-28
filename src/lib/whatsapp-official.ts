@@ -226,11 +226,18 @@ interface WhatsAppMessage {
   timestamp: string;
   type: string;
   text?: { body: string };
-  image?: { id: string; caption?: string };
-  document?: { id: string; filename?: string; caption?: string };
-  audio?: { id: string };
-  video?: { id: string; caption?: string };
-  location?: { latitude: number; longitude: number; name?: string };
+  image?: { id: string; mime_type?: string; sha256?: string; caption?: string };
+  document?: { id: string; mime_type?: string; filename?: string; caption?: string };
+  audio?: { id: string; mime_type?: string; voice?: boolean };
+  video?: { id: string; mime_type?: string; caption?: string };
+  sticker?: { id: string; mime_type?: string; animated?: boolean };
+  location?: { latitude: number; longitude: number; name?: string; address?: string };
+  contacts?: { name?: { formatted_name?: string } }[];
+  reaction?: { message_id: string; emoji?: string };
+  order?: { catalog_id?: string; text?: string };
+  system?: { body?: string; type?: string };
+  unsupported?: unknown;
+  errors?: { code: number; title: string; message?: string }[];
   button?: { text: string; payload: string };
   interactive?: {
     type: string;
@@ -239,75 +246,164 @@ interface WhatsAppMessage {
   };
 }
 
-interface WhatsAppStatus {
+export interface WhatsAppStatus {
   id: string;
   status: string; // "sent" | "delivered" | "read" | "failed"
   timestamp: string;
   recipient_id: string;
-  errors?: { code: number; title: string }[];
+  errors?: { code: number; title: string; message?: string }[];
 }
 
 // ─── Extract Message Content ─────────────────────────────────────
 
-export function extractOfficialMessageContent(payload: WhatsAppWebhookPayload): {
+export interface ExtractedMessage {
   phone: string;
   content: string;
   name: string;
   messageId: string;
   buttonId?: string;
-} | null {
-  if (payload.object !== "whatsapp_business_account") return null;
+  messageType: string;
+  /** Reference to Meta media id when the message carried media. */
+  mediaId?: string;
+  mediaMimeType?: string;
+  mediaFilename?: string;
+}
+
+export function extractOfficialMessageContent(
+  payload: WhatsAppWebhookPayload,
+): ExtractedMessage | null {
+  if (!payload || payload.object !== "whatsapp_business_account") return null;
+  if (!Array.isArray(payload.entry)) return null;
 
   for (const entry of payload.entry) {
+    if (!entry || !Array.isArray(entry.changes)) continue;
     for (const change of entry.changes) {
-      if (change.field !== "messages") continue;
+      if (!change || change.field !== "messages") continue;
 
-      const messages = change.value.messages;
-      const contacts = change.value.contacts;
+      const messages = change.value?.messages;
+      const contacts = change.value?.contacts;
 
       if (!messages || messages.length === 0) continue;
 
       const msg = messages[0];
+      if (!msg || !msg.id || !msg.from) continue;
       const contact = contacts?.[0];
 
-      // Extract text content from various message types
+      // Defaults
       let content = "";
       let buttonId: string | undefined = undefined;
-      switch (msg.type) {
-        case "text":
-          content = msg.text?.body || "";
-          break;
-        case "button":
-          content = msg.button?.text || "";
-          buttonId = msg.button?.payload || undefined;
-          break;
-        case "interactive":
-          content =
-            msg.interactive?.button_reply?.title ||
-            msg.interactive?.list_reply?.title ||
-            "";
-          buttonId = msg.interactive?.button_reply?.id || msg.interactive?.list_reply?.id || undefined;
-          break;
-        case "image":
-          content = msg.image?.caption || "[Imagem]";
-          break;
-        case "document":
-          content = msg.document?.caption || "[Documento]";
-          break;
-        case "audio":
-          content = "[Audio]";
-          break;
-        case "video":
-          content = msg.video?.caption || "[Video]";
-          break;
-        case "location":
-          content = msg.location?.name || "[Localizacao]";
-          break;
-        default:
-          content = `[${msg.type}]`;
+      let mediaId: string | undefined = undefined;
+      let mediaMimeType: string | undefined = undefined;
+      let mediaFilename: string | undefined = undefined;
+
+      try {
+        switch (msg.type) {
+          case "text":
+            content = msg.text?.body?.trim() || "";
+            break;
+          case "button":
+            content = msg.button?.text || "";
+            buttonId = msg.button?.payload || undefined;
+            break;
+          case "interactive":
+            content =
+              msg.interactive?.button_reply?.title ||
+              msg.interactive?.list_reply?.title ||
+              "";
+            buttonId =
+              msg.interactive?.button_reply?.id ||
+              msg.interactive?.list_reply?.id ||
+              undefined;
+            break;
+          case "image":
+            mediaId = msg.image?.id;
+            mediaMimeType = msg.image?.mime_type;
+            content = msg.image?.caption?.trim() || "[Imagem]";
+            if (mediaId) content = `${content}\n[media:image:${mediaId}]`;
+            break;
+          case "document":
+            mediaId = msg.document?.id;
+            mediaMimeType = msg.document?.mime_type;
+            mediaFilename = msg.document?.filename;
+            content =
+              msg.document?.caption?.trim() ||
+              (mediaFilename ? `[Documento: ${mediaFilename}]` : "[Documento]");
+            if (mediaId) content = `${content}\n[media:document:${mediaId}]`;
+            break;
+          case "audio":
+            mediaId = msg.audio?.id;
+            mediaMimeType = msg.audio?.mime_type;
+            content = msg.audio?.voice ? "[Mensagem de voz]" : "[Audio]";
+            if (mediaId) content = `${content}\n[media:audio:${mediaId}]`;
+            break;
+          case "video":
+            mediaId = msg.video?.id;
+            mediaMimeType = msg.video?.mime_type;
+            content = msg.video?.caption?.trim() || "[Video]";
+            if (mediaId) content = `${content}\n[media:video:${mediaId}]`;
+            break;
+          case "sticker":
+            mediaId = msg.sticker?.id;
+            mediaMimeType = msg.sticker?.mime_type;
+            content = "[Sticker]";
+            if (mediaId) content = `${content}\n[media:sticker:${mediaId}]`;
+            break;
+          case "location": {
+            const lat = msg.location?.latitude;
+            const lng = msg.location?.longitude;
+            const label = msg.location?.name || msg.location?.address;
+            if (label && lat != null && lng != null) {
+              content = `[Localizacao: ${label} (${lat},${lng})]`;
+            } else if (lat != null && lng != null) {
+              content = `[Localizacao: ${lat},${lng}]`;
+            } else {
+              content = "[Localizacao]";
+            }
+            break;
+          }
+          case "contacts": {
+            const names = (msg.contacts || [])
+              .map((c) => c?.name?.formatted_name)
+              .filter(Boolean)
+              .join(", ");
+            content = names ? `[Contato: ${names}]` : "[Contato]";
+            break;
+          }
+          case "reaction": {
+            const emoji = msg.reaction?.emoji || "?";
+            const ref = msg.reaction?.message_id || "";
+            content = `[Reacao: ${emoji}${ref ? ` -> ${ref}` : ""}]`;
+            break;
+          }
+          case "order": {
+            const txt = msg.order?.text?.trim();
+            content = txt ? `[Pedido] ${txt}` : "[Pedido]";
+            break;
+          }
+          case "system":
+            content = msg.system?.body?.trim() || `[Sistema:${msg.system?.type || "evento"}]`;
+            break;
+          case "unsupported": {
+            const errMsg = msg.errors?.[0]?.title || "tipo nao suportado";
+            content = `[Mensagem nao suportada: ${errMsg}]`;
+            break;
+          }
+          default:
+            // Unknown future type — keep something rather than crash.
+            content = `[${msg.type || "desconhecido"}]`;
+        }
+      } catch (err) {
+        console.error(
+          `extractOfficialMessageContent: failed to parse message type=${msg.type} id=${msg.id}:`,
+          err,
+        );
+        content = `[${msg.type || "desconhecido"}]`;
       }
 
-      if (!content) continue;
+      // Final safety net: never propagate empty content.
+      if (!content || !content.trim()) {
+        content = `[${msg.type || "mensagem"}]`;
+      }
 
       return {
         phone: msg.from,
@@ -315,11 +411,37 @@ export function extractOfficialMessageContent(payload: WhatsAppWebhookPayload): 
         name: contact?.profile?.name || msg.from,
         messageId: msg.id,
         buttonId,
+        messageType: msg.type || "unknown",
+        mediaId,
+        mediaMimeType,
+        mediaFilename,
       };
     }
   }
 
   return null;
+}
+
+/**
+ * Extract delivery status updates (sent/delivered/read/failed) from a webhook
+ * payload. Returns an empty array when none are present. Never throws.
+ */
+export function extractStatusUpdates(payload: WhatsAppWebhookPayload): WhatsAppStatus[] {
+  const out: WhatsAppStatus[] = [];
+  if (!payload || payload.object !== "whatsapp_business_account") return out;
+  if (!Array.isArray(payload.entry)) return out;
+  for (const entry of payload.entry) {
+    if (!entry || !Array.isArray(entry.changes)) continue;
+    for (const change of entry.changes) {
+      if (!change || change.field !== "messages") continue;
+      const statuses = change.value?.statuses;
+      if (!statuses || statuses.length === 0) continue;
+      for (const s of statuses) {
+        if (s && s.id && s.status) out.push(s);
+      }
+    }
+  }
+  return out;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────
