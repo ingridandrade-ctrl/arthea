@@ -204,9 +204,12 @@ interface WhatsAppEntry {
 }
 
 interface WhatsAppChange {
-  value: {
-    messaging_product: string;
-    metadata: {
+  // `value` é tipado largo porque a Meta usa o mesmo envelope pra eventos
+  // bem diferentes (messages, statuses, message_template_status_update,
+  // phone_number_quality_update, etc). Cada extractor castea o que precisa.
+  value: Record<string, unknown> & {
+    messaging_product?: string;
+    metadata?: {
       display_phone_number: string;
       phone_number_id: string;
     };
@@ -252,6 +255,19 @@ export interface WhatsAppStatus {
   timestamp: string;
   recipient_id: string;
   errors?: { code: number; title: string; message?: string }[];
+}
+
+/**
+ * Update enviado pela Meta quando um template muda de status (APPROVED,
+ * REJECTED, DISABLED, etc). Vem no payload do webhook quando o campo
+ * `message_template_status_update` está inscrito.
+ */
+export interface MetaTemplateStatusUpdate {
+  event: string; // "APPROVED" | "REJECTED" | "DISABLED" | "PENDING_DELETION" | etc.
+  templateId?: string | number;
+  templateName: string;
+  templateLanguage?: string;
+  reason?: string | null; // motivo da rejeição (quando event === "REJECTED")
 }
 
 // ─── Extract Message Content ─────────────────────────────────────
@@ -439,6 +455,37 @@ export function extractStatusUpdates(payload: WhatsAppWebhookPayload): WhatsAppS
       for (const s of statuses) {
         if (s && s.id && s.status) out.push(s);
       }
+    }
+  }
+  return out;
+}
+
+/**
+ * Extract template status updates (APPROVED/REJECTED/etc.) from a webhook
+ * payload. Returns an empty array when none are present. Never throws.
+ *
+ * Requer que o webhook esteja inscrito no campo `message_template_status_update`
+ * no painel Meta Developers (aba WhatsApp → Configuração → Webhook).
+ */
+export function extractTemplateStatusUpdates(
+  payload: WhatsAppWebhookPayload,
+): MetaTemplateStatusUpdate[] {
+  const out: MetaTemplateStatusUpdate[] = [];
+  if (!payload || payload.object !== "whatsapp_business_account") return out;
+  if (!Array.isArray(payload.entry)) return out;
+  for (const entry of payload.entry) {
+    if (!entry || !Array.isArray(entry.changes)) continue;
+    for (const change of entry.changes) {
+      if (!change || change.field !== "message_template_status_update") continue;
+      const v = change.value as any;
+      if (!v?.message_template_name) continue;
+      out.push({
+        event: String(v.event || "").toUpperCase(),
+        templateId: v.message_template_id,
+        templateName: String(v.message_template_name),
+        templateLanguage: v.message_template_language,
+        reason: v.reason ?? null,
+      });
     }
   }
   return out;
