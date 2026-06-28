@@ -71,26 +71,40 @@ export async function onLeadReplied(opts: {
   }
 
   // 3. Notificação pra equipe (todos os usuários ADMIN + MANAGER)
+  // Dedupe: se já notificamos sobre esse lead nos últimos 5 minutos, não
+  // notifica de novo. Cobre o caso de webhook + check_response do cron
+  // chamarem onLeadReplied em sequência pra mesma resposta.
   if (stopped > 0 || moved > 0) {
-    const recipients = await prisma.user.findMany({
-      where: { role: { in: ["ADMIN", "MANAGER"] } },
+    const recent = await prisma.notification.findFirst({
+      where: {
+        type: "lead_replied",
+        createdAt: { gte: new Date(Date.now() - 5 * 60 * 1000) },
+        // Filtra via JSON (data->>leadId). Em Postgres com Prisma, usar `path`.
+        data: { path: ["leadId"], equals: lead.id },
+      },
       select: { id: true },
     });
-    const stageName = lead.services[0]?.stage?.name || "—";
-    const serviceName = lead.services[0]?.service?.name || "—";
-    const preview = opts.lastMessage ? opts.lastMessage.slice(0, 80) : "(mensagem)";
-    const title = `${lead.name} respondeu`;
-    const body = `${lead.company ? lead.company + " · " : ""}${serviceName} · ${stageName}\n"${preview}"`;
-    for (const u of recipients) {
-      await prisma.notification.create({
-        data: {
-          userId: u.id,
-          type: "lead_replied",
-          title,
-          body,
-          data: { leadId: lead.id, stoppedFlows: stopped, movedServices: moved },
-        },
+    if (!recent) {
+      const recipients = await prisma.user.findMany({
+        where: { role: { in: ["ADMIN", "MANAGER"] } },
+        select: { id: true },
       });
+      const stageName = lead.services[0]?.stage?.name || "—";
+      const serviceName = lead.services[0]?.service?.name || "—";
+      const preview = opts.lastMessage ? opts.lastMessage.slice(0, 80) : "(mensagem)";
+      const title = `${lead.name} respondeu`;
+      const body = `${lead.company ? lead.company + " · " : ""}${serviceName} · ${stageName}\n"${preview}"`;
+      for (const u of recipients) {
+        await prisma.notification.create({
+          data: {
+            userId: u.id,
+            type: "lead_replied",
+            title,
+            body,
+            data: { leadId: lead.id, stoppedFlows: stopped, movedServices: moved },
+          },
+        });
+      }
     }
   }
 

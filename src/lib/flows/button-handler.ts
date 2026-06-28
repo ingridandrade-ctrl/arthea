@@ -43,14 +43,15 @@ export async function handleButtonClick(opts: {
   for (const action of actions) {
     try {
       if (action.type === "move_stage_by_name") {
-        // Move serviço(s) do lead pra estágio cujo nome contém o pattern
-        const pattern = (action.stageNamePattern as string).toLowerCase();
+        // Move serviço(s) do lead pra estágio cujo nome contém o pattern.
+        const pattern = typeof action.stageNamePattern === "string" ? action.stageNamePattern : "";
+        if (!pattern) continue;
         for (const ls of lead.services) {
           if (!ls.stage) continue;
           const target = await prisma.pipelineStage.findFirst({
             where: {
               pipelineId: ls.stage.pipelineId,
-              name: { contains: action.stageNamePattern as string, mode: "insensitive" },
+              name: { contains: pattern, mode: "insensitive" },
             },
           });
           if (target && target.id !== ls.stageId) {
@@ -61,7 +62,8 @@ export async function handleButtonClick(opts: {
           }
         }
       } else if (action.type === "trigger_template") {
-        const tpl = await prisma.followUpTemplate.findUnique({ where: { id: action.templateId as string } });
+        if (!action.templateId || typeof action.templateId !== "string") continue;
+        const tpl = await prisma.followUpTemplate.findUnique({ where: { id: action.templateId } });
         if (!tpl || !tpl.isActive) continue;
 
         const ls = lead.services[0];

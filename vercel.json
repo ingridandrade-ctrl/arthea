@@ -7,5 +7,15 @@
       "memory": 1024,
       "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/flows",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/followups",
+      "schedule": "*/10 * * * *"
+    }
+  ]
 }

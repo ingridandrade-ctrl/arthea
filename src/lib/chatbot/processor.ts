@@ -83,20 +83,34 @@ async function doProcessIncomingMessage(
       include: { services: { include: { service: true } } },
     })!;
 
-    const firstStage = await prisma.pipelineStage.findFirst({
-      where: { order: 0 },
+    // Pega o primeiro estágio do PIPELINE do serviço default. O findFirst
+    // genérico por order:0 pode pegar o stage de qualquer pipeline (GMN,
+    // tráfego, etc) — não necessariamente o do serviço que vamos atribuir.
+    const defaultService = await prisma.service.findFirst({
+      where: { isActive: true },
+      orderBy: { createdAt: "asc" },
     });
-    const defaultService = await prisma.service.findFirst();
-
-    if (firstStage && defaultService && lead) {
-      const ls = await prisma.leadService.create({
-        data: {
-          leadId: lead.id,
-          serviceId: defaultService.id,
-          stageId: firstStage.id,
-        },
+    if (defaultService && lead) {
+      const pipeline = await prisma.pipeline.findUnique({
+        where: { serviceId: defaultService.id },
+        include: { stages: { orderBy: { order: "asc" }, take: 1 } },
       });
-      await scheduleFollowUpsForLeadService(ls.id, firstStage.id);
+      const firstStage = pipeline?.stages[0]
+        ?? await prisma.pipelineStage.findFirst({
+          where: { pipeline: { serviceId: null } },
+          orderBy: { order: "asc" },
+        });
+
+      if (firstStage) {
+        const ls = await prisma.leadService.create({
+          data: {
+            leadId: lead.id,
+            serviceId: defaultService.id,
+            stageId: firstStage.id,
+          },
+        });
+        await scheduleFollowUpsForLeadService(ls.id, firstStage.id);
+      }
     }
   }
 
