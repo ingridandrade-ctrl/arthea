@@ -262,7 +262,43 @@ async function doProcessIncomingMessage(
     content: msg.content,
   }));
 
-  const aiResponse = await generateChatResponse(SYSTEM_PROMPT, messages);
+  let aiResponse: string;
+  try {
+    aiResponse = await generateChatResponse(SYSTEM_PROMPT, messages);
+  } catch (aiErr: any) {
+    console.error(
+      `IA falhou pro lead ${lead.id} (${lead.phone}):`,
+      aiErr?.message || aiErr,
+      aiErr?.status ? `status=${aiErr.status}` : "",
+    );
+    // Notifica admin/manager — fluxo do lead trava se IA não responde.
+    const recipients = await prisma.user.findMany({
+      where: { role: { in: ["ADMIN", "MANAGER"] } },
+      select: { id: true },
+    });
+    for (const u of recipients) {
+      await prisma.notification.create({
+        data: {
+          userId: u.id,
+          type: "ai_failure",
+          title: `IA falhou ao responder ${lead.name}`,
+          body: `Erro: ${aiErr?.message || "desconhecido"}. Lead precisa de atendimento humano.`,
+          data: { leadId: lead.id, error: aiErr?.message },
+        },
+      });
+    }
+    // Manda fallback pro lead pra ele não ficar no vácuo + abre atendimento humano
+    const fallback = "Oii! Tive um probleminha técnico aqui. Vou pedir pra alguém da equipe te atender em instantes, ok? 😊";
+    await prisma.conversation.update({
+      where: { id: conversation.id },
+      data: { isAiActive: false },
+    });
+    await sendWhatsAppMessage(phone, fallback).catch(() => {});
+    await prisma.message.create({
+      data: { conversationId: conversation.id, content: fallback, sender: "AI" },
+    });
+    return { handled: false, reason: "ai_error", error: aiErr?.message };
+  }
 
   await prisma.message.create({
     data: {
