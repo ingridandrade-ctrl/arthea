@@ -161,6 +161,8 @@ export default function LeadsPage() {
         customFrom={customFrom}
         customTo={customTo}
         onCustomChange={(f, t) => { setCustomFrom(f); setCustomTo(t); }}
+        hasExtraFilters={filterStatus !== "all" || filterSource !== "all" || sortBy !== "recent"}
+        onClearExtra={() => { setFilterStatus("all"); setFilterSource("all"); setSortBy("recent"); }}
         extra={
           <>
             <FilterDropdown
