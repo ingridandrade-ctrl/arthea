@@ -23,6 +23,7 @@ import {
   MinusSquare,
 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
+import { FilterDropdown } from "@/components/crm/filter-dropdown";
 
 interface Task {
   kind?: "task" | "followup";
@@ -429,139 +430,75 @@ export default function TarefasPage() {
         </div>
       )}
 
-      {/* Filtros sempre visíveis */}
-      <div className="bg-card rounded-xl border border-border p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Filtros</h3>
-          {hasActiveFilters && (
-            <button onClick={clearAllFilters} className="text-xs text-primary hover:underline">
-              Limpar filtros
-            </button>
-          )}
-        </div>
-
-        {/* Tipo */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-medium text-muted-foreground min-w-[60px]">Tipo:</span>
-          <div className="flex gap-1.5">
-            {[
-              { value: "all", label: "Tudo" },
-              { value: "task", label: "Tarefa", color: "sky" },
-              { value: "followup", label: "Follow-up", color: "amber" },
-            ].map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setKindFilter(opt.value as any)}
-                className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
-                  kindFilter === opt.value
-                    ? "bg-primary text-white border-primary"
-                    : "bg-card text-muted-foreground border-border hover:text-foreground"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Serviço */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-medium text-muted-foreground min-w-[60px]">Serviço:</span>
-          <div className="flex gap-1.5 flex-wrap">
-            <button
-              onClick={() => setActiveService("all")}
-              className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
-                activeService === "all"
-                  ? "bg-primary text-white border-primary"
-                  : "bg-card text-muted-foreground border-border hover:text-foreground"
-              }`}
-            >
-              Todos
-            </button>
-            {services.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => setActiveService(s.slug)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition ${
-                  activeService === s.slug
-                    ? "text-white border-transparent"
-                    : "bg-card text-muted-foreground border-border hover:text-foreground"
-                }`}
-                style={activeService === s.slug ? { backgroundColor: s.color } : undefined}
-              >
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.color }} />
-                {s.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Período */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-medium text-muted-foreground min-w-[60px]">Período:</span>
-          <div className="flex gap-1.5 flex-wrap">
-            {datePresets.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => setDatePreset(p.key)}
-                className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
-                  datePreset === p.key
-                    ? "bg-primary text-white border-primary"
-                    : "bg-card text-muted-foreground border-border hover:text-foreground"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-          {datePreset === "custom" && (
-            <div className="flex gap-2 mt-1 w-full">
-              <input
-                type="date"
-                value={customFrom}
-                onChange={(e) => setCustomFrom(e.target.value)}
-                className="flex-1 px-2.5 py-1 border border-border rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-              <input
-                type="date"
-                value={customTo}
-                onChange={(e) => setCustomTo(e.target.value)}
-                className="flex-1 px-2.5 py-1 border border-border rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Prioridade (só pra tarefas — Follow-ups não têm) */}
+      {/* Filtros — dropdowns compactos em linha única */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <FilterDropdown
+          label="Tipo"
+          value={kindFilter}
+          onChange={(v) => setKindFilter(v as any)}
+          defaultLabel="Tudo"
+          defaultValue="all"
+          options={[
+            { value: "task", label: "Tarefa", color: "#0ea5e9" },
+            { value: "followup", label: "Follow-up", color: "#f59e0b" },
+          ]}
+        />
+        <FilterDropdown
+          label="Serviço"
+          value={activeService}
+          onChange={setActiveService}
+          defaultLabel="Todos"
+          options={services.map((s) => ({ value: s.slug, label: s.name, color: s.color }))}
+        />
+        <FilterDropdown
+          icon={<Calendar className="w-3.5 h-3.5" />}
+          label="Período"
+          value={datePreset}
+          onChange={(v) => setDatePreset(v as DatePreset)}
+          defaultLabel="Sempre"
+          options={datePresets.filter((p) => p.key !== "all").map((p) => ({ value: p.key, label: p.label }))}
+        />
         {kindFilter !== "followup" && (
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs font-medium text-muted-foreground min-w-[60px]">Prioridade:</span>
-            <div className="flex gap-1.5 flex-wrap">
-              <button
-                onClick={() => setPriorityFilter("")}
-                className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
-                  !priorityFilter
-                    ? "bg-primary text-white border-primary"
-                    : "bg-card text-muted-foreground border-border hover:text-foreground"
-                }`}
-              >
-                Todas
-              </button>
-              {(["urgent", "high", "medium", "low"] as const).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPriorityFilter(p)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
-                    priorityFilter === p
-                      ? "bg-primary text-white border-primary"
-                      : "bg-card text-muted-foreground border-border hover:text-foreground"
-                  }`}
-                >
-                  {priorityLabels[p]}
-                </button>
-              ))}
-            </div>
+          <FilterDropdown
+            icon={<ListFilter className="w-3.5 h-3.5" />}
+            label="Prioridade"
+            value={priorityFilter || "all"}
+            onChange={(v) => setPriorityFilter(v === "all" ? "" : v)}
+            defaultLabel="Todas"
+            options={[
+              { value: "urgent", label: "Urgente", color: "#ef4444" },
+              { value: "high", label: "Alta", color: "#f97316" },
+              { value: "medium", label: "Média", color: "#3b82f6" },
+              { value: "low", label: "Baixa", color: "#94a3b8" },
+            ]}
+          />
+        )}
+        {datePreset === "custom" && (
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="px-2 py-1.5 border border-border rounded-lg text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <span className="text-xs text-muted-foreground">→</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="px-2 py-1.5 border border-border rounded-lg text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+            />
           </div>
+        )}
+        {hasActiveFilters && (
+          <button
+            onClick={clearAllFilters}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition"
+            title="Limpar filtros"
+          >
+            <X className="w-3.5 h-3.5" />
+            Limpar
+          </button>
         )}
       </div>
 
