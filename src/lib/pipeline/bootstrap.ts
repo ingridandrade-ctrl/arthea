@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { ensureGmnTemplates } from "@/lib/followups/bootstrap";
+import { migrateTemplatesToFlows } from "@/lib/flows/migration";
 
 // Hooks chamados ao criar o pipeline de um serviço.
 // Garante que templates / config dependentes do pipeline também sejam criados.
 const POST_CREATE_HOOKS: Record<string, () => Promise<unknown>> = {
-  "google-meu-negocio": ensureGmnTemplates,
+  "google-meu-negocio": async () => {
+    await ensureGmnTemplates();
+    await migrateTemplatesToFlows();
+  },
 };
 
 // Define stages per service. If a service has no entry here, falls back
