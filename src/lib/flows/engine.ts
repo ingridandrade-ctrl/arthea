@@ -133,7 +133,16 @@ export async function processDueFlowSteps() {
 
     try {
       if (action === "send_whatsapp" || action === "internal_reminder") {
-        const message = renderTemplate(config.message || "", {
+        // Resolve mensagem: prioriza templateId (sempre fresh do banco) sobre message inline
+        let raw = (config.message as string) || "";
+        if (config.templateId) {
+          const tpl = await prisma.followUpTemplate.findUnique({
+            where: { id: config.templateId as string },
+            select: { messageTemplate: true, isActive: true },
+          });
+          if (tpl && tpl.isActive) raw = tpl.messageTemplate;
+        }
+        const message = renderTemplate(raw, {
           nome: lead.name,
           servico: leadService?.service?.name || "",
           empresa: lead.company || "",

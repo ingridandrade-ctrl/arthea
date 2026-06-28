@@ -129,7 +129,9 @@ async function createSteps(flowId: string, templates: any[]) {
         delayHours: stepDelay,
         actionType: isWhatsapp ? "send_whatsapp" : "internal_reminder",
         actionConfig: {
-          message: t.messageTemplate,
+          templateId: t.id,
+          templateName: t.name,
+          message: t.messageTemplate, // fallback se template for excluído
           title: t.name,
         },
         isActive: t.isActive,

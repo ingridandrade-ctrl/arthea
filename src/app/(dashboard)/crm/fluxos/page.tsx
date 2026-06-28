@@ -251,7 +251,7 @@ function StepChip({ step }: { step: FlowStep }) {
   const config = (step.actionConfig || {}) as any;
   const preview =
     step.actionType === "send_whatsapp" || step.actionType === "internal_reminder"
-      ? (config.message || "").slice(0, 40)
+      ? config.templateName || (config.message || "").slice(0, 40) || "(sem template)"
       : step.actionType === "move_stage"
       ? `→ ${config.stageName || "estágio"}`
       : config.title || "";
