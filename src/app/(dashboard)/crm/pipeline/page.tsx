@@ -20,8 +20,16 @@ export default function PipelinePage() {
   useEffect(() => {
     fetch("/api/services")
       .then((r) => r.json())
-      .then((data) => setServices(Array.isArray(data) ? data : []))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setServices(list);
+        // Pipeline genérico não é uma opção válida aqui — força um serviço
+        if (activeService === "all" && list.length > 0) {
+          setActiveService(list[0].slug);
+        }
+      })
       .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchPipeline() {
@@ -106,7 +114,6 @@ export default function PipelinePage() {
             onChange={(e) => setActiveService(e.target.value)}
             className="px-3 py-1.5 border border-border rounded-lg text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary"
           >
-            <option value="all">Todos (pipeline genérico)</option>
             {services.map((s: any) => (
               <option key={s.id} value={s.slug}>
                 {s.name}
