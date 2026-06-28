@@ -154,6 +154,16 @@ export default function TemplatesPage() {
             { value: "none", label: "Sem origem definida", color: "#94a3b8" },
           ]}
         />
+        {(search || filterService !== "all" || filterSource !== "all") && (
+          <button
+            onClick={() => { setSearch(""); setFilterService("all"); setFilterSource("all"); }}
+            className="inline-flex items-center gap-1 px-2.5 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition"
+            title="Limpar filtros"
+          >
+            <X className="w-3.5 h-3.5" />
+            Limpar
+          </button>
+        )}
       </div>
 
       {/* Variáveis */}

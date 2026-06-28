@@ -64,6 +64,10 @@ interface FilterBarProps {
   customTo: string;
   onCustomChange: (from: string, to: string) => void;
   extra?: React.ReactNode;
+  // Quando os filtros extras passados em `extra` têm estado próprio,
+  // o pai pode informar que tem filtros ativos e como limpá-los.
+  hasExtraFilters?: boolean;
+  onClearExtra?: () => void;
 }
 
 function useOutside(ref: React.RefObject<HTMLDivElement | null>, fn: () => void) {
@@ -87,6 +91,8 @@ export function FilterBar({
   customTo,
   onCustomChange,
   extra,
+  hasExtraFilters,
+  onClearExtra,
 }: FilterBarProps) {
   const [openSvc, setOpenSvc] = useState(false);
   const [openDate, setOpenDate] = useState(false);
@@ -106,12 +112,13 @@ export function FilterBar({
         : "Personalizado"
       : DATE_PRESETS.find((p) => p.value === datePreset)?.label || "Todas as datas";
 
-  const hasFilters = activeService !== "all" || datePreset !== "all";
+  const hasFilters = activeService !== "all" || datePreset !== "all" || !!hasExtraFilters;
 
   function clearAll() {
     onServiceChange("all");
     onDatePresetChange("all");
     onCustomChange("", "");
+    onClearExtra?.();
   }
 
   return (
