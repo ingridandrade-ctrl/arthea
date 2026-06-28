@@ -96,17 +96,18 @@ export async function buildLeadContext(leadId: string): Promise<string> {
 function identifyTemplate(content: string): string | null {
   // Heurística simples: identifica templates GMN pelo trecho inicial.
   // Não precisa ser perfeito — só dar contexto à IA sobre o que rolou.
+  // Names alinhados ao novo naming (F/P/C) — Jun 2026.
   const c = content.toLowerCase();
-  if (c.includes("recebemos seu interesse na análise")) return "T1 — Boas-vindas (Forms)";
-  if (c.includes("análise da ficha") && c.includes("já está pronta")) return "T2A — Envio da análise (Forms)";
-  if (c.includes("estamos fazendo um mapeamento")) return "T2B — Primeiro contato (Prospecção)";
-  if (c.includes("aqui está a análise da ficha")) return "T3 — Envio da análise pós-sim (Prospecção)";
-  if (c.includes("queria confirmar se você viu")) return "T4 — Follow-up Prospecção";
-  if (c.includes("teve a chance de conferir")) return "T5 — Follow-up 1 da análise";
-  if (c.includes("é a última vez que pergunto")) return "T6 — Follow-up 2 da análise";
-  if (c.includes("vai sair do ar em breve")) return "T7 — Último toque (breakup)";
-  if (c.includes("que bom que você conferiu")) return "T8 — Proposta";
-  if (c.includes("não esqueci do feedback")) return "T9 — Follow-up negociação";
+  if (c.includes("recebemos seu interesse na análise")) return "F1 — Boas-vindas Formulário";
+  if (c.includes("análise da ficha") && c.includes("já está pronta")) return "F2 — Análise Pronta Formulário";
+  if (c.includes("estamos fazendo um mapeamento")) return "P1 — Primeiro Contato Prospecção";
+  if (c.includes("aqui está a análise da ficha")) return "P2 — Análise Enviada Prospecção";
+  if (c.includes("queria confirmar se você viu")) return "P3 — Follow-up Permissão Prospecção";
+  if (c.includes("teve a chance de conferir")) return "C1 — Follow-up Análise 1";
+  if (c.includes("é a última vez que pergunto")) return "C2 — Follow-up Análise 2";
+  if (c.includes("vai sair do ar em breve")) return "C3 — Último Toque";
+  if (c.includes("que bom que você conferiu")) return "C4 — Proposta";
+  if (c.includes("não esqueci do feedback")) return "C5 — Follow-up Proposta";
   return null;
 }
 
