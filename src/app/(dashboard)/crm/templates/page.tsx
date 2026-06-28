@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Edit3, Check, X, ToggleLeft, ToggleRight, Zap, Bell } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Search } from "lucide-react";
+import { Modal } from "@/components/ui/modal";
+import { FilterDropdown } from "@/components/crm/filter-dropdown";
 
 const VARIABLES = [
   { key: "{{nome}}", label: "Nome do lead" },
   { key: "{{empresa}}", label: "Empresa" },
   { key: "{{telefone}}", label: "Telefone" },
   { key: "{{email}}", label: "Email" },
-  { key: "{{servico}}", label: "Serviço(s)" },
-  { key: "{{segmento}}", label: "Segmento (GMN)" },
-  { key: "{{cidadeEstado}}", label: "Cidade/Estado (GMN)" },
-  { key: "{{linkAnalise}}", label: "Link da análise (GMN)" },
+  { key: "{{servico}}", label: "Serviço" },
+  { key: "{{segmento}}", label: "Segmento" },
+  { key: "{{cidadeEstado}}", label: "Cidade/Estado" },
+  { key: "{{linkAnalise}}", label: "Link da análise" },
 ];
 
 interface Template {
@@ -19,353 +21,300 @@ interface Template {
   code: string | null;
   name: string;
   serviceId: string | null;
-  stageOrder: number;
-  followUpOrder: number;
-  channel: string;
   messageTemplate: string;
-  isAutomatic: boolean;
   isActive: boolean;
-  condition: any;
   service: { id: string; name: string; slug: string; color: string } | null;
-  stageName: string;
-  stageColor: string;
 }
 
+interface Service {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+}
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [services, setServices] = useState<{ id: string; name: string; slug: string; color: string }[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<Partial<Template>>({});
+  const [search, setSearch] = useState("");
+  const [filterService, setFilterService] = useState("all");
+  const [editing, setEditing] = useState<Template | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState<Template | null>(null);
 
-  async function fetchTemplates() {
+  async function fetchAll() {
     setLoading(true);
-    const [tRes, sRes] = await Promise.all([
-      fetch("/api/followup-templates"),
-      fetch("/api/services"),
+    const [t, s] = await Promise.all([
+      fetch("/api/followup-templates").then((r) => r.json()),
+      fetch("/api/services").then((r) => r.json()),
     ]);
-    const tData = await tRes.json();
-    const sData = await sRes.json();
-    setTemplates(Array.isArray(tData) ? tData : []);
-    setServices(Array.isArray(sData) ? sData : []);
+    setTemplates(Array.isArray(t) ? t : []);
+    setServices(Array.isArray(s) ? s : []);
     setLoading(false);
   }
 
-  useEffect(() => {
-    fetchTemplates();
-  }, []);
+  useEffect(() => { fetchAll(); }, []);
 
-  function startEdit(template: Template) {
-    setEditingId(template.id);
-    setEditForm({
-      name: template.name,
-      messageTemplate: template.messageTemplate,
-      isAutomatic: template.isAutomatic,
-      channel: template.channel,
-    });
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-    setEditForm({});
-  }
-
-  async function saveEdit(id: string) {
-    await fetch(`/api/followup-templates/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editForm),
-    });
-    setEditingId(null);
-    setEditForm({});
-    fetchTemplates();
-  }
-
-  async function toggleActive(template: Template) {
-    await fetch(`/api/followup-templates/${template.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: !template.isActive }),
-    });
-    fetchTemplates();
-  }
-
-  async function toggleAutomatic(template: Template) {
-    await fetch(`/api/followup-templates/${template.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isAutomatic: !template.isAutomatic }),
-    });
-    fetchTemplates();
-  }
-
-  function previewMessage(template: string) {
-    return template
-      .replace(/\{\{nome\}\}/g, "Maria Silva")
-      .replace(/\{\{servico\}\}/g, "Google Meu Negócio")
-      .replace(/\{\{empresa\}\}/g, "Clínica Exemplo")
-      .replace(/\{\{telefone\}\}/g, "+5511999001001")
-      .replace(/\{\{email\}\}/g, "maria@empresa.com")
-      .replace(/\{\{segmento\}\}/g, "Saúde")
-      .replace(/\{\{cidadeEstado\}\}/g, "São Paulo / SP")
-      .replace(/\{\{linkAnalise\}\}/g, "https://gbpcheck.com/exemplo");
-  }
-
-  const tabs = useMemo(() => {
-    const countByService = new Map<string, number>();
-    for (const t of templates) {
-      if (!t.serviceId) continue;
-      countByService.set(t.serviceId, (countByService.get(t.serviceId) || 0) + 1);
+  async function deleteTemplate() {
+    if (!deleting) return;
+    const res = await fetch(`/api/followup-templates/${deleting.id}`, { method: "DELETE" });
+    if (res.ok || res.status === 404) {
+      setDeleting(null);
+      fetchAll();
     }
-    return services.map((s) => ({
-      key: s.id,
-      label: s.name,
-      color: s.color,
-      count: countByService.get(s.id) || 0,
-    }));
-  }, [templates, services]);
+  }
 
-  // Garante que activeTab esteja sempre num serviço válido
-  useEffect(() => {
-    if (!activeTab && tabs.length > 0) setActiveTab(tabs[0].key);
-    else if (activeTab && tabs.length > 0 && !tabs.some((t) => t.key === activeTab)) {
-      setActiveTab(tabs[0].key);
-    }
-  }, [tabs, activeTab]);
+  async function toggleActive(t: Template) {
+    await fetch(`/api/followup-templates/${t.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: !t.isActive }),
+    });
+    fetchAll();
+  }
 
   const filtered = useMemo(() => {
-    return templates.filter((t) => t.serviceId === activeTab);
-  }, [templates, activeTab]);
-
-  const grouped = useMemo(() => {
-    const m = new Map<number, { name: string; color: string; items: Template[] }>();
-    for (const t of filtered) {
-      const g = m.get(t.stageOrder);
-      if (g) g.items.push(t);
-      else m.set(t.stageOrder, { name: t.stageName, color: t.stageColor, items: [t] });
-    }
-    return Array.from(m.entries()).sort(([a], [b]) => a - b);
-  }, [filtered]);
-
-  function conditionLabel(condition: any) {
-    if (!condition || typeof condition !== "object") return null;
-    if (condition.source === "FORMS") return "Forms site";
-    if (condition.source === "PROSPECCAO") return "Prospecção";
-    if (condition.source === "INDICACAO") return "Indicação";
-    return null;
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
-  }
+    return templates.filter((t) => {
+      if (filterService !== "all" && t.service?.slug !== filterService) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        if (!t.name.toLowerCase().includes(q) && !t.messageTemplate.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  }, [templates, filterService, search]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Templates de Follow-up</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Mensagens prontas que disparam quando o lead entra num estágio. Cada serviço pode ter seus próprios templates.
-        </p>
+    <div className="space-y-5">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold">Templates de Mensagem</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Textos reutilizáveis. Use nos passos dos fluxos de automação.
+          </p>
+        </div>
+        <button
+          onClick={() => setCreating(true)}
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"
+        >
+          <Plus className="w-4 h-4" /> Novo Template
+        </button>
       </div>
 
-      {/* Tabs por serviço */}
-      <div className="flex gap-1 border-b border-border overflow-x-auto">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.key;
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition whitespace-nowrap ${
-                isActive
-                  ? "border-primary text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-              style={isActive ? { borderColor: tab.color } : undefined}
-            >
-              <span className="inline-flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full" style={{ background: tab.color }} />
-                {tab.label}
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground font-mono">
-                  {tab.count}
-                </span>
-              </span>
-            </button>
-          );
-        })}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[240px] max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Buscar por nome ou conteúdo..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-3 py-2 border border-border rounded-lg text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+        <FilterDropdown
+          label="Serviço"
+          value={filterService}
+          onChange={setFilterService}
+          defaultLabel="Todos"
+          options={services.map((s) => ({ value: s.slug, label: s.name, color: s.color }))}
+        />
       </div>
 
-      {/* Variables reference */}
-      <div className="bg-card rounded-xl border border-border p-4">
-        <h3 className="text-sm font-semibold mb-2">Variáveis disponíveis</h3>
-        <div className="flex flex-wrap gap-2">
+      {/* Variáveis */}
+      <div className="bg-card rounded-xl border border-border p-3">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Variáveis disponíveis</p>
+        <div className="flex flex-wrap gap-1.5">
           {VARIABLES.map((v) => (
-            <span key={v.key} className="inline-flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs">
+            <span key={v.key} className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted rounded text-[11px]">
               <code className="font-mono text-primary">{v.key}</code>
-              <span className="text-muted-foreground">- {v.label}</span>
+              <span className="text-muted-foreground">{v.label}</span>
             </span>
           ))}
         </div>
       </div>
 
-      {grouped.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          Nenhum template cadastrado pra esse serviço.
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="bg-card rounded-xl border border-border p-12 text-center text-muted-foreground">
+          <p>Nenhum template encontrado</p>
+          <p className="text-xs mt-1">Clique em "Novo Template" pra criar o primeiro.</p>
         </div>
       ) : (
-        grouped.map(([stageOrder, group]) => (
-          <div key={stageOrder} className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: group.color }} />
-              <h2 className="text-lg font-semibold">{group.name}</h2>
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                {group.items.length} template{group.items.length !== 1 ? "s" : ""}
-              </span>
+        <div className="space-y-2">
+          {filtered.map((t) => (
+            <div key={t.id} className={`bg-card rounded-xl border p-4 transition ${t.isActive ? "border-border" : "border-border opacity-60"}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-sm font-semibold">{t.name}</h3>
+                    {t.code && (
+                      <span className="text-[10px] font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                        {t.code}
+                      </span>
+                    )}
+                    {t.service && (
+                      <span
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium text-white"
+                        style={{ backgroundColor: t.service.color }}
+                      >
+                        {t.service.name}
+                      </span>
+                    )}
+                    {!t.isActive && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Inativo</span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1.5 whitespace-pre-wrap line-clamp-3">
+                    {t.messageTemplate}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => toggleActive(t)} className="p-1.5 rounded hover:bg-muted" title={t.isActive ? "Desativar" : "Ativar"}>
+                    {t.isActive ? <Check className="w-4 h-4 text-green-600" /> : <X className="w-4 h-4 text-muted-foreground" />}
+                  </button>
+                  <button onClick={() => setEditing(t)} className="p-1.5 rounded hover:bg-muted" title="Editar">
+                    <Pencil className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                  <button onClick={() => setDeleting(t)} className="p-1.5 rounded hover:bg-red-50 hover:text-red-600" title="Excluir">
+                    <Trash2 className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </div>
+              </div>
             </div>
+          ))}
+        </div>
+      )}
 
-            <div className="space-y-2">
-              {group.items
-                .sort((a, b) => a.followUpOrder - b.followUpOrder)
-                .map((template) => {
-                  const cond = conditionLabel(template.condition);
-                  return (
-                    <div
-                      key={template.id}
-                      className={`bg-card rounded-xl border p-4 transition ${
-                        template.isActive ? "border-border" : "border-border opacity-50"
-                      }`}
-                    >
-                      {editingId === template.id ? (
-                        <div className="space-y-3">
-                          <input
-                            type="text"
-                            value={editForm.name || ""}
-                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
-                            placeholder="Nome do template"
-                          />
-                          <textarea
-                            value={editForm.messageTemplate || ""}
-                            onChange={(e) => setEditForm({ ...editForm, messageTemplate: e.target.value })}
-                            rows={6}
-                            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono"
-                            placeholder="Mensagem do template..."
-                          />
-                          <div className="flex items-center gap-4">
-                            <select
-                              value={editForm.channel || "whatsapp"}
-                              onChange={(e) => setEditForm({ ...editForm, channel: e.target.value })}
-                              className="px-2 py-1 rounded border border-border bg-background text-sm"
-                            >
-                              <option value="whatsapp">WhatsApp</option>
-                              <option value="internal">Lembrete interno</option>
-                            </select>
-                            <label className="flex items-center gap-2 text-sm">
-                              <input
-                                type="checkbox"
-                                checked={editForm.isAutomatic || false}
-                                onChange={(e) => setEditForm({ ...editForm, isAutomatic: e.target.checked })}
-                              />
-                              Envio automático
-                            </label>
-                          </div>
-                          <div className="bg-muted/50 rounded-lg p-3">
-                            <p className="text-xs font-semibold text-muted-foreground mb-1">Preview:</p>
-                            <p className="text-sm whitespace-pre-wrap">{previewMessage(editForm.messageTemplate || "")}</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => saveEdit(template.id)}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm"
-                            >
-                              <Check className="w-4 h-4" /> Salvar
-                            </button>
-                            <button
-                              onClick={cancelEdit}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-sm"
-                            >
-                              <X className="w-4 h-4" /> Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
-                          <div className="flex items-start justify-between gap-2 flex-wrap">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
-                                #{template.followUpOrder}
-                              </span>
-                              <h3 className="text-sm font-semibold">{template.name}</h3>
-                              {template.code && (
-                                <span className="text-[10px] font-mono bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                                  {template.code}
-                                </span>
-                              )}
-                              {template.isAutomatic ? (
-                                <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                                  <Zap className="w-3 h-3" /> Automático
-                                </span>
-                              ) : (
-                                <span className="flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                                  <Bell className="w-3 h-3" /> Lembrete
-                                </span>
-                              )}
-                              <span className="text-xs text-muted-foreground">
-                                {template.channel === "whatsapp" ? "WhatsApp" : "Interno"}
-                              </span>
-                              {cond && (
-                                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                                  Origem: {cond}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => startEdit(template)}
-                                className="p-1.5 hover:bg-muted rounded-lg transition"
-                                title="Editar"
-                              >
-                                <Edit3 className="w-4 h-4 text-muted-foreground" />
-                              </button>
-                              <button
-                                onClick={() => toggleAutomatic(template)}
-                                className="p-1.5 hover:bg-muted rounded-lg transition"
-                                title={template.isAutomatic ? "Mudar para lembrete" : "Mudar para automático"}
-                              >
-                                {template.isAutomatic ? (
-                                  <ToggleRight className="w-5 h-5 text-green-600" />
-                                ) : (
-                                  <ToggleLeft className="w-5 h-5 text-muted-foreground" />
-                                )}
-                              </button>
-                              <button
-                                onClick={() => toggleActive(template)}
-                                className={`px-2 py-1 rounded text-xs font-medium ${
-                                  template.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                                }`}
-                              >
-                                {template.isActive ? "Ativo" : "Inativo"}
-                              </button>
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">
-                            {template.messageTemplate}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+      {(creating || editing) && (
+        <TemplateFormModal
+          template={editing || undefined}
+          services={services}
+          onClose={() => { setCreating(false); setEditing(null); }}
+          onSaved={() => { setCreating(false); setEditing(null); fetchAll(); }}
+        />
+      )}
+
+      {deleting && (
+        <Modal title="Excluir template" onClose={() => setDeleting(null)}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Excluir <strong>{deleting.name}</strong>? Fluxos que usam esse template vão precisar ser ajustados.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleting(null)} className="flex-1 px-4 py-2 border border-border rounded-lg text-sm hover:bg-muted">
+                Cancelar
+              </button>
+              <button onClick={deleteTemplate} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">
+                Excluir
+              </button>
             </div>
           </div>
-        ))
+        </Modal>
       )}
     </div>
+  );
+}
+
+function TemplateFormModal({
+  template,
+  services,
+  onClose,
+  onSaved,
+}: {
+  template?: Template;
+  services: Service[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [name, setName] = useState(template?.name || "");
+  const [message, setMessage] = useState(template?.messageTemplate || "");
+  const [serviceId, setServiceId] = useState(template?.serviceId || "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function save() {
+    setSaving(true);
+    setError("");
+    const body = {
+      name,
+      messageTemplate: message,
+      serviceId: serviceId || null,
+    };
+    const url = template ? `/api/followup-templates/${template.id}` : "/api/followup-templates";
+    const method = template ? "PUT" : "POST";
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    setSaving(false);
+    if (res.ok) {
+      onSaved();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Erro ao salvar");
+    }
+  }
+
+  return (
+    <Modal title={template ? "Editar template" : "Novo template"} onClose={onClose} maxWidth="max-w-xl">
+      <div className="space-y-4">
+        {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>}
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Nome</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ex: Boas-vindas GMN Forms"
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            autoFocus
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Serviço (opcional)</label>
+          <select
+            value={serviceId}
+            onChange={(e) => setServiceId(e.target.value)}
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">— Qualquer serviço —</option>
+            {services.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+          <p className="text-[10px] text-muted-foreground mt-1">Marcar serviço deixa esse template aparecendo só pra ele nos fluxos.</p>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Mensagem</label>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={8}
+            placeholder={"Oi {{nome}}! Tudo bem? Aqui é a Ingrid da Arthea..."}
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Use {"{{nome}}, {{empresa}}, {{linkAnalise}}"} e outras variáveis listadas no topo da página.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={onClose} className="flex-1 px-4 py-2 border border-border rounded-lg text-sm hover:bg-muted">
+            Cancelar
+          </button>
+          <button
+            onClick={save}
+            disabled={saving || !name.trim() || !message.trim()}
+            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
+          >
+            {saving ? "Salvando..." : "Salvar"}
+          </button>
+        </div>
+      </div>
+    </Modal>
   );
 }

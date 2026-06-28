@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const {
     name,
+    serviceId,
     stageOrder,
     followUpOrder,
     channel,
@@ -64,18 +65,19 @@ export async function POST(request: NextRequest) {
     isAutomatic,
   } = body;
 
-  if (!name || stageOrder === undefined || !followUpOrder || !messageTemplate) {
-    return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
+  if (!name || !messageTemplate) {
+    return NextResponse.json({ error: "Nome e mensagem são obrigatórios" }, { status: 400 });
   }
 
   const template = await prisma.followUpTemplate.create({
     data: {
       name,
-      stageOrder,
-      followUpOrder,
+      serviceId: serviceId || undefined,
+      stageOrder: stageOrder ?? 0,
+      followUpOrder: followUpOrder ?? 1,
       channel: channel || "whatsapp",
       messageTemplate,
-      isAutomatic: isAutomatic || false,
+      isAutomatic: isAutomatic ?? false,
     },
   });
 

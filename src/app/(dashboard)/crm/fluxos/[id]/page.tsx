@@ -61,10 +61,15 @@ export default function FlowEditorPage() {
 
   const [services, setServices] = useState<Service[]>([]);
   const [stagesByService, setStagesByService] = useState<Record<string, Stage[]>>({});
+  const [templates, setTemplates] = useState<any[]>([]);
 
   useEffect(() => {
     fetch("/api/services").then((r) => r.json()).then((d) => setServices(Array.isArray(d) ? d : [])).catch(() => {});
+    fetch("/api/followup-templates").then((r) => r.json()).then((d) => setTemplates(Array.isArray(d) ? d : [])).catch(() => {});
   }, []);
+
+  // Templates disponíveis pra esse serviço (do serviço + globais)
+  const availableTemplates = templates.filter((t) => !t.serviceId || t.serviceId === serviceId);
 
   useEffect(() => {
     if (isNew) return;
@@ -314,6 +319,7 @@ export default function FlowEditorPage() {
                 index={idx}
                 total={steps.length}
                 stages={stages}
+                templates={availableTemplates}
                 onUpdate={(patch) => updateStep(idx, patch)}
                 onMove={(dir) => moveStep(idx, dir)}
                 onRemove={() => removeStep(idx)}
@@ -346,6 +352,7 @@ function StepEditor({
   index,
   total,
   stages,
+  templates,
   onUpdate,
   onMove,
   onRemove,
@@ -354,6 +361,7 @@ function StepEditor({
   index: number;
   total: number;
   stages: Stage[];
+  templates: any[];
   onUpdate: (patch: Partial<Step>) => void;
   onMove: (dir: -1 | 1) => void;
   onRemove: () => void;
@@ -408,13 +416,37 @@ function StepEditor({
       </select>
 
       {(step.actionType === "send_whatsapp" || step.actionType === "internal_reminder") && (
-        <textarea
-          value={(step.actionConfig?.message as string) || ""}
-          onChange={(e) => onUpdate({ actionConfig: { ...step.actionConfig, message: e.target.value } })}
-          rows={4}
-          placeholder="Mensagem... use {{nome}}, {{empresa}}, {{linkAnalise}}, {{cidadeEstado}}, etc."
-          className="w-full px-2 py-1.5 border border-border rounded text-sm bg-card font-mono focus:outline-none focus:ring-1 focus:ring-primary"
-        />
+        <div className="space-y-1">
+          <select
+            value={(step.actionConfig?.templateId as string) || ""}
+            onChange={(e) => {
+              const tpl = templates.find((t) => t.id === e.target.value);
+              onUpdate({
+                actionConfig: {
+                  ...step.actionConfig,
+                  templateId: e.target.value || undefined,
+                  templateName: tpl?.name,
+                  message: tpl?.messageTemplate, // mantém pra compatibilidade/preview
+                },
+              });
+            }}
+            className="w-full px-2 py-1.5 border border-border rounded text-sm bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="">— Selecionar template —</option>
+            {templates.length === 0 ? (
+              <option disabled>Nenhum template disponível. Crie em /crm/templates</option>
+            ) : (
+              templates.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))
+            )}
+          </select>
+          {step.actionConfig?.templateId && (
+            <p className="text-[10px] text-muted-foreground pl-1">
+              Edita o conteúdo da mensagem em <a href="/crm/templates" className="text-primary hover:underline">Templates</a>
+            </p>
+          )}
+        </div>
       )}
 
       {step.actionType === "move_stage" && (
