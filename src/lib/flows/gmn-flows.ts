@@ -14,6 +14,31 @@ export async function ensureGmnFlows() {
   const pipeline = await prisma.pipeline.findUnique({ where: { serviceId: gmn.id }, include: { stages: true } });
   if (!pipeline) return { skipped: true, reason: "pipeline_not_found" };
 
+  // Botões padrão no T2B (uma vez só, não sobrescreve customização)
+  const t2bTpl = await prisma.followUpTemplate.findUnique({ where: { code: "GMN_T2B" } });
+  const t3Tpl = await prisma.followUpTemplate.findUnique({ where: { code: "GMN_T3" } });
+  if (t2bTpl && (!t2bTpl.buttons || (Array.isArray(t2bTpl.buttons) && (t2bTpl.buttons as any[]).length === 0))) {
+    const defaultButtons = [
+      {
+        id: "gmn_t2b_yes",
+        label: "Sim, quero receber",
+        actions: [
+          ...(t3Tpl ? [{ type: "trigger_template", templateId: t3Tpl.id }] : []),
+          { type: "move_stage_by_name", stageNamePattern: "análise gerada" },
+        ],
+      },
+      {
+        id: "gmn_t2b_no",
+        label: "Não, obrigado",
+        actions: [{ type: "mark_lost", reason: "Sem interesse (recusou análise)" }],
+      },
+    ];
+    await prisma.followUpTemplate.update({
+      where: { id: t2bTpl.id },
+      data: { buttons: defaultButtons as any },
+    });
+  }
+
   const stageByName = (pattern: string) =>
     pipeline.stages.find((s) => s.name.toLowerCase().includes(pattern.toLowerCase()));
 
