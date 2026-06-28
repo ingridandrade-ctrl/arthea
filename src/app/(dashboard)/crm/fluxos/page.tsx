@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { Plus, Zap, Copy, Trash2, Power, MessageCircle, Bell, ArrowRight, Clock, MoveRight } from "lucide-react";
+import { Plus, Zap, Copy, Trash2, Power, MessageCircle, Bell, ArrowRight, Clock, MoveRight, GitBranch } from "lucide-react";
 import { FilterDropdown } from "@/components/crm/filter-dropdown";
 import { Modal } from "@/components/ui/modal";
 
@@ -282,6 +282,7 @@ const ACTION_META: Record<string, { icon: any; color: string; label: string }> =
   internal_reminder: { icon: Bell, color: "#f59e0b", label: "Lembrete" },
   move_stage: { icon: MoveRight, color: "#6366f1", label: "Mover" },
   create_task: { icon: Bell, color: "#3b82f6", label: "Tarefa" },
+  check_response: { icon: GitBranch, color: "#9333ea", label: "Respondeu?" },
 };
 
 function describeTrigger(flow: Flow) {

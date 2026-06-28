@@ -213,6 +213,42 @@ export async function processDueFlowSteps() {
           data: { status: "executed", executedAt: now },
         });
         results.push({ id: item.id, ok: true, action });
+      } else if (action === "check_response") {
+        // Verifica se o lead enviou alguma mensagem (sender=LEAD) APÓS o
+        // início desta execução. Se sim, para o fluxo + notifica.
+        const replied = await prisma.message.findFirst({
+          where: {
+            sender: "LEAD",
+            createdAt: { gte: item.execution.startedAt },
+            conversation: { leadId: lead.id },
+          },
+          orderBy: { createdAt: "desc" },
+          select: { content: true },
+        });
+        if (replied) {
+          const { onLeadReplied } = await import("./lead-replied");
+          await onLeadReplied({ leadId: lead.id, lastMessage: replied.content }).catch(() => {});
+          // Marca todos os passos pendentes desta execução como skipped
+          await prisma.flowStepExecution.updateMany({
+            where: { executionId: item.executionId, status: "pending" },
+            data: { status: "skipped", executedAt: now, result: { reason: "lead_replied_at_check" } },
+          });
+          await prisma.flowExecution.update({
+            where: { id: item.executionId },
+            data: { status: "stopped", completedAt: now },
+          });
+          await prisma.flowStepExecution.update({
+            where: { id: item.id },
+            data: { status: "executed", executedAt: now, result: { branch: "replied" } },
+          });
+          results.push({ id: item.id, ok: true, action: "check_response_stopped" });
+        } else {
+          await prisma.flowStepExecution.update({
+            where: { id: item.id },
+            data: { status: "executed", executedAt: now, result: { branch: "no_reply" } },
+          });
+          results.push({ id: item.id, ok: true, action: "check_response_continue" });
+        }
       } else if (action === "create_task") {
         await prisma.task.create({
           data: {
