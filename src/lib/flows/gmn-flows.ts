@@ -133,6 +133,31 @@ export async function ensureGmnFlows() {
     });
   }
 
+  // 3.5) PROSPECÇÃO — Análise gerada (gêmeo do fluxo 3, sem T2A)
+  // Cobre o caso do lead que clicou "Sim, quero receber" no T2B: o botão já
+  // moveu pra "Análise gerada" e disparou T3 inline (handler do botão), então
+  // este fluxo NÃO repete T2A — começa direto na cadência T5/T6/T7/Perdido.
+  // Sem este fluxo, lead Prospecção que aceita análise ficava parado em
+  // "Análise gerada" sem cadência (audit finding B5).
+  if (T5 && T6 && T7) {
+    flows.push({
+      name: "GMN · Prospecção — Análise gerada",
+      description: "Cadência pós-análise pra leads Prospecção (T3 já foi enviado pelo botão).",
+      triggerStageId: analiseGerada.id,
+      condition: { source: "PROSPECCAO" },
+      steps: [
+        { delayHours: 48, actionType: "check_response", actionConfig: {} },
+        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T5.id, templateName: T5.name } },
+        { delayHours: 72, actionType: "check_response", actionConfig: {} },
+        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T6.id, templateName: T6.name } },
+        { delayHours: 72, actionType: "check_response", actionConfig: {} },
+        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T7.id, templateName: T7.name } },
+        { delayHours: 72, actionType: "check_response", actionConfig: {} },
+        { delayHours: 0, actionType: "move_stage", actionConfig: { stageId: perdidoId, stageName: "Perdido" } },
+      ],
+    });
+  }
+
   // 4) EM CONTATO (ambos) — cadência de follow-ups da análise
   // Lead chega aqui já tendo recebido um toque inicial (T2A/T2B). Cadência:
   // 48h → T5 → 72h → T6 → 72h → T7 (breakup) → 72h → Perdido. Total ~11 dias.

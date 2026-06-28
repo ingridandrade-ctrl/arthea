@@ -5,6 +5,7 @@ import { SYSTEM_PROMPT, shouldHandoff } from "./prompts";
 import { performHandoff } from "./handoff";
 import { scheduleFollowUpsForLeadService } from "@/lib/followups/engine";
 import { renderTemplate } from "@/lib/followups/engine";
+import { normalizeLeadPhone } from "@/lib/phone";
 
 /**
  * In-process guard against concurrent webhook processing for the same lead.
@@ -17,11 +18,15 @@ import { renderTemplate } from "@/lib/followups/engine";
 const inflightByPhone = new Map<string, Promise<unknown>>();
 
 export async function processIncomingMessage(
-  phone: string,
+  phoneRaw: string,
   content: string,
   senderName: string,
   evolutionMsgId: string
 ) {
+  // Normaliza pra `5511...` antes de qualquer lookup/save — webhook do Meta
+  // já manda só dígitos, mas é defensivo (e o sentinel de serialização
+  // também precisa bater).
+  const phone = normalizeLeadPhone(phoneRaw);
   // Per-phone serialization: wait for any in-flight processing to finish.
   const prior = inflightByPhone.get(phone);
   if (prior) {
@@ -43,7 +48,7 @@ export async function processIncomingMessage(
 }
 
 async function doProcessIncomingMessage(
-  phone: string,
+  phone: string,  // já normalizado pelo wrapper
   content: string,
   senderName: string,
   evolutionMsgId: string,

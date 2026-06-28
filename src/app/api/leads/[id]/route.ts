@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { normalizeLeadPhone } from "@/lib/phone";
 
 export async function GET(
   request: NextRequest,
@@ -58,7 +59,7 @@ export async function PUT(
     where: { id: params.id },
     data: {
       ...(name !== undefined && { name }),
-      ...(phone !== undefined && { phone }),
+      ...(phone !== undefined && { phone: normalizeLeadPhone(phone) }),
       ...(email !== undefined && { email }),
       ...(company !== undefined && { company }),
       ...(source !== undefined && { source }),

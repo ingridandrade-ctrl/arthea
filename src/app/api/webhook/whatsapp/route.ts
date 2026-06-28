@@ -8,6 +8,7 @@ import {
 } from "@/lib/whatsapp-official";
 import { processIncomingMessage } from "@/lib/chatbot/processor";
 import { prisma } from "@/lib/prisma";
+import { normalizeLeadPhone } from "@/lib/phone";
 
 /**
  * GET — Webhook verification (required by Meta).
@@ -197,7 +198,7 @@ export async function POST(request: NextRequest) {
     if (buttonId) {
       try {
         const lead = await prisma.lead.findUnique({
-          where: { phone },
+          where: { phone: normalizeLeadPhone(phone) },
           select: { id: true },
         });
         if (lead) {

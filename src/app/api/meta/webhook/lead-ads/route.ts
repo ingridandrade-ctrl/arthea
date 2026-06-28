@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getLeadById } from "@/lib/meta/api";
+import { normalizeLeadPhone } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 
@@ -82,7 +83,10 @@ export async function POST(request: NextRequest) {
 
         const detail = await getLeadById(accessToken, leadgenId);
         const name = pickField(detail.field_data, ["full_name", "name", "first_name"]) || "Sem nome";
-        const phone = pickField(detail.field_data, ["phone_number", "phone"]) || `meta:${leadgenId}`;
+        const rawPhone = pickField(detail.field_data, ["phone_number", "phone"]);
+        // Mantém o fallback `meta:${leadgenId}` se não veio telefone — é
+        // sentinel pra não-real phone, não normaliza.
+        const phone = rawPhone ? normalizeLeadPhone(rawPhone) : `meta:${leadgenId}`;
         const email = pickField(detail.field_data, ["email"]);
         const company = pickField(detail.field_data, ["company_name", "company"]);
 
