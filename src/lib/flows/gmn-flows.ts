@@ -18,14 +18,15 @@ export async function ensureGmnFlows() {
   const t2bTpl = await prisma.followUpTemplate.findUnique({ where: { code: "GMN_T2B" } });
   const t3Tpl = await prisma.followUpTemplate.findUnique({ where: { code: "GMN_T3" } });
   if (t2bTpl && (!t2bTpl.buttons || (Array.isArray(t2bTpl.buttons) && (t2bTpl.buttons as any[]).length === 0))) {
+    // Botão "Sim" SÓ move o estágio. O envio do P2 fica no fluxo da "Análise
+    // gerada" (Prospecção), que tem guard de linkAnalise antes de mandar.
+    // Se mandasse inline aqui, lead receberia P2 sem linkAnalise quando a
+    // admin ainda não tivesse preenchido.
     const defaultButtons = [
       {
         id: "gmn_t2b_yes",
         label: "Sim, quero receber",
-        actions: [
-          ...(t3Tpl ? [{ type: "trigger_template", templateId: t3Tpl.id }] : []),
-          { type: "move_stage_by_name", stageNamePattern: "análise gerada" },
-        ],
+        actions: [{ type: "move_stage_by_name", stageNamePattern: "análise gerada" }],
       },
       {
         id: "gmn_t2b_no",
@@ -116,10 +117,14 @@ export async function ensureGmnFlows() {
   if (T2A && T5 && T6 && T7) {
     flows.push({
       name: "GMN · Forms — Análise enviada",
-      description: "Envia análise e cadência de follow-ups.",
+      description: "Envia análise (com guard de linkAnalise) e cadência de follow-ups.",
       triggerStageId: analiseGerada.id,
       condition: { source: "FORMS" },
       steps: [
+        // Guard: F2 referencia {{linkAnalise}}. Se o campo tá vazio quando o
+        // lead entra em "Análise gerada", pausa e notifica a admin pra
+        // preencher antes de mandar mensagem quebrada.
+        { delayHours: 0, actionType: "field_check", actionConfig: { field: "linkAnalise" } },
         { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T2A.id, templateName: T2A.name } },
         { delayHours: 48, actionType: "check_response", actionConfig: {} },
         { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T5.id, templateName: T5.name } },
@@ -139,13 +144,19 @@ export async function ensureGmnFlows() {
   // este fluxo NÃO repete T2A — começa direto na cadência T5/T6/T7/Perdido.
   // Sem este fluxo, lead Prospecção que aceita análise ficava parado em
   // "Análise gerada" sem cadência (audit finding B5).
-  if (T5 && T6 && T7) {
+  if (T3 && T5 && T6 && T7) {
     flows.push({
       name: "GMN · Prospecção — Análise gerada",
-      description: "Cadência pós-análise pra leads Prospecção (T3 já foi enviado pelo botão).",
+      description: "Envia P2 (com guard de linkAnalise) e cadência pós-análise pra leads Prospecção.",
       triggerStageId: analiseGerada.id,
       condition: { source: "PROSPECCAO" },
       steps: [
+        // Guard: P2 referencia {{linkAnalise}}. Se a admin não preencheu o
+        // campo antes do lead clicar "Sim", pausa aqui até preencher.
+        { delayHours: 0, actionType: "field_check", actionConfig: { field: "linkAnalise" } },
+        // P2 = T3 (envio da análise após sim). Antes era mandado inline pelo
+        // botão; agora vai no fluxo pra garantir o guard de linkAnalise.
+        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T3.id, templateName: T3.name } },
         { delayHours: 48, actionType: "check_response", actionConfig: {} },
         { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T5.id, templateName: T5.name } },
         { delayHours: 72, actionType: "check_response", actionConfig: {} },

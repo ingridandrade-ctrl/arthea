@@ -59,14 +59,15 @@ export async function onLeadReplied(opts: {
 
     await prisma.leadService.update({ where: { id: ls.id }, data: { stageId: next.id } });
 
-    // Triggera fluxos do novo estágio
-    const { triggerFlows } = await import("./engine");
+    // Triggera fluxos do novo estágio + resolve waits pendentes
+    const { triggerFlows, resolveWaitStageChanges } = await import("./engine");
     await triggerFlows({
       type: "STAGE_ENTER",
       leadId: lead.id,
       leadServiceId: ls.id,
       stageId: next.id,
     });
+    await resolveWaitStageChanges(ls.id, next.id);
     moved++;
   }
 
