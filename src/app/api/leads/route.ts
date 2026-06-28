@@ -98,19 +98,39 @@ export async function POST(request: NextRequest) {
   if (serviceIds && Array.isArray(serviceIds)) {
     const { scheduleFollowUpsForLeadService } = await import("@/lib/followups/engine");
     const { triggerFlows } = await import("@/lib/flows/engine");
+    const isIndicacao = (source || "PROSPECCAO") === "INDICACAO";
     for (const serviceId of serviceIds) {
       const customData = serviceCustomData?.[serviceId] || undefined;
       const stageId = serviceStages?.[serviceId] || undefined;
       const ls = await prisma.leadService.create({
         data: { leadId: lead.id, serviceId, customData, stageId },
       });
-      if (stageId) {
+      // INDICACAO não dispara fluxo — só notifica pra atendimento manual
+      if (stageId && !isIndicacao) {
         await scheduleFollowUpsForLeadService(ls.id, stageId);
         await triggerFlows({
           type: "STAGE_ENTER",
           leadId: lead.id,
           leadServiceId: ls.id,
           stageId,
+        });
+      }
+    }
+
+    if (isIndicacao) {
+      const recipients = await prisma.user.findMany({
+        where: { role: { in: ["ADMIN", "MANAGER"] } },
+        select: { id: true },
+      });
+      for (const u of recipients) {
+        await prisma.notification.create({
+          data: {
+            userId: u.id,
+            type: "lead_indicacao",
+            title: `Novo lead por indicação: ${lead.name}`,
+            body: `${lead.company ? lead.company + " · " : ""}Atendimento manual. Telefone: ${lead.phone}`,
+            data: { leadId: lead.id },
+          },
         });
       }
     }
