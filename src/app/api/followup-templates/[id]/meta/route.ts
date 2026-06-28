@@ -22,12 +22,14 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: `Mensagem tem ${body.length} chars — Meta limita a 1024. Encurte antes de submeter.` }, { status: 400 });
   }
 
+  const btns = (tpl.buttons as any[] | null) || [];
   const result = await submitMetaTemplate({
     name: tpl.metaName,
     category: tpl.metaCategory as any,
     language: tpl.metaLanguage,
     body,
     exampleParams,
+    buttons: btns.length > 0 ? btns.map((b) => ({ label: b.label })) : undefined,
   });
 
   if ("error" in result) {

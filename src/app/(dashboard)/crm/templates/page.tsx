@@ -32,6 +32,22 @@ interface Template {
   metaSubmittedAt?: string | null;
   metaApprovedAt?: string | null;
   condition?: { source?: string } | null;
+  buttons?: ButtonDef[] | null;
+}
+
+interface ButtonAction {
+  type: "move_stage_by_name" | "trigger_template" | "mark_lost" | "notify_team";
+  stageNamePattern?: string;
+  templateId?: string;
+  reason?: string;
+  title?: string;
+  body?: string;
+}
+
+interface ButtonDef {
+  id: string;
+  label: string;
+  actions: ButtonAction[];
 }
 
 const SOURCE_OPTIONS = [
@@ -319,6 +335,7 @@ function TemplateFormModal({
   const [message, setMessage] = useState(template?.messageTemplate || "");
   const [serviceId, setServiceId] = useState(template?.serviceId || "");
   const [sourceTag, setSourceTag] = useState(template?.condition?.source || "");
+  const [buttons, setButtons] = useState<ButtonDef[]>(template?.buttons || []);
   const [metaName, setMetaName] = useState(template?.metaName || "");
   const [metaCategory, setMetaCategory] = useState(template?.metaCategory || "");
   const [saving, setSaving] = useState(false);
@@ -333,6 +350,7 @@ function TemplateFormModal({
       messageTemplate: message,
       serviceId: serviceId || null,
       condition: sourceTag ? { source: sourceTag } : null,
+      buttons: buttons.length > 0 ? buttons : null,
       metaName: metaName.trim() || null,
       metaCategory: metaCategory || null,
     };
@@ -438,6 +456,38 @@ function TemplateFormModal({
             Use {"{{nome}}, {{empresa}}, {{linkAnalise}}"} e outras variáveis listadas no topo da página.
           </p>
         </div>
+        {/* Bloco Botões */}
+        <div className="border-t border-border pt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Botões de resposta rápida (máx 3)</h3>
+            {buttons.length < 3 && (
+              <button
+                type="button"
+                onClick={() => setButtons([...buttons, { id: "btn_" + Date.now(), label: "", actions: [] }])}
+                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" /> Adicionar botão
+              </button>
+            )}
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Quando enviado pelo WhatsApp, aparece como botões clicáveis. Cada botão executa ações ao ser clicado.
+          </p>
+          {buttons.length === 0 ? (
+            <p className="text-xs text-muted-foreground italic">Sem botões — mensagem é só texto.</p>
+          ) : (
+            buttons.map((btn, idx) => (
+              <ButtonEditor
+                key={btn.id}
+                button={btn}
+                services={services}
+                onUpdate={(b) => setButtons(buttons.map((x, i) => (i === idx ? b : x)))}
+                onRemove={() => setButtons(buttons.filter((_, i) => i !== idx))}
+              />
+            ))
+          )}
+        </div>
+
         {/* Bloco Meta */}
         <div className="border-t border-border pt-4 space-y-3">
           <div className="flex items-center justify-between">
@@ -520,5 +570,131 @@ function TemplateFormModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+function ButtonEditor({
+  button,
+  services,
+  onUpdate,
+  onRemove,
+}: {
+  button: ButtonDef;
+  services: Service[];
+  onUpdate: (b: ButtonDef) => void;
+  onRemove: () => void;
+}) {
+  const [templates, setTemplates] = useState<Template[]>([]);
+
+  useEffect(() => {
+    fetch("/api/followup-templates").then((r) => r.json()).then((d) => setTemplates(Array.isArray(d) ? d : [])).catch(() => {});
+  }, []);
+
+  function updateAction(idx: number, patch: Partial<ButtonAction>) {
+    onUpdate({ ...button, actions: button.actions.map((a, i) => (i === idx ? { ...a, ...patch } : a)) });
+  }
+
+  function addAction(type: ButtonAction["type"]) {
+    onUpdate({ ...button, actions: [...button.actions, { type }] });
+  }
+
+  function removeAction(idx: number) {
+    onUpdate({ ...button, actions: button.actions.filter((_, i) => i !== idx) });
+  }
+
+  return (
+    <div className="border border-border rounded-lg p-3 bg-muted/20 space-y-2">
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={button.label}
+          onChange={(e) => onUpdate({ ...button, label: e.target.value.slice(0, 20) })}
+          placeholder='Ex: "Sim, quero receber"'
+          maxLength={20}
+          className="flex-1 px-2 py-1.5 border border-border rounded text-sm bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+        <button type="button" onClick={onRemove} className="p-1.5 rounded hover:bg-red-50 hover:text-red-600" title="Remover botão">
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+      <p className="text-[10px] text-muted-foreground">Máx 20 chars. ID interno: <code className="font-mono">{button.id}</code></p>
+
+      <div className="border-t border-border pt-2">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Ao clicar:</p>
+        {button.actions.length === 0 ? (
+          <p className="text-xs text-muted-foreground italic mb-2">Nenhuma ação. Adicione abaixo.</p>
+        ) : (
+          <div className="space-y-2 mb-2">
+            {button.actions.map((a, i) => (
+              <div key={i} className="bg-card border border-border rounded p-2 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded">
+                    {a.type === "move_stage_by_name" ? "Mover estágio" :
+                     a.type === "trigger_template" ? "Disparar template" :
+                     a.type === "mark_lost" ? "Marcar perdido" :
+                     "Notificar equipe"}
+                  </span>
+                  <button onClick={() => removeAction(i)} className="text-red-500 hover:bg-red-50 p-0.5 rounded text-xs">×</button>
+                </div>
+                {a.type === "move_stage_by_name" && (
+                  <input
+                    type="text"
+                    value={a.stageNamePattern || ""}
+                    onChange={(e) => updateAction(i, { stageNamePattern: e.target.value })}
+                    placeholder='Nome do estágio (ex: "Análise gerada")'
+                    className="w-full px-2 py-1 border border-border rounded text-xs bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                )}
+                {a.type === "trigger_template" && (
+                  <select
+                    value={a.templateId || ""}
+                    onChange={(e) => updateAction(i, { templateId: e.target.value })}
+                    className="w-full px-2 py-1 border border-border rounded text-xs bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">— Selecione template —</option>
+                    {templates.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                )}
+                {a.type === "mark_lost" && (
+                  <input
+                    type="text"
+                    value={a.reason || ""}
+                    onChange={(e) => updateAction(i, { reason: e.target.value })}
+                    placeholder='Motivo da perda (ex: "Sem interesse")'
+                    className="w-full px-2 py-1 border border-border rounded text-xs bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                )}
+                {a.type === "notify_team" && (
+                  <div className="space-y-1">
+                    <input
+                      type="text"
+                      value={a.title || ""}
+                      onChange={(e) => updateAction(i, { title: e.target.value })}
+                      placeholder="Título da notificação"
+                      className="w-full px-2 py-1 border border-border rounded text-xs bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    <input
+                      type="text"
+                      value={a.body || ""}
+                      onChange={(e) => updateAction(i, { body: e.target.value })}
+                      placeholder="Corpo da notificação"
+                      className="w-full px-2 py-1 border border-border rounded text-xs bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-1 flex-wrap">
+          <button type="button" onClick={() => addAction("move_stage_by_name")} className="text-[10px] px-2 py-1 rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100">+ Mover estágio</button>
+          <button type="button" onClick={() => addAction("trigger_template")} className="text-[10px] px-2 py-1 rounded bg-green-50 text-green-700 hover:bg-green-100">+ Disparar template</button>
+          <button type="button" onClick={() => addAction("mark_lost")} className="text-[10px] px-2 py-1 rounded bg-red-50 text-red-700 hover:bg-red-100">+ Marcar perdido</button>
+          <button type="button" onClick={() => addAction("notify_team")} className="text-[10px] px-2 py-1 rounded bg-amber-50 text-amber-700 hover:bg-amber-100">+ Notificar equipe</button>
+        </div>
+      </div>
+    </div>
   );
 }

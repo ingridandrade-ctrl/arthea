@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
-import { sendTemplateMessage } from "@/lib/whatsapp-official";
+import { sendTemplateMessage, sendInteractiveButtons } from "@/lib/whatsapp-official";
 import { renderTemplate } from "@/lib/followups/engine";
 import { resolveMetaParams } from "@/lib/templates/meta-conversion";
 
@@ -140,6 +140,7 @@ export async function processDueFlowSteps() {
         let metaName: string | null = null;
         let metaParamOrder: string[] = [];
         let metaApproved = false;
+        let templateButtons: { id: string; label: string }[] = [];
         if (config.templateId) {
           const tpl = await prisma.followUpTemplate.findUnique({
             where: { id: config.templateId as string },
@@ -149,6 +150,7 @@ export async function processDueFlowSteps() {
               metaName: true,
               metaStatus: true,
               metaParamOrder: true,
+              buttons: true,
             },
           });
           if (tpl && tpl.isActive) {
@@ -156,6 +158,7 @@ export async function processDueFlowSteps() {
             metaName = tpl.metaName;
             metaParamOrder = (tpl.metaParamOrder as string[]) || [];
             metaApproved = tpl.metaStatus === "APPROVED";
+            templateButtons = ((tpl.buttons as any[]) || []).map((b: any) => ({ id: b.id, label: b.label }));
           }
         }
         const variables = {
@@ -175,6 +178,9 @@ export async function processDueFlowSteps() {
             await sendTemplateMessage(lead.phone, metaName, "pt_BR", [
               { type: "body", parameters: params.map((p) => ({ type: "text", text: p })) },
             ]);
+          } else if (templateButtons.length > 0) {
+            // Sem template Meta mas tem botões — manda interactive (só funciona em janela 24h)
+            await sendInteractiveButtons(lead.phone, message, templateButtons);
           } else {
             // Fallback: texto livre (só funciona em janela de 24h aberta)
             await sendWhatsAppMessage(lead.phone, message);
