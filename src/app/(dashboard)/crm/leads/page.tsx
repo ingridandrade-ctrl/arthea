@@ -14,6 +14,9 @@ interface LeadService {
   id: string;
   service: { id: string; name: string; color: string; slug: string };
   stage: { id: string; name: string; color: string } | null;
+  stageId?: string | null;
+  value?: number | null;
+  customData?: Record<string, string> | null;
 }
 
 interface Lead {
@@ -686,10 +689,41 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [services, setServices] = useState<any[]>([]);
+  const [stagesByService, setStagesByService] = useState<Record<string, any[]>>({});
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(
     lead.services.map((ls) => ls.service.id)
   );
   const [status, setStatus] = useState(lead.status);
+  const [source, setSource] = useState(lead.source || "PROSPECCAO");
+
+  // Estado por-serviço — populado a partir do lead atual
+  const [serviceCustomData, setServiceCustomData] = useState<Record<string, Record<string, string>>>(
+    () => {
+      const m: Record<string, Record<string, string>> = {};
+      for (const ls of lead.services as any[]) {
+        m[ls.service.id] = (ls.customData as Record<string, string>) || {};
+      }
+      return m;
+    },
+  );
+  const [serviceStages, setServiceStages] = useState<Record<string, string>>(
+    () => {
+      const m: Record<string, string> = {};
+      for (const ls of lead.services as any[]) {
+        m[ls.service.id] = ls.stage?.id || ls.stageId || "";
+      }
+      return m;
+    },
+  );
+  const [serviceValues, setServiceValues] = useState<Record<string, string>>(
+    () => {
+      const m: Record<string, string> = {};
+      for (const ls of lead.services as any[]) {
+        m[ls.service.id] = ls.value != null ? String(ls.value) : "";
+      }
+      return m;
+    },
+  );
 
   useEffect(() => {
     fetch("/api/services")
@@ -698,11 +732,50 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    for (const id of selectedServiceIds) {
+      if (stagesByService[id]) continue;
+      const svc = services.find((s: any) => s.id === id);
+      if (!svc) continue;
+      fetch(`/api/pipeline/stages?service=${svc.slug}`)
+        .then((r) => r.json())
+        .then((data) => {
+          const stages = data?.stages || [];
+          setStagesByService((prev) => ({ ...prev, [id]: stages }));
+          setServiceStages((prev) => (prev[id] ? prev : { ...prev, [id]: stages[0]?.id || "" }));
+        })
+        .catch(() => {});
+    }
+  }, [selectedServiceIds, services, stagesByService]);
+
+  function toggleService(id: string) {
+    setSelectedServiceIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
+  function updateCustomField(serviceId: string, key: string, value: string) {
+    setServiceCustomData((prev) => ({
+      ...prev,
+      [serviceId]: { ...(prev[serviceId] || {}), [key]: value },
+    }));
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
     const fd = new FormData(e.currentTarget);
+
+    const servicesPayload = selectedServiceIds.map((id) => ({
+      serviceId: id,
+      stageId: serviceStages[id] || null,
+      value: serviceValues[id] !== "" ? Number(serviceValues[id]) : null,
+      customData: serviceCustomData[id] && Object.keys(serviceCustomData[id]).length > 0
+        ? serviceCustomData[id]
+        : undefined,
+    }));
+
     const res = await fetch(`/api/leads/${lead.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -711,9 +784,10 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
         phone: fd.get("phone"),
         email: fd.get("email") || null,
         company: fd.get("company") || null,
+        source,
         status,
         notes: fd.get("notes") || null,
-        serviceIds: selectedServiceIds,
+        services: servicesPayload,
       }),
     });
     if (!res.ok) {
@@ -744,16 +818,26 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
         <label className="block text-sm font-medium mb-1">Empresa</label>
         <input name="company" defaultValue={lead.company || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Status</label>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-          {LEAD_STATUSES.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Origem *</label>
+          <select value={source} onChange={(e) => setSource(e.target.value)} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            {LEAD_SOURCES.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Status *</label>
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            {LEAD_STATUSES.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
+
       {services.length > 0 && (
         <div>
           <label className="block text-sm font-medium mb-1">Serviços</label>
@@ -762,7 +846,7 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
               <button
                 key={s.id}
                 type="button"
-                onClick={() => setSelectedServiceIds((prev) => prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id])}
+                onClick={() => toggleService(s.id)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${selectedServiceIds.includes(s.id) ? "text-white" : "bg-muted text-muted-foreground"}`}
                 style={selectedServiceIds.includes(s.id) ? { backgroundColor: s.color } : undefined}
               >
@@ -770,8 +854,65 @@ function EditLeadInlineForm({ lead, onSaved }: { lead: Lead; onSaved: () => void
               </button>
             ))}
           </div>
+
+          {services
+            .filter((s: any) => selectedServiceIds.includes(s.id))
+            .map((s: any) => {
+              const stages = stagesByService[s.id] || [];
+              const fields = getServiceFields(s.slug);
+              return (
+                <div
+                  key={s.id}
+                  className="mt-3 border-l-2 pl-3 py-2 bg-muted/30 rounded-r space-y-2"
+                  style={{ borderColor: s.color }}
+                >
+                  <p className="text-xs font-semibold text-muted-foreground">{s.name}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {stages.length > 0 && (
+                      <div>
+                        <label className="text-xs text-muted-foreground block mb-0.5">Etapa</label>
+                        <select
+                          value={serviceStages[s.id] || ""}
+                          onChange={(e) =>
+                            setServiceStages((prev) => ({ ...prev, [s.id]: e.target.value }))
+                          }
+                          className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                        >
+                          <option value="">—</option>
+                          {stages.map((st: any) => (
+                            <option key={st.id} value={st.id}>{st.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    <div>
+                      <label className="text-xs text-muted-foreground block mb-0.5">Valor (R$)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={serviceValues[s.id] || ""}
+                        onChange={(e) =>
+                          setServiceValues((prev) => ({ ...prev, [s.id]: e.target.value }))
+                        }
+                        placeholder="0,00"
+                        className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                  {fields.length > 0 && (
+                    <ServiceFieldsBlock
+                      service={s}
+                      values={serviceCustomData[s.id] || {}}
+                      onChange={(k, v) => updateCustomField(s.id, k, v)}
+                      inline
+                    />
+                  )}
+                </div>
+              );
+            })}
         </div>
       )}
+
       <div>
         <label className="block text-sm font-medium mb-1">Observações</label>
         <textarea name="notes" rows={3} defaultValue={(lead as any).notes || ""} className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
