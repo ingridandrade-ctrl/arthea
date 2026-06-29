@@ -819,11 +819,39 @@ function StepNode({
           )}
 
           {step.actionType === "check_response" && (
-            <div className="p-3 bg-purple-50 border border-purple-200 rounded text-xs text-purple-900 space-y-1">
-              <p className="font-semibold">Como funciona:</p>
-              <p>• Se o lead enviou QUALQUER mensagem após esse fluxo começar → <strong>cancela o fluxo</strong> e <strong>notifica a equipe</strong>.</p>
-              <p>• Se NÃO respondeu → segue pro próximo passo.</p>
-              <p className="text-purple-700 italic">Não tem configuração — é checagem automática.</p>
+            <div className="space-y-2">
+              <div className="p-3 bg-purple-50 border border-purple-200 rounded text-xs text-purple-900 space-y-1">
+                <p className="font-semibold">Como funciona:</p>
+                <p>• Se o lead enviou QUALQUER mensagem após esse fluxo começar → <strong>cancela o fluxo</strong> e <strong>notifica a equipe</strong>.</p>
+                <p>• Se NÃO respondeu → segue pro próximo passo.</p>
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  Se respondeu, mover lead para o estágio: <span className="text-muted-foreground/70">(opcional)</span>
+                </label>
+                <select
+                  value={(config.moveStageIdOnReply as string) || ""}
+                  onChange={(e) => {
+                    const st = stages.find((s) => s.id === e.target.value);
+                    onUpdate({
+                      actionConfig: {
+                        ...config,
+                        moveStageIdOnReply: e.target.value || undefined,
+                        moveStageNameOnReply: st?.name,
+                      },
+                    });
+                  }}
+                  className="w-full px-2 py-1.5 border border-border rounded text-sm bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">— Não mover, só parar —</option>
+                  {stages.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Útil em cadências Forms: lead respondendo durante a sequência → move pra "Em contato" + para o fluxo.
+                </p>
+              </div>
             </div>
           )}
 

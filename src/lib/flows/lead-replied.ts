@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 
 // Quando um lead manda mensagem (resposta espontânea, não vinda do bot):
-//  1. Cancela todos os fluxos em execução pra esse lead (FlowExecution e
-//     seus FlowStepExecutions pendentes).
-//  2. Auto-move estágio: se algum dos serviços do lead está em "Em contato",
-//     vai pra "Em negociação" (próximo estágio do pipeline).
+//  1. Cancela todos os fluxos em execução pra esse lead.
+//  2. Auto-move estágio: se está em "Análise gerada", vai pra "Em contato"
+//     (lead engajou — sai da espera passiva e entra na conversa ativa).
+//     Outros estágios não são auto-movidos (Em contato → Em negociação é
+//     uma decisão humana, não disparada por mensagem qualquer).
 //  3. Cria notificação interna pra Ingrid com o último conteúdo.
 //
 // Idempotente: se o lead respondeu duas vezes em sequência, a 2ª chamada
@@ -42,22 +43,29 @@ export async function onLeadReplied(opts: {
     stopped++;
   }
 
-  // 2. Auto-move estágio: "Em contato" → próximo
+  // 2. Auto-move estágio: "Análise gerada" → "Em contato"
+  //   Antes auto-promovia "Em contato" → próximo (geralmente Em negociação),
+  //   mas a admin reportou que isso queimava o lead — qualquer "preciso
+  //   pensar" virava proposta. Agora a única auto-promoção é Análise gerada
+  //   → Em contato (lead engajou após receber análise = saiu da espera).
   let moved = 0;
   for (const ls of lead.services) {
     if (!ls.stage) continue;
-    const isEmContato = ls.stage.name.toLowerCase().includes("em contato");
-    if (!isEmContato) continue;
+    const stageName = ls.stage.name.toLowerCase();
+    const isAnaliseGerada =
+      stageName.includes("análise gerada") || stageName.includes("analise gerada");
+    if (!isAnaliseGerada) continue;
 
-    const next = await prisma.pipelineStage.findFirst({
-      where: { pipelineId: ls.stage.pipelineId, order: { gt: ls.stage.order } },
-      orderBy: { order: "asc" },
+    // Acha o estágio "Em contato" no mesmo pipeline
+    const emContato = await prisma.pipelineStage.findFirst({
+      where: {
+        pipelineId: ls.stage.pipelineId,
+        name: { contains: "em contato", mode: "insensitive" },
+      },
     });
-    if (!next) continue;
-    // Não move pra Ganho/Perdido automaticamente
-    if (/ganho|perdido/i.test(next.name)) continue;
+    if (!emContato || emContato.id === ls.stageId) continue;
 
-    await prisma.leadService.update({ where: { id: ls.id }, data: { stageId: next.id } });
+    await prisma.leadService.update({ where: { id: ls.id }, data: { stageId: emContato.id } });
 
     // Triggera fluxos do novo estágio + resolve waits pendentes
     const { triggerFlows, resolveWaitStageChanges } = await import("./engine");
@@ -65,9 +73,9 @@ export async function onLeadReplied(opts: {
       type: "STAGE_ENTER",
       leadId: lead.id,
       leadServiceId: ls.id,
-      stageId: next.id,
+      stageId: emContato.id,
     });
-    await resolveWaitStageChanges(ls.id, next.id);
+    await resolveWaitStageChanges(ls.id, emContato.id);
     moved++;
   }
 

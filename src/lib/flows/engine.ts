@@ -350,6 +350,26 @@ export async function processDueFlowSteps() {
         if (replied) {
           const { onLeadReplied } = await import("./lead-replied");
           await onLeadReplied({ leadId: lead.id, lastMessage: replied.content }).catch(() => {});
+
+          // Opcional: move o lead pra estágio específico ao detectar resposta.
+          // Configurado por { moveStageIdOnReply, moveStageNameOnReply } no
+          // actionConfig. Usado nos fluxos pra mover Forms cadência → "Em
+          // contato" quando o lead responde mid-cadência.
+          const moveStageId = (config.moveStageIdOnReply as string) || null;
+          if (moveStageId && leadServiceId) {
+            const target = await prisma.pipelineStage.findUnique({
+              where: { id: moveStageId },
+              select: { id: true },
+            });
+            if (target) {
+              await prisma.leadService.update({
+                where: { id: leadServiceId },
+                data: { stageId: target.id },
+              });
+              await resolveWaitStageChanges(leadServiceId, target.id);
+            }
+          }
+
           // Marca todos os passos pendentes desta execução como skipped
           await prisma.flowStepExecution.updateMany({
             where: { executionId: item.executionId, status: "pending" },
@@ -361,7 +381,7 @@ export async function processDueFlowSteps() {
           });
           await prisma.flowStepExecution.update({
             where: { id: item.id },
-            data: { status: "executed", executedAt: now, result: { branch: "replied" } },
+            data: { status: "executed", executedAt: now, result: { branch: "replied", movedToStageId: moveStageId } },
           });
           results.push({ id: item.id, ok: true, action: "check_response_stopped" });
         } else {
