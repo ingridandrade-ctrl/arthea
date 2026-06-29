@@ -71,8 +71,24 @@ Essa análise mostra exatamente como está a sua presença hoje e como podemos t
 A análise da ficha é gratuita — você gostaria que eu mandasse a análise do {{empresa}}? 😊`,
   },
   {
+    code: "GMN_P2",
+    name: "P2 — Confirmação de Análise",
+    stageOrder: 0,
+    followUpOrder: 2,
+    channel: "whatsapp",
+    isAutomatic: true,
+    delayHoursOverride: 0,
+    condition: { source: "PROSPECCAO" },
+    messageTemplate:
+`Que ótimo, {{nome}}! 😊
+
+Nossa equipe já vai começar a preparar a análise da sua ficha e em até 24 horas úteis a gente te manda tudo por aqui.
+
+Obrigada! Até logo!`,
+  },
+  {
     code: "GMN_T3",
-    name: "P2 — Análise Enviada Prospecção",
+    name: "P3 — Análise Enviada Prospecção",
     stageOrder: 1,
     followUpOrder: 1,
     channel: "internal",
@@ -89,7 +105,7 @@ Ela mostra exatamente como está sua presença hoje no Google e o que podemos fa
   },
   {
     code: "GMN_T4",
-    name: "P3 — Follow-up Permissão Prospecção",
+    name: "P4 — Follow-up Permissão Prospecção",
     stageOrder: 0,
     followUpOrder: 2,
     channel: "internal",
