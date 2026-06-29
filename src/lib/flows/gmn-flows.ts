@@ -21,26 +21,43 @@ export async function ensureGmnFlows() {
   const pipeline = await prisma.pipeline.findUnique({ where: { serviceId: gmn.id }, include: { stages: true } });
   if (!pipeline) return { skipped: true, reason: "pipeline_not_found" };
 
-  // Botões padrão no T2B/P1 (uma vez só, não sobrescreve customização).
-  // O botão "Sim" só MOVE estágio — o envio do P2 acontece dentro do fluxo
-  // da "Análise gerada", depois do guard de linkAnalise.
+  // Botões padrão no T2B/P1 e no T4/P4 — atualiza SEMPRE (sem proteção
+  // contra sobrescrita) pra alinhar com labels novos exigidos pela admin.
+  // Quando lead clica "Sim", manda P2 (confirmação) imediato pra ele saber
+  // que tá em andamento + move pra "Análise gerada". P2 não usa
+  // {{linkAnalise}}, então é seguro mandar antes da admin preencher.
+  const p2Tpl = await prisma.followUpTemplate.findUnique({ where: { code: "GMN_P2" } });
+  const buildYesNoButtons = (idPrefix: string) => [
+    {
+      id: `${idPrefix}_yes`,
+      label: "Sim, quero receber",
+      actions: [
+        ...(p2Tpl ? [{ type: "trigger_template", templateId: p2Tpl.id }] : []),
+        { type: "move_stage_by_name", stageNamePattern: "análise gerada" },
+      ],
+    },
+    {
+      id: `${idPrefix}_no`,
+      label: "Não tenho interesse",
+      actions: [{ type: "mark_lost", reason: "Sem interesse (recusou análise)" }],
+    },
+  ];
+
   const t2bTpl = await prisma.followUpTemplate.findUnique({ where: { code: "GMN_T2B" } });
-  if (t2bTpl && (!t2bTpl.buttons || (Array.isArray(t2bTpl.buttons) && (t2bTpl.buttons as any[]).length === 0))) {
-    const defaultButtons = [
-      {
-        id: "gmn_t2b_yes",
-        label: "Sim, quero receber",
-        actions: [{ type: "move_stage_by_name", stageNamePattern: "análise gerada" }],
-      },
-      {
-        id: "gmn_t2b_no",
-        label: "Não, obrigado",
-        actions: [{ type: "mark_lost", reason: "Sem interesse (recusou análise)" }],
-      },
-    ];
+  if (t2bTpl) {
     await prisma.followUpTemplate.update({
       where: { id: t2bTpl.id },
-      data: { buttons: defaultButtons as any },
+      data: { buttons: buildYesNoButtons("gmn_t2b") as any },
+    });
+  }
+
+  // P4 (Follow-up Permissão Prospecção, antigo T4): mesmos botões.
+  // É o último toque pedindo permissão pra mandar a análise.
+  const t4Tpl = await prisma.followUpTemplate.findUnique({ where: { code: "GMN_T4" } });
+  if (t4Tpl) {
+    await prisma.followUpTemplate.update({
+      where: { id: t4Tpl.id },
+      data: { buttons: buildYesNoButtons("gmn_t4") as any },
     });
   }
 
