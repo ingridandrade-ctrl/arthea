@@ -35,6 +35,7 @@ type ActionType =
   | "button_clicked"
   | "field_check"
   | "wait_business_days"
+  | "wait_stage_change"
   | "set_loss_reason";
 
 interface Step {
@@ -60,6 +61,7 @@ const ACTION_META: Record<string, { icon: any; color: string; label: string; bg:
   button_clicked: { icon: MousePointerClick, color: "#0891b2", bg: "bg-cyan-50", label: "Condição: botão clicado?" },
   field_check: { icon: HelpCircle, color: "#0d9488", bg: "bg-teal-50", label: "Condição: campo preenchido?" },
   wait_business_days: { icon: CalendarDays, color: "#65a30d", bg: "bg-lime-50", label: "Espera: dias úteis" },
+  wait_stage_change: { icon: Clock, color: "#7c3aed", bg: "bg-violet-50", label: "Aguardar mudança de estágio" },
   set_loss_reason: { icon: XCircle, color: "#dc2626", bg: "bg-red-50", label: "Registrar motivo da perda" },
 };
 
@@ -121,6 +123,9 @@ function validateFlow(steps: Step[]): StepError[] {
     }
     if (step.actionType === "set_loss_reason" && !cfg.reason) {
       errors.push({ index: idx, message: `Passo #${idx + 1}: informe o motivo da perda.` });
+    }
+    if (step.actionType === "wait_stage_change" && !cfg.stageId) {
+      errors.push({ index: idx, message: `Passo #${idx + 1}: selecione o estágio que o lead precisa entrar pra continuar.` });
     }
   });
   return errors;
@@ -736,6 +741,7 @@ function StepNode({
               <option value="button_clicked">🖱️ Condição: botão clicado?</option>
               <option value="field_check">❔ Condição: campo preenchido?</option>
               <option value="wait_business_days">📅 Espera: dias úteis</option>
+              <option value="wait_stage_change">⏳ Aguardar mudança de estágio</option>
               <option value="move_stage">➡️ Mover pra outro estágio</option>
               <option value="set_loss_reason">❌ Registrar motivo da perda</option>
               <option value="create_task">📋 Criar tarefa separada</option>
@@ -813,11 +819,39 @@ function StepNode({
           )}
 
           {step.actionType === "check_response" && (
-            <div className="p-3 bg-purple-50 border border-purple-200 rounded text-xs text-purple-900 space-y-1">
-              <p className="font-semibold">Como funciona:</p>
-              <p>• Se o lead enviou QUALQUER mensagem após esse fluxo começar → <strong>cancela o fluxo</strong> e <strong>notifica a equipe</strong>.</p>
-              <p>• Se NÃO respondeu → segue pro próximo passo.</p>
-              <p className="text-purple-700 italic">Não tem configuração — é checagem automática.</p>
+            <div className="space-y-2">
+              <div className="p-3 bg-purple-50 border border-purple-200 rounded text-xs text-purple-900 space-y-1">
+                <p className="font-semibold">Como funciona:</p>
+                <p>• Se o lead enviou QUALQUER mensagem após esse fluxo começar → <strong>cancela o fluxo</strong> e <strong>notifica a equipe</strong>.</p>
+                <p>• Se NÃO respondeu → segue pro próximo passo.</p>
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                  Se respondeu, mover lead para o estágio: <span className="text-muted-foreground/70">(opcional)</span>
+                </label>
+                <select
+                  value={(config.moveStageIdOnReply as string) || ""}
+                  onChange={(e) => {
+                    const st = stages.find((s) => s.id === e.target.value);
+                    onUpdate({
+                      actionConfig: {
+                        ...config,
+                        moveStageIdOnReply: e.target.value || undefined,
+                        moveStageNameOnReply: st?.name,
+                      },
+                    });
+                  }}
+                  className="w-full px-2 py-1.5 border border-border rounded text-sm bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">— Não mover, só parar —</option>
+                  {stages.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Útil em cadências Forms: lead respondendo durante a sequência → move pra "Em contato" + para o fluxo.
+                </p>
+              </div>
             </div>
           )}
 
@@ -898,6 +932,31 @@ function StepNode({
               />
               <p className="text-[10px] text-muted-foreground">
                 Substitui o delay em horas — quando usa esse nó, o campo "Esperar" acima é ignorado.
+              </p>
+            </div>
+          )}
+
+          {step.actionType === "wait_stage_change" && (
+            <div className="space-y-2">
+              <div className="p-2 bg-violet-50 border border-violet-200 rounded text-[11px] text-violet-900">
+                Pausa o fluxo até o lead ser movido pro estágio escolhido. Resolve <strong>na hora</strong> quando você arrasta o card no pipeline. Como backup, faz polling a cada 15min — se algo não disparar instantaneamente, no máximo 15min depois retoma.
+              </div>
+              <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Aguardar até o lead entrar em:</label>
+              <select
+                value={(config.stageId as string) || ""}
+                onChange={(e) => {
+                  const st = stages.find((s) => s.id === e.target.value);
+                  onUpdate({ actionConfig: { ...config, stageId: e.target.value, stageName: st?.name } });
+                }}
+                className="w-full px-2 py-1.5 border border-border rounded text-sm bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">— Selecione o estágio alvo —</option>
+                {stages.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              <p className="text-[10px] text-muted-foreground">
+                O campo "Esperar" acima é ignorado — esse nó controla o tempo todo.
               </p>
             </div>
           )}

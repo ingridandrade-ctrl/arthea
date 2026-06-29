@@ -41,13 +41,14 @@ export async function runButtonActions(
           });
           if (target && target.id !== ls.stageId) {
             await prisma.leadService.update({ where: { id: ls.id }, data: { stageId: target.id } });
-            const { triggerFlows } = await import("./engine");
+            const { triggerFlows, resolveWaitStageChanges } = await import("./engine");
             await triggerFlows({
               type: "STAGE_ENTER",
               leadId: lead.id,
               leadServiceId: ls.id,
               stageId: target.id,
             });
+            await resolveWaitStageChanges(ls.id, target.id);
             executed.push(`move:${target.name}`);
           }
         }

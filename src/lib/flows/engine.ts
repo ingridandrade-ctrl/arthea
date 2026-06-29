@@ -313,6 +313,7 @@ export async function processDueFlowSteps() {
           });
           if (target) {
             await prisma.leadService.update({ where: { id: leadServiceId }, data: { stageId: target.id } });
+            await resolveWaitStageChanges(leadServiceId, target.id);
             await prisma.flowStepExecution.update({
               where: { id: item.id },
               data: { status: "executed", executedAt: now },
@@ -349,6 +350,26 @@ export async function processDueFlowSteps() {
         if (replied) {
           const { onLeadReplied } = await import("./lead-replied");
           await onLeadReplied({ leadId: lead.id, lastMessage: replied.content }).catch(() => {});
+
+          // Opcional: move o lead pra estágio específico ao detectar resposta.
+          // Configurado por { moveStageIdOnReply, moveStageNameOnReply } no
+          // actionConfig. Usado nos fluxos pra mover Forms cadência → "Em
+          // contato" quando o lead responde mid-cadência.
+          const moveStageId = (config.moveStageIdOnReply as string) || null;
+          if (moveStageId && leadServiceId) {
+            const target = await prisma.pipelineStage.findUnique({
+              where: { id: moveStageId },
+              select: { id: true },
+            });
+            if (target) {
+              await prisma.leadService.update({
+                where: { id: leadServiceId },
+                data: { stageId: target.id },
+              });
+              await resolveWaitStageChanges(leadServiceId, target.id);
+            }
+          }
+
           // Marca todos os passos pendentes desta execução como skipped
           await prisma.flowStepExecution.updateMany({
             where: { executionId: item.executionId, status: "pending" },
@@ -360,7 +381,7 @@ export async function processDueFlowSteps() {
           });
           await prisma.flowStepExecution.update({
             where: { id: item.id },
-            data: { status: "executed", executedAt: now, result: { branch: "replied" } },
+            data: { status: "executed", executedAt: now, result: { branch: "replied", movedToStageId: moveStageId } },
           });
           results.push({ id: item.id, ok: true, action: "check_response_stopped" });
         } else {
@@ -394,6 +415,61 @@ export async function processDueFlowSteps() {
           data: { status: "executed", executedAt: now, result: { branch: "elapsed" } },
         });
         results.push({ id: item.id, ok: true, action });
+      } else if (action === "wait_stage_change") {
+        // Pausa o fluxo até o leadService entrar no estágio configurado.
+        // Tem 2 mecanismos:
+        //   a) Polling: se cron rodar e o stage não bate, reagenda esse step
+        //      pra 15min depois (e empurra os subsequentes pra preservar cadência).
+        //   b) Responsivo: quando admin move o lead pro stage alvo, o helper
+        //      resolveWaitStageChanges (chamado em quem muda stage) força
+        //      todos os steps "wait_stage_change" pendentes a executarem
+        //      agora — sem esperar o polling.
+        const targetStageId = String(config.stageId || "");
+        if (!targetStageId || !leadService) {
+          await prisma.flowStepExecution.update({
+            where: { id: item.id },
+            data: { status: "skipped", executedAt: now, result: { reason: "missing_target_stage" } },
+          });
+          results.push({ id: item.id, ok: false, action: "wait_stage_no_target" });
+        } else {
+          // Lê estágio atual do leadService (não usa o snapshot — pode ter mudado
+          // entre o agendamento e agora).
+          const lsFresh = await prisma.leadService.findUnique({
+            where: { id: leadService.id },
+            select: { stageId: true },
+          });
+          if (lsFresh?.stageId === targetStageId) {
+            await prisma.flowStepExecution.update({
+              where: { id: item.id },
+              data: { status: "executed", executedAt: now, result: { branch: "stage_matched" } },
+            });
+            results.push({ id: item.id, ok: true, action: "wait_stage_matched" });
+          } else {
+            // Polling: tenta de novo em 15 min, empurra subsequentes pra
+            // não furar cadência.
+            const POLL_INTERVAL_MS = 15 * 60 * 1000;
+            const nextRetry = new Date(Date.now() + POLL_INTERVAL_MS);
+            await prisma.flowStepExecution.update({
+              where: { id: item.id },
+              data: { scheduledAt: nextRetry, result: { reason: "waiting_stage", targetStageId } },
+            });
+            const downstream = await prisma.flowStepExecution.findMany({
+              where: {
+                executionId: item.executionId,
+                status: "pending",
+                order: { gt: item.order },
+              },
+              select: { id: true, scheduledAt: true },
+            });
+            for (const d of downstream) {
+              await prisma.flowStepExecution.update({
+                where: { id: d.id },
+                data: { scheduledAt: new Date(d.scheduledAt.getTime() + POLL_INTERVAL_MS) },
+              });
+            }
+            results.push({ id: item.id, ok: false, action: "wait_stage_polling" });
+          }
+        }
       } else if (action === "field_check") {
         // Verifica se um campo do leadService.customData está preenchido.
         // Se sim: continua. Se não: notifica admin + reagenda esse step
@@ -490,6 +566,7 @@ export async function processDueFlowSteps() {
                 where: { id: ls.id },
                 data: { stageId: lostStage.id },
               });
+              await resolveWaitStageChanges(ls.id, lostStage.id);
             }
           }
         }
@@ -603,6 +680,70 @@ export async function processDueFlowSteps() {
   }
 
   return results;
+}
+
+/**
+ * Quando o leadService entra num estágio, resolve todos os steps de
+ * wait_stage_change pendentes que tinham esse stage como alvo — força
+ * eles a executar AGORA, sem esperar o polling de 15min.
+ *
+ * Também recolhe a cadência: se ainda existirem steps subsequentes
+ * empurrados pela espera, traz eles de volta pro horário relativo
+ * a "agora" (pra não esperar 24h adicional quando a admin moveu o
+ * lead manualmente bem antes do prazo).
+ *
+ * Deve ser chamado em todo lugar que atualiza LeadService.stageId.
+ */
+export async function resolveWaitStageChanges(
+  leadServiceId: string,
+  newStageId: string,
+) {
+  // Acha steps wait_stage_change pendentes pro leadService que casam o stage
+  const pendingWaits = await prisma.flowStepExecution.findMany({
+    where: {
+      status: "pending",
+      execution: { leadServiceId },
+      step: { actionType: "wait_stage_change" },
+    },
+    include: { step: true, execution: { select: { id: true } } },
+  });
+
+  const now = new Date();
+  for (const wait of pendingWaits) {
+    const cfg = (wait.step.actionConfig || {}) as any;
+    if (cfg.stageId !== newStageId) continue;
+
+    // Marca esse wait como executado
+    await prisma.flowStepExecution.update({
+      where: { id: wait.id },
+      data: { status: "executed", executedAt: now, result: { branch: "stage_matched_responsive" } },
+    });
+
+    // Recolhe a cadência: traz os steps subsequentes pra perto do "agora"
+    // mantendo o offset relativo entre eles. Sem isso, se a espera foi
+    // longa (vários polls), os steps seguintes ficam horas/dias no futuro
+    // por causa dos empurrões acumulados.
+    const downstream = await prisma.flowStepExecution.findMany({
+      where: {
+        executionId: wait.executionId,
+        status: "pending",
+        order: { gt: wait.order },
+      },
+      orderBy: { order: "asc" },
+    });
+    if (downstream.length === 0) continue;
+    // Primeiro step subsequente passa pra "now", e os demais mantém o
+    // offset relativo ao primeiro. Sem isso, se a espera foi longa (vários
+    // polls de 15min), os steps seguintes ficariam horas/dias no futuro.
+    const firstScheduled = downstream[0].scheduledAt.getTime();
+    for (const d of downstream) {
+      const relativeMs = d.scheduledAt.getTime() - firstScheduled;
+      await prisma.flowStepExecution.update({
+        where: { id: d.id },
+        data: { scheduledAt: new Date(now.getTime() + relativeMs) },
+      });
+    }
+  }
 }
 
 function matchesCondition(condition: Record<string, any> | null, ctx: Record<string, any>): boolean {

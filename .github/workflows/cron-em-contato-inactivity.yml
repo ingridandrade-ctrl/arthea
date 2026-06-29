@@ -1,0 +1,29 @@
+# Verifica diariamente leads parados em "Em contato" por mais de 2 dias
+# sem evolução, e cria tasks + notificações pra a admin avaliar.
+#
+# Roda 1x por dia às 9h UTC (~6h Brasília) — horário em que a Ingrid começa
+# a ver tarefas do dia. Não precisa rodar com mais frequência: a regra
+# olha janela de 48h, então 1x/dia é suficiente.
+
+name: cron · em-contato inactivity
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping /api/cron/em-contato-inactivity
+        run: |
+          set -e
+          if [ -z "${{ vars.PROD_URL }}" ]; then
+            echo "::error::Variable PROD_URL não configurada (Settings → Variables → Actions)"
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error \
+            --max-time 90 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ vars.PROD_URL }}/api/cron/em-contato-inactivity"

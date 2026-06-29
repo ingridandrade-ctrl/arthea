@@ -1,11 +1,18 @@
 import { prisma } from "@/lib/prisma";
 
-// Constrói (ou reconstrói) os 6 fluxos canônicos do GMN.
-// Idempotente: se um fluxo com mesmo nome já existe, deleta passos antigos
-// e recria — desde que não tenha execuções rodando.
+// Constrói os fluxos canônicos do GMN (Junho 2026 — versão 2).
 //
-// Templates esperados (busca por code): GMN_T1, GMN_T2A, GMN_T2B, GMN_T3,
-// GMN_T4, GMN_T5, GMN_T6, GMN_T7, GMN_T8, GMN_T9.
+// MUDANÇA IMPORTANTE: agora só temos 2 fluxos canônicos (em vez de 6-7):
+//   1. "GMN · Forms — Fluxo completo" — TUDO do journey Forms numa cadência só
+//   2. "GMN · Em negociação — Follow-ups" — cadência da proposta (qualquer origem)
+//
+// Os fluxos antigos (Prospecção, Em contato isolado, etc) são DELETADOS no
+// próximo setup-gmn — ensureGmnFlows() faz wipe completo dos fluxos GMN
+// existentes antes de recriar.
+//
+// Templates esperados (busca por code, codes mantidos antigos por compat):
+//   F1 → GMN_T1 · F2 → GMN_T2A · P1 → GMN_T2B · P2 → GMN_T3 · P3 → GMN_T4
+//   C1 → GMN_T5 · C2 → GMN_T6 · C3 → GMN_T7 · C4 → GMN_T8 · C5 → GMN_T9
 
 export async function ensureGmnFlows() {
   const gmn = await prisma.service.findUnique({ where: { slug: "google-meu-negocio" }, select: { id: true } });
@@ -14,18 +21,16 @@ export async function ensureGmnFlows() {
   const pipeline = await prisma.pipeline.findUnique({ where: { serviceId: gmn.id }, include: { stages: true } });
   if (!pipeline) return { skipped: true, reason: "pipeline_not_found" };
 
-  // Botões padrão no T2B (uma vez só, não sobrescreve customização)
+  // Botões padrão no T2B/P1 (uma vez só, não sobrescreve customização).
+  // O botão "Sim" só MOVE estágio — o envio do P2 acontece dentro do fluxo
+  // da "Análise gerada", depois do guard de linkAnalise.
   const t2bTpl = await prisma.followUpTemplate.findUnique({ where: { code: "GMN_T2B" } });
-  const t3Tpl = await prisma.followUpTemplate.findUnique({ where: { code: "GMN_T3" } });
   if (t2bTpl && (!t2bTpl.buttons || (Array.isArray(t2bTpl.buttons) && (t2bTpl.buttons as any[]).length === 0))) {
     const defaultButtons = [
       {
         id: "gmn_t2b_yes",
         label: "Sim, quero receber",
-        actions: [
-          ...(t3Tpl ? [{ type: "trigger_template", templateId: t3Tpl.id }] : []),
-          { type: "move_stage_by_name", stageNamePattern: "análise gerada" },
-        ],
+        actions: [{ type: "move_stage_by_name", stageNamePattern: "análise gerada" }],
       },
       {
         id: "gmn_t2b_no",
@@ -46,8 +51,8 @@ export async function ensureGmnFlows() {
   const analiseGerada = stageByName("análise gerada") || stageByName("analise gerada");
   const emContato = stageByName("em contato");
   const emNegociacao = stageByName("em negociação") || stageByName("em negociacao");
-  const ganho = stageByName("ganho");
-  const perdidoId = pipeline.stages.find((s) => /perdido/i.test(s.name))?.id;
+  const perdidoStage = pipeline.stages.find((s) => /perdido/i.test(s.name));
+  const perdidoId = perdidoStage?.id;
 
   if (!novoLead || !analiseGerada || !emContato || !emNegociacao) {
     return { skipped: true, reason: "stages_missing" };
@@ -56,201 +61,150 @@ export async function ensureGmnFlows() {
   const templateByCode = async (code: string) =>
     prisma.followUpTemplate.findUnique({ where: { code }, select: { id: true, name: true } });
 
-  const [T1, T2A, T2B, T3, T4, T5, T6, T7, T8, T9] = await Promise.all([
-    templateByCode("GMN_T1"), templateByCode("GMN_T2A"), templateByCode("GMN_T2B"),
-    templateByCode("GMN_T3"), templateByCode("GMN_T4"), templateByCode("GMN_T5"),
-    templateByCode("GMN_T6"), templateByCode("GMN_T7"), templateByCode("GMN_T8"),
-    templateByCode("GMN_T9"),
+  const [F1, F2, _P1, P2, _P3, C1, C2, C3, C4, C5] = await Promise.all([
+    templateByCode("GMN_T1"),   // F1 — Boas-vindas Formulário
+    templateByCode("GMN_T2A"),  // F2 — Análise Pronta Formulário
+    templateByCode("GMN_T2B"),  // P1 — Primeiro Contato Prospecção (sai pelo Prospecção que admin cria manual)
+    templateByCode("GMN_T3"),   // P2 — Análise Enviada Prospecção
+    templateByCode("GMN_T4"),   // P3 — Follow-up Permissão Prospecção
+    templateByCode("GMN_T5"),   // C1 — Follow-up Análise 1
+    templateByCode("GMN_T6"),   // C2 — Follow-up Análise 2
+    templateByCode("GMN_T7"),   // C3 — Último Toque
+    templateByCode("GMN_T8"),   // C4 — Proposta
+    templateByCode("GMN_T9"),   // C5 — Follow-up Proposta
   ]);
+
+  // Action helpers — DRY pros configs repetitivos
+  const sendWA = (tpl: { id: string; name: string }, delayHours = 0) => ({
+    delayHours,
+    actionType: "send_whatsapp",
+    actionConfig: { templateId: tpl.id, templateName: tpl.name },
+  });
+  const waitBiz = (days: number) => ({
+    delayHours: 0,
+    actionType: "wait_business_days",
+    actionConfig: { days },
+  });
+  const checkResponseToEmContato = () => ({
+    delayHours: 0,
+    actionType: "check_response",
+    actionConfig: {
+      moveStageIdOnReply: emContato.id,
+      moveStageNameOnReply: emContato.name,
+    },
+  });
+  const checkResponse = () => ({
+    delayHours: 0,
+    actionType: "check_response",
+    actionConfig: {},
+  });
+  const setLossReason = (reason: string) => ({
+    delayHours: 0,
+    actionType: "set_loss_reason",
+    actionConfig: { reason },
+  });
 
   const flows: any[] = [];
 
-  // 1) PROSPECÇÃO — Novo lead · origem Prospecção
-  // Cadência: T2B (0h) → 48h → T4 → 72h → T7 (breakup) → 72h → Perdido.
-  // 48h pro 1º follow-up garante recall enquanto a marca ainda está fresca;
-  // 72h entre toques 2/3 evita parecer insistente. Total ~8 dias.
-  if (T2B && T4) {
+  // ──────────────────────────────────────────────────────────────────────
+  // 1) GMN · Forms — Fluxo completo
+  // ──────────────────────────────────────────────────────────────────────
+  // Inicia em "Novo lead" + source=FORMS. Cobre o jornada inteiro:
+  //   F1 (boas-vindas) → admin move pra "Análise gerada" → guard linkAnalise
+  //   → F2 → cadência C1/C2/C3 com checks de resposta em dias úteis →
+  //   marca Perdido se nunca respondeu.
+  if (F1 && F2 && C1 && C2 && C3) {
     flows.push({
-      name: "GMN · Prospecção — Novo lead",
-      description: "Disparo do primeiro contato e follow-ups pra prospecção fria.",
-      triggerStageId: novoLead.id,
-      condition: { source: "PROSPECCAO" },
-      steps: [
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T2B.id, templateName: T2B.name } },
-        { delayHours: 48, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T4.id, templateName: T4.name } },
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        ...(T7 ? [{ delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T7.id, templateName: T7.name } }] : []),
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "move_stage", actionConfig: { stageId: perdidoId, stageName: "Perdido" } },
-      ],
-    });
-  }
-
-  // 2) FORMS — Novo lead · origem Forms
-  // T1 é só a boas-vindas; a análise é gerada por processo separado e cai em
-  // "Análise gerada" (fluxo 3). Adiciona uma rede de proteção: se em 24h o
-  // lead ainda estiver em "Novo lead" sem mover, gera tarefa interna pra time.
-  if (T1) {
-    flows.push({
-      name: "GMN · Forms — Boas-vindas",
-      description: "Disparo inicial quando lead chega pelo formulário do site.",
+      name: "GMN · Forms — Fluxo completo",
+      description: "Jornada inteira do Forms: boas-vindas → análise → cadência → perdido.",
       triggerStageId: novoLead.id,
       condition: { source: "FORMS" },
       steps: [
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T1.id, templateName: T1.name } },
-        { delayHours: 24, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "internal_reminder", actionConfig: {
-          title: "Lead Forms parado em Novo lead há 24h",
-          priority: "high",
-          message: "Lead {{nome}} ({{empresa}}) chegou via Forms e segue em 'Novo lead' sem resposta. Verificar se análise foi gerada e mover o estágio.",
-        } },
+        sendWA(F1, 0),
+        // Pausa até admin gerar a análise e mover o lead manualmente
+        { delayHours: 0, actionType: "wait_stage_change", actionConfig: { stageId: analiseGerada.id, stageName: analiseGerada.name } },
+        // Não manda F2 com {{linkAnalise}} vazio
+        { delayHours: 0, actionType: "field_check", actionConfig: { field: "linkAnalise" } },
+        sendWA(F2, 0),
+        waitBiz(1),
+        checkResponseToEmContato(),
+        sendWA(C1, 0),
+        waitBiz(2),
+        checkResponseToEmContato(),
+        sendWA(C2, 0),
+        waitBiz(2),
+        checkResponseToEmContato(),
+        sendWA(C3, 0),
+        waitBiz(2),
+        checkResponseToEmContato(),
+        setLossReason("Sem resposta após cadência"),
       ],
     });
   }
 
-  // 3) FORMS — Análise gerada (cadência da análise pra origem Forms)
-  // Cadência: T2A (0h) → 48h → T5 → 72h → T6 → 72h → T7 (breakup) → 72h → Perdido.
-  // 48h pro primeiro follow-up porque a análise gera pico de interesse curto;
-  // depois espaça em 72h pra evitar fadiga. Total ~10 dias.
-  if (T2A && T5 && T6 && T7) {
+  // ──────────────────────────────────────────────────────────────────────
+  // 2) GMN · Em negociação — Follow-ups
+  // ──────────────────────────────────────────────────────────────────────
+  // Trigger único cobre todas as origens (Forms / Prospecção / Indicação).
+  // Cadência espaçada (3 dias úteis entre toques) porque negociação exige
+  // tempo de decisão.
+  if (C4 && C5) {
     flows.push({
-      name: "GMN · Forms — Análise enviada",
-      description: "Envia análise e cadência de follow-ups.",
-      triggerStageId: analiseGerada.id,
-      condition: { source: "FORMS" },
-      steps: [
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T2A.id, templateName: T2A.name } },
-        { delayHours: 48, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T5.id, templateName: T5.name } },
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T6.id, templateName: T6.name } },
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T7.id, templateName: T7.name } },
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "move_stage", actionConfig: { stageId: perdidoId, stageName: "Perdido" } },
-      ],
-    });
-  }
-
-  // 3.5) PROSPECÇÃO — Análise gerada (gêmeo do fluxo 3, sem T2A)
-  // Cobre o caso do lead que clicou "Sim, quero receber" no T2B: o botão já
-  // moveu pra "Análise gerada" e disparou T3 inline (handler do botão), então
-  // este fluxo NÃO repete T2A — começa direto na cadência T5/T6/T7/Perdido.
-  // Sem este fluxo, lead Prospecção que aceita análise ficava parado em
-  // "Análise gerada" sem cadência (audit finding B5).
-  if (T5 && T6 && T7) {
-    flows.push({
-      name: "GMN · Prospecção — Análise gerada",
-      description: "Cadência pós-análise pra leads Prospecção (T3 já foi enviado pelo botão).",
-      triggerStageId: analiseGerada.id,
-      condition: { source: "PROSPECCAO" },
-      steps: [
-        { delayHours: 48, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T5.id, templateName: T5.name } },
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T6.id, templateName: T6.name } },
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T7.id, templateName: T7.name } },
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "move_stage", actionConfig: { stageId: perdidoId, stageName: "Perdido" } },
-      ],
-    });
-  }
-
-  // 4) EM CONTATO (ambos) — cadência de follow-ups da análise
-  // Lead chega aqui já tendo recebido um toque inicial (T2A/T2B). Cadência:
-  // 48h → T5 → 72h → T6 → 72h → T7 (breakup) → 72h → Perdido. Total ~11 dias.
-  if (T5 && T6 && T7) {
-    flows.push({
-      name: "GMN · Em contato — Follow-ups",
-      description: "Cadência de follow-ups quando lead está em contato (qualquer origem).",
-      triggerStageId: emContato.id,
-      condition: null,
-      steps: [
-        { delayHours: 48, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T5.id, templateName: T5.name } },
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T6.id, templateName: T6.name } },
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T7.id, templateName: T7.name } },
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "move_stage", actionConfig: { stageId: perdidoId, stageName: "Perdido" } },
-      ],
-    });
-  }
-
-  // 5) EM NEGOCIAÇÃO (ambos)
-  // Lead em negociação = alta intenção; merece atenção humana imediata + cadência
-  // mais espaçada (decisão exige tempo). Cobre o edge case de ir direto de "Novo
-  // lead" pra "Em negociação" (sem passar por "Em contato"), pois condition=null.
-  // Cadência: reminder interno (0h) → T8 (0h) → 48h → T9 → 72h → tarefa final → Perdido.
-  if (T8 && T9) {
-    flows.push({
-      name: "GMN · Em negociação — Cadência",
-      description: "Apresenta proposta e faz follow-ups da negociação.",
+      name: "GMN · Em negociação — Follow-ups",
+      description: "Cadência da proposta — vale pra qualquer origem.",
       triggerStageId: emNegociacao.id,
       condition: null,
       steps: [
-        { delayHours: 0, actionType: "internal_reminder", actionConfig: {
-          title: "Lead entrou em negociação — atenção humana",
-          priority: "high",
-          message: "Lead {{nome}} ({{empresa}}) entrou em 'Em negociação'. Acompanhe pessoalmente: T8 (proposta) será enviado em sequência.",
-        } },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T8.id, templateName: T8.name } },
-        { delayHours: 48, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "send_whatsapp", actionConfig: { templateId: T9.id, templateName: T9.name } },
-        { delayHours: 72, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "internal_reminder", actionConfig: {
-          title: "Negociação sem resposta — última tentativa humana",
-          priority: "high",
-          message: "Lead {{nome}} ({{empresa}}) não respondeu T8 nem T9. Faça uma última tentativa humana (ligação) antes de marcar como Perdido.",
-        } },
-        { delayHours: 48, actionType: "check_response", actionConfig: {} },
-        { delayHours: 0, actionType: "move_stage", actionConfig: { stageId: perdidoId, stageName: "Perdido" } },
+        waitBiz(3),
+        checkResponse(),
+        sendWA(C4, 0),
+        waitBiz(3),
+        checkResponse(),
+        sendWA(C5, 0),
+        waitBiz(3),
+        checkResponse(),
+        setLossReason("Sem resposta na negociação"),
       ],
     });
   }
 
-  // 6) GANHO — cria tarefa de onboarding/contrato quando o lead é fechado.
-  // Fluxo novo: faltava no conjunto original. Não dispara WhatsApp (não há template
-  // de boas-vindas pós-fechamento entre T1-T9), mas garante que o time não esquece
-  // de iniciar o onboarding. Usa `internal_reminder` (não `create_task`) porque
-  // o engine só renderiza placeholders {{nome}}/{{empresa}} em internal_reminder.
-  if (ganho) {
-    flows.push({
-      name: "GMN · Ganho — Onboarding",
-      description: "Cria tarefas de contrato e onboarding quando o lead é fechado.",
-      triggerStageId: ganho.id,
-      condition: null,
-      steps: [
-        { delayHours: 0, actionType: "internal_reminder", actionConfig: {
-          title: "Enviar contrato — fechamento GMN",
-          priority: "high",
-          message: "Lead {{nome}} ({{empresa}}) fechou GMN. Enviar contrato/proposta formal e coletar assinatura. Telefone: {{telefone}}.",
-        } },
-        { delayHours: 0, actionType: "internal_reminder", actionConfig: {
-          title: "Iniciar onboarding GMN",
-          priority: "high",
-          message: "Agendar kickoff com {{nome}} ({{empresa}}), coletar acessos (Google Business, perfis) e iniciar setup da conta.",
-        } },
-        { delayHours: 72, actionType: "internal_reminder", actionConfig: {
-          title: "Follow-up onboarding 72h",
-          priority: "medium",
-          message: "72h desde o fechamento de {{nome}} ({{empresa}}). Verificar status do contrato e do onboarding.",
-        } },
-      ],
+  // ──────────────────────────────────────────────────────────────────────
+  // WIPE + RECREATE: deleta TODOS os fluxos GMN existentes (incluindo os
+  // antigos canônicos como "Prospecção — Novo lead", "Em contato —
+  // Follow-ups", etc) e recria os 2 canônicos novos. Para FlowExecutions
+  // em running antes pra não deixar steps órfãos rodando.
+  // ──────────────────────────────────────────────────────────────────────
+  const existingFlows = await prisma.automationFlow.findMany({
+    where: { serviceId: gmn.id },
+    select: { id: true, name: true },
+  });
+  const targetNames = new Set(flows.map((f) => f.name));
+
+  for (const existing of existingFlows) {
+    // Para execuções rodando ANTES de deletar pra não deixar steps órfãos
+    await prisma.flowExecution.updateMany({
+      where: { flowId: existing.id, status: "running" },
+      data: { status: "stopped", completedAt: new Date() },
     });
+    // Marca steps pendentes como skipped
+    await prisma.flowStepExecution.updateMany({
+      where: { execution: { flowId: existing.id }, status: "pending" },
+      data: { status: "skipped", executedAt: new Date(), result: { reason: "flow_wipe_setup" } },
+    });
+    // Se o flow não tá na lista nova, deleta
+    if (!targetNames.has(existing.name)) {
+      await prisma.flowStep.deleteMany({ where: { flowId: existing.id } });
+      await prisma.automationFlow.delete({ where: { id: existing.id } });
+    }
   }
 
   let created = 0;
   let recreated = 0;
+  let deleted = existingFlows.filter((e) => !targetNames.has(e.name)).length;
 
   for (const f of flows) {
     const existing = await prisma.automationFlow.findFirst({ where: { name: f.name, serviceId: gmn.id } });
     if (existing) {
-      const running = await prisma.flowExecution.count({ where: { flowId: existing.id, status: "running" } });
-      if (running > 0) continue; // Não mexe em fluxos com execuções rodando
       await prisma.flowStep.deleteMany({ where: { flowId: existing.id } });
       await prisma.automationFlow.update({
         where: { id: existing.id },
@@ -258,6 +212,7 @@ export async function ensureGmnFlows() {
           description: f.description,
           triggerStageId: f.triggerStageId,
           triggerCondition: f.condition || undefined,
+          isActive: true,
           steps: { create: f.steps.map((s: any, i: number) => ({ ...s, order: i + 1, isActive: true })) },
         },
       });
@@ -279,5 +234,9 @@ export async function ensureGmnFlows() {
     }
   }
 
-  return { created, recreated, total: flows.length };
+  // Sentinel pra evitar warning de var não usada (perdidoId ainda relevante
+  // pra futuras evoluções dos fluxos).
+  void perdidoId;
+
+  return { created, recreated, deleted, total: flows.length };
 }
