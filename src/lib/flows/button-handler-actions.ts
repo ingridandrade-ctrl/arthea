@@ -111,6 +111,28 @@ export async function runButtonActions(
       } else if (action.type === "notify_team") {
         await notifyTeam(action.title || "Ação do fluxo", action.body || "", { leadId: lead.id });
         executed.push("notified");
+      } else if (action.type === "create_task") {
+        // Cria task pendente pra equipe — renderiza {{nome}}/{{empresa}}/etc
+        // no título/descrição.
+        const variables: Record<string, string> = {
+          nome: lead.name,
+          empresa: lead.company || "",
+          telefone: lead.phone,
+          email: lead.email || "",
+        };
+        const interpolate = (s: string) =>
+          s.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => variables[k] || "");
+        await prisma.task.create({
+          data: {
+            title: interpolate(String(action.title || "Tarefa do botão")),
+            description: action.description ? interpolate(String(action.description)) : null,
+            priority: (action.priority as string) || "medium",
+            leadId: lead.id,
+            leadServiceId: lead.services[0]?.id,
+            dueDate: new Date(),
+          },
+        });
+        executed.push("task_created");
       }
     } catch (err) {
       console.error("runButtonActions: erro executando ação:", action, err);

@@ -21,11 +21,12 @@ export async function ensureGmnFlows() {
   const pipeline = await prisma.pipeline.findUnique({ where: { serviceId: gmn.id }, include: { stages: true } });
   if (!pipeline) return { skipped: true, reason: "pipeline_not_found" };
 
-  // Botões padrão no T2B/P1 e no T4/P4 — atualiza SEMPRE (sem proteção
-  // contra sobrescrita) pra alinhar com labels novos exigidos pela admin.
-  // Quando lead clica "Sim", manda P2 (confirmação) imediato pra ele saber
-  // que tá em andamento + move pra "Análise gerada". P2 não usa
-  // {{linkAnalise}}, então é seguro mandar antes da admin preencher.
+  // Botões padrão no P1 (T2B) e P4 (T4). Quando lead clica "Sim":
+  //   - Manda P2 (confirmação imediata, lead vê resposta na hora)
+  //   - Cria task pra admin gerar a análise
+  //   - NÃO move estágio aqui — admin move manualmente depois de gerar
+  //     a análise e preencher o linkAnalise. O Flow B (Prospecção/Análise
+  //     gerada) toma conta a partir daí.
   const p2Tpl = await prisma.followUpTemplate.findUnique({ where: { code: "GMN_P2" } });
   const buildYesNoButtons = (idPrefix: string) => [
     {
@@ -33,13 +34,18 @@ export async function ensureGmnFlows() {
       label: "Sim, quero receber",
       actions: [
         ...(p2Tpl ? [{ type: "trigger_template", templateId: p2Tpl.id }] : []),
-        { type: "move_stage_by_name", stageNamePattern: "análise gerada" },
+        {
+          type: "create_task",
+          title: "Gerar análise para {{empresa}}",
+          description: "Lead {{nome}} aceitou receber análise. Gere o relatório, preencha o campo \"Link da análise\" no card e mova pra \"Análise gerada\".",
+          priority: "high",
+        },
       ],
     },
     {
       id: `${idPrefix}_no`,
       label: "Não tenho interesse",
-      actions: [{ type: "mark_lost", reason: "Sem interesse (recusou análise)" }],
+      actions: [{ type: "mark_lost", reason: "Recusou análise" }],
     },
   ];
 
@@ -52,7 +58,6 @@ export async function ensureGmnFlows() {
   }
 
   // P4 (Follow-up Permissão Prospecção, antigo T4): mesmos botões.
-  // É o último toque pedindo permissão pra mandar a análise.
   const t4Tpl = await prisma.followUpTemplate.findUnique({ where: { code: "GMN_T4" } });
   if (t4Tpl) {
     await prisma.followUpTemplate.update({
@@ -143,6 +148,100 @@ export async function ensureGmnFlows() {
         // Não manda F2 com {{linkAnalise}} vazio
         { delayHours: 0, actionType: "field_check", actionConfig: { field: "linkAnalise" } },
         sendWA(F2, 0),
+        waitBiz(1),
+        checkResponseToEmContato(),
+        sendWA(C1, 0),
+        waitBiz(2),
+        checkResponseToEmContato(),
+        sendWA(C2, 0),
+        waitBiz(2),
+        checkResponseToEmContato(),
+        sendWA(C3, 0),
+        waitBiz(2),
+        checkResponseToEmContato(),
+        setLossReason("Sem resposta após cadência"),
+      ],
+    });
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // 2) GMN · Prospecção — Novo lead (com fallback P4)
+  // ──────────────────────────────────────────────────────────────────────
+  // Inicia em "Novo lead" + source=PROSPECCAO. Manda P1 com botões.
+  // Aguarda clique:
+  //   - Sim → botão dispara P2 + cria task "Gerar análise" + flow termina
+  //     (Flow C toma conta quando admin mover pra Análise gerada)
+  //   - Não → botão marca Perdido + flow termina
+  //   - Sem clique em 2 dias úteis → manda P4 (último apelo) + aguarda
+  //     mais 2 dias úteis → se ainda sem clique, marca Perdido "Sem resposta"
+  //
+  // Os botões do P1 e P4 são configurados acima em buildYesNoButtons.
+  const P1 = await templateByCode("GMN_T2B");
+  const P4 = await templateByCode("GMN_T4");
+  if (P1 && P4) {
+    const buttonClickedYesNo = () => ({
+      delayHours: 0,
+      actionType: "button_clicked",
+      actionConfig: {
+        branches: [
+          { buttonId: "gmn_t2b_yes", label: "Sim (P1)", terminate: true, actions: [] },
+          { buttonId: "gmn_t2b_no", label: "Não (P1)", terminate: true, actions: [] },
+          { buttonId: "gmn_t4_yes", label: "Sim (P4)", terminate: true, actions: [] },
+          { buttonId: "gmn_t4_no", label: "Não (P4)", terminate: true, actions: [] },
+        ],
+      },
+    });
+    flows.push({
+      name: "GMN · Prospecção — Novo lead",
+      description: "P1 → aguarda decisão → fallback P4 → Perdido se sem resposta.",
+      triggerStageId: novoLead.id,
+      condition: { source: "PROSPECCAO" },
+      steps: [
+        sendWA(P1, 0),
+        waitBiz(2),
+        // Roteia: Sim/Não terminam o fluxo. Sem clique → continua pra P4.
+        buttonClickedYesNo(),
+        sendWA(P4, 0),
+        waitBiz(2),
+        // Segundo check: Sim/Não terminam, sem clique = Perdido por sem resposta.
+        {
+          ...buttonClickedYesNo(),
+          actionConfig: {
+            branches: [
+              { buttonId: "gmn_t2b_yes", label: "Sim", terminate: true, actions: [] },
+              { buttonId: "gmn_t2b_no", label: "Não", terminate: true, actions: [] },
+              { buttonId: "gmn_t4_yes", label: "Sim (P4)", terminate: true, actions: [] },
+              { buttonId: "gmn_t4_no", label: "Não (P4)", terminate: true, actions: [] },
+              {
+                buttonId: "_none",
+                label: "Sem resposta",
+                terminate: true,
+                actions: [{ type: "mark_lost", reason: "Sem resposta" }],
+              },
+            ],
+          },
+        },
+      ],
+    });
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // 3) GMN · Prospecção — Análise gerada
+  // ──────────────────────────────────────────────────────────────────────
+  // Trigger: Análise gerada + source=PROSPECCAO. Admin moveu manualmente
+  // depois de gerar análise e preencher linkAnalise. Cadência espelha a
+  // do Forms — só não tem o F2 inicial (foi P3 enviado aqui).
+  const P3 = await templateByCode("GMN_T3"); // P3 = código antigo T3
+  if (P3 && C1 && C2 && C3) {
+    flows.push({
+      name: "GMN · Prospecção — Análise gerada",
+      description: "Envia P3 (com guard linkAnalise) e cadência de follow-ups.",
+      triggerStageId: analiseGerada.id,
+      condition: { source: "PROSPECCAO" },
+      steps: [
+        // Guard: P3 referencia {{linkAnalise}}. Se vazio, pausa + notifica.
+        { delayHours: 0, actionType: "field_check", actionConfig: { field: "linkAnalise" } },
+        sendWA(P3, 0),
         waitBiz(1),
         checkResponseToEmContato(),
         sendWA(C1, 0),
