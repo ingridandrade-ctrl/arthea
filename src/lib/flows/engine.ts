@@ -597,6 +597,8 @@ export async function processDueFlowSteps() {
         const branches = (config.branches || []) as Array<{
           buttonId: string;
           actions: any[];
+          terminate?: boolean;
+          label?: string;
         }>;
 
         // Busca o último botão clicado pelo lead (depois do início desta exec)
@@ -628,14 +630,19 @@ export async function processDueFlowSteps() {
           : branches.find((b) => b.buttonId === "_none");
 
         if (!matchedBranch) {
+          // Sem branch matching e sem _none configurado → continua o fluxo
+          // (execução do passo é só "no-op": o lead não clicou em nada
+          // configurado, segue pro próximo passo). Antes era "skipped" o
+          // que parecia erro; agora "executed" deixa claro que rolou.
           await prisma.flowStepExecution.update({
             where: { id: item.id },
-            data: { status: "skipped", executedAt: now, result: { reason: "no_matching_branch", clickedButtonId } },
+            data: { status: "executed", executedAt: now, result: { branch: "no_match_continue", clickedButtonId } },
           });
-          results.push({ id: item.id, ok: false, action: "button_no_branch" });
+          results.push({ id: item.id, ok: true, action: "button_continue" });
         } else {
           // Reusa o button-handler pra executar as ações (mesma estrutura
-          // de actions: trigger_template, move_stage_by_name, mark_lost, etc)
+          // de actions: trigger_template, move_stage_by_name, mark_lost,
+          // notify_team, create_task)
           const { runButtonActions } = await import("./button-handler-actions");
           await runButtonActions(lead.id, matchedBranch.actions || []);
           await prisma.flowStepExecution.update({
@@ -646,7 +653,23 @@ export async function processDueFlowSteps() {
               result: { branch: clickedButtonId || "_none", actionsCount: (matchedBranch.actions || []).length },
             },
           });
-          results.push({ id: item.id, ok: true, action: `button:${clickedButtonId || "_none"}` });
+
+          // Se branch tem `terminate: true`, para o fluxo aqui — marca
+          // todos os steps pendentes como skipped. Útil pra branches de
+          // "Sim"/"Não" que finalizam a decisão (o resto do fluxo é só
+          // pro caminho "Não clicou").
+          if (matchedBranch.terminate) {
+            await prisma.flowStepExecution.updateMany({
+              where: { executionId: item.executionId, status: "pending" },
+              data: { status: "skipped", executedAt: now, result: { reason: "branch_terminated", branch: clickedButtonId || "_none" } },
+            });
+            await prisma.flowExecution.update({
+              where: { id: item.executionId },
+              data: { status: "stopped", completedAt: now },
+            });
+          }
+
+          results.push({ id: item.id, ok: true, action: `button:${clickedButtonId || "_none"}${matchedBranch.terminate ? "_terminated" : ""}` });
         }
       } else {
         // Tipo desconhecido — skip

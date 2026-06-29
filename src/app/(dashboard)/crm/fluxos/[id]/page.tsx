@@ -1071,6 +1071,7 @@ function ButtonClickedConfig({
       move_stage_by_name: { type: "move_stage_by_name", stageNamePattern: "" },
       mark_lost: { type: "mark_lost", reason: "" },
       notify_team: { type: "notify_team", title: "", body: "" },
+      create_task: { type: "create_task", title: "", description: "", priority: "medium" },
     };
     next[branchIdx].actions = [...(next[branchIdx].actions || []), defaults[type] || {}];
     updateBranches(next);
@@ -1121,6 +1122,16 @@ function ButtonClickedConfig({
               <Trash2 className="w-3 h-3 text-red-600" />
             </button>
           </div>
+
+          <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!(branch as any).terminate}
+              onChange={(e) => updateBranch(bi, { terminate: e.target.checked } as any)}
+              className="w-3 h-3"
+            />
+            <span><strong>Terminar fluxo</strong> após executar as ações dessa ramificação (não continua pros próximos passos)</span>
+          </label>
 
           <div className="pl-2 space-y-1.5">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Ações dessa ramificação:</p>
@@ -1184,6 +1195,33 @@ function ButtonClickedConfig({
                       />
                     </div>
                   )}
+                  {action.type === "create_task" && (
+                    <div className="space-y-1">
+                      <input
+                        type="text"
+                        value={action.title || ""}
+                        onChange={(e) => updateAction(bi, ai, { title: e.target.value })}
+                        placeholder="Título (suporta {{nome}}, {{empresa}})"
+                        className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      <input
+                        type="text"
+                        value={action.description || ""}
+                        onChange={(e) => updateAction(bi, ai, { description: e.target.value })}
+                        placeholder="Descrição (opcional)"
+                        className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      <select
+                        value={action.priority || "medium"}
+                        onChange={(e) => updateAction(bi, ai, { priority: e.target.value })}
+                        className="w-full px-2 py-1 border border-border rounded text-xs bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+                      >
+                        <option value="low">Prioridade: baixa</option>
+                        <option value="medium">Prioridade: média</option>
+                        <option value="high">Prioridade: alta</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -1192,6 +1230,7 @@ function ButtonClickedConfig({
               <button onClick={() => addAction(bi, "move_stage_by_name")} className="text-[10px] px-2 py-0.5 rounded border border-border hover:bg-muted">+ mover estágio</button>
               <button onClick={() => addAction(bi, "mark_lost")} className="text-[10px] px-2 py-0.5 rounded border border-border hover:bg-muted">+ marcar perdido</button>
               <button onClick={() => addAction(bi, "notify_team")} className="text-[10px] px-2 py-0.5 rounded border border-border hover:bg-muted">+ notificar</button>
+              <button onClick={() => addAction(bi, "create_task")} className="text-[10px] px-2 py-0.5 rounded border border-border hover:bg-muted">+ criar tarefa</button>
             </div>
           </div>
         </div>
@@ -1211,6 +1250,7 @@ function actionLabel(type: string): string {
       move_stage_by_name: "Mover estágio",
       mark_lost: "Marcar perdido",
       notify_team: "Notificar equipe",
+      create_task: "Criar tarefa",
     } as Record<string, string>
   )[type] || type;
 }

@@ -43,18 +43,21 @@ export async function onLeadReplied(opts: {
     stopped++;
   }
 
-  // 2. Auto-move estágio: "Análise gerada" → "Em contato"
-  //   Antes auto-promovia "Em contato" → próximo (geralmente Em negociação),
-  //   mas a admin reportou que isso queimava o lead — qualquer "preciso
-  //   pensar" virava proposta. Agora a única auto-promoção é Análise gerada
-  //   → Em contato (lead engajou após receber análise = saiu da espera).
+  // 2. Auto-move estágio: qualquer estágio não-terminal → "Em contato"
+  //   Regra geral nova: lead respondeu = lead engajou. Move pra "Em contato"
+  //   independente de onde estava (Novo lead, Análise gerada, etc).
+  //   NÃO move se já está em: Em contato, Em negociação, Ganho, Perdido.
   let moved = 0;
   for (const ls of lead.services) {
     if (!ls.stage) continue;
     const stageName = ls.stage.name.toLowerCase();
-    const isAnaliseGerada =
-      stageName.includes("análise gerada") || stageName.includes("analise gerada");
-    if (!isAnaliseGerada) continue;
+    const isTerminal =
+      stageName.includes("em contato") ||
+      stageName.includes("em negociação") ||
+      stageName.includes("em negociacao") ||
+      stageName.includes("ganho") ||
+      stageName.includes("perdido");
+    if (isTerminal) continue;
 
     // Acha o estágio "Em contato" no mesmo pipeline
     const emContato = await prisma.pipelineStage.findFirst({
