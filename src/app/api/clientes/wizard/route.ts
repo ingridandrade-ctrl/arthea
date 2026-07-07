@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import bcrypt from "bcryptjs";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import type { EngagementType, DeliverableCategory } from "@prisma/client";
+import type { EngagementType, DeliverableCategory, DeliverableSection } from "@prisma/client";
 
 // POST /api/clientes/wizard
 //
@@ -64,7 +64,11 @@ export async function POST(req: NextRequest) {
   // Carrega serviços + seus templates
   const services = await prisma.service.findMany({
     where: { id: { in: serviceIds } },
-    include: { deliverableTemplates: { orderBy: [{ phase: "asc" }, { order: "asc" }] } },
+    include: {
+      deliverableTemplates: {
+        orderBy: [{ section: "asc" }, { phase: "asc" }, { order: "asc" }],
+      },
+    },
   });
   if (services.length !== serviceIds.length) {
     return NextResponse.json({ error: "Algum serviço não encontrado" }, { status: 400 });
@@ -136,6 +140,7 @@ export async function POST(req: NextRequest) {
                   description: tpl.description || null,
                   category: defaultCategory(engagementType),
                   kind: tpl.kind,
+                  section: (tpl.section || "ONBOARDING") as DeliverableSection,
                   phase: tpl.phase,
                   order: tpl.order ?? idx,
                   status: "PENDING" as const,
@@ -162,8 +167,10 @@ export async function POST(req: NextRequest) {
             },
           });
           effectiveLeadId = autoLead.id;
+          // Atualiza User pra apontar pro lead auto criado
           await tx.user.update({ where: { id: user.id }, data: { leadId: effectiveLeadId } });
         } else {
+          // Marca Lead existente como CLIENTE (foi convertido em cliente)
           await tx.lead.update({
             where: { id: leadId },
             data: { status: "CLIENTE" },

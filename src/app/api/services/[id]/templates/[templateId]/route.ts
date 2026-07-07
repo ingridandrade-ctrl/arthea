@@ -16,7 +16,7 @@ export async function PATCH(
   }
 
   const body = await req.json().catch(() => ({}));
-  const { title, description, kind, phase, order } = body as any;
+  const { title, description, kind, section, phase, order } = body as any;
 
   const updated = await prisma.serviceDeliverableTemplate.update({
     where: { id: params.templateId },
@@ -24,6 +24,7 @@ export async function PATCH(
       ...(title !== undefined && { title }),
       ...(description !== undefined && { description: description || null }),
       ...(kind !== undefined && { kind }),
+      ...(section !== undefined && { section }),
       ...(phase !== undefined && { phase }),
       ...(order !== undefined && { order }),
     },

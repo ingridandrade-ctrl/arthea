@@ -1,20 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, GripVertical, Save, X, FileText, ClipboardCheck, FormInput } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  GripVertical,
+  Save,
+  X,
+  FileText,
+  ClipboardCheck,
+  FormInput,
+  Rocket,
+  Repeat,
+} from "lucide-react";
 
 type Kind = "TASK" | "FORM" | "DOCUMENT";
+type Section = "ONBOARDING" | "ONGOING";
 
 type Template = {
   id: string;
   title: string;
   description: string | null;
   kind: Kind;
+  section: Section;
   phase: number;
   order: number;
 };
 
-const PHASE_LABEL = ["", "Imersão", "Construção", "Rastreamento", "Entrega"];
+const PHASE_LABEL: Record<number, string> = {
+  1: "Imersão",
+  2: "Construção",
+  3: "Rastreamento",
+};
+
+const PHASE_HINT: Record<number, string> = {
+  1: "Conhecer o negócio, briefing, acessos iniciais.",
+  2: "Estrutura, configuração, criação dos primeiros materiais.",
+  3: "Pixel, eventos, métricas e tudo que precisa pra medir.",
+};
 
 const KIND_LABEL: Record<Kind, string> = {
   TASK: "Tarefa interna",
@@ -37,18 +60,24 @@ export function ServiceTemplatesEditor({
 }) {
   const [templates, setTemplates] = useState<Template[]>(initialTemplates);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [adding, setAdding] = useState<number | null>(null);
+  const [addingTarget, setAddingTarget] = useState<{ section: Section; phase: number } | null>(
+    null,
+  );
 
-  async function createTemplate(phase: number, data: Partial<Template>) {
+  async function createTemplate(
+    section: Section,
+    phase: number,
+    data: { title: string; description: string; kind: Kind },
+  ) {
     const res = await fetch(`/api/services/${serviceId}/templates`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, phase }),
+      body: JSON.stringify({ ...data, section, phase }),
     });
     if (!res.ok) return;
     const created = await res.json();
     setTemplates((prev) => [...prev, created]);
-    setAdding(null);
+    setAddingTarget(null);
   }
 
   async function updateTemplate(id: string, data: Partial<Template>) {
@@ -72,24 +101,103 @@ export function ServiceTemplatesEditor({
     setTemplates((prev) => prev.filter((t) => t.id !== id));
   }
 
-  const byPhase = [1, 2, 3, 4].map((p) => ({
+  const onboardingByPhase = [1, 2, 3].map((p) => ({
     phase: p,
-    items: templates.filter((t) => t.phase === p).sort((a, b) => a.order - b.order),
+    items: templates
+      .filter((t) => t.section === "ONBOARDING" && t.phase === p)
+      .sort((a, b) => a.order - b.order),
   }));
 
+  const ongoingItems = templates
+    .filter((t) => t.section === "ONGOING")
+    .sort((a, b) => a.order - b.order);
+
   return (
-    <div className="space-y-6">
-      {byPhase.map(({ phase, items }) => (
-        <div key={phase}>
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Fase {phase}
-              </span>
-              <h3 className="text-sm font-semibold">{PHASE_LABEL[phase]}</h3>
+    <div className="space-y-8">
+      {/* ─── Onboarding ──────────────────────────────────────────── */}
+      <section>
+        <SectionHeader
+          icon={Rocket}
+          eyebrow="Setup inicial"
+          title="Onboarding"
+          subtitle="Tudo que acontece uma vez no começo. Dividido em 3 fases — o cliente avança fase por fase."
+          tone="indigo"
+        />
+
+        <div className="mt-4 space-y-6">
+          {onboardingByPhase.map(({ phase, items }) => (
+            <div key={phase} className="rounded-xl border border-border bg-card/40 p-4">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--accent)]">
+                    Fase {phase}
+                  </span>
+                  <h4 className="text-sm font-semibold mt-0.5">{PHASE_LABEL[phase]}</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">{PHASE_HINT[phase]}</p>
+                </div>
+                <button
+                  onClick={() => setAddingTarget({ section: "ONBOARDING", phase })}
+                  className="text-xs inline-flex items-center gap-1 text-[var(--accent)] hover:underline flex-shrink-0 mt-1"
+                >
+                  <Plus className="w-3 h-3" /> Adicionar
+                </button>
+              </div>
+
+              <div className="space-y-1.5">
+                {items.length === 0 &&
+                  !(
+                    addingTarget?.section === "ONBOARDING" && addingTarget.phase === phase
+                  ) && (
+                    <p className="text-xs text-muted-foreground italic py-2">
+                      Nenhum entregável nessa fase.
+                    </p>
+                  )}
+
+                {items.map((t) =>
+                  editingId === t.id ? (
+                    <TemplateForm
+                      key={t.id}
+                      initial={t}
+                      onCancel={() => setEditingId(null)}
+                      onSave={(data) => updateTemplate(t.id, data)}
+                    />
+                  ) : (
+                    <TemplateRow
+                      key={t.id}
+                      template={t}
+                      onEdit={() => setEditingId(t.id)}
+                      onDelete={() => deleteTemplate(t.id)}
+                    />
+                  ),
+                )}
+
+                {addingTarget?.section === "ONBOARDING" && addingTarget.phase === phase && (
+                  <TemplateForm
+                    onCancel={() => setAddingTarget(null)}
+                    onSave={(data) => createTemplate("ONBOARDING", phase, data)}
+                  />
+                )}
+              </div>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Projeto Contínuo ───────────────────────────────────── */}
+      <section>
+        <SectionHeader
+          icon={Repeat}
+          eyebrow="Operação contínua"
+          title="Projeto Contínuo"
+          subtitle="O que acontece todo mês depois do onboarding pronto: dashboard, relatórios, otimizações, criativos recorrentes."
+          tone="mint"
+        />
+
+        <div className="mt-4 rounded-xl border border-border bg-card/40 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-semibold">Entregáveis recorrentes</h4>
             <button
-              onClick={() => setAdding(phase)}
+              onClick={() => setAddingTarget({ section: "ONGOING", phase: 1 })}
               className="text-xs inline-flex items-center gap-1 text-[var(--accent)] hover:underline"
             >
               <Plus className="w-3 h-3" /> Adicionar
@@ -97,11 +205,13 @@ export function ServiceTemplatesEditor({
           </div>
 
           <div className="space-y-1.5">
-            {items.length === 0 && adding !== phase && (
-              <p className="text-xs text-muted-foreground italic py-2">Nenhum entregável nessa fase.</p>
+            {ongoingItems.length === 0 && addingTarget?.section !== "ONGOING" && (
+              <p className="text-xs text-muted-foreground italic py-2">
+                Nenhum entregável contínuo cadastrado ainda.
+              </p>
             )}
 
-            {items.map((t) =>
+            {ongoingItems.map((t) =>
               editingId === t.id ? (
                 <TemplateForm
                   key={t.id}
@@ -119,21 +229,57 @@ export function ServiceTemplatesEditor({
               ),
             )}
 
-            {adding === phase && (
+            {addingTarget?.section === "ONGOING" && (
               <TemplateForm
-                onCancel={() => setAdding(null)}
-                onSave={(data) => createTemplate(phase, data)}
+                onCancel={() => setAddingTarget(null)}
+                onSave={(data) => createTemplate("ONGOING", 1, data)}
               />
             )}
           </div>
         </div>
-      ))}
+      </section>
 
       <div className="bg-muted/40 border border-border rounded-xl p-4 text-xs text-muted-foreground">
-        <strong>Como vai funcionar no wizard:</strong> ao cadastrar um cliente novo e selecionar esse
-        serviço, o sistema vai copiar todos os entregáveis acima como{" "}
-        <strong>entregáveis reais</strong> da frente criada — já organizados por fase e na ordem
-        certa.
+        <strong>Como vai funcionar no wizard:</strong> ao cadastrar um cliente novo e selecionar
+        esse serviço, o sistema copia todos os entregáveis acima — Onboarding vira a sequência de
+        fases que o cliente percorre, e o Projeto Contínuo vira a aba do dia a dia com os
+        recorrentes (dashboard, relatórios, etc).
+      </div>
+    </div>
+  );
+}
+
+function SectionHeader({
+  icon: Icon,
+  eyebrow,
+  title,
+  subtitle,
+  tone,
+}: {
+  icon: any;
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  tone: "indigo" | "mint";
+}) {
+  const palette =
+    tone === "mint"
+      ? "from-[#1D7070]/15 to-transparent text-[#1D7070]"
+      : "from-indigo-500/15 to-transparent text-indigo-600";
+  const iconBg =
+    tone === "mint" ? "bg-[#1D7070]/12 text-[#1D7070]" : "bg-indigo-500/12 text-indigo-600";
+
+  return (
+    <div className={`relative rounded-2xl bg-gradient-to-r ${palette} px-4 py-3 flex items-start gap-3`}>
+      <div className={`w-9 h-9 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0`}>
+        <Icon className="w-4.5 h-4.5" strokeWidth={1.8} />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] opacity-80">
+          {eyebrow}
+        </p>
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
+        <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl">{subtitle}</p>
       </div>
     </div>
   );
@@ -235,7 +381,10 @@ function TemplateForm({
             <X className="w-3 h-3" /> Cancelar
           </button>
           <button
-            onClick={() => title.trim() && onSave({ title: title.trim(), description: description.trim(), kind })}
+            onClick={() =>
+              title.trim() &&
+              onSave({ title: title.trim(), description: description.trim(), kind })
+            }
             disabled={!title.trim()}
             className="text-xs inline-flex items-center gap-1 bg-[var(--accent)] text-white px-3 py-1 rounded hover:opacity-90 disabled:opacity-50"
           >
