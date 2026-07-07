@@ -61,8 +61,7 @@ const SECTIONS: NavSection[] = [
     label: "Clientes",
     prefix: "/clientes",
     items: [
-      { name: "Portal", href: "/clientes/portal", icon: PanelsTopLeft, roles: ["ADMIN", "MANAGER"] },
-      { name: "Projetos", href: "/projetos", icon: KanbanSquare, roles: ["ADMIN", "MANAGER"] },
+      { name: "Clientes", href: "/clientes", icon: PanelsTopLeft, roles: ["ADMIN", "MANAGER"] },
     ],
   },
   {

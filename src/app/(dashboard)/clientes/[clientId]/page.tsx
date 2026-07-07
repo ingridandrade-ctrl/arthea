@@ -27,7 +27,7 @@ import { prisma } from "@/lib/prisma";
 
 const TAB_ITEMS = [
   { id: "resumo", label: "Resumo", icon: Briefcase },
-  { id: "frentes", label: "Frentes", icon: Briefcase },
+  { id: "frentes", label: "Projetos", icon: Briefcase },
   { id: "sobre", label: "Sobre", icon: FileText },
   { id: "plataformas", label: "Plataformas", icon: Link2 },
   { id: "contrato", label: "Contrato", icon: Wallet },
@@ -245,7 +245,7 @@ function FrentesTab({ engagements, accent, clientId }: { engagements: any[]; acc
   if (engagements.length === 0) {
     return (
       <div className="bg-card border border-dashed border-border rounded-2xl p-12 text-center">
-        <p className="text-muted-foreground mb-4">Nenhuma frente ainda.</p>
+        <p className="text-muted-foreground mb-4">Nenhum projeto ainda.</p>
         <p className="text-xs text-muted-foreground">
           Frentes são adicionadas pelo fluxo de cadastro de novo projeto.
         </p>
@@ -332,7 +332,7 @@ function SobreTab({ dossier, clientId }: { dossier: any; clientId: string }) {
         <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
         <p className="font-medium">Dossiê ainda não preenchido</p>
         <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
-          O dossiê é onde mora o "Sobre você" do cliente — informações que se aplicam a TODAS as frentes
+          O dossiê é onde mora o "Sobre você" do cliente — informações que se aplicam a TODOS os projetos
           (negócio, tom de voz, referências, personas).
         </p>
         <Link
@@ -356,7 +356,7 @@ function SobreTab({ dossier, clientId }: { dossier: any; clientId: string }) {
       <p className="text-xs text-muted-foreground mt-6 pt-4 border-t border-border">
         Pra editar:{" "}
         <Link href={`/clientes/portal/${clientId}`} className="text-[var(--accent)] hover:underline">
-          abra qualquer frente
+          abra qualquer projeto
         </Link>{" "}
         e vá em "Sobre" — em breve a edição vem pra esta tela.
       </p>
@@ -379,7 +379,7 @@ function PlataformasTab({ engagements }: { engagements: any[] }) {
   if (engagements.length === 0) {
     return (
       <div className="bg-card border border-dashed border-border rounded-2xl p-12 text-center">
-        <p className="text-muted-foreground">Sem frentes — não há plataformas pra linkar.</p>
+        <p className="text-muted-foreground">Sem projetos — não há plataformas pra linkar.</p>
       </div>
     );
   }
@@ -420,7 +420,7 @@ function PlataformasTab({ engagements }: { engagements: any[] }) {
 
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-900">
         <p>
-          <strong>Linkagem ↔ Conexão</strong>: pra LINKAR uma conta a uma frente, use{" "}
+          <strong>Linkagem ↔ Conexão</strong>: pra LINKAR uma conta a um projeto, use{" "}
           <Link href="/clientes/meta" className="underline">/clientes/meta</Link> ou{" "}
           <Link href="/clientes/google-ads" className="underline">/clientes/google-ads</Link>.
           <br />

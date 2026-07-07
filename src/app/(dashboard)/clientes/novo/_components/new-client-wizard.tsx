@@ -228,7 +228,7 @@ export function NewClientWizard({
 
         <div className="flex gap-3 justify-end">
           <Link
-            href="/clientes/portal"
+            href="/clientes"
             className="px-4 py-2 text-sm border border-border rounded-lg hover:bg-muted"
           >
             Ver no Portal
@@ -247,7 +247,7 @@ export function NewClientWizard({
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <Link
-        href="/clientes/portal"
+        href="/clientes"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="w-4 h-4" /> Cancelar

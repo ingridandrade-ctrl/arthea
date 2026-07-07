@@ -74,9 +74,9 @@ export default async function InicioPage() {
         <ModeCard
           number="02 / Entregar"
           title="Clientes"
-          description="Portal dos clientes ativos, frentes de trabalho e dados internos."
-          href="/clientes/portal"
-          meta={`${clientsCount} cliente${clientsCount === 1 ? "" : "s"} · ${activeEngagements} frente${activeEngagements === 1 ? "" : "s"} ativa${activeEngagements === 1 ? "" : "s"}`}
+          description="Clientes, projetos e a área de membros de cada um."
+          href="/clientes"
+          meta={`${clientsCount} cliente${clientsCount === 1 ? "" : "s"} · ${activeEngagements} projeto${activeEngagements === 1 ? "" : "s"} ativo${activeEngagements === 1 ? "" : "s"}`}
           color="#2D6A9F"
           softBg="rgba(45,106,159,0.08)"
           borderAccent="#2D6A9F"

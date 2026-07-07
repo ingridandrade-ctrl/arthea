@@ -3,11 +3,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ArrowRight, Briefcase, Mail, AlertTriangle } from "lucide-react";
+import { ArrowRight, Briefcase, Mail, AlertTriangle, Plus } from "lucide-react";
+import { NewClientButton } from "./portal/_components/new-client-button";
 
-// Lista de CLIENTES (User com role=CLIENT). Substitui a antiga lista de
-// engagements em /clientes/portal — aqui é a unidade primária.
-// Engagements aparecem como sub-info de cada card.
+// Lista de CLIENTES (User com role=CLIENT) — a porta de entrada única da
+// área. Dentro de cada cliente vivem os projetos (ClientEngagement), o
+// dossiê, plataformas e contrato.
 
 export default async function ClientesPage() {
   const session = (await getServerSession(authOptions)) as any;
@@ -41,16 +42,26 @@ export default async function ClientesPage() {
         <div>
           <h1 className="text-2xl font-bold">Clientes</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Cada cliente é uma pasta — dentro tem as frentes (engagements), dossiê, plataformas, contrato.
+            Cada cliente é uma pasta — dentro tem os projetos, dossiê, plataformas e contrato.
           </p>
         </div>
-        <Link
-          href="/clientes/portal"
-          className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-        >
-          Ver por frente
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href="/projetos"
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-3 py-2"
+          >
+            Ver todos os projetos
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+          <Link
+            href="/clientes/novo"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90"
+          >
+            <Plus className="w-4 h-4" />
+            Novo cliente
+          </Link>
+          <NewClientButton />
+        </div>
       </div>
 
       {clientes.length === 0 ? (
@@ -111,8 +122,8 @@ export default async function ClientesPage() {
                   <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <Briefcase className="w-3 h-3" />
                     {engagements.length === 0
-                      ? "Sem frentes ativas"
-                      : `${engagements.length} ${engagements.length === 1 ? "frente" : "frentes"}: ${engagements.map((e) => e.name).join(" · ")}`}
+                      ? "Sem projetos ativos"
+                      : `${engagements.length} ${engagements.length === 1 ? "projeto" : "projetos"}: ${engagements.map((e) => e.name).join(" · ")}`}
                   </p>
                 </div>
 

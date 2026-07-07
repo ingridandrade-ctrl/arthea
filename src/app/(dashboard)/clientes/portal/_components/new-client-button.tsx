@@ -44,7 +44,7 @@ export function NewClientButton({ variant = "default" }: { variant?: "default" |
         setError(data.error || "Erro ao criar.");
       } else {
         setOpen(false);
-        router.push(`/portal-clientes/${data.id}`);
+        router.push(`/clientes/portal/${data.id}`);
         router.refresh();
       }
     } finally {
