@@ -11,6 +11,10 @@ import { HealthPanel } from "./health-panel";
 import { VideoAnalysis } from "./video-analysis";
 import { FunilServicos } from "./funil-servicos";
 import { OrigemConversas } from "./origem-conversas";
+import { FunilInfoproduto } from "./funil-infoproduto";
+import { ResumoInfoproduto } from "./resumo-infoproduto";
+import { FunilEcommerce } from "./funil-ecommerce";
+import { ResumoEcommerce } from "./resumo-ecommerce";
 import { InsightsCard } from "./insights-card";
 import { CustomZone } from "./custom-zone";
 import { useDashboardData, videoAds } from "./use-dashboard-data";
@@ -166,20 +170,26 @@ export function DashboardV2({
                 </div>
               )}
 
-              {(businessType === "INFOPRODUCT" || businessType === "ECOMMERCE") && (
-                <div className="bg-card border border-dashed border-border rounded-2xl p-10 text-center mb-4">
-                  <p className="text-[13.5px] text-muted-foreground">
-                    <strong className="text-foreground font-medium">
-                      Blocos específicos do perfil {businessType === "INFOPRODUCT" ? "Infoproduto" : "E-commerce"}
-                    </strong>{" "}
-                    chegam no PR 6.
-                    <br />
-                    <span className="text-[11.5px]">
-                      Enquanto isso, os blocos universais acima (saúde, vídeo, análise) já
-                      funcionam com os dados reais do Meta.
-                    </span>
-                  </p>
-                </div>
+              {businessType === "INFOPRODUCT" && (
+                <>
+                  <div className="mb-4">
+                    <ResumoInfoproduto summary={s} />
+                  </div>
+                  <div className="mb-4">
+                    <FunilInfoproduto summary={s} />
+                  </div>
+                </>
+              )}
+
+              {businessType === "ECOMMERCE" && (
+                <>
+                  <div className="mb-4">
+                    <ResumoEcommerce summary={s} />
+                  </div>
+                  <div className="mb-4">
+                    <FunilEcommerce summary={s} />
+                  </div>
+                </>
               )}
 
               {/* Camada 3 — custom */}
