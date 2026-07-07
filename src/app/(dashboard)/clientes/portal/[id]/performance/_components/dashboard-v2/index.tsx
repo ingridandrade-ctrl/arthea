@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import type { BusinessType } from "@prisma/client";
-import { Wallet, Users2, MousePointerClick, Coins, Settings2 } from "lucide-react";
+import { Settings2 } from "lucide-react";
 import { DashboardTopBar, type DateRange, type ComparePeriod } from "./top-bar";
 import { PlatformTabs, type Platform } from "./platform-tabs";
 import { DashboardSetup } from "./dashboard-setup";
-import { KpiCard } from "./kpi-card";
+import { MetaHeroMetrics } from "./meta-hero-metrics";
 import { HealthPanel } from "./health-panel";
 import { VideoAnalysis } from "./video-analysis";
 import { FunilServicos } from "./funil-servicos";
@@ -39,6 +39,14 @@ const BUSINESS_LABEL: Record<BusinessType, string> = {
   INFOPRODUCT: "Infoproduto",
   ECOMMERCE: "E-commerce",
   SERVICES: "Serviços",
+};
+
+const PERIOD_LABEL: Record<DateRange, string> = {
+  last_7d: "últimos 7 dias",
+  last_14d: "últimos 14 dias",
+  last_30d: "últimos 30 dias",
+  this_month: "este mês",
+  last_month: "mês passado",
 };
 
 export function DashboardV2({
@@ -152,7 +160,7 @@ export function DashboardV2({
           )}
 
           {loading && !meta && (
-            <div className="bg-card border border-border rounded-2xl p-16 text-center text-muted-foreground text-[13px]">
+            <div className="bg-card rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] p-16 text-center text-muted-foreground text-[13px]">
               Carregando dados Meta…
             </div>
           )}
@@ -171,47 +179,22 @@ export function DashboardV2({
 
           {s && (
             <>
-              {/* Camada 1 — KPIs core universais */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
-                <KpiCard
-                  icon={<Wallet className="w-3.5 h-3.5" strokeWidth={1.9} />}
-                  label="Investimento"
-                  value={moneyShort(s.spend)}
-                />
-                <KpiCard
-                  icon={<Users2 className="w-3.5 h-3.5" strokeWidth={1.9} />}
-                  label="Alcance"
-                  value={numShort(s.reach)}
-                  compareText={`Frequência ${s.frequency.toFixed(1)}×`}
-                />
-                <KpiCard
-                  icon={<MousePointerClick className="w-3.5 h-3.5" strokeWidth={1.9} />}
-                  label="CTR"
-                  value={(s.ctr * 100).toFixed(2)}
-                  unit="%"
-                  compareText={`${num(s.clicks)} cliques`}
-                />
-                <KpiCard
-                  icon={<Coins className="w-3.5 h-3.5" strokeWidth={1.9} />}
-                  label="CPC"
-                  value={money(s.cpc)}
-                  compareText={`CPM ${money(s.cpm)}`}
-                />
-              </div>
+              {/* Camada 1 — faixa introdutória: Investimento herói + 8 métricas */}
+              <MetaHeroMetrics summary={s} periodLabel={PERIOD_LABEL[dateRange]} />
 
               {/* Saúde da campanha — full width */}
-              <div className="mb-4">
+              <div className="mb-5">
                 <HealthPanel summary={s} />
               </div>
 
               {/* Análise de vídeo — universal */}
-              <div className="mb-4">
+              <div className="mb-5">
                 <VideoAnalysis ads={vids} />
               </div>
 
               {/* Camada 2 — específico por perfil */}
               {businessType === "SERVICES" && (
-                <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-4 mb-4">
+                <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-4 mb-5">
                   <FunilServicos summary={s} />
                   <OrigemConversas summary={s} />
                 </div>
@@ -219,10 +202,10 @@ export function DashboardV2({
 
               {businessType === "INFOPRODUCT" && (
                 <>
-                  <div className="mb-4">
+                  <div className="mb-5">
                     <ResumoInfoproduto summary={s} />
                   </div>
-                  <div className="mb-4">
+                  <div className="mb-5">
                     <FunilInfoproduto summary={s} />
                   </div>
                 </>
@@ -230,10 +213,10 @@ export function DashboardV2({
 
               {businessType === "ECOMMERCE" && (
                 <>
-                  <div className="mb-4">
+                  <div className="mb-5">
                     <ResumoEcommerce summary={s} />
                   </div>
-                  <div className="mb-4">
+                  <div className="mb-5">
                     <FunilEcommerce summary={s} />
                   </div>
                 </>
@@ -243,7 +226,7 @@ export function DashboardV2({
               {meta && <CampaignAnalysis meta={meta} />}
 
               {/* Camada 3 — custom */}
-              <div className="mb-4">
+              <div className="mb-5">
                 <CustomZone engagementId={engagementId} summary={s} showConfigLink />
               </div>
             </>

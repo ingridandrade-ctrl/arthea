@@ -10,7 +10,11 @@
   --color-brand-foreground: #ffffff;
 
   /* === Semantic tokens (light defaults) === */
-  --color-background: #ffffff;
+  /* Fundo creme quente (referencia Omni/MeetSync) — cards brancos flutuam sobre ele */
+  --color-background: #F7F4EE;
+  --color-cream: #F4F0E8;
+  --color-peach: #EE9C7A;
+  --color-peach-soft: #FBEDE4;
   --color-foreground: #0a0a0a;
   --color-muted: #f5f5f5;
   --color-muted-foreground: #737373;
@@ -45,6 +49,9 @@
 /* === Dark theme overrides === */
 .dark {
   --color-background: #0B1414;
+  --color-cream: #182525;
+  --color-peach: #F0AE8C;
+  --color-peach-soft: #2E241D;
   --color-foreground: #E6F1F1;
   --color-muted: #182525;
   --color-muted-foreground: #94A3A3;

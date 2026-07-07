@@ -69,7 +69,7 @@ const STATUS_STYLE: Record<Status, { chip: string; label: string; edge: string }
 export function HealthPanel({ summary }: { summary: MetaFullSummary }) {
   const metrics = evalHealth(summary);
   return (
-    <div className="bg-card border border-border rounded-2xl p-6">
+    <div className="bg-card rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
@@ -84,7 +84,7 @@ export function HealthPanel({ summary }: { summary: MetaFullSummary }) {
         {metrics.map((m) => {
           const s = STATUS_STYLE[m.status];
           return (
-            <div key={m.name} className="relative bg-muted/40 border border-border rounded-xl p-4 pl-5">
+            <div key={m.name} className="relative bg-cream rounded-2xl p-4 pl-5">
               <span
                 className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full ${s.edge}`}
               />
@@ -98,7 +98,7 @@ export function HealthPanel({ summary }: { summary: MetaFullSummary }) {
                   {s.label}
                 </span>
               </div>
-              <div className="text-[24px] font-semibold text-foreground leading-none tracking-[-0.025em] tabular-nums">
+              <div className="text-[28px] font-semibold text-foreground leading-none tracking-[-0.025em] tabular-nums">
                 {m.value}
               </div>
               <p className="text-[10.5px] text-muted-foreground mt-2 leading-tight">{m.bench}</p>

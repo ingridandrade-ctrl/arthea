@@ -125,10 +125,10 @@ export function DashboardSetup({
                 key={p.id}
                 type="button"
                 onClick={() => setBusinessType(p.id)}
-                className={`relative text-left p-4 rounded-2xl border-2 transition ${
+                className={`relative text-left p-4 rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] transition ${
                   active
-                    ? "border-brand bg-brand/8 shadow-sm"
-                    : "border-border bg-card hover:border-brand/40"
+                    ? "ring-2 ring-brand bg-brand/8"
+                    : "bg-card hover:ring-1 hover:ring-brand/30"
                 }`}
               >
                 {active && (
@@ -166,10 +166,10 @@ export function DashboardSetup({
                 key={p.id}
                 type="button"
                 onClick={() => togglePlatform(p.id)}
-                className={`relative text-left p-4 rounded-2xl border-2 transition ${
+                className={`relative text-left p-4 rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] transition ${
                   active
-                    ? "border-brand bg-brand/8 shadow-sm"
-                    : "border-border bg-card hover:border-brand/40"
+                    ? "ring-2 ring-brand bg-brand/8"
+                    : "bg-card hover:ring-1 hover:ring-brand/30"
                 }`}
               >
                 {active && (
@@ -186,7 +186,7 @@ export function DashboardSetup({
       </div>
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-xl p-3 text-[13px] mb-4">
+        <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-2xl p-3 text-[13px] mb-4">
           {error}
         </div>
       )}
