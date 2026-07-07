@@ -263,6 +263,26 @@ export async function getAccountInsights(
   return (data.data && data.data[0]) || null;
 }
 
+// Mesma consulta, mas com janela explícita (since/until, YYYY-MM-DD).
+// Usada pra buscar o PERÍODO ANTERIOR na comparação do dashboard —
+// date_preset não tem variante "previous_x".
+export async function getAccountInsightsTimeRange(
+  accessToken: string,
+  adAccountId: string,
+  since: string,
+  until: string,
+): Promise<MetaInsights | null> {
+  const client = createMetaClient(accessToken);
+  const accountPath = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
+  const { data } = await client.get(`/${accountPath}/insights`, {
+    params: {
+      fields: INSIGHT_FIELDS_FULL,
+      time_range: JSON.stringify({ since, until }),
+    },
+  });
+  return (data.data && data.data[0]) || null;
+}
+
 export interface MetaCampaignInsight {
   campaign_id: string;
   campaign_name: string;

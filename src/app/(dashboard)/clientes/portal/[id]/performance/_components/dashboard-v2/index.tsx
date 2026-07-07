@@ -49,6 +49,13 @@ const PERIOD_LABEL: Record<DateRange, string> = {
   last_month: "mês passado",
 };
 
+const COMPARE_LABEL: Record<ComparePeriod, string> = {
+  previous: "vs período anterior",
+  prev_month: "vs mês passado",
+  prev_year: "vs ano passado",
+  none: "",
+};
+
 export function DashboardV2({
   engagementId,
   clientName,
@@ -79,7 +86,7 @@ export function DashboardV2({
     initialPlatforms[0] ?? "meta",
   );
 
-  const { meta, loading, error } = useDashboardData(engagementId, dateRange);
+  const { meta, loading, error } = useDashboardData(engagementId, dateRange, compare);
   const s = meta?.summary;
   const vids = videoAds(meta);
 
@@ -180,7 +187,12 @@ export function DashboardV2({
           {s && (
             <>
               {/* Camada 1 — faixa introdutória: Investimento herói + 8 métricas */}
-              <MetaHeroMetrics summary={s} periodLabel={PERIOD_LABEL[dateRange]} />
+              <MetaHeroMetrics
+                summary={s}
+                previous={compare !== "none" ? meta?.previousSummary : null}
+                periodLabel={PERIOD_LABEL[dateRange]}
+                compareLabel={COMPARE_LABEL[compare]}
+              />
 
               {/* Saúde da campanha — full width */}
               <div className="mb-5">
