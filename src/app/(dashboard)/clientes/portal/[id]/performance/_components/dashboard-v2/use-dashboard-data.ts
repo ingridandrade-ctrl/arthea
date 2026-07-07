@@ -61,10 +61,22 @@ export type MetaData = {
   objectiveGroups: {
     group: string;
     label: string;
+    description: string;
+    emoji: string;
+    primaryMetrics: string[];
+    secondaryMetrics: string[];
+    headlineLabel: string;
+    headlineMetric: string;
+    rankBy: string;
     spend: number;
     sharePct: number;
     summary: MetaFullSummary;
-    campaigns: any[];
+    campaigns: (MetaFullSummary & {
+      campaignId: string;
+      campaignName: string;
+      objective?: string;
+      accountName?: string;
+    })[];
     topAds: MetaAd[];
   }[];
   note?: string;

@@ -17,6 +17,7 @@ import { FunilEcommerce } from "./funil-ecommerce";
 import { ResumoEcommerce } from "./resumo-ecommerce";
 import { InsightsCard } from "./insights-card";
 import { CustomZone } from "./custom-zone";
+import { CampaignAnalysis } from "./campaign-analysis";
 import { GoogleView } from "./google-view";
 import { useDashboardData, videoAds } from "./use-dashboard-data";
 
@@ -237,6 +238,9 @@ export function DashboardV2({
                   </div>
                 </>
               )}
+
+              {/* Análise por campanha — agrupada por objetivo */}
+              {meta && <CampaignAnalysis meta={meta} />}
 
               {/* Camada 3 — custom */}
               <div className="mb-4">
