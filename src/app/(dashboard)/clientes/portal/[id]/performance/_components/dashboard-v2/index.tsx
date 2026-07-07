@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import type { BusinessType } from "@prisma/client";
-import { Wallet, Users2, MousePointerClick, Coins } from "lucide-react";
+import { Wallet, Users2, MousePointerClick, Coins, Settings2 } from "lucide-react";
 import { DashboardTopBar, type DateRange, type ComparePeriod } from "./top-bar";
-import { PerfilSelector } from "./perfil-selector";
 import { PlatformTabs, type Platform } from "./platform-tabs";
+import { DashboardSetup } from "./dashboard-setup";
 import { KpiCard } from "./kpi-card";
 import { HealthPanel } from "./health-panel";
 import { VideoAnalysis } from "./video-analysis";
@@ -34,6 +34,12 @@ const numShort = (v: number) => {
   return nfBR.format(Math.round(v));
 };
 
+const BUSINESS_LABEL: Record<BusinessType, string> = {
+  INFOPRODUCT: "Infoproduto",
+  ECOMMERCE: "E-commerce",
+  SERVICES: "Serviços",
+};
+
 export function DashboardV2({
   engagementId,
   clientName,
@@ -41,6 +47,8 @@ export function DashboardV2({
   initialBusinessType,
   initialDateRange,
   initialCompare,
+  hasConfig,
+  initialPlatforms,
 }: {
   engagementId: string;
   clientName: string;
@@ -48,15 +56,47 @@ export function DashboardV2({
   initialBusinessType: BusinessType;
   initialDateRange: DateRange;
   initialCompare: ComparePeriod;
+  hasConfig: boolean;
+  initialPlatforms: Platform[];
 }) {
+  const [configured, setConfigured] = useState(hasConfig);
   const [businessType, setBusinessType] = useState<BusinessType>(initialBusinessType);
+  const [platforms, setPlatforms] = useState<Platform[]>(
+    initialPlatforms.length > 0 ? initialPlatforms : ["meta"],
+  );
   const [dateRange, setDateRange] = useState<DateRange>(initialDateRange);
   const [compare, setCompare] = useState<ComparePeriod>(initialCompare);
-  const [platform, setPlatform] = useState<Platform>("meta");
+  const [platform, setPlatform] = useState<Platform>(
+    initialPlatforms[0] ?? "meta",
+  );
 
   const { meta, loading, error } = useDashboardData(engagementId, dateRange);
   const s = meta?.summary;
   const vids = videoAds(meta);
+
+  // ─── Setup inicial: engagement sem config ainda ────────────────
+  if (!configured) {
+    return (
+      <div className="max-w-[1280px] mx-auto px-7 py-12 pb-24">
+        <DashboardSetup
+          engagementId={engagementId}
+          engagementName={engagementName}
+          clientName={clientName}
+          initialBusinessType={hasConfig ? businessType : undefined}
+          initialPlatforms={hasConfig ? platforms : undefined}
+          onDone={(bt, ps) => {
+            setBusinessType(bt);
+            setPlatforms(ps);
+            setPlatform(ps[0]);
+            setConfigured(true);
+          }}
+        />
+      </div>
+    );
+  }
+
+  const showTabs = platforms.length > 1;
+  const activePlatform: Platform = platforms.includes(platform) ? platform : platforms[0];
 
   return (
     <div className="max-w-[1280px] mx-auto px-7 py-8 pb-24">
@@ -69,20 +109,32 @@ export function DashboardV2({
         onCompareChange={setCompare}
       />
 
-      <div className="mb-7">
-        <h1 className="text-[42px] font-semibold tracking-[-0.032em] leading-[1.02] text-foreground max-w-2xl">
-          Panorama do <em className="font-serif italic text-brand">cliente</em>.
-        </h1>
-        <p className="text-muted-foreground text-sm mt-2 max-w-lg leading-relaxed">
-          Estrutura em três camadas: core no topo, blocos por perfil no meio, métricas
-          custom no rodapé. Escolha o perfil pra ver o miolo mudar.
-        </p>
+      {/* Hero personalizado — nome real do cliente */}
+      <div className="mb-7 flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-[42px] font-semibold tracking-[-0.032em] leading-[1.02] text-foreground max-w-2xl">
+            {engagementName}
+          </h1>
+          <p className="text-muted-foreground text-sm mt-2 leading-relaxed">
+            {clientName} · {BUSINESS_LABEL[businessType]}
+            {!showTabs && (
+              <> · {activePlatform === "meta" ? "Meta Ads" : "Google Ads"}</>
+            )}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setConfigured(false)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11.5px] text-muted-foreground hover:text-foreground border border-border hover:border-foreground/30 transition"
+        >
+          <Settings2 className="w-3 h-3" strokeWidth={1.8} />
+          configurar
+        </button>
       </div>
 
-      <PerfilSelector value={businessType} onChange={setBusinessType} />
-      <PlatformTabs value={platform} onChange={setPlatform} />
+      {showTabs && <PlatformTabs value={activePlatform} onChange={setPlatform} />}
 
-      {platform === "google" && (
+      {activePlatform === "google" && (
         <GoogleView
           engagementId={engagementId}
           businessType={businessType}
@@ -90,7 +142,7 @@ export function DashboardV2({
         />
       )}
 
-      {platform === "meta" && (
+      {activePlatform === "meta" && (
         <>
           {error && (
             <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-2xl p-4 text-[13px] mb-4">
@@ -146,14 +198,9 @@ export function DashboardV2({
                 />
               </div>
 
-              {/* Bento: análise curada + saúde */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                <div className="lg:col-span-2">
-                  <HealthPanel summary={s} />
-                </div>
-                <div>
-                  <InsightsCard engagementId={engagementId} showCurationLink />
-                </div>
+              {/* Saúde da campanha — full width */}
+              <div className="mb-4">
+                <HealthPanel summary={s} />
               </div>
 
               {/* Análise de vídeo — universal */}
@@ -192,11 +239,18 @@ export function DashboardV2({
               )}
 
               {/* Camada 3 — custom */}
-              <CustomZone engagementId={engagementId} summary={s} showConfigLink />
+              <div className="mb-4">
+                <CustomZone engagementId={engagementId} summary={s} showConfigLink />
+              </div>
             </>
           )}
         </>
       )}
+
+      {/* Análise pela Arthea — sempre no rodapé, embaixo de tudo */}
+      <div className="mt-2">
+        <InsightsCard engagementId={engagementId} showCurationLink />
+      </div>
     </div>
   );
 }

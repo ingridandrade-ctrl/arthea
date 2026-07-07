@@ -1,9 +1,8 @@
 "use client";
 
 import type { BusinessType } from "@prisma/client";
-import { Wallet, Eye, MousePointerClick, Coins, Target, Search } from "lucide-react";
+import { Wallet, Eye, MousePointerClick, Coins, Search } from "lucide-react";
 import { KpiCard } from "./kpi-card";
-import { InsightsCard } from "./insights-card";
 import { useGoogleData, bucketByChannel } from "./use-google-data";
 import type { DateRange } from "./top-bar";
 
@@ -97,51 +96,44 @@ export function GoogleView({
         />
       </div>
 
-      {/* Insights curados + resumo de conversão */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        <div className="lg:col-span-2">
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
-                  Conversão · Google Ads
-                </h3>
-                <p className="text-[12px] text-muted-foreground mt-0.5">
-                  {businessType === "ECOMMERCE"
-                    ? "Vendas atribuídas + receita"
-                    : businessType === "INFOPRODUCT"
-                      ? "Leads e vendas do lançamento"
-                      : "Contatos qualificados via Search"}
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-              <ConvTile
-                label="Conversões"
-                value={num(s.conversions)}
-                sub={s.costPerConversion > 0 ? `${money(s.costPerConversion)} cada` : "—"}
-              />
-              <ConvTile
-                label="Custo/conv."
-                value={s.costPerConversion > 0 ? money(s.costPerConversion) : "—"}
-                sub="média ponderada"
-              />
-              <ConvTile
-                label="Receita"
-                value={s.conversionsValue > 0 ? moneyShort(s.conversionsValue) : "—"}
-                sub={s.roas > 0 ? `ROAS ${s.roas.toFixed(2)}×` : "sem tracking de valor"}
-                tone={s.roas >= 3 ? "ok" : s.roas > 0 ? "warn" : "neutral"}
-              />
-              <ConvTile
-                label="View-through"
-                value={s.viewThroughConversions > 0 ? num(s.viewThroughConversions) : "—"}
-                sub="conversões via YouTube"
-              />
-            </div>
+      {/* Resumo de conversão */}
+      <div className="bg-card border border-border rounded-2xl p-6 mb-4">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
+              Conversão · Google Ads
+            </h3>
+            <p className="text-[12px] text-muted-foreground mt-0.5">
+              {businessType === "ECOMMERCE"
+                ? "Vendas atribuídas + receita"
+                : businessType === "INFOPRODUCT"
+                  ? "Leads e vendas do lançamento"
+                  : "Contatos qualificados via Search"}
+            </p>
           </div>
         </div>
-        <div>
-          <InsightsCard engagementId={engagementId} showCurationLink />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          <ConvTile
+            label="Conversões"
+            value={num(s.conversions)}
+            sub={s.costPerConversion > 0 ? `${money(s.costPerConversion)} cada` : "—"}
+          />
+          <ConvTile
+            label="Custo/conv."
+            value={s.costPerConversion > 0 ? money(s.costPerConversion) : "—"}
+            sub="média ponderada"
+          />
+          <ConvTile
+            label="Receita"
+            value={s.conversionsValue > 0 ? moneyShort(s.conversionsValue) : "—"}
+            sub={s.roas > 0 ? `ROAS ${s.roas.toFixed(2)}×` : "sem tracking de valor"}
+            tone={s.roas >= 3 ? "ok" : s.roas > 0 ? "warn" : "neutral"}
+          />
+          <ConvTile
+            label="View-through"
+            value={s.viewThroughConversions > 0 ? num(s.viewThroughConversions) : "—"}
+            sub="conversões via YouTube"
+          />
         </div>
       </div>
 

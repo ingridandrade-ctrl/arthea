@@ -29,7 +29,9 @@ export default async function ClientPerformanceAdmin({
       name: true,
       businessType: true,
       client: { select: { name: true } },
-      dashboardConfig: { select: { defaultDateRange: true, comparePeriod: true } },
+      dashboardConfig: {
+        select: { defaultDateRange: true, comparePeriod: true, platforms: true },
+      },
     },
   });
   if (!engagement) notFound();
@@ -72,6 +74,12 @@ export default async function ClientPerformanceAdmin({
           initialBusinessType={engagement.businessType}
           initialDateRange={(engagement.dashboardConfig?.defaultDateRange as DateRange) || "last_30d"}
           initialCompare={(engagement.dashboardConfig?.comparePeriod as ComparePeriod) || "previous"}
+          hasConfig={engagement.dashboardConfig !== null}
+          initialPlatforms={
+            Array.isArray(engagement.dashboardConfig?.platforms)
+              ? (engagement.dashboardConfig.platforms as ("meta" | "google")[])
+              : ["meta"]
+          }
         />
       ) : (
         <AdminPerformanceView
