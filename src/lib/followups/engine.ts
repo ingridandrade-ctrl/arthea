@@ -1,45 +1,64 @@
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
-/**
- * Schedule follow-ups for a deal based on its current stage.
- * Uses FollowUpTemplate records to create FollowUp instances.
- */
-export async function scheduleFollowUpsForDeal(
-  dealId: string,
+export async function scheduleFollowUpsForLeadService(
+  leadServiceId: string,
   stageId: string
 ) {
-  const stage = await prisma.pipelineStage.findUnique({
-    where: { id: stageId },
-  });
-  if (!stage) return;
+  const [stage, leadService] = await Promise.all([
+    prisma.pipelineStage.findUnique({ where: { id: stageId } }),
+    prisma.leadService.findUnique({
+      where: { id: leadServiceId },
+      select: {
+        serviceId: true,
+        customData: true,
+        lead: { select: { source: true, status: true } },
+      },
+    }),
+  ]);
+  if (!stage || !leadService) return;
 
-  // Get active templates for this stage
-  const templates = await prisma.followUpTemplate.findMany({
-    where: { stageOrder: stage.order, isActive: true },
+  // Templates can be service-scoped (serviceId set) or generic (serviceId null).
+  // Prefer service-specific ones; fall back to generic only if no service-specific
+  // template exists for that stageOrder.
+  const serviceTemplates = await prisma.followUpTemplate.findMany({
+    where: { serviceId: leadService.serviceId, stageOrder: stage.order, isActive: true },
     orderBy: { followUpOrder: "asc" },
   });
+  const templates = serviceTemplates.length > 0
+    ? serviceTemplates
+    : await prisma.followUpTemplate.findMany({
+        where: { serviceId: null, stageOrder: stage.order, isActive: true },
+        orderBy: { followUpOrder: "asc" },
+      });
 
+  const customData = (leadService.customData || {}) as Record<string, any>;
+  const matchCtx: Record<string, any> = {
+    ...customData,
+    source: leadService.lead.source,
+    status: leadService.lead.status,
+  };
   const now = new Date();
 
   for (const template of templates) {
-    // Check if a follow-up already exists for this deal/stage/order
+    if (!matchesCondition(template.condition as any, matchCtx)) continue;
+
     const existing = await prisma.followUp.findFirst({
       where: {
-        dealId,
+        leadServiceId,
         stageId,
         order: template.followUpOrder,
-        status: "pending",
       },
     });
     if (existing) continue;
 
-    const delayHours = getDelayHours(template.stageOrder, template.followUpOrder);
+    const delayHours = template.delayHoursOverride
+      ?? getDelayHours(template.stageOrder, template.followUpOrder);
     const scheduledAt = new Date(now.getTime() + delayHours * 60 * 60 * 1000);
 
     await prisma.followUp.create({
       data: {
-        dealId,
+        leadServiceId,
         stageId,
         order: template.followUpOrder,
         delayHours,
@@ -53,22 +72,27 @@ export async function scheduleFollowUpsForDeal(
   }
 }
 
-/**
- * Cancel all pending follow-ups for a deal in a specific stage.
- */
+function matchesCondition(
+  condition: Record<string, any> | null,
+  ctx: Record<string, any>,
+): boolean {
+  if (!condition) return true;
+  for (const [key, expected] of Object.entries(condition)) {
+    if (ctx[key] !== expected) return false;
+  }
+  return true;
+}
+
 export async function cancelPendingFollowUps(
-  dealId: string,
+  leadServiceId: string,
   stageId: string
 ) {
   await prisma.followUp.updateMany({
-    where: { dealId, stageId, status: "pending" },
+    where: { leadServiceId, stageId, status: "pending" },
     data: { status: "skipped" },
   });
 }
 
-/**
- * Process due follow-ups — called by cron every 5 minutes.
- */
 export async function processDueFollowUps() {
   const now = new Date();
 
@@ -78,9 +102,10 @@ export async function processDueFollowUps() {
       scheduledAt: { lte: now },
     },
     include: {
-      deal: {
+      leadService: {
         include: {
           lead: { include: { services: { include: { service: true } } } },
+          service: true,
         },
       },
     },
@@ -91,22 +116,22 @@ export async function processDueFollowUps() {
   const results: { id: string; action: string }[] = [];
 
   for (const followUp of dueFollowUps) {
-    const lead = followUp.deal.lead;
+    const lead = followUp.leadService.lead;
     const serviceNames = lead.services.map((ls) => ls.service.name).join(", ");
 
+    const customData = (followUp.leadService.customData || {}) as Record<string, string>;
     const message = renderTemplate(followUp.messageTemplate, {
       nome: lead.name,
       servico: serviceNames || "nossos serviços",
       empresa: lead.company || "",
       telefone: lead.phone,
       email: lead.email || "",
+      ...customData,
     });
 
     if (followUp.isAutomatic && followUp.channel === "whatsapp") {
-      // Send automatically via WhatsApp
       await sendWhatsAppMessage(lead.phone, message);
 
-      // Save message in conversation
       let conversation = await prisma.conversation.findFirst({
         where: { leadId: lead.id },
         orderBy: { createdAt: "desc" },
@@ -133,23 +158,19 @@ export async function processDueFollowUps() {
 
       results.push({ id: followUp.id, action: "sent_whatsapp" });
     } else {
-      // Internal reminder — create a notification for the assigned agent
-      const assignedToId = followUp.deal.assignedToId;
-      if (assignedToId) {
-        await prisma.notification.create({
+      await prisma.notification.create({
+        data: {
+          type: "followup_due",
+          title: `Follow-up: ${lead.name}`,
+          body: message,
+          userId: (await prisma.user.findFirst({ where: { role: "ADMIN" } }))?.id || "",
           data: {
-            type: "followup_due",
-            title: `Follow-up: ${lead.name}`,
-            body: message,
-            userId: assignedToId,
-            data: {
-              dealId: followUp.dealId,
-              leadId: lead.id,
-              followUpId: followUp.id,
-            },
+            leadServiceId: followUp.leadServiceId,
+            leadId: lead.id,
+            followUpId: followUp.id,
           },
-        });
-      }
+        },
+      });
 
       await prisma.followUp.update({
         where: { id: followUp.id },
@@ -163,9 +184,6 @@ export async function processDueFollowUps() {
   return results;
 }
 
-/**
- * Render a template string replacing {{variable}} placeholders.
- */
 export function renderTemplate(
   template: string,
   variables: Record<string, string>
@@ -177,9 +195,6 @@ export function renderTemplate(
   return result;
 }
 
-/**
- * Get delay hours for a follow-up based on stage + order.
- */
 function getDelayHours(stageOrder: number, followUpOrder: number): number {
   const delays: Record<string, number> = {
     "0-1": 0,

@@ -14,7 +14,7 @@ export async function GET(
     where: { id: params.id },
     include: {
       lead: { select: { id: true, name: true, phone: true, email: true, company: true } },
-      deal: { select: { id: true, title: true, value: true } },
+      leadService: { select: { id: true, value: true, service: { select: { name: true } } } },
       service: { select: { id: true, name: true, color: true } },
       invoices: {
         orderBy: { dueDate: "asc" },
@@ -102,7 +102,7 @@ export async function PUT(
   const contract = await prisma.contract.update({
     where: { id: params.id },
     data,
-    include: { lead: true, deal: true, service: true, invoices: true },
+    include: { lead: true, leadService: true, service: true, invoices: true },
   });
 
   return NextResponse.json(contract);

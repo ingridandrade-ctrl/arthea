@@ -14,21 +14,6 @@ enum Role {
   CLIENT
 }
 
-enum LeadSource {
-  WHATSAPP
-  WEBSITE
-  MANUAL
-  REFERRAL
-  QUIZ
-}
-
-enum LeadStatus {
-  NEW
-  CONTACTED
-  QUALIFIED
-  UNQUALIFIED
-}
-
 enum MessageSender {
   LEAD
   AI
@@ -100,7 +85,6 @@ model User {
   role            Role               @default(AGENT)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
-  deals           Deal[]
   messages        Message[]          @relation("SentByUser")
   activities      Activity[]         @relation("UserActivities")
   assignedTasks   Task[]             @relation("AssignedTasks")
@@ -135,10 +119,11 @@ model Service {
   defaultDurationMonths Int             @default(12)
   createdAt   DateTime      @default(now())
   leads       LeadService[]
-  deals       Deal[]
   contracts   Contract[]
   invoices    Invoice[]
   deliverableTemplates ServiceDeliverableTemplate[]
+  pipeline    Pipeline?
+  automationFlows AutomationFlow[]
 }
 
 // Template de entregável atrelado a um Service.
@@ -166,8 +151,8 @@ model Lead {
   phone          String          @unique
   email          String?
   company        String?
-  source         LeadSource      @default(WHATSAPP)
-  status         LeadStatus      @default(NEW)
+  source         String          @default("PROSPECCAO")
+  status         String          @default("ATIVO")
   tags           String[]
   score          Int             @default(0)
   notes          String?
@@ -178,13 +163,13 @@ model Lead {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   services       LeadService[]
-  deals          Deal[]
   conversations  Conversation[]
   automationLogs AutomationLog[]
   activities     Activity[]
   tasks          Task[]
   contracts      Contract[]
   invoices       Invoice[]
+  flowExecutions FlowExecution[]
   // Quando o Lead vira cliente do portal, fica linkado a um User(CLIENT)
   clientUser     User?           @relation("UserCreatedFromLead")
 
@@ -192,74 +177,60 @@ model Lead {
   @@index([phone])
 }
 
-// Many-to-many: Lead <-> Service
+// Lead <-> Service with pipeline stage and value
 model LeadService {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   leadId    String
-  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  lead      Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
   serviceId String
-  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  service   Service        @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  stageId   String?
+  stage     PipelineStage? @relation(fields: [stageId], references: [id])
+  value     Float?
+  closedAt  DateTime?
+  customData Json?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
+  followUps FollowUp[]
+  contract  Contract?
+  activities Activity[]
+  tasks      Task[]
 
   @@unique([leadId, serviceId])
   @@index([leadId])
   @@index([serviceId])
+  @@index([stageId])
 }
 
 // Single pipeline — no more serviceId
 model Pipeline {
   id        String          @id @default(cuid())
   name      String
+  serviceId String?         @unique
+  service   Service?        @relation(fields: [serviceId], references: [id])
   stages    PipelineStage[]
   createdAt DateTime        @default(now())
 }
 
 model PipelineStage {
-  id         String     @id @default(cuid())
-  name       String
-  order      Int
-  color      String     @default("#6366f1")
-  pipelineId String
-  pipeline   Pipeline   @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
-  deals      Deal[]
-  followUps  FollowUp[]
+  id           String        @id @default(cuid())
+  name         String
+  order        Int
+  color        String        @default("#6366f1")
+  pipelineId   String
+  pipeline     Pipeline      @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  leadServices LeadService[]
+  followUps    FollowUp[]
+  automationFlows AutomationFlow[]
 
   @@index([pipelineId])
 }
 
-model Deal {
-  id                String        @id @default(cuid())
-  title             String
-  value             Float?
-  probability       Int?
-  expectedCloseDate DateTime?
-  diagnosticNotes   Json?
-  leadId            String
-  lead              Lead          @relation(fields: [leadId], references: [id])
-  serviceId         String
-  service           Service       @relation(fields: [serviceId], references: [id])
-  stageId           String
-  stage             PipelineStage @relation(fields: [stageId], references: [id])
-  assignedToId      String?
-  assignedTo        User?         @relation(fields: [assignedToId], references: [id])
-  closedAt          DateTime?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  activities        Activity[]
-  tasks             Task[]
-  followUps         FollowUp[]
-  contract          Contract?
-
-  @@index([serviceId])
-  @@index([stageId])
-  @@index([leadId])
-  @@index([assignedToId])
-}
 
 model FollowUp {
   id              String        @id @default(cuid())
-  dealId          String
-  deal            Deal          @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  leadServiceId   String
+  leadService     LeadService   @relation(fields: [leadServiceId], references: [id], onDelete: Cascade)
   stageId         String
   stage           PipelineStage @relation(fields: [stageId], references: [id])
   order           Int
@@ -272,24 +243,109 @@ model FollowUp {
   sentAt          DateTime?
   createdAt       DateTime      @default(now())
 
-  @@index([dealId])
+  @@index([leadServiceId])
   @@index([stageId])
   @@index([status, scheduledAt])
 }
 
 model FollowUpTemplate {
   id              String   @id @default(cuid())
+  code            String?  @unique
   name            String
+  serviceId       String?
   stageOrder      Int
   followUpOrder   Int
   channel         String   @default("whatsapp")
   messageTemplate String
   isAutomatic     Boolean  @default(false)
   isActive        Boolean  @default(true)
+  delayHoursOverride Int?
+  condition       Json?
+  // Meta WhatsApp Cloud API — submissão e aprovação de template
+  metaName             String?   @unique
+  metaCategory         String?   // UTILITY | MARKETING | AUTHENTICATION
+  metaLanguage         String    @default("pt_BR")
+  metaStatus           String?   // DRAFT | PENDING | APPROVED | REJECTED | DISABLED
+  metaRejectionReason  String?
+  metaSubmittedAt      DateTime?
+  metaApprovedAt       DateTime?
+  metaParamOrder       Json?     // ["nome", "empresa", "linkAnalise"] — ordem dos params {{1}}..{{N}}
+  buttons              Json?     // Array<{ id, label, actions: Array<{ type, ... }> }>
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([stageOrder, followUpOrder])
+  @@index([serviceId, stageOrder])
+}
+
+// Fluxo de automação — substitui o modelo de FollowUpTemplate isolado.
+// Cada Flow tem 1 gatilho + N passos sequenciais que rodam pra cada lead que casa o gatilho.
+model AutomationFlow {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  serviceId   String?
+  service     Service? @relation(fields: [serviceId], references: [id])
+  isActive    Boolean  @default(true)
+  // Gatilho
+  triggerType    String  // "STAGE_ENTER" | "LEAD_CREATED"
+  triggerStageId String?
+  triggerStage   PipelineStage? @relation(fields: [triggerStageId], references: [id])
+  triggerCondition Json?
+  steps      FlowStep[]
+  executions FlowExecution[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([serviceId, isActive])
+  @@index([triggerType, triggerStageId])
+}
+
+model FlowStep {
+  id           String   @id @default(cuid())
+  flowId       String
+  flow         AutomationFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  order        Int
+  delayHours   Int      @default(0)
+  actionType   String   // "send_whatsapp" | "internal_reminder" | "move_stage" | "create_task"
+  actionConfig Json
+  condition    Json?
+  isActive     Boolean  @default(true)
+  executions   FlowStepExecution[]
+
+  @@index([flowId, order])
+}
+
+model FlowExecution {
+  id            String   @id @default(cuid())
+  flowId        String
+  flow          AutomationFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  leadId        String
+  lead          Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadServiceId String?
+  status        String   @default("running") // "running" | "completed" | "stopped" | "failed"
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+  steps         FlowStepExecution[]
+
+  @@index([leadId])
+  @@index([flowId, status])
+}
+
+model FlowStepExecution {
+  id           String   @id @default(cuid())
+  executionId  String
+  execution    FlowExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  stepId       String
+  step         FlowStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  order        Int
+  scheduledAt  DateTime
+  executedAt   DateTime?
+  status       String   @default("pending") // "pending" | "executed" | "skipped" | "failed"
+  result       Json?
+
+  @@index([scheduledAt, status])
+  @@index([executionId, order])
 }
 
 model Conversation {
@@ -349,52 +405,52 @@ model AutomationLog {
 }
 
 model Activity {
-  id          String   @id @default(cuid())
-  type        String
-  description String
-  metadata    Json?
-  createdAt   DateTime @default(now())
-  leadId      String?
-  lead        Lead?    @relation(fields: [leadId], references: [id])
-  dealId      String?
-  deal        Deal?    @relation(fields: [dealId], references: [id])
-  userId      String?
-  user        User?    @relation("UserActivities", fields: [userId], references: [id])
+  id            String       @id @default(cuid())
+  type          String
+  description   String
+  metadata      Json?
+  createdAt     DateTime     @default(now())
+  leadId        String?
+  lead          Lead?        @relation(fields: [leadId], references: [id])
+  leadServiceId String?
+  leadService   LeadService? @relation(fields: [leadServiceId], references: [id])
+  userId        String?
+  user          User?        @relation("UserActivities", fields: [userId], references: [id])
 
   @@index([leadId, createdAt])
-  @@index([dealId, createdAt])
+  @@index([leadServiceId, createdAt])
 }
 
 model Task {
-  id           String    @id @default(cuid())
-  title        String
-  description  String?
-  dueDate      DateTime?
-  completed    Boolean   @default(false)
-  completedAt  DateTime?
-  priority     String    @default("medium")
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  leadId       String?
-  lead         Lead?     @relation(fields: [leadId], references: [id])
-  dealId       String?
-  deal         Deal?     @relation(fields: [dealId], references: [id])
-  assignedToId String?
-  assignedTo   User?     @relation("AssignedTasks", fields: [assignedToId], references: [id])
-  createdById  String?
-  createdBy    User?     @relation("CreatedTasks", fields: [createdById], references: [id])
+  id            String       @id @default(cuid())
+  title         String
+  description   String?
+  dueDate       DateTime?
+  completed     Boolean      @default(false)
+  completedAt   DateTime?
+  priority      String       @default("medium")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  leadId        String?
+  lead          Lead?        @relation(fields: [leadId], references: [id])
+  leadServiceId String?
+  leadService   LeadService? @relation(fields: [leadServiceId], references: [id])
+  assignedToId  String?
+  assignedTo    User?        @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  createdById   String?
+  createdBy     User?        @relation("CreatedTasks", fields: [createdById], references: [id])
 
   @@index([assignedToId, completed])
   @@index([dueDate])
   @@index([leadId])
-  @@index([dealId])
+  @@index([leadServiceId])
 }
 
 model Contract {
   id             String         @id @default(cuid())
   number         String         @unique
-  dealId         String?        @unique
-  deal           Deal?          @relation(fields: [dealId], references: [id])
+  leadServiceId  String?        @unique
+  leadService    LeadService?   @relation(fields: [leadServiceId], references: [id])
   leadId         String
   lead           Lead           @relation(fields: [leadId], references: [id])
   // Cliente do portal associado (preenchido quando lead vira cliente)
@@ -1269,4 +1325,15 @@ model GoogleAdsAccount {
   @@unique([connectionId, customerId])
   @@index([engagementId])
   @@index([hidden])
+}
+
+model AiConfig {
+  id               String   @id @default("default")
+  model            String   @default("claude-sonnet-4-20250514")
+  maxTokens        Int      @default(1024)
+  systemPrompt     String   @db.Text
+  handoffKeywords  String[] @default([])
+  botName          String   @default("Arthea IA")
+  active           Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
 }

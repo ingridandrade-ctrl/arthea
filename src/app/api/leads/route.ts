@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { normalizeLeadPhone } from "@/lib/phone";
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions) as any;
@@ -10,7 +11,11 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const serviceSlug = searchParams.get("service");
   const status = searchParams.get("status");
+  const source = searchParams.get("source");
   const search = searchParams.get("search");
+  const dateFrom = searchParams.get("from");
+  const dateTo = searchParams.get("to");
+  const sort = searchParams.get("sort") || "recent";
 
   const where: any = {};
 
@@ -19,26 +24,53 @@ export async function GET(request: NextRequest) {
       some: { service: { slug: serviceSlug } },
     };
   }
-  if (status) {
+  if (status && status !== "all") {
     where.status = status;
   }
+  if (source && source !== "all") {
+    where.source = source;
+  }
   if (search) {
+    // Pra busca por telefone: tenta tanto o texto cru quanto o normalizado
+    // (só dígitos), pra cobrir buscas como "(11) 99999-1234" achando o
+    // lead salvo como "5511999991234".
+    const phoneDigits = search.replace(/\D/g, "");
+    const phoneOR: any[] = [{ phone: { contains: search } }];
+    if (phoneDigits && phoneDigits !== search) {
+      phoneOR.push({ phone: { contains: phoneDigits } });
+    }
     where.OR = [
       { name: { contains: search, mode: "insensitive" } },
-      { phone: { contains: search } },
+      ...phoneOR,
       { email: { contains: search, mode: "insensitive" } },
       { company: { contains: search, mode: "insensitive" } },
     ];
   }
+  if (dateFrom || dateTo) {
+    where.createdAt = {};
+    if (dateFrom) where.createdAt.gte = new Date(dateFrom);
+    if (dateTo) {
+      const to = new Date(dateTo);
+      to.setHours(23, 59, 59, 999);
+      where.createdAt.lte = to;
+    }
+  }
+
+  const orderByMap: Record<string, any> = {
+    recent: { createdAt: "desc" },
+    oldest: { createdAt: "asc" },
+    name_asc: { name: "asc" },
+    name_desc: { name: "desc" },
+  };
 
   const leads = await prisma.lead.findMany({
     where,
     take: 50,
     include: {
-      services: { include: { service: true } },
-      _count: { select: { deals: true, conversations: true } },
+      services: { include: { service: true, stage: true } },
+      _count: { select: { conversations: true } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: orderByMap[sort] || orderByMap.recent,
   });
 
   return NextResponse.json(leads);
@@ -49,13 +81,15 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { name, phone, email, company, source, serviceIds, notes } = body;
+  const { name, phone, email, company, source, status, serviceIds, serviceCustomData, serviceStages, notes } = body;
 
   if (!name || !phone) {
     return NextResponse.json({ error: "Nome e telefone são obrigatórios" }, { status: 400 });
   }
 
-  const existing = await prisma.lead.findUnique({ where: { phone } });
+  const normalizedPhone = normalizeLeadPhone(phone);
+
+  const existing = await prisma.lead.findUnique({ where: { phone: normalizedPhone } });
   if (existing) {
     return NextResponse.json({ error: "Já existe um lead com este telefone" }, { status: 409 });
   }
@@ -63,22 +97,67 @@ export async function POST(request: NextRequest) {
   const lead = await prisma.lead.create({
     data: {
       name,
-      phone,
+      phone: normalizedPhone,
       email,
       company,
-      source: source || "MANUAL",
+      source: source || "PROSPECCAO",
+      status: status || "ATIVO",
       notes,
     },
   });
 
-  // Associate services (many-to-many)
-  if (serviceIds && Array.isArray(serviceIds)) {
+  const resolvedSource = source || "PROSPECCAO";
+  const isIndicacao = resolvedSource === "INDICACAO";
+
+  if (serviceIds && Array.isArray(serviceIds) && serviceIds.length > 0) {
+    const { scheduleFollowUpsForLeadService } = await import("@/lib/followups/engine");
+    const { triggerFlows } = await import("@/lib/flows/engine");
     for (const serviceId of serviceIds) {
-      await prisma.leadService.create({
-        data: { leadId: lead.id, serviceId },
+      const customData = serviceCustomData?.[serviceId] || undefined;
+      const stageId = serviceStages?.[serviceId] || undefined;
+      const ls = await prisma.leadService.create({
+        data: { leadId: lead.id, serviceId, customData, stageId },
       });
+      // INDICACAO não dispara fluxo — só notifica pra atendimento manual
+      if (stageId && !isIndicacao) {
+        await scheduleFollowUpsForLeadService(ls.id, stageId);
+        await triggerFlows({
+          type: "STAGE_ENTER",
+          leadId: lead.id,
+          leadServiceId: ls.id,
+          stageId,
+        });
+      }
     }
   }
+
+  // Notifica admin/manager (sininho + WhatsApp se FORMS — improvável aqui
+  // porque /api/leads é criação manual, mas o helper trata o switch).
+  // Preferência: pra Indicação/Prospecção criadas manualmente, só sininho
+  // (a admin já tá fazendo a criação, não precisa de notif WhatsApp).
+  const serviceForNotif = serviceIds && Array.isArray(serviceIds) && serviceIds.length > 0
+    ? await prisma.service.findUnique({ where: { id: serviceIds[0] }, select: { name: true } })
+    : null;
+  const { notifyNewLead } = await import("@/lib/notifications/new-lead");
+  notifyNewLead({
+    leadId: lead.id,
+    leadName: lead.name,
+    leadPhone: lead.phone,
+    leadCompany: lead.company,
+    source: resolvedSource,
+    serviceName: serviceForNotif?.name,
+    triggeredFromUI: true,
+  }).catch(() => {});
+
+  // Audit trail: registra criação manual de lead (paridade com /api/leads/capture).
+  await prisma.activity.create({
+    data: {
+      type: "lead_created",
+      description: `Lead criado manualmente: ${lead.name} (${resolvedSource})`,
+      leadId: lead.id,
+      userId: session.user?.id || undefined,
+    },
+  }).catch((err) => console.error("activity log failed:", err));
 
   const result = await prisma.lead.findUnique({
     where: { id: lead.id },

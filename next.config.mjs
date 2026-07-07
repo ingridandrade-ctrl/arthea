@@ -49,10 +49,41 @@ const nextConfig = {
           has: [{ type: "host", value: "consulta.clinicabrescancin.com.br" }],
           destination: "/clinicabrescancin/admin/:path*",
         },
+        // Subdomínio analises.arthea.com.br serve /analises/[slug] na raiz.
+        // O lead acessa analises.arthea.com.br/nome-do-cliente.
+        {
+          source: "/:slug",
+          has: [{ type: "host", value: "analises.arthea.com.br" }],
+          destination: "/analises/:slug",
+        },
         // URL limpa pras aulas estáticas em public/aulas — sem o .html no fim.
         {
           source: "/aulas/arte-da-presenca",
           destination: "/aulas/arte-da-presenca.html",
+        },
+        // Subdomínio da proposta comercial de Google Meu Negócio serve
+        // public/propostas/gmb.html na raiz. Cobre as duas grafias:
+        // propostagmn (sigla PT — Google Meu Negócio) e propostagmb (sigla EN).
+        {
+          source: "/",
+          has: [{ type: "host", value: "propostagmn.arthea.com.br" }],
+          destination: "/propostas/gmb.html",
+        },
+        {
+          source: "/",
+          has: [{ type: "host", value: "propostagmb.arthea.com.br" }],
+          destination: "/propostas/gmb.html",
+        },
+        // URL limpa pra proposta no domínio principal — sem o .html no fim.
+        {
+          source: "/propostas/gmb",
+          destination: "/propostas/gmb.html",
+        },
+        // URL limpa pra proposta do Grupo Sansara em public/grupo-sansara —
+        // clientes.arthea.com.br/grupo-sansara serve o index.html da pasta.
+        {
+          source: "/grupo-sansara",
+          destination: "/grupo-sansara/index.html",
         },
       ],
     };
@@ -62,6 +93,20 @@ const nextConfig = {
     return [
       {
         source: "/aulas/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        // Propostas comerciais são acessadas por link — fora de buscadores.
+        source: "/propostas/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        // Proposta do Grupo Sansara — acessada por link, fora de buscadores.
+        source: "/grupo-sansara/:path*",
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],

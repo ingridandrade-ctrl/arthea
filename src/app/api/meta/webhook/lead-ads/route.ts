@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getLeadById } from "@/lib/meta/api";
+import { normalizeLeadPhone } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 
@@ -82,11 +83,14 @@ export async function POST(request: NextRequest) {
 
         const detail = await getLeadById(accessToken, leadgenId);
         const name = pickField(detail.field_data, ["full_name", "name", "first_name"]) || "Sem nome";
-        const phone = pickField(detail.field_data, ["phone_number", "phone"]) || `meta:${leadgenId}`;
+        const rawPhone = pickField(detail.field_data, ["phone_number", "phone"]);
+        // Mantém o fallback `meta:${leadgenId}` se não veio telefone — é
+        // sentinel pra não-real phone, não normaliza.
+        const phone = rawPhone ? normalizeLeadPhone(rawPhone) : `meta:${leadgenId}`;
         const email = pickField(detail.field_data, ["email"]);
         const company = pickField(detail.field_data, ["company_name", "company"]);
 
-        await prisma.lead.upsert({
+        const upserted = await prisma.lead.upsert({
           where: { phone },
           create: {
             name,
@@ -103,7 +107,21 @@ export async function POST(request: NextRequest) {
           update: {
             tags: { push: "meta-lead-ads" },
           },
+          select: { id: true, name: true, phone: true, company: true, createdAt: true, updatedAt: true },
         });
+        // Notifica admin se foi criação (não update). updatedAt === createdAt
+        // num row recém-criado pelo upsert.
+        const isNew = upserted.createdAt.getTime() === upserted.updatedAt.getTime();
+        if (isNew) {
+          const { notifyNewLead } = await import("@/lib/notifications/new-lead");
+          notifyNewLead({
+            leadId: upserted.id,
+            leadName: upserted.name,
+            leadPhone: upserted.phone,
+            leadCompany: upserted.company,
+            source: "WEBSITE",
+          }).catch(() => {});
+        }
       } catch (err: any) {
         console.error("Lead Ads webhook error:", err?.response?.data || err.message);
       }

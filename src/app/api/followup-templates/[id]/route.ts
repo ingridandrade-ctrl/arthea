@@ -11,7 +11,11 @@ export async function PUT(
   if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { name, messageTemplate, isAutomatic, isActive, channel, delayHours } = body;
+  const {
+    name, messageTemplate, isAutomatic, isActive, channel, serviceId,
+    condition, buttons,
+    metaName, metaCategory, metaLanguage,
+  } = body;
 
   const template = await prisma.followUpTemplate.update({
     where: { id: params.id },
@@ -21,6 +25,12 @@ export async function PUT(
       ...(isAutomatic !== undefined && { isAutomatic }),
       ...(isActive !== undefined && { isActive }),
       ...(channel !== undefined && { channel }),
+      ...(serviceId !== undefined && { serviceId: serviceId || null }),
+      ...(condition !== undefined && { condition: condition || undefined }),
+      ...(buttons !== undefined && { buttons: buttons || undefined }),
+      ...(metaName !== undefined && { metaName: metaName || null }),
+      ...(metaCategory !== undefined && { metaCategory: metaCategory || null }),
+      ...(metaLanguage !== undefined && { metaLanguage: metaLanguage || "pt_BR" }),
     },
   });
 

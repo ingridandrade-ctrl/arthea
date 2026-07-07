@@ -163,17 +163,17 @@ export async function POST(req: NextRequest) {
               phone: phone || `cliente-${user.id.slice(0, 8)}`,
               email,
               source: "MANUAL",
-              status: "QUALIFIED",
+              status: "CLIENTE",
             },
           });
           effectiveLeadId = autoLead.id;
           // Atualiza User pra apontar pro lead auto criado
           await tx.user.update({ where: { id: user.id }, data: { leadId: effectiveLeadId } });
         } else {
-          // Marca Lead existente como QUALIFIED (foi convertido em cliente)
+          // Marca Lead existente como CLIENTE (foi convertido em cliente)
           await tx.lead.update({
             where: { id: leadId },
-            data: { status: "QUALIFIED" },
+            data: { status: "CLIENTE" },
           });
         }
 

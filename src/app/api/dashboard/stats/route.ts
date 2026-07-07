@@ -9,58 +9,96 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const serviceSlug = searchParams.get("service");
+  const stageId = searchParams.get("stage");
+  const dateFrom = searchParams.get("from");
+  const dateTo = searchParams.get("to");
 
-  // Build filter for leads with service tag
   const leadWhere: any = {};
-  const dealWhere: any = {};
+  const lsWhere: any = {};
 
   if (serviceSlug && serviceSlug !== "all") {
     leadWhere.services = { some: { service: { slug: serviceSlug } } };
-    dealWhere.service = { slug: serviceSlug };
+    lsWhere.service = { slug: serviceSlug };
   }
 
-  const [totalLeads, totalDeals, closedDeals, recentLeads, services] =
+  if (stageId && stageId !== "all") {
+    lsWhere.stageId = stageId;
+  }
+
+  if (dateFrom || dateTo) {
+    const dateFilter: any = {};
+    if (dateFrom) dateFilter.gte = new Date(dateFrom);
+    if (dateTo) {
+      const to = new Date(dateTo);
+      to.setHours(23, 59, 59, 999);
+      dateFilter.lte = to;
+    }
+    leadWhere.createdAt = dateFilter;
+    lsWhere.createdAt = dateFilter;
+  }
+
+  const [totalLeads, totalLeadServices, closedLeadServices, recentLeads, services, lsCountsByService] =
     await Promise.all([
       prisma.lead.count({ where: leadWhere }),
-      prisma.deal.count({ where: dealWhere }),
-      prisma.deal.findMany({
+      prisma.leadService.count({ where: lsWhere }),
+      prisma.leadService.findMany({
         where: {
-          ...dealWhere,
-          stage: { name: "Fechado Ganho" },
+          ...lsWhere,
+          OR: [
+            { stage: { name: { contains: "Ganho" } } },
+            { lead: { status: "CLIENTE" } },
+          ],
         },
-        select: { value: true },
+        select: { value: true, serviceId: true },
       }),
       prisma.lead.findMany({
         where: leadWhere,
         orderBy: { createdAt: "desc" },
-        take: 5,
-        include: { services: { include: { service: true } } },
+        take: 8,
+        include: { services: { include: { service: true, stage: true } } },
       }),
-      prisma.service.findMany({
-        include: {
-          _count: { select: { leads: true, deals: true } },
-        },
+      prisma.service.findMany({ select: { id: true, name: true, color: true, slug: true } }),
+      prisma.leadService.groupBy({
+        by: ["serviceId"],
+        where: lsWhere,
+        _count: { _all: true },
       }),
     ]);
 
-  const totalRevenue = closedDeals.reduce((sum, d) => sum + (d.value || 0), 0);
+  const countByServiceId = new Map(lsCountsByService.map((r) => [r.serviceId, r._count._all]));
+
+  const totalRevenue = closedLeadServices.reduce((sum, d) => sum + (d.value || 0), 0);
   const conversionRate =
-    totalLeads > 0 ? (closedDeals.length / totalLeads) * 100 : 0;
+    totalLeads > 0 ? (closedLeadServices.length / totalLeads) * 100 : 0;
 
-  const leadsByService = services.map((s) => ({
-    service: s.name,
-    count: s._count.leads,
-    color: s.color,
-  }));
+  const revenueByServiceId = new Map<string, number>();
+  for (const ls of closedLeadServices) {
+    revenueByServiceId.set(ls.serviceId, (revenueByServiceId.get(ls.serviceId) || 0) + (ls.value || 0));
+  }
 
-  // Get pipeline stages with deal counts
+  const leadsByService = services
+    .filter((s) => !serviceSlug || serviceSlug === "all" || s.slug === serviceSlug)
+    .map((s) => ({
+      service: s.name,
+      count: countByServiceId.get(s.id) || 0,
+      color: s.color,
+    }));
+
+  const revenueByService = services
+    .filter((s) => !serviceSlug || serviceSlug === "all" || s.slug === serviceSlug)
+    .map((s) => ({
+      service: s.name,
+      value: revenueByServiceId.get(s.id) || 0,
+      color: s.color,
+    }));
+
   const pipeline = await prisma.pipeline.findFirst({
     include: {
       stages: {
         orderBy: { order: "asc" },
         include: {
           _count: {
-            select: { deals: true },
+            select: { leadServices: true },
           },
         },
       },
@@ -69,11 +107,10 @@ export async function GET(request: NextRequest) {
 
   const dealsByStage = (pipeline?.stages || []).map((s) => ({
     stage: s.name,
-    count: s._count.deals,
+    count: s._count.leadServices,
     color: s.color,
   }));
 
-  // Follow-up stats
   const now = new Date();
   const todayEnd = new Date(now);
   todayEnd.setHours(23, 59, 59, 999);
@@ -85,10 +122,10 @@ export async function GET(request: NextRequest) {
         scheduledAt: { lte: todayEnd },
       },
     }),
-    prisma.deal.count({
+    prisma.leadService.count({
       where: {
-        ...dealWhere,
-        stage: { order: { lt: 5 } }, // Not closed
+        ...lsWhere,
+        stage: { order: { lt: 5 } },
         updatedAt: { lt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) },
       },
     }),
@@ -96,10 +133,11 @@ export async function GET(request: NextRequest) {
 
   const response = NextResponse.json({
     totalLeads,
-    totalDeals,
+    totalLeadServices,
     totalRevenue,
     conversionRate: Math.round(conversionRate * 10) / 10,
     leadsByService,
+    revenueByService,
     dealsByStage,
     recentLeads,
     pendingFollowUpsToday,

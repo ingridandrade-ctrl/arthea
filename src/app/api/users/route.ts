@@ -18,7 +18,7 @@ export async function GET() {
       email: true,
       role: true,
       createdAt: true,
-      _count: { select: { deals: true, assignedTasks: true } },
+      _count: { select: { assignedTasks: true } },
     },
     orderBy: { createdAt: "asc" },
   });

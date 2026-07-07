@@ -288,7 +288,6 @@ async function main() {
   const existingTemplates = await prisma.followUpTemplate.count();
   if (existingTemplates === 0) {
     for (const template of FOLLOW_UP_TEMPLATES) {
-      const key = `${template.stageOrder}-${template.followUpOrder}`;
       await prisma.followUpTemplate.create({
         data: {
           ...template,
@@ -313,6 +312,9 @@ async function main() {
       notes:
         "Interessada em campanhas de Google Ads para escritório de advocacia.",
       servicesSlugs: ["trafego-pago"],
+      serviceConfigs: [
+        { slug: "trafego-pago", stageOrder: 3, value: 5000 },
+      ],
     },
     {
       name: "João Santos",
@@ -326,6 +328,10 @@ async function main() {
       notes:
         "Startup de tecnologia buscando presença digital e automação.",
       servicesSlugs: ["crm-automacao", "landing-pages"],
+      serviceConfigs: [
+        { slug: "crm-automacao", stageOrder: 2, value: 8000 },
+        { slug: "landing-pages", stageOrder: 1, value: null },
+      ],
     },
     {
       name: "Ana Oliveira",
@@ -339,6 +345,9 @@ async function main() {
       notes:
         "Rede de salões de beleza com 3 unidades, quer melhorar presença no Google.",
       servicesSlugs: ["google-meu-negocio"],
+      serviceConfigs: [
+        { slug: "google-meu-negocio", stageOrder: 1, value: 2000 },
+      ],
     },
     {
       name: "Carlos Mendes",
@@ -352,6 +361,10 @@ async function main() {
       notes:
         "Construtora grande, precisa de landing pages para lançamentos imobiliários.",
       servicesSlugs: ["landing-pages", "trafego-pago"],
+      serviceConfigs: [
+        { slug: "landing-pages", stageOrder: 4, value: 15000 },
+        { slug: "trafego-pago", stageOrder: 3, value: 5000 },
+      ],
     },
     {
       name: "Fernanda Lima",
@@ -365,14 +378,17 @@ async function main() {
       notes:
         "Plataforma de cursos online querendo automação de marketing.",
       servicesSlugs: ["crm-automacao"],
+      serviceConfigs: [
+        { slug: "crm-automacao", stageOrder: 0, value: 4000 },
+      ],
     },
   ];
 
-  const createdLeads: { id: string; name: string; primaryServiceId: string }[] = [];
+  const createdLeads: { id: string; name: string }[] = [];
+  const createdLeadServices: { id: string; leadName: string; stageOrder: number }[] = [];
 
   for (const leadData of sampleLeads) {
-    const { servicesSlugs, ...data } = leadData;
-    const primaryServiceId = createdServices[servicesSlugs[0]];
+    const { servicesSlugs, serviceConfigs, ...data } = leadData;
 
     const created = await prisma.lead.upsert({
       where: { phone: data.phone },
@@ -380,127 +396,40 @@ async function main() {
       create: data,
     });
 
-    // Create LeadService associations
-    for (const slug of servicesSlugs) {
-      const serviceId = createdServices[slug];
+    // Create LeadService associations with stage and value
+    for (const config of serviceConfigs) {
+      const serviceId = createdServices[config.slug];
       if (serviceId) {
-        await prisma.leadService.upsert({
+        const stageId = stageByOrder[config.stageOrder] || null;
+        const ls = await prisma.leadService.upsert({
           where: { leadId_serviceId: { leadId: created.id, serviceId } },
-          update: {},
-          create: { leadId: created.id, serviceId },
+          update: {
+            stage: stageId ? { connect: { id: stageId } } : { disconnect: true },
+            value: config.value,
+          },
+          create: {
+            leadId: created.id,
+            serviceId,
+            stageId,
+            value: config.value,
+          },
         });
+        createdLeadServices.push({ id: ls.id, leadName: created.name, stageOrder: config.stageOrder });
       }
     }
 
-    createdLeads.push({ id: created.id, name: created.name, primaryServiceId });
+    createdLeads.push({ id: created.id, name: created.name });
     console.log(`Created lead: ${created.name}`);
   }
 
-  // Create sample deals (all in single pipeline)
-  const sampleDeals = [
-    {
-      title: "Google Ads - Silva & Associados",
-      value: 5000,
-      probability: 80,
-      expectedCloseDate: new Date("2026-04-15"),
-      leadId: createdLeads[0].id,
-      serviceId: createdLeads[0].primaryServiceId,
-      stageId: stageByOrder[3], // Proposta Enviada
-      assignedToId: agent.id,
-      diagnosticNotes: {
-        problems: [
-          {
-            id: "1",
-            description: "Sem campanhas pagas ativas",
-            suggestedService: "Tráfego Pago",
-            priority: "high",
-            notes: "Concorrentes investindo forte em Google Ads",
-          },
-        ],
-        currentInvestment: "R$ 0 em ads",
-        mainGoal: "Captar 20 novos clientes/mês",
-        timeline: "Quer começar imediatamente",
-      },
-    },
-    {
-      title: "CRM + Landing Page - TechStart",
-      value: 8000,
-      probability: 50,
-      expectedCloseDate: new Date("2026-04-30"),
-      leadId: createdLeads[1].id,
-      serviceId: createdServices["crm-automacao"],
-      stageId: stageByOrder[2], // Briefing Realizado
-      assignedToId: agent.id,
-    },
-    {
-      title: "GMN - Beleza & Cia",
-      value: 2000,
-      probability: 30,
-      leadId: createdLeads[2].id,
-      serviceId: createdServices["google-meu-negocio"],
-      stageId: stageByOrder[1], // Em Contato
-      assignedToId: agent.id,
-    },
-    {
-      title: "Landing Pages + Ads - Mendes Construções",
-      value: 15000,
-      probability: 90,
-      expectedCloseDate: new Date("2026-04-10"),
-      leadId: createdLeads[3].id,
-      serviceId: createdServices["landing-pages"],
-      stageId: stageByOrder[4], // Negociação
-      assignedToId: manager.id,
-      diagnosticNotes: {
-        problems: [
-          {
-            id: "1",
-            description: "Site não converte",
-            suggestedService: "Landing Pages",
-            priority: "high",
-            notes: "Taxa de conversão abaixo de 1%",
-          },
-          {
-            id: "2",
-            description: "Investimento em ads sem retorno",
-            suggestedService: "Tráfego Pago",
-            priority: "medium",
-            notes: "R$ 5k/mês sem tracking adequado",
-          },
-        ],
-        currentInvestment: "R$ 5.000/mês em Meta Ads",
-        mainGoal: "Aumentar vendas em 30%",
-        timeline: "Quer começar em 2 semanas",
-      },
-    },
-    {
-      title: "Automação - EducaPlus",
-      value: 4000,
-      probability: 60,
-      expectedCloseDate: new Date("2026-05-15"),
-      leadId: createdLeads[4].id,
-      serviceId: createdServices["crm-automacao"],
-      stageId: stageByOrder[0], // Novo Lead
-      assignedToId: manager.id,
-    },
-  ];
-
-  const createdDeals: { id: string; title: string; stageOrder: number }[] = [];
-
-  for (const deal of sampleDeals) {
-    const stageOrder = stages.find((s) => s.id === deal.stageId)?.order ?? 0;
-    const created = await prisma.deal.create({ data: deal });
-    createdDeals.push({ id: created.id, title: created.title, stageOrder });
-    console.log(`Created deal: ${created.title}`);
-  }
-
-  // Create sample follow-ups for deals
+  // Create sample follow-ups for lead services
   const followUpTemplates = await prisma.followUpTemplate.findMany({
     where: { isActive: true },
   });
 
-  for (const deal of createdDeals) {
+  for (const ls of createdLeadServices) {
     const templates = followUpTemplates.filter(
-      (t) => t.stageOrder === deal.stageOrder
+      (t) => t.stageOrder === ls.stageOrder
     );
     for (const template of templates) {
       const key = `${template.stageOrder}-${template.followUpOrder}`;
@@ -510,7 +439,7 @@ async function main() {
       );
       await prisma.followUp.create({
         data: {
-          dealId: deal.id,
+          leadServiceId: ls.id,
           stageId: stageByOrder[template.stageOrder],
           order: template.followUpOrder,
           delayHours,
@@ -523,14 +452,14 @@ async function main() {
       });
     }
   }
-  console.log("Created sample follow-ups for deals");
+  console.log("Created sample follow-ups for lead services");
 
   // Create sample activities
   const sampleActivities = [
     {
-      type: "deal_created",
-      description: "Deal criado: Google Ads - Silva & Associados",
-      dealId: createdDeals[0].id,
+      type: "service_added",
+      description: "Servico adicionado: Tráfego Pago - Silva & Associados",
+      leadServiceId: createdLeadServices[0]?.id,
       leadId: createdLeads[0].id,
       userId: agent.id,
     },
@@ -539,14 +468,14 @@ async function main() {
       description:
         "Ligação realizada para Maria Silva - discutido orçamento de Google Ads",
       leadId: createdLeads[0].id,
-      dealId: createdDeals[0].id,
+      leadServiceId: createdLeadServices[0]?.id,
       userId: agent.id,
       metadata: { duration: "15min", outcome: "positive" },
     },
     {
       type: "stage_change",
-      description: "Deal movido para Proposta Enviada",
-      dealId: createdDeals[0].id,
+      description: "Servico movido para Proposta Enviada",
+      leadServiceId: createdLeadServices[0]?.id,
       leadId: createdLeads[0].id,
       userId: agent.id,
       metadata: { from: "Briefing Realizado", to: "Proposta Enviada" },
@@ -559,9 +488,9 @@ async function main() {
       userId: agent.id,
     },
     {
-      type: "deal_created",
-      description: "Deal criado: Landing Pages + Ads - Mendes Construções",
-      dealId: createdDeals[3].id,
+      type: "service_added",
+      description: "Servico adicionado: Landing Pages - Mendes Construções",
+      leadServiceId: createdLeadServices[3]?.id,
       leadId: createdLeads[3].id,
       userId: manager.id,
     },
@@ -587,7 +516,7 @@ async function main() {
       dueDate: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
       priority: "high",
       leadId: createdLeads[0].id,
-      dealId: createdDeals[0].id,
+      leadServiceId: createdLeadServices[0]?.id,
       assignedToId: agent.id,
       createdById: manager.id,
     },
@@ -597,7 +526,7 @@ async function main() {
       dueDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000),
       priority: "medium",
       leadId: createdLeads[1].id,
-      dealId: createdDeals[1].id,
+      leadServiceId: createdLeadServices[1]?.id,
       assignedToId: agent.id,
       createdById: manager.id,
     },
@@ -607,7 +536,7 @@ async function main() {
       dueDate: new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000),
       priority: "urgent",
       leadId: createdLeads[2].id,
-      dealId: createdDeals[2].id,
+      leadServiceId: createdLeadServices[2]?.id,
       assignedToId: agent.id,
       createdById: agent.id,
     },
@@ -617,7 +546,7 @@ async function main() {
       dueDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
       priority: "high",
       leadId: createdLeads[3].id,
-      dealId: createdDeals[3].id,
+      leadServiceId: createdLeadServices[3]?.id,
       assignedToId: agent.id,
       createdById: manager.id,
     },
@@ -653,11 +582,11 @@ async function main() {
       data: { leadId: createdLeads[2].id },
     },
     {
-      type: "deal_won",
-      title: "Deal em negociação",
-      body: "Landing Pages + Ads - Mendes Construções avançou para Negociação (R$ 15.000)",
+      type: "stage_change",
+      title: "Servico em negociação",
+      body: "Landing Pages - Mendes Construções avançou para Negociação (R$ 15.000)",
       userId: admin.id,
-      data: { dealId: createdDeals[3].id },
+      data: { leadServiceId: createdLeadServices[3]?.id },
     },
     {
       type: "followup_due",

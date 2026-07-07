@@ -21,8 +21,13 @@ export default function UsuariosPage() {
   useEffect(() => { fetchUsers(); }, []);
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`Excluir o usuario "${name}"? Esta acao nao pode ser desfeita.`)) return;
-    await fetch(`/api/users/${id}`, { method: "DELETE" });
+    if (!confirm(`Excluir o usuário "${name}"? Esta ação não pode ser desfeita.`)) return;
+    const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error || "Erro ao excluir usuário");
+      return;
+    }
     fetchUsers();
   }
 
@@ -61,7 +66,6 @@ export default function UsuariosPage() {
               <th className="px-4 py-3 font-medium">Nome</th>
               <th className="px-4 py-3 font-medium">Email</th>
               <th className="px-4 py-3 font-medium">Perfil</th>
-              <th className="px-4 py-3 font-medium">Deals</th>
               <th className="px-4 py-3 font-medium">Tarefas</th>
               <th className="px-4 py-3 font-medium">Criado em</th>
               <th className="px-4 py-3 font-medium">Acoes</th>
@@ -86,7 +90,6 @@ export default function UsuariosPage() {
                     {roleLabels[user.role] || user.role}
                   </span>
                 </td>
-                <td className="px-4 py-3">{user._count?.deals || 0}</td>
                 <td className="px-4 py-3">{user._count?.assignedTasks || 0}</td>
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(user.createdAt)}</td>
                 <td className="px-4 py-3">
