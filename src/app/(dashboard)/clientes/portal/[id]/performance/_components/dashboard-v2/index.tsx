@@ -149,7 +149,7 @@ export function DashboardV2({
                   <HealthPanel summary={s} />
                 </div>
                 <div>
-                  <InsightsCard />
+                  <InsightsCard engagementId={engagementId} showCurationLink />
                 </div>
               </div>
 
