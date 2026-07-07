@@ -17,6 +17,7 @@ import { FunilEcommerce } from "./funil-ecommerce";
 import { ResumoEcommerce } from "./resumo-ecommerce";
 import { InsightsCard } from "./insights-card";
 import { CustomZone } from "./custom-zone";
+import { GoogleView } from "./google-view";
 import { useDashboardData, videoAds } from "./use-dashboard-data";
 
 const nfBR = new Intl.NumberFormat("pt-BR");
@@ -82,13 +83,11 @@ export function DashboardV2({
       <PlatformTabs value={platform} onChange={setPlatform} />
 
       {platform === "google" && (
-        <div className="bg-card border border-dashed border-border rounded-2xl p-10 text-center">
-          <p className="text-[13.5px] text-muted-foreground">
-            <strong className="text-foreground font-medium">Google Ads na v2 chega no PR 7.</strong>
-            <br />
-            Enquanto isso, use a view atual (desmarque o "Beta v2" no topo).
-          </p>
-        </div>
+        <GoogleView
+          engagementId={engagementId}
+          businessType={businessType}
+          dateRange={dateRange}
+        />
       )}
 
       {platform === "meta" && (
