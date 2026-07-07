@@ -59,6 +59,17 @@ function isPortalPath(pathname: string) {
   return pathname === "/portal" || pathname.startsWith("/portal/");
 }
 
+// Preview "ver como o cliente": ADMIN/MANAGER com esse cookie (setado por
+// /api/portal-preview) podem entrar no /portal. Nome espelha
+// PREVIEW_COOKIE em src/lib/portal-viewer.ts — mantido inline aqui porque
+// aquele módulo importa next/headers (indisponível no middleware).
+const PREVIEW_COOKIE = "arthea_preview_client";
+
+function hasPreviewAccess(req: NextRequest, role: string | undefined) {
+  if (role !== "ADMIN" && role !== "MANAGER") return false;
+  return !!req.cookies.get(PREVIEW_COOKIE)?.value;
+}
+
 export default withAuth(
   function middleware(req) {
     const host = req.headers.get("host");
@@ -98,7 +109,7 @@ export default withAuth(
       if (pathname === "/") {
         return NextResponse.redirect(new URL(role === "CLIENT" ? "/portal" : "/login", req.url));
       }
-      if (isPortalPath(pathname) && role !== "CLIENT") {
+      if (isPortalPath(pathname) && role !== "CLIENT" && !hasPreviewAccess(req, role)) {
         return NextResponse.redirect(new URL("/login", req.url));
       }
       return NextResponse.next();
@@ -106,7 +117,7 @@ export default withAuth(
 
     // ── Domínio principal (agência) ──
     if (isPortalPath(pathname)) {
-      if (role !== "CLIENT") {
+      if (role !== "CLIENT" && !hasPreviewAccess(req, role)) {
         return NextResponse.redirect(new URL("/login", req.url));
       }
     }

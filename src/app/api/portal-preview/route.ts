@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { cookies } from "next/headers";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PREVIEW_COOKIE } from "@/lib/portal-viewer";
@@ -28,12 +27,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/clientes", req.url));
   }
 
-  cookies().set(PREVIEW_COOKIE, engagement.clientId, {
+  // Cookie vai anexado na PRÓPRIA resposta de redirect — cookies().set()
+  // solto não sobrevive a um NextResponse.redirect construído à parte.
+  const res = NextResponse.redirect(new URL(`/portal/${engagement.slug}`, req.url));
+  res.cookies.set(PREVIEW_COOKIE, engagement.clientId, {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 2,
   });
-
-  return NextResponse.redirect(new URL(`/portal/${engagement.slug}`, req.url));
+  return res;
 }

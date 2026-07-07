@@ -223,10 +223,7 @@ function CRMLoginUI({
           </button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          Credenciais padrão: admin@arthea.com / admin123
-        </p>
-        <p className="text-center text-xs text-muted-foreground mt-4">
+        <p className="text-center text-xs text-muted-foreground mt-6">
           <a href="/politica-de-privacidade" className="underline hover:text-foreground">
             Política de privacidade
           </a>
