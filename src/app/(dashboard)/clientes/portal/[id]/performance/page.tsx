@@ -38,54 +38,32 @@ export default async function ClientPerformanceAdmin({
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "16px 40px 0",
-          position: "absolute",
-          zIndex: 10,
-        }}
-      >
-        <Link
-          href={`/clientes/portal/${params.id}`}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: 12,
-            color: "#6B7280",
-            textDecoration: "none",
-            fontFamily: "inherit",
-          }}
-        >
-          <ArrowLeft size={14} /> {engagement.name}
-        </Link>
-        <Link
-          href={
-            useV2
-              ? `/clientes/portal/${params.id}/performance`
-              : `/clientes/portal/${params.id}/performance?v2=1`
-          }
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            fontSize: 11,
-            color: useV2 ? "#1D7070" : "#6B7280",
-            textDecoration: "none",
-            fontFamily: "inherit",
-            padding: "3px 8px",
-            borderRadius: 999,
-            border: `1px solid ${useV2 ? "#1D707033" : "#E5E7EB"}`,
-            background: useV2 ? "#1D707011" : "transparent",
-            fontWeight: 500,
-          }}
-        >
-          <Beaker size={12} />
-          {useV2 ? "Beta v2 (ativo)" : "Testar Beta v2"}
-        </Link>
+      {/* Barra fixa no topo com voltar + toggle Beta bem visível */}
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
+        <div className="max-w-[1280px] mx-auto px-7 py-3 flex items-center justify-between gap-3 flex-wrap">
+          <Link
+            href={`/clientes/portal/${params.id}`}
+            className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition"
+          >
+            <ArrowLeft className="w-4 h-4" strokeWidth={1.8} />
+            {engagement.name}
+          </Link>
+          <Link
+            href={
+              useV2
+                ? `/clientes/portal/${params.id}/performance`
+                : `/clientes/portal/${params.id}/performance?v2=1`
+            }
+            className={
+              useV2
+                ? "inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold bg-brand text-white hover:opacity-90 transition"
+                : "inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold bg-brand/10 text-brand border border-brand/30 hover:bg-brand/15 transition"
+            }
+          >
+            <Beaker className="w-4 h-4" strokeWidth={1.9} />
+            {useV2 ? "Voltar pra versão antiga" : "Testar Beta v2 (novo dashboard)"}
+          </Link>
+        </div>
       </div>
 
       {useV2 ? (
