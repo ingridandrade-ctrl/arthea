@@ -183,7 +183,7 @@ export function DashboardV2({
               )}
 
               {/* Camada 3 — custom */}
-              <CustomZone />
+              <CustomZone engagementId={engagementId} summary={s} showConfigLink />
             </>
           )}
         </>
