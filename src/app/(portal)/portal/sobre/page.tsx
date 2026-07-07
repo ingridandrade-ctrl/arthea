@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { authOptions } from "@/lib/auth";
+import { getEffectivePortalClientId } from "@/lib/portal-viewer";
 import { prisma } from "@/lib/prisma";
 import { parseDossier, SECTIONS } from "@/lib/dossier";
 import { DossierView } from "./_components/dossier-view";
@@ -10,7 +11,8 @@ import { DossierView } from "./_components/dossier-view";
 export default async function DossierPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-  const userId = (session.user as any).id;
+  const userId = getEffectivePortalClientId(session);
+  if (!userId) redirect("/inicio");
   const userName = session.user?.name || "";
   const firstName = userName.split(" ")[0];
 

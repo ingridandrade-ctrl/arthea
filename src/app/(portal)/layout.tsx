@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { getEffectivePortalClientId } from "@/lib/portal-viewer";
 import { prisma } from "@/lib/prisma";
 import { PortalSidebar } from "./_components/portal-sidebar";
 
@@ -25,9 +26,12 @@ export default async function PortalLayout({
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-  if ((session.user as any).role !== "CLIENT") redirect("/inicio");
+  // CLIENT entra direto; ADMIN/MANAGER só com preview ativo (cookie de
+  // "ver como o cliente" setado por /api/portal-preview).
+  const userId = getEffectivePortalClientId(session);
+  if (!userId) redirect("/inicio");
+  const isPreview = (session.user as any).role !== "CLIENT";
 
-  const userId = (session.user as any).id;
   const [engagements, currentUser] = await Promise.all([
     prisma.clientEngagement.findMany({
       where: { clientId: userId, isActive: true },
@@ -43,7 +47,7 @@ export default async function PortalLayout({
     }),
     prisma.user.findUnique({
       where: { id: userId },
-      select: { scenesEnabled: true },
+      select: { name: true, scenesEnabled: true },
     }),
   ]);
   const scenesEnabled = !!currentUser?.scenesEnabled;
@@ -90,6 +94,40 @@ export default async function PortalLayout({
           maxWidth: 1080,
         }}
       >
+        {isPreview && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+              background: "#FEF3C7",
+              border: "1px solid #F59E0B55",
+              color: "#92400E",
+              borderRadius: 12,
+              padding: "10px 16px",
+              marginBottom: 24,
+              fontSize: 13,
+            }}
+          >
+            <span>
+              <strong>Modo preview</strong> — você está vendo a área de membros como{" "}
+              {currentUser?.name || "o cliente"} vê.
+            </span>
+            <a
+              href="/api/portal-preview/exit?to=/clientes"
+              style={{
+                color: "#92400E",
+                fontWeight: 600,
+                textDecoration: "underline",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Sair do preview
+            </a>
+          </div>
+        )}
         {children}
       </main>
     </div>

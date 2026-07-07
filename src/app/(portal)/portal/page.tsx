@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { getEffectivePortalClientId } from "@/lib/portal-viewer";
 import { prisma } from "@/lib/prisma";
 import { greetingPtBr } from "@/lib/time";
 import Link from "next/link";
@@ -19,7 +20,8 @@ const TYPE_META: Record<
 export default async function PortalHub() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-  const userId = (session.user as any).id;
+  const userId = getEffectivePortalClientId(session);
+  if (!userId) redirect("/inicio");
   const firstName = (session.user?.name || "").split(" ")[0];
 
   const engagements = await prisma.clientEngagement.findMany({

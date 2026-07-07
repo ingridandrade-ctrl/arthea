@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ArrowRight, Briefcase, Mail, AlertTriangle, Plus } from "lucide-react";
+import { ArrowRight, Briefcase, Mail, AlertTriangle, Plus, RadioTower } from "lucide-react";
 import { NewClientButton } from "./portal/_components/new-client-button";
 
 // Lista de CLIENTES (User com role=CLIENT) — a porta de entrada única da
@@ -46,6 +46,13 @@ export default async function ClientesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href="/clientes/anuncios"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground/80 hover:text-foreground hover:border-foreground/30 transition"
+          >
+            <RadioTower className="w-4 h-4" strokeWidth={1.8} />
+            Saúde dos anúncios
+          </Link>
           <Link
             href="/projetos"
             className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-3 py-2"

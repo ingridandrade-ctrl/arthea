@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Film } from "lucide-react";
 import { authOptions } from "@/lib/auth";
+import { getEffectivePortalClientId } from "@/lib/portal-viewer";
 import { prisma } from "@/lib/prisma";
 import { SCENE_THEMES, visualStatus, SCENE_STATUS_BG, SCENE_STATUS_FG, SCENE_STATUS_LABEL } from "@/lib/scenes";
 import { SceneActions } from "../_components/scene-actions";
@@ -15,7 +16,8 @@ export default async function SceneDetailPage({
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-  const userId = (session.user as any).id;
+  const userId = getEffectivePortalClientId(session);
+  if (!userId) redirect("/inicio");
 
   const scene = await prisma.scene.findUnique({
     where: { id: params.id },

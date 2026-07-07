@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ProjectTabs } from "./_components/project-tabs";
@@ -43,23 +43,34 @@ export default async function ProjectLayout({
         <ArrowLeft className="w-4 h-4" /> {project.client.name}
       </Link>
 
-      <div className="flex items-start gap-3">
-        <span
-          className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0 mt-0.5"
-          style={{ background: project.accentColor || "#1D7070" }}
-        >
-          {project.name.charAt(0).toUpperCase()}
-        </span>
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-            {project.client.name} · {project.client.email}
-          </p>
-          <h1 className="text-2xl font-bold mt-0.5 truncate">{project.name}</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Fase {project.currentPhase} · {project._count.deliverables} entregáveis ·{" "}
-            {project._count.accesses} acessos · {project._count.references} referências
-          </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-start gap-3 min-w-0">
+          <span
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0 mt-0.5"
+            style={{ background: project.accentColor || "#1D7070" }}
+          >
+            {project.name.charAt(0).toUpperCase()}
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+              {project.client.name} · {project.client.email}
+            </p>
+            <h1 className="text-2xl font-bold mt-0.5 truncate">{project.name}</h1>
+            <p className="text-xs text-muted-foreground mt-1">
+              Fase {project.currentPhase} · {project._count.deliverables} entregáveis ·{" "}
+              {project._count.accesses} acessos · {project._count.references} referências
+            </p>
+          </div>
         </div>
+        <a
+          href={`/api/portal-preview?engagementId=${project.id}`}
+          target="_blank"
+          rel="noopener"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-sm font-medium text-foreground/80 hover:text-foreground hover:border-foreground/30 transition flex-shrink-0"
+        >
+          <Eye className="w-4 h-4" strokeWidth={1.8} />
+          Ver como o cliente vê
+        </a>
       </div>
 
       <ProjectTabs projectId={project.id} />

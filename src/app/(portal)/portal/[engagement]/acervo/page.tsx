@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { getEffectivePortalClientId } from "@/lib/portal-viewer";
 import { prisma } from "@/lib/prisma";
 import { SCENE_THEME_KEYS, SCENE_THEMES } from "@/lib/scenes";
 import { ScenesView } from "./_components/scenes-view";
@@ -8,7 +9,8 @@ import { ScenesView } from "./_components/scenes-view";
 export default async function AcervoPage({ params }: { params: { engagement: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-  const userId = (session.user as any).id;
+  const userId = getEffectivePortalClientId(session);
+  if (!userId) redirect("/inicio");
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
