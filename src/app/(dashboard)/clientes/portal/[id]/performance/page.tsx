@@ -15,7 +15,7 @@ export default async function ClientPerformanceAdmin({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { v2?: string };
+  searchParams: { v2?: string; legacy?: string };
 }) {
   const session = (await getServerSession(authOptions)) as any;
   if (!session) redirect("/login");
@@ -34,7 +34,9 @@ export default async function ClientPerformanceAdmin({
   });
   if (!engagement) notFound();
 
-  const useV2 = searchParams.v2 === "1";
+  // Default agora é v2. Pra ver a versão antiga: ?legacy=1
+  // (mantém ?v2=1 funcionando por compatibilidade)
+  const useV2 = searchParams.legacy !== "1";
 
   return (
     <div>
@@ -51,17 +53,13 @@ export default async function ClientPerformanceAdmin({
           <Link
             href={
               useV2
-                ? `/clientes/portal/${params.id}/performance`
-                : `/clientes/portal/${params.id}/performance?v2=1`
+                ? `/clientes/portal/${params.id}/performance?legacy=1`
+                : `/clientes/portal/${params.id}/performance`
             }
-            className={
-              useV2
-                ? "inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold bg-brand text-white hover:opacity-90 transition"
-                : "inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold bg-brand/10 text-brand border border-brand/30 hover:bg-brand/15 transition"
-            }
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[12px] text-muted-foreground hover:text-foreground border border-border hover:border-foreground/30 transition"
           >
-            <Beaker className="w-4 h-4" strokeWidth={1.9} />
-            {useV2 ? "Voltar pra versão antiga" : "Testar Beta v2 (novo dashboard)"}
+            <Beaker className="w-3.5 h-3.5" strokeWidth={1.8} />
+            {useV2 ? "Ver versão antiga" : "Voltar pro novo dashboard"}
           </Link>
         </div>
       </div>
