@@ -25,7 +25,7 @@ export function PillChart({ cols }: { cols: PillChartCol[] }) {
               <div
                 className={
                   c.highlight
-                    ? "w-full rounded-full bg-gradient-to-b from-brand/60 via-brand to-peach shadow-[0_8px_24px_-8px_rgb(29_112_112_/_0.4)]"
+                    ? "w-full rounded-full bg-gradient-to-b from-[#43BBB4] via-brand to-brand-dark shadow-[0_8px_24px_-8px_rgb(29_112_112_/_0.4)]"
                     : "w-full rounded-full border border-border"
                 }
                 style={{

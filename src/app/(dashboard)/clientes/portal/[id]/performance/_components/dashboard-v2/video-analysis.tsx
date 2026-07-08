@@ -33,7 +33,7 @@ export function VideoAnalysis({ ads }: { ads: MetaAd[] }) {
   const topAds = ads.slice(0, 5);
 
   return (
-    <div className="bg-card rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] p-6">
+    <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
@@ -71,7 +71,7 @@ function VideoRow({ ad }: { ad: MetaAd }) {
   const avgSec = ad.videoAvgTimeWatched;
 
   return (
-    <div className="grid grid-cols-[80px_1fr] gap-4 p-4 items-center bg-cream rounded-2xl">
+    <div className="grid grid-cols-[80px_1fr] gap-4 p-4 items-center bg-surface rounded-2xl">
       <div className="aspect-[4/5] rounded-lg overflow-hidden relative bg-gradient-to-br from-brand to-brand/40 flex items-center justify-center">
         {thumb ? (
           <img

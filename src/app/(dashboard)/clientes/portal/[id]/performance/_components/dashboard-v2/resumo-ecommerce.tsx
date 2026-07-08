@@ -34,7 +34,7 @@ export function ResumoEcommerce({ summary }: { summary: MetaFullSummary }) {
   ] as const;
 
   return (
-    <div className="bg-card rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] p-6">
+    <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
@@ -50,7 +50,7 @@ export function ResumoEcommerce({ summary }: { summary: MetaFullSummary }) {
         {items.map((it) => (
           <div
             key={it.label}
-            className="bg-cream rounded-2xl p-4"
+            className="bg-surface rounded-2xl p-4"
           >
             <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
               {it.label}

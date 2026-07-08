@@ -125,13 +125,13 @@ export function DashboardV2({
         onCompareChange={setCompare}
       />
 
-      {/* Hero personalizado — nome real do cliente */}
-      <div className="mb-7 flex items-end justify-between gap-4 flex-wrap">
+      {/* Cabeçalho contido — nome real do cliente */}
+      <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-[42px] font-semibold tracking-[-0.032em] leading-[1.02] text-foreground max-w-2xl">
+          <h1 className="text-[26px] font-semibold tracking-[-0.02em] leading-tight text-foreground">
             {engagementName}
           </h1>
-          <p className="text-muted-foreground text-sm mt-2 leading-relaxed">
+          <p className="text-muted-foreground text-[13px] mt-1">
             {clientName} · {BUSINESS_LABEL[businessType]}
             {!showTabs && (
               <> · {activePlatform === "meta" ? "Meta Ads" : "Google Ads"}</>
@@ -167,7 +167,7 @@ export function DashboardV2({
           )}
 
           {loading && !meta && (
-            <div className="bg-card rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] p-16 text-center text-muted-foreground text-[13px]">
+            <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-16 text-center text-muted-foreground text-[13px]">
               Carregando dados Meta…
             </div>
           )}

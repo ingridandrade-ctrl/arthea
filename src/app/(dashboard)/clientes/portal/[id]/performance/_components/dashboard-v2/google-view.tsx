@@ -39,7 +39,7 @@ export function GoogleView({
 
   if (loading && !google) {
     return (
-      <div className="bg-card rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] p-16 text-center text-muted-foreground text-[13px]">
+      <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-16 text-center text-muted-foreground text-[13px]">
         Carregando dados Google Ads…
       </div>
     );
@@ -97,7 +97,7 @@ export function GoogleView({
       </div>
 
       {/* Resumo de conversão */}
-      <div className="bg-card rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] p-6 mb-4">
+      <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-6 mb-4">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
@@ -139,7 +139,7 @@ export function GoogleView({
 
       {/* Camada 2 específica: canais que estão puxando o resultado */}
       {buckets.length > 0 && (
-        <div className="bg-card rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] p-6 mb-4">
+        <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-6 mb-4">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
@@ -156,7 +156,7 @@ export function GoogleView({
               return (
                 <div
                   key={b.channelType}
-                  className="bg-cream rounded-2xl p-4"
+                  className="bg-surface rounded-2xl p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
@@ -183,7 +183,7 @@ export function GoogleView({
 
       {/* Top search terms convertendo */}
       {topTerms.length > 0 && (
-        <div className="bg-card rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] p-6 mb-4">
+        <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-6 mb-4">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center">
@@ -203,7 +203,7 @@ export function GoogleView({
             {topTerms.map((t, i) => (
               <div
                 key={`${t.searchTerm}-${i}`}
-                className="grid grid-cols-[24px_1fr_auto] items-center gap-3 py-2 px-3 rounded-lg hover:bg-cream transition"
+                className="grid grid-cols-[24px_1fr_auto] items-center gap-3 py-2 px-3 rounded-lg hover:bg-surface transition"
               >
                 <span className="text-[13px] text-muted-foreground font-serif italic">
                   {String(i + 1).padStart(2, "0")}
@@ -245,7 +245,7 @@ function ConvTile({
   tone?: "ok" | "warn" | "neutral";
 }) {
   return (
-    <div className="bg-cream rounded-2xl p-4">
+    <div className="bg-surface rounded-2xl p-4">
       <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
         {label}
       </div>

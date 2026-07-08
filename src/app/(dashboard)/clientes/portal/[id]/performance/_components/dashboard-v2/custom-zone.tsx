@@ -93,7 +93,7 @@ export function CustomZone({
             return (
               <div
                 key={m.id}
-                className="bg-cream rounded-2xl p-4"
+                className="bg-surface rounded-2xl p-4"
               >
                 <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
                   {m.label}

@@ -22,7 +22,7 @@ export function OrigemConversas({ summary }: { summary: MetaFullSummary }) {
   ];
 
   return (
-    <div className="bg-card rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] p-6">
+    <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
@@ -41,7 +41,7 @@ export function OrigemConversas({ summary }: { summary: MetaFullSummary }) {
             <div
               key={it.label}
               className={`p-4 rounded-2xl ${
-                it.muted ? "bg-cream" : "bg-cream"
+                it.muted ? "bg-surface" : "bg-surface"
               }`}
             >
               <div className="flex items-center gap-2 mb-2">

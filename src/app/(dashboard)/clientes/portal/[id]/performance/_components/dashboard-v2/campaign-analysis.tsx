@@ -69,12 +69,12 @@ function ObjectiveGroupCard({
   const primary = group.primaryMetrics.slice(0, 4);
 
   return (
-    <div className="bg-card rounded-3xl border border-black/[0.04] shadow-[0_12px_32px_-16px_rgb(13_74_74_/_0.12)] overflow-hidden">
+    <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] overflow-hidden">
       {/* Header do grupo */}
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-4 p-5 text-left hover:bg-cream transition"
+        className="w-full flex items-center justify-between gap-4 p-5 text-left hover:bg-surface transition"
       >
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-brand/8 border border-brand/12 text-brand flex items-center justify-center flex-shrink-0">
@@ -116,7 +116,7 @@ function ObjectiveGroupCard({
           {/* Métricas do objetivo */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-4">
             {primary.map((id) => (
-              <div key={id} className="bg-cream rounded-2xl p-3.5">
+              <div key={id} className="bg-surface rounded-2xl p-3.5">
                 <div className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
                   {metricLabel(id)}
                 </div>
@@ -166,7 +166,7 @@ function CampaignRow({
   metricIds: string[];
 }) {
   return (
-    <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_repeat(3,minmax(80px,auto))] items-center gap-3 px-3.5 py-2.5 rounded-xl bg-cream border border-border/60">
+    <div className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_repeat(3,minmax(80px,auto))] items-center gap-3 px-3.5 py-2.5 rounded-xl bg-surface border border-border/60">
       <div className="min-w-0">
         <div className="text-[12.5px] font-medium text-foreground truncate">
           {campaign.campaignName}
@@ -201,7 +201,7 @@ function CreativeTile({ ad, rankBy }: { ad: MetaAd; rankBy: string }) {
     hookPct >= 35 ? "text-success" : hookPct >= 25 ? "text-warning" : "text-destructive";
 
   return (
-    <div className="bg-cream border border-border rounded-xl overflow-hidden">
+    <div className="bg-surface border border-border rounded-xl overflow-hidden">
       <div className="aspect-[4/5] relative bg-gradient-to-br from-brand/70 to-brand/30 flex items-center justify-center">
         {thumb ? (
           <img src={thumb} alt={ad.adName} loading="lazy" className="w-full h-full object-cover" />
