@@ -82,9 +82,9 @@ export function MetaHeroMetrics({
   ];
 
   return (
-    <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] mb-5 overflow-hidden">
-      {/* Header hairline */}
-      <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-black/5">
+    <div className="mb-6">
+      {/* Header da seção — direto no canvas, estilo Power BI */}
+      <div className="flex items-center justify-between gap-3 mb-3">
         <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
           Visão geral · Meta Ads
         </span>
@@ -94,15 +94,21 @@ export function MetaHeroMetrics({
         </span>
       </div>
 
-      {/* 9 células — gap-px cria as hairlines em qualquer breakpoint */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-9 gap-px bg-black/5">
+      {/* Grade de tiles padronizados — 5 + 4 no desktop */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
         {cells.map((c) => (
-          <div key={c.label} className={`px-5 py-4 ${c.hi ? "bg-brand-soft" : "bg-card"}`}>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground truncate">
-              {c.label}
+          <div
+            key={c.label}
+            className="bg-card rounded-xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_4px_12px_-6px_rgb(0_0_0_/_0.06)] px-4 py-3.5"
+          >
+            <div className="flex items-center gap-1.5">
+              {c.hi && <span className="w-1.5 h-1.5 rounded-full bg-brand flex-shrink-0" />}
+              <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-muted-foreground truncate">
+                {c.label}
+              </span>
             </div>
-            <div className="flex items-baseline gap-1.5 mt-1">
-              <span className="text-[19px] font-semibold text-foreground tracking-[-0.02em] tabular-nums leading-none">
+            <div className="flex items-baseline justify-between gap-2 mt-1.5">
+              <span className="text-[22px] font-semibold text-foreground tracking-[-0.02em] tabular-nums leading-none">
                 {c.value}
               </span>
               <Delta pct={c.pct} lowerIsBetter={c.lowerIsBetter} neutral={c.label === "Investimento"} />
