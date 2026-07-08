@@ -94,17 +94,22 @@ export default async function ClientesPage() {
             const accent = engagements[0]?.accentColor || "#1D7070";
 
             return (
-              <Link
+              <div
                 key={c.id}
-                href={`/clientes/${c.id}`}
                 className="group bg-card border border-border rounded-2xl p-5 hover:border-[var(--accent)]/40 hover:shadow-md transition relative overflow-hidden"
               >
+                {/* Clique no card abre a ficha do cliente (link esticado por baixo) */}
+                <Link
+                  href={`/clientes/${c.id}`}
+                  className="absolute inset-0 z-0"
+                  aria-label={`Abrir ficha de ${c.name}`}
+                />
                 <span
-                  className="absolute left-0 top-0 bottom-0 w-1 transition-all group-hover:w-1.5"
+                  className="absolute left-0 top-0 bottom-0 w-1 transition-all group-hover:w-1.5 pointer-events-none"
                   style={{ background: accent }}
                 />
 
-                <div className="flex items-start gap-3 mb-4">
+                <div className="flex items-start gap-3 mb-4 pointer-events-none">
                   <span
                     className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
                     style={{ background: accent }}
@@ -125,35 +130,26 @@ export default async function ClientesPage() {
                   )}
                 </div>
 
-                <div className="space-y-2 mb-3">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <Briefcase className="w-3 h-3" />
-                    {engagements.length === 0
-                      ? "Sem projetos ativos"
-                      : `${engagements.length} ${engagements.length === 1 ? "projeto" : "projetos"}: ${engagements.map((e) => e.name).join(" · ")}`}
-                  </p>
+                {/* Atalhos diretos: cada projeto abre O DASHBOARD em 1 clique */}
+                <div className="relative z-10 flex flex-wrap gap-1.5 mb-3">
+                  {engagements.length === 0 ? (
+                    <span className="text-xs text-muted-foreground">Sem projetos ativos</span>
+                  ) : (
+                    engagements.map((e) => (
+                      <Link
+                        key={e.id}
+                        href={`/clientes/portal/${e.id}/performance`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface border border-black/5 text-[11.5px] font-medium text-foreground hover:border-[var(--accent)]/50 hover:text-[var(--accent)] transition"
+                        title={`Abrir dashboard de ${e.name}`}
+                      >
+                        <Briefcase className="w-3 h-3" style={{ color: e.accentColor || accent }} />
+                        {e.name}
+                      </Link>
+                    ))
+                  )}
                 </div>
 
-                {totalDeliverables > 0 && (
-                  <div>
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="text-muted-foreground">
-                        {approved}/{totalDeliverables} entregas aprovadas
-                      </span>
-                      <span className="font-semibold" style={{ color: accent }}>
-                        {pct}%
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: accent + "20" }}>
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{ width: `${pct}%`, background: accent }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between text-xs text-muted-foreground mt-4 pt-3 border-t border-border">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mt-4 pt-3 border-t border-border pointer-events-none">
                   {waiting > 0 ? (
                     <span className="inline-flex items-center gap-1 font-medium" style={{ color: accent }}>
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
@@ -162,12 +158,15 @@ export default async function ClientesPage() {
                   ) : (
                     <span>tudo em dia</span>
                   )}
-                  <ArrowRight
-                    className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
-                    style={{ color: accent }}
-                  />
+                  <span className="inline-flex items-center gap-1">
+                    ficha do cliente
+                    <ArrowRight
+                      className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
+                      style={{ color: accent }}
+                    />
+                  </span>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

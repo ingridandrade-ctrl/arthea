@@ -62,6 +62,8 @@ const SECTIONS: NavSection[] = [
     prefix: "/clientes",
     items: [
       { name: "Clientes", href: "/clientes", icon: PanelsTopLeft, roles: ["ADMIN", "MANAGER"] },
+      { name: "Projetos", href: "/projetos", icon: KanbanSquare, roles: ["ADMIN", "MANAGER"] },
+      { name: "Saúde dos anúncios", href: "/clientes/anuncios", icon: BarChart3, roles: ["ADMIN", "MANAGER"] },
     ],
   },
   {
@@ -97,6 +99,19 @@ function isActive(pathname: string, item: NavItem) {
   if (target === pathname) return true;
   if (target !== "/" && pathname.startsWith(target + "/")) return true;
   return false;
+}
+
+// Quando mais de um item da seção casa com o path (ex: /clientes e
+// /clientes/anuncios), só o MAIS específico (target mais longo) acende.
+function activeHrefIn(pathname: string, items: NavItem[]): string | null {
+  let best: NavItem | null = null;
+  for (const item of items) {
+    if (!isActive(pathname, item)) continue;
+    const target = item.match ?? item.href;
+    const bestTarget = best ? (best.match ?? best.href) : "";
+    if (!best || target.length > bestTarget.length) best = item;
+  }
+  return best ? best.href : null;
 }
 
 export function Sidebar() {
@@ -196,7 +211,7 @@ export function Sidebar() {
       <nav className="flex-1 px-3 overflow-y-auto">
         {sectionItems.map((item) => {
           const Icon = item.icon;
-          const active = isActive(pathname, item);
+          const active = activeHrefIn(pathname, sectionItems) === item.href;
           return (
             <Link
               key={item.href}
