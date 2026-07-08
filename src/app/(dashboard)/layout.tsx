@@ -23,7 +23,19 @@ export default async function DashboardLayout({
         <Sidebar />
         <DashboardShell>
           <Header />
-          <main className="p-6 min-w-0 overflow-x-auto">{children}</main>
+          {/* Canvas da marca — mesmo fundo do portal do cliente: off-white
+              quente + grade milimetrada teal sutil */}
+          <main
+            className="p-6 min-w-0 overflow-x-auto"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(13,74,74,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(13,74,74,0.035) 1px, transparent 1px)",
+              backgroundSize: "44px 44px",
+              backgroundPosition: "-1px -1px",
+            }}
+          >
+            {children}
+          </main>
         </DashboardShell>
       </div>
     </SidebarProvider>
