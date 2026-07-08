@@ -160,9 +160,11 @@ async function fetchEngagementHealth(eng: {
   };
 }
 
-export async function getAdsOverview(): Promise<EngagementAdsHealth[]> {
+// Sem clientId: todos os projetos (torre de controle). Com clientId: só os
+// daquele cliente (aba "Anúncios" da ficha).
+export async function getAdsOverview(clientId?: string): Promise<EngagementAdsHealth[]> {
   const engagements = await prisma.clientEngagement.findMany({
-    where: { isActive: true },
+    where: { isActive: true, ...(clientId ? { clientId } : {}) },
     select: {
       id: true,
       name: true,
