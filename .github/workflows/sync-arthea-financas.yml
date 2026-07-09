@@ -1,0 +1,65 @@
+name: Sync arthea-financas
+
+# Sempre que houver push em main que toque em migration/arthea-financas/,
+# copia esses arquivos pro repo ingridandrade-ctrl/arthea-financas.
+# Vercel auto-deploya depois do push.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "migration/arthea-financas/**"
+  workflow_dispatch: # permite disparar manualmente pela aba Actions
+
+concurrency:
+  group: sync-arthea-financas
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source (arthea)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Checkout target (arthea-financas)
+        uses: actions/checkout@v4
+        with:
+          repository: ingridandrade-ctrl/arthea-financas
+          token: ${{ secrets.SYNC_TOKEN }}
+          path: target
+          fetch-depth: 1
+
+      - name: Copy files from migration/arthea-financas → target
+        run: |
+          set -euo pipefail
+          # Espelha src/, prisma/, package.json, next.config, tsconfig etc,
+          # mas NÃO apaga o .git, .github, .env locais do target.
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.env' \
+            --exclude='.env.local' \
+            --exclude='node_modules/' \
+            --exclude='.next/' \
+            --exclude='package-lock.json' \
+            migration/arthea-financas/ target/
+
+      - name: Commit and push
+        working-directory: target
+        run: |
+          set -euo pipefail
+          git config user.name "arthea-sync-bot"
+          git config user.email "sync@arthea.com.br"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nenhuma mudança pra sincronizar."
+            exit 0
+          fi
+          # Mensagem descritiva com o SHA de origem
+          SHORT_SHA=$(cd "$GITHUB_WORKSPACE" && git rev-parse --short HEAD)
+          SUBJECT=$(cd "$GITHUB_WORKSPACE" && git log -1 --pretty=%s)
+          git commit -m "sync: ${SUBJECT}" -m "Origem: ingridandrade-ctrl/arthea@${SHORT_SHA}"
+          git push origin main
