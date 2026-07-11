@@ -41,6 +41,7 @@ export async function GET(req: NextRequest) {
     config || {
       engagementId,
       customMetrics: [],
+      platforms: ["meta"],
       defaultDateRange: "last_30d",
       comparePeriod: "previous",
     },
@@ -56,26 +57,56 @@ export async function PUT(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const { engagementId, customMetrics, defaultDateRange, comparePeriod } = body as any;
+  const {
+    engagementId,
+    customMetrics,
+    defaultDateRange,
+    comparePeriod,
+    businessType,
+    platforms,
+  } = body as any;
   if (!engagementId) {
     return NextResponse.json({ error: "engagementId obrigatório" }, { status: 400 });
   }
 
-  // Sanitização — só aceita array de strings, com limite
-  const metrics: string[] = Array.isArray(customMetrics)
+  // Plataformas: array de "meta" | "google", mínimo 1 quando enviado
+  const cleanPlatforms: string[] | undefined = Array.isArray(platforms)
+    ? platforms.filter((p) => p === "meta" || p === "google")
+    : undefined;
+  if (cleanPlatforms !== undefined && cleanPlatforms.length === 0) {
+    return NextResponse.json({ error: "Selecione pelo menos 1 plataforma" }, { status: 400 });
+  }
+
+  // businessType mora no engagement (não na config) — o setup inicial do
+  // dashboard salva os dois numa chamada só.
+  if (businessType) {
+    if (!["INFOPRODUCT", "ECOMMERCE", "SERVICES"].includes(businessType)) {
+      return NextResponse.json({ error: "businessType inválido" }, { status: 400 });
+    }
+    await prisma.clientEngagement.update({
+      where: { id: engagementId },
+      data: { businessType },
+    });
+  }
+
+  // Sanitização — só aceita array de strings, com limite.
+  // Se o body não trouxe customMetrics, preserva o que já existe.
+  const metrics: string[] | undefined = Array.isArray(customMetrics)
     ? customMetrics.filter((m) => typeof m === "string").slice(0, MAX_CUSTOM)
-    : [];
+    : undefined;
 
   const config = await prisma.clientDashboardConfig.upsert({
     where: { engagementId },
     create: {
       engagementId,
-      customMetrics: metrics,
+      customMetrics: metrics ?? [],
+      platforms: cleanPlatforms ?? ["meta"],
       defaultDateRange: defaultDateRange || "last_30d",
       comparePeriod: comparePeriod || "previous",
     },
     update: {
-      customMetrics: metrics,
+      ...(metrics !== undefined && { customMetrics: metrics }),
+      ...(cleanPlatforms !== undefined && { platforms: cleanPlatforms }),
       ...(defaultDateRange && { defaultDateRange }),
       ...(comparePeriod && { comparePeriod }),
     },

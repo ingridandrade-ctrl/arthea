@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { getEffectivePortalClientId } from "@/lib/portal-viewer";
 import { prisma } from "@/lib/prisma";
 import { Pin, FolderOpen, FileText, LayoutGrid, Link2 } from "lucide-react";
 
@@ -33,7 +34,8 @@ export default async function ReferenciasPage({
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-  const userId = (session.user as any).id;
+  const userId = getEffectivePortalClientId(session);
+  if (!userId) redirect("/inicio");
 
   const project = await prisma.clientEngagement.findUnique({
     where: { clientId_slug: { clientId: userId, slug: params.engagement } },

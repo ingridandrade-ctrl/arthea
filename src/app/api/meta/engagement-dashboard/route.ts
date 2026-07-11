@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   getAccountInsights,
+  getAccountInsightsTimeRange,
   getCampaignInsightsForAccount,
   getAccountDailyInsights,
   getAdInsightsForAccount,
@@ -24,6 +25,71 @@ const VALID_PRESETS = new Set([
   "this_month",
   "last_month",
 ]);
+
+// ─── Comparação com período anterior ────────────────────────────
+// date_preset do Meta não tem "previous_x" — calculamos a janela do
+// preset atual e derivamos a anterior (mesmo tamanho, imediatamente
+// antes; ou mês/ano anterior).
+
+const isoDate = (d: Date) => d.toISOString().slice(0, 10);
+
+function windowForPreset(preset: string): { since: Date; until: Date } {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const daysBack = (n: number) => {
+    const s = new Date(yesterday);
+    s.setDate(s.getDate() - (n - 1));
+    return { since: s, until: yesterday };
+  };
+  switch (preset) {
+    case "today":
+      return { since: today, until: today };
+    case "yesterday":
+      return { since: yesterday, until: yesterday };
+    case "last_7d":
+      return daysBack(7);
+    case "last_14d":
+      return daysBack(14);
+    case "last_28d":
+      return daysBack(28);
+    case "this_month":
+      return { since: new Date(today.getFullYear(), today.getMonth(), 1), until: today };
+    case "last_month":
+      return {
+        since: new Date(today.getFullYear(), today.getMonth() - 1, 1),
+        until: new Date(today.getFullYear(), today.getMonth(), 0),
+      };
+    case "last_30d":
+    default:
+      return daysBack(30);
+  }
+}
+
+function previousWindow(
+  cur: { since: Date; until: Date },
+  mode: string,
+): { since: Date; until: Date } {
+  if (mode === "prev_month") {
+    const s = new Date(cur.since);
+    s.setMonth(s.getMonth() - 1);
+    const u = new Date(cur.until);
+    u.setMonth(u.getMonth() - 1);
+    return { since: s, until: u };
+  }
+  if (mode === "prev_year") {
+    const s = new Date(cur.since);
+    s.setFullYear(s.getFullYear() - 1);
+    const u = new Date(cur.until);
+    u.setFullYear(u.getFullYear() - 1);
+    return { since: s, until: u };
+  }
+  // "previous": janela imediatamente anterior, de mesmo tamanho
+  const lenMs = cur.until.getTime() - cur.since.getTime();
+  const until = new Date(cur.since.getTime() - 24 * 3600 * 1000);
+  const since = new Date(until.getTime() - lenMs);
+  return { since, until };
+}
 
 export async function GET(req: NextRequest) {
   const session = (await getServerSession(authOptions)) as any;
@@ -49,6 +115,10 @@ export async function GET(req: NextRequest) {
 
   const datePresetRaw = req.nextUrl.searchParams.get("datePreset") || "last_30d";
   const datePreset = VALID_PRESETS.has(datePresetRaw) ? datePresetRaw : "last_30d";
+  const compareRaw = req.nextUrl.searchParams.get("compare");
+  const compare = ["previous", "prev_month", "prev_year"].includes(compareRaw || "")
+    ? (compareRaw as string)
+    : null;
 
   const accounts = await prisma.metaAdAccount.findMany({
     where: { engagementId, hidden: false },
@@ -153,6 +223,28 @@ export async function GET(req: NextRequest) {
 
     const summary = aggregateMetaSummaries(perAccountSummaries);
 
+    // ─── Período anterior (só account-level, barato) ─────────────
+    let previousSummary: ReturnType<typeof aggregateMetaSummaries> | null = null;
+    if (compare) {
+      try {
+        const prev = previousWindow(windowForPreset(datePreset), compare);
+        const prevInsights = await Promise.all(
+          active.map((acc) =>
+            getAccountInsightsTimeRange(
+              acc.connection.accessToken,
+              acc.accountId,
+              isoDate(prev.since),
+              isoDate(prev.until),
+            ),
+          ),
+        );
+        previousSummary = aggregateMetaSummaries(prevInsights.map(buildMetaSummary));
+      } catch {
+        // Comparação é acessória — falha silenciosa, dashboard segue sem deltas
+        previousSummary = null;
+      }
+    }
+
     allCampaigns.sort((a, b) => b.spend - a.spend);
     const daily = Array.from(dailyMap.entries())
       .map(([date, v]) => ({ date, clicks: v.clicks, cost: v.spend }))
@@ -251,6 +343,7 @@ export async function GET(req: NextRequest) {
         accountCount: active.length,
       },
       summary,
+      previousSummary,
       campaigns: allCampaigns,
       daily,
       objectiveGroups,

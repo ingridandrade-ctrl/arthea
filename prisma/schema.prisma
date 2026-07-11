@@ -1012,6 +1012,10 @@ model ClientDashboardConfig {
   // Formato: [{ id: "frequency", label: "Frequência", source: "meta" }, ...]
   customMetrics   Json              @default("[]")
 
+  // Plataformas de mídia que esse cliente roda — controla o que o dashboard
+  // mostra. Array de "meta" | "google". Só exibe tabs se tiver mais de uma.
+  platforms       Json              @default("[\"meta\"]")
+
   // Filtros default salvos por cliente
   defaultDateRange String           @default("last_30d")  // last_7d / last_30d / this_month / etc
   comparePeriod    String           @default("previous")  // previous / prev_month / prev_year / none

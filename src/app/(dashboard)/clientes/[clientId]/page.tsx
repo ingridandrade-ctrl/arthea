@@ -21,17 +21,16 @@ import {
 } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ContaAccessCard } from "./_components/conta-access-card";
 
 // Página do cliente — TUDO daquele cliente num lugar.
 // Substitui a confusão de "qual frente abrir pra ver dossiê / contratos / etc".
 
 const TAB_ITEMS = [
-  { id: "resumo", label: "Resumo", icon: Briefcase },
-  { id: "frentes", label: "Frentes", icon: Briefcase },
+  { id: "frentes", label: "Projetos", icon: Briefcase },
   { id: "sobre", label: "Sobre", icon: FileText },
-  { id: "plataformas", label: "Plataformas", icon: Link2 },
-  { id: "contrato", label: "Contrato", icon: Wallet },
-  { id: "config", label: "Configurações", icon: Settings },
+  { id: "contratos", label: "Contratos", icon: Wallet },
+  { id: "conta", label: "Conta", icon: Settings },
 ];
 
 const PHASE_LABEL = ["", "Imersão", "Construção", "Rastreamento", "Entrega"];
@@ -88,13 +87,14 @@ export default async function ClienteDetailPage({
         orderBy: [{ isActive: "desc" }, { createdAt: "desc" }],
       },
       dossier: true,
+      contracts: { orderBy: { createdAt: "desc" } },
     },
   });
 
   if (!cliente || cliente.role !== "CLIENT") notFound();
 
   const c: any = cliente;
-  const activeTab = searchParams.tab && TAB_ITEMS.some((t) => t.id === searchParams.tab) ? searchParams.tab : "resumo";
+  const activeTab = searchParams.tab && TAB_ITEMS.some((t) => t.id === searchParams.tab) ? searchParams.tab : "frentes";
   const engagements: any[] = c.engagements;
   const allDeliverables = engagements.flatMap((e: any) => e.deliverables as any[]);
   const totalDeliverables = allDeliverables.length;
@@ -142,12 +142,26 @@ export default async function ClienteDetailPage({
             )}
           </div>
         </div>
-        {(anyMetaIssue || anyGoogleIssue) && (
-          <div className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            Conexão com problema
-          </div>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {waiting > 0 && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border" style={{ background: accent + "14", color: accent, borderColor: accent + "33" }}>
+              <Clock className="w-3.5 h-3.5" />
+              {waiting} aguardando validação
+            </span>
+          )}
+          {totalDeliverables > 0 && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-muted text-muted-foreground border border-border">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {pct}% aprovadas
+            </span>
+          )}
+          {(anyMetaIssue || anyGoogleIssue) && (
+            <span className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              Conexão com problema
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -176,68 +190,34 @@ export default async function ClienteDetailPage({
       </div>
 
       {/* Tab content */}
-      {activeTab === "resumo" && (
-        <ResumoTab
-          engagementCount={engagements.length}
-          totalDeliverables={totalDeliverables}
-          approved={approved}
-          waiting={waiting}
-          pct={pct}
-          accent={accent}
-        />
-      )}
-
       {activeTab === "frentes" && (
         <FrentesTab engagements={engagements} accent={accent} clientId={params.clientId} />
       )}
 
       {activeTab === "sobre" && <SobreTab dossier={c.dossier} clientId={params.clientId} />}
 
-      {activeTab === "plataformas" && <PlataformasTab engagements={engagements} />}
+      {activeTab === "contratos" && <ContratosTab contracts={c.contracts || []} />}
 
-      {activeTab === "contrato" && <ContratoTab clientId={params.clientId} email={c.email} />}
-
-      {activeTab === "config" && <ConfigTab cliente={c} />}
+      {activeTab === "conta" && (
+        <div className="space-y-4">
+          <ContaAccessCard
+            clientId={c.id}
+            email={c.email}
+            scenesEnabled={!!c.scenesEnabled}
+            previewEngagementId={engagements.find((e: any) => e.isActive)?.id || engagements[0]?.id || null}
+          />
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
+              Contas de anúncio linkadas (por projeto)
+            </p>
+            <PlataformasTab engagements={engagements} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Tab: Resumo ────────────────────────────────────────────────
-
-function ResumoTab({
-  engagementCount,
-  totalDeliverables,
-  approved,
-  waiting,
-  pct,
-  accent,
-}: {
-  engagementCount: number;
-  totalDeliverables: number;
-  approved: number;
-  waiting: number;
-  pct: number;
-  accent: string;
-}) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <KpiCard label="Frentes ativas" value={String(engagementCount)} />
-      <KpiCard label="Entregas aprovadas" value={`${approved}/${totalDeliverables}`} subtext={`${pct}%`} accent={accent} />
-      <KpiCard label="Aguardando você" value={String(waiting)} subtext={waiting > 0 ? "validar entregas" : "tudo em dia"} accent={waiting > 0 ? accent : undefined} />
-      <KpiCard label="Plano financeiro" value="—" subtext="vincule contrato" />
-    </div>
-  );
-}
-
-function KpiCard({ label, value, subtext, accent }: { label: string; value: string; subtext?: string; accent?: string }) {
-  return (
-    <div className="bg-card border border-border rounded-2xl p-5">
-      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{label}</p>
-      <p className="text-3xl font-bold mt-2 tabular-nums" style={{ color: accent }}>{value}</p>
-      {subtext && <p className="text-xs text-muted-foreground mt-1">{subtext}</p>}
-    </div>
-  );
-}
 
 // ─── Tab: Frentes ───────────────────────────────────────────────
 
@@ -245,7 +225,7 @@ function FrentesTab({ engagements, accent, clientId }: { engagements: any[]; acc
   if (engagements.length === 0) {
     return (
       <div className="bg-card border border-dashed border-border rounded-2xl p-12 text-center">
-        <p className="text-muted-foreground mb-4">Nenhuma frente ainda.</p>
+        <p className="text-muted-foreground mb-4">Nenhum projeto ainda.</p>
         <p className="text-xs text-muted-foreground">
           Frentes são adicionadas pelo fluxo de cadastro de novo projeto.
         </p>
@@ -332,7 +312,7 @@ function SobreTab({ dossier, clientId }: { dossier: any; clientId: string }) {
         <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
         <p className="font-medium">Dossiê ainda não preenchido</p>
         <p className="text-sm text-muted-foreground max-w-md mx-auto mt-2">
-          O dossiê é onde mora o "Sobre você" do cliente — informações que se aplicam a TODAS as frentes
+          O dossiê é onde mora o "Sobre você" do cliente — informações que se aplicam a TODOS os projetos
           (negócio, tom de voz, referências, personas).
         </p>
         <Link
@@ -356,7 +336,7 @@ function SobreTab({ dossier, clientId }: { dossier: any; clientId: string }) {
       <p className="text-xs text-muted-foreground mt-6 pt-4 border-t border-border">
         Pra editar:{" "}
         <Link href={`/clientes/portal/${clientId}`} className="text-[var(--accent)] hover:underline">
-          abra qualquer frente
+          abra qualquer projeto
         </Link>{" "}
         e vá em "Sobre" — em breve a edição vem pra esta tela.
       </p>
@@ -379,7 +359,7 @@ function PlataformasTab({ engagements }: { engagements: any[] }) {
   if (engagements.length === 0) {
     return (
       <div className="bg-card border border-dashed border-border rounded-2xl p-12 text-center">
-        <p className="text-muted-foreground">Sem frentes — não há plataformas pra linkar.</p>
+        <p className="text-muted-foreground">Sem projetos — não há plataformas pra linkar.</p>
       </div>
     );
   }
@@ -420,7 +400,7 @@ function PlataformasTab({ engagements }: { engagements: any[] }) {
 
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-900">
         <p>
-          <strong>Linkagem ↔ Conexão</strong>: pra LINKAR uma conta a uma frente, use{" "}
+          <strong>Linkagem ↔ Conexão</strong>: pra LINKAR uma conta a um projeto, use{" "}
           <Link href="/clientes/meta" className="underline">/clientes/meta</Link> ou{" "}
           <Link href="/clientes/google-ads" className="underline">/clientes/google-ads</Link>.
           <br />
@@ -469,44 +449,78 @@ function PlatformRow({
   );
 }
 
-// ─── Tab: Contrato ──────────────────────────────────────────────
+// ─── Tab: Contratos — todos os contratos do cliente (pode ter vários) ──
 
-function ContratoTab({ clientId, email }: { clientId: string; email: string }) {
+const CONTRACT_STATUS: Record<string, { label: string; cls: string }> = {
+  ACTIVE: { label: "Ativo", cls: "bg-emerald-500/10 text-emerald-700" },
+  PAUSED: { label: "Pausado", cls: "bg-amber-500/10 text-amber-700" },
+  CANCELED: { label: "Cancelado", cls: "bg-red-500/10 text-red-600" },
+  COMPLETED: { label: "Concluído", cls: "bg-muted text-muted-foreground" },
+};
+
+function ContratosTab({ contracts }: { contracts: any[] }) {
+  const money = (v: number) =>
+    v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 2 });
+  const dt = (v: string | Date | null) =>
+    v ? new Date(v).toLocaleDateString("pt-BR") : "—";
+
   return (
     <div className="space-y-4">
-      <div className="bg-card border border-border rounded-2xl p-6">
-        <p className="text-sm text-muted-foreground">
-          Contratos vivem em <Link href="/financeiro/clientes" className="text-[var(--accent)] hover:underline">Financeiro → Contratos</Link>.
-        </p>
-        <p className="text-sm text-muted-foreground mt-2">
-          O link entre User(CLIENT) e Contract ainda não existe estruturalmente — Contract hoje aponta pra Lead.
-          Trazer essa visão pra cá é PR #5 do roadmap.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Tab: Config ────────────────────────────────────────────────
-
-function ConfigTab({ cliente }: { cliente: any }) {
-  return (
-    <div className="space-y-4">
-      <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Acervo de cenas</p>
-          <p className="text-sm">
-            {cliente.scenesEnabled ? "✓ Ativado pra este cliente" : "Desativado"}
+      {contracts.length === 0 ? (
+        <div className="bg-card border border-dashed border-border rounded-2xl p-10 text-center">
+          <p className="text-sm text-muted-foreground">
+            Nenhum contrato vinculado a esse cliente ainda.
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Crie pelo wizard de <Link href="/clientes/novo" className="text-[var(--accent)] hover:underline">novo cliente</Link>{" "}
+            ou em <Link href="/financeiro" className="text-[var(--accent)] hover:underline">Financeiro</Link>.
           </p>
         </div>
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">ID do cliente</p>
-          <p className="text-xs font-mono text-muted-foreground">{cliente.id}</p>
+      ) : (
+        <div className="space-y-3">
+          {contracts.map((ct) => {
+            const st = CONTRACT_STATUS[ct.status] || CONTRACT_STATUS.ACTIVE;
+            return (
+              <div key={ct.id} className="bg-card border border-border rounded-2xl p-5">
+                <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-mono text-sm font-semibold">{ct.number}</span>
+                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${st.cls}`}>
+                      {st.label}
+                    </span>
+                  </div>
+                  <Link
+                    href="/financeiro"
+                    className="text-xs text-muted-foreground hover:text-[var(--accent)] inline-flex items-center gap-1"
+                  >
+                    ver no financeiro <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Valor mensal</p>
+                    <p className="font-semibold tabular-nums mt-0.5">{money(ct.monthlyValue)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Duração</p>
+                    <p className="font-semibold mt-0.5">{ct.durationMonths} meses</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Início</p>
+                    <p className="font-semibold mt-0.5">{dt(ct.startDate)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Vencimento dia</p>
+                    <p className="font-semibold mt-0.5">{ct.paymentDay}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <p className="text-xs text-muted-foreground pt-4 border-t border-border">
-          Configurações de paleta, logo, KPIs visíveis no dashboard e dossiê único vêm no PR #5 do roadmap.
-        </p>
-      </div>
+      )}
     </div>
   );
 }
+
+

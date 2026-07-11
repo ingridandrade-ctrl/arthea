@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Beaker } from "lucide-react";
+import { Beaker } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AdminPerformanceView } from "./_components/admin-performance-view";
@@ -29,7 +29,9 @@ export default async function ClientPerformanceAdmin({
       name: true,
       businessType: true,
       client: { select: { name: true } },
-      dashboardConfig: { select: { defaultDateRange: true, comparePeriod: true } },
+      dashboardConfig: {
+        select: { defaultDateRange: true, comparePeriod: true, platforms: true },
+      },
     },
   });
   if (!engagement) notFound();
@@ -38,30 +40,22 @@ export default async function ClientPerformanceAdmin({
   // (mantém ?v2=1 funcionando por compatibilidade)
   const useV2 = searchParams.legacy !== "1";
 
+  // Cabeçalho e abas vêm do layout do projeto — aqui só o toggle da versão
+  // antiga + o dashboard em si.
   return (
     <div>
-      {/* Barra fixa no topo com voltar + toggle Beta bem visível */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border">
-        <div className="max-w-[1280px] mx-auto px-7 py-3 flex items-center justify-between gap-3 flex-wrap">
-          <Link
-            href={`/clientes/portal/${params.id}`}
-            className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition"
-          >
-            <ArrowLeft className="w-4 h-4" strokeWidth={1.8} />
-            {engagement.name}
-          </Link>
-          <Link
-            href={
-              useV2
-                ? `/clientes/portal/${params.id}/performance?legacy=1`
-                : `/clientes/portal/${params.id}/performance`
-            }
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[12px] text-muted-foreground hover:text-foreground border border-border hover:border-foreground/30 transition"
-          >
-            <Beaker className="w-3.5 h-3.5" strokeWidth={1.8} />
-            {useV2 ? "Ver versão antiga" : "Voltar pro novo dashboard"}
-          </Link>
-        </div>
+      <div className="flex justify-end mb-2">
+        <Link
+          href={
+            useV2
+              ? `/clientes/portal/${params.id}/performance?legacy=1`
+              : `/clientes/portal/${params.id}/performance`
+          }
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11.5px] text-muted-foreground hover:text-foreground border border-border hover:border-foreground/30 transition"
+        >
+          <Beaker className="w-3 h-3" strokeWidth={1.8} />
+          {useV2 ? "Ver versão antiga" : "Voltar pro novo dashboard"}
+        </Link>
       </div>
 
       {useV2 ? (
@@ -72,6 +66,12 @@ export default async function ClientPerformanceAdmin({
           initialBusinessType={engagement.businessType}
           initialDateRange={(engagement.dashboardConfig?.defaultDateRange as DateRange) || "last_30d"}
           initialCompare={(engagement.dashboardConfig?.comparePeriod as ComparePeriod) || "previous"}
+          hasConfig={engagement.dashboardConfig !== null}
+          initialPlatforms={
+            Array.isArray(engagement.dashboardConfig?.platforms)
+              ? (engagement.dashboardConfig.platforms as ("meta" | "google")[])
+              : ["meta"]
+          }
         />
       ) : (
         <AdminPerformanceView

@@ -118,6 +118,18 @@ export function getConversations(insights: AnyInsights): number {
 }
 
 export function getCostPerConversation(insights: AnyInsights): number {
+  // Preferimos o custo OFICIAL que o Meta calcula (cost_per_action_type) —
+  // ele considera a atribuição certa, não é uma divisão ingênua nossa.
+  if (insights.cost_per_action_type) {
+    for (const type of [
+      "onsite_conversion.messaging_conversation_started_7d",
+      "onsite_conversion.total_messaging_connection",
+    ]) {
+      const v = getActionValue(insights.cost_per_action_type, type);
+      if (v > 0) return v;
+    }
+  }
+  // Fallback só quando a API não retornou o campo
   const conversations = getConversations(insights);
   const spend = Number(insights.spend || 0);
   return conversations > 0 ? spend / conversations : 0;

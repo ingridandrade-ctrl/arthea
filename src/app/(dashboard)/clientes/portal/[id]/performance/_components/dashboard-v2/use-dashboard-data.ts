@@ -56,15 +56,28 @@ export type MetaData = {
   datePreset: string;
   account: { name: string; currency: string; accountCount: number } | null;
   summary: MetaFullSummary | null;
+  previousSummary?: MetaFullSummary | null;
   campaigns: any[];
   daily: { date: string; clicks: number; cost: number }[];
   objectiveGroups: {
     group: string;
     label: string;
+    description: string;
+    emoji: string;
+    primaryMetrics: string[];
+    secondaryMetrics: string[];
+    headlineLabel: string;
+    headlineMetric: string;
+    rankBy: string;
     spend: number;
     sharePct: number;
     summary: MetaFullSummary;
-    campaigns: any[];
+    campaigns: (MetaFullSummary & {
+      campaignId: string;
+      campaignName: string;
+      objective?: string;
+      accountName?: string;
+    })[];
     topAds: MetaAd[];
   }[];
   note?: string;
@@ -80,7 +93,11 @@ const META_PRESET: Record<DateRange, string> = {
   last_month: "last_month",
 };
 
-export function useDashboardData(engagementId: string, dateRange: DateRange) {
+export function useDashboardData(
+  engagementId: string,
+  dateRange: DateRange,
+  compare: string = "previous",
+) {
   const [meta, setMeta] = useState<MetaData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,8 +106,9 @@ export function useDashboardData(engagementId: string, dateRange: DateRange) {
     let cancelled = false;
     setLoading(true);
     setError(null);
+    const compareParam = compare && compare !== "none" ? `&compare=${compare}` : "";
     fetch(
-      `/api/meta/engagement-dashboard?engagementId=${engagementId}&datePreset=${META_PRESET[dateRange]}`,
+      `/api/meta/engagement-dashboard?engagementId=${engagementId}&datePreset=${META_PRESET[dateRange]}${compareParam}`,
     )
       .then((r) => r.json())
       .then((data: MetaData) => {
@@ -106,7 +124,7 @@ export function useDashboardData(engagementId: string, dateRange: DateRange) {
     return () => {
       cancelled = true;
     };
-  }, [engagementId, dateRange]);
+  }, [engagementId, dateRange, compare]);
 
   return { meta, loading, error };
 }

@@ -21,7 +21,7 @@ export function FunilEcommerce({ summary }: { summary: MetaFullSummary }) {
   const missing = vc === 0 && atc === 0 && purchase > 0;
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6">
+    <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
@@ -31,7 +31,7 @@ export function FunilEcommerce({ summary }: { summary: MetaFullSummary }) {
             ViewContent → AddToCart → InitiateCheckout → Purchase
           </p>
         </div>
-        <span className="text-[10px] uppercase tracking-[0.1em] text-brand bg-brand/8 border border-brand/12 px-2 py-1 rounded-md font-semibold">
+        <span className="text-[10px] uppercase tracking-[0.1em] text-brand bg-brand/8 border border-brand/12 px-2.5 py-1 rounded-full font-semibold">
           E-commerce
         </span>
       </div>

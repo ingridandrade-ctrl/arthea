@@ -10,7 +10,9 @@
   --color-brand-foreground: #ffffff;
 
   /* === Semantic tokens (light defaults) === */
-  --color-background: #ffffff;
+  --color-background: #FAF9F6;
+  /* Surface neutro (tiles internos de cards) — cinza frio levíssimo, dentro da paleta */
+  --color-surface: #F6F7F8;
   --color-foreground: #0a0a0a;
   --color-muted: #f5f5f5;
   --color-muted-foreground: #737373;
@@ -45,6 +47,7 @@
 /* === Dark theme overrides === */
 .dark {
   --color-background: #0B1414;
+  --color-surface: #152020;
   --color-foreground: #E6F1F1;
   --color-muted: #182525;
   --color-muted-foreground: #94A3A3;

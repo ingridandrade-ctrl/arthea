@@ -31,7 +31,7 @@ export function KpiCard({
     deltaKind === "up" ? ArrowUp : deltaKind === "down" ? ArrowDown : Minus;
 
   return (
-    <div className="bg-card border border-border rounded-2xl px-5 py-5 flex flex-col gap-1.5 min-h-[130px]">
+    <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] px-5 py-5 flex flex-col gap-1.5 min-h-[120px]">
       <div className="flex items-center justify-between">
         <div className="w-8 h-8 rounded-lg bg-brand/8 text-brand flex items-center justify-center border border-brand/12">
           {icon}
@@ -43,7 +43,7 @@ export function KpiCard({
           </span>
         )}
       </div>
-      <div className="text-[36px] font-semibold tracking-[-0.03em] text-foreground leading-none mt-2 tabular-nums">
+      <div className="text-[30px] font-semibold tracking-[-0.03em] text-foreground leading-none mt-2 tabular-nums">
         {value}
         {unit && (
           <span className="text-[15px] font-medium text-foreground/70 ml-0.5 tracking-normal">

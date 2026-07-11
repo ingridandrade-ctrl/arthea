@@ -3,11 +3,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ArrowRight, Briefcase, Mail, AlertTriangle } from "lucide-react";
+import { ArrowRight, Briefcase, Mail, AlertTriangle, Plus, RadioTower } from "lucide-react";
+import { NewClientButton } from "./portal/_components/new-client-button";
 
-// Lista de CLIENTES (User com role=CLIENT). Substitui a antiga lista de
-// engagements em /clientes/portal — aqui é a unidade primária.
-// Engagements aparecem como sub-info de cada card.
+// Lista de CLIENTES (User com role=CLIENT) — a porta de entrada única da
+// área. Dentro de cada cliente vivem os projetos (ClientEngagement), o
+// dossiê, plataformas e contrato.
 
 export default async function ClientesPage() {
   const session = (await getServerSession(authOptions)) as any;
@@ -41,16 +42,33 @@ export default async function ClientesPage() {
         <div>
           <h1 className="text-2xl font-bold">Clientes</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Cada cliente é uma pasta — dentro tem as frentes (engagements), dossiê, plataformas, contrato.
+            Cada cliente é uma pasta — dentro tem os projetos, dossiê, plataformas e contrato.
           </p>
         </div>
-        <Link
-          href="/clientes/portal"
-          className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-        >
-          Ver por frente
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href="/clientes/anuncios"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground/80 hover:text-foreground hover:border-foreground/30 transition"
+          >
+            <RadioTower className="w-4 h-4" strokeWidth={1.8} />
+            Saúde dos anúncios
+          </Link>
+          <Link
+            href="/projetos"
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-3 py-2"
+          >
+            Ver todos os projetos
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+          <Link
+            href="/clientes/novo"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-medium hover:opacity-90"
+          >
+            <Plus className="w-4 h-4" />
+            Novo cliente
+          </Link>
+          <NewClientButton />
+        </div>
       </div>
 
       {clientes.length === 0 ? (
@@ -76,17 +94,22 @@ export default async function ClientesPage() {
             const accent = engagements[0]?.accentColor || "#1D7070";
 
             return (
-              <Link
+              <div
                 key={c.id}
-                href={`/clientes/${c.id}`}
                 className="group bg-card border border-border rounded-2xl p-5 hover:border-[var(--accent)]/40 hover:shadow-md transition relative overflow-hidden"
               >
+                {/* Clique no card abre a ficha do cliente (link esticado por baixo) */}
+                <Link
+                  href={`/clientes/${c.id}`}
+                  className="absolute inset-0 z-0"
+                  aria-label={`Abrir ficha de ${c.name}`}
+                />
                 <span
-                  className="absolute left-0 top-0 bottom-0 w-1 transition-all group-hover:w-1.5"
+                  className="absolute left-0 top-0 bottom-0 w-1 transition-all group-hover:w-1.5 pointer-events-none"
                   style={{ background: accent }}
                 />
 
-                <div className="flex items-start gap-3 mb-4">
+                <div className="flex items-start gap-3 mb-4 pointer-events-none">
                   <span
                     className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
                     style={{ background: accent }}
@@ -107,35 +130,26 @@ export default async function ClientesPage() {
                   )}
                 </div>
 
-                <div className="space-y-2 mb-3">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <Briefcase className="w-3 h-3" />
-                    {engagements.length === 0
-                      ? "Sem frentes ativas"
-                      : `${engagements.length} ${engagements.length === 1 ? "frente" : "frentes"}: ${engagements.map((e) => e.name).join(" · ")}`}
-                  </p>
+                {/* Atalhos diretos: cada projeto abre O DASHBOARD em 1 clique */}
+                <div className="relative z-10 flex flex-wrap gap-1.5 mb-3">
+                  {engagements.length === 0 ? (
+                    <span className="text-xs text-muted-foreground">Sem projetos ativos</span>
+                  ) : (
+                    engagements.map((e) => (
+                      <Link
+                        key={e.id}
+                        href={`/clientes/portal/${e.id}/performance`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface border border-black/5 text-[11.5px] font-medium text-foreground hover:border-[var(--accent)]/50 hover:text-[var(--accent)] transition"
+                        title={`Abrir dashboard de ${e.name}`}
+                      >
+                        <Briefcase className="w-3 h-3" style={{ color: e.accentColor || accent }} />
+                        {e.name}
+                      </Link>
+                    ))
+                  )}
                 </div>
 
-                {totalDeliverables > 0 && (
-                  <div>
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="text-muted-foreground">
-                        {approved}/{totalDeliverables} entregas aprovadas
-                      </span>
-                      <span className="font-semibold" style={{ color: accent }}>
-                        {pct}%
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: accent + "20" }}>
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{ width: `${pct}%`, background: accent }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between text-xs text-muted-foreground mt-4 pt-3 border-t border-border">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mt-4 pt-3 border-t border-border pointer-events-none">
                   {waiting > 0 ? (
                     <span className="inline-flex items-center gap-1 font-medium" style={{ color: accent }}>
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
@@ -144,12 +158,15 @@ export default async function ClientesPage() {
                   ) : (
                     <span>tudo em dia</span>
                   )}
-                  <ArrowRight
-                    className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
-                    style={{ color: accent }}
-                  />
+                  <span className="inline-flex items-center gap-1">
+                    ficha do cliente
+                    <ArrowRight
+                      className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
+                      style={{ color: accent }}
+                    />
+                  </span>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

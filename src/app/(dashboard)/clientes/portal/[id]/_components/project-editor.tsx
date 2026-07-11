@@ -107,12 +107,7 @@ export function ProjectEditor({ project }: { project: any }) {
         ))}
       </div>
 
-      {tab === "geral" && (
-        <>
-          <GeralTab project={project} />
-          <ClientAccountSection projectId={project.id} client={project.client} />
-        </>
-      )}
+      {tab === "geral" && <GeralTab project={project} />}
       {tab === "entregaveis" && <EntregaveisTab project={project} />}
       {tab === "acessos" && <AcessosTab project={project} />}
       {tab === "referencias" && <ReferenciasTab project={project} />}

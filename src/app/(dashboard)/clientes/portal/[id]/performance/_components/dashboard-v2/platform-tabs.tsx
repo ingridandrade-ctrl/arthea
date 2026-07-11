@@ -37,12 +37,12 @@ function TabButton({
       aria-selected={active}
       className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-medium transition ${
         active
-          ? "bg-muted text-foreground shadow-inner"
+          ? "bg-foreground text-background"
           : "text-foreground/70 hover:text-foreground"
       }`}
     >
       <span
-        className={`w-1.5 h-1.5 rounded-full ${active ? "bg-brand" : "bg-foreground/40"}`}
+        className={`w-1.5 h-1.5 rounded-full ${active ? "bg-brand" : "bg-foreground/30"}`}
       />
       {children}
     </button>

@@ -1,7 +1,5 @@
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { InsightsCurationView } from "./_components/insights-curation-view";
@@ -29,14 +27,9 @@ export default async function InsightsCurationPage({
   });
   if (!engagement) notFound();
 
+  // Navegação vem das abas do layout do projeto.
   return (
-    <div className="max-w-[1180px] mx-auto px-7 py-8 pb-24">
-      <Link
-        href={`/clientes/portal/${params.id}/performance?v2=1`}
-        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mb-4"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" /> Dashboard de performance
-      </Link>
+    <div className="max-w-[1180px] mx-auto pb-24">
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Curadoria de Análise

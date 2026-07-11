@@ -97,6 +97,76 @@ export default function LoginPage() {
   return <CRMLoginUI loading={loading} error={error} onSubmit={handleSubmit} />;
 }
 
+// Fundo fluido verde-petróleo — recria em SVG a textura de tinta da marca:
+// base escura, ondas diagonais suaves desfocadas e grão fino por cima.
+function FluidBackground() {
+  return (
+    <svg
+      className="absolute inset-0 w-full h-full"
+      viewBox="0 0 1920 1080"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="crm-bg-base" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#0B3236" />
+          <stop offset="45%" stopColor="#0C3A3E" />
+          <stop offset="100%" stopColor="#092B2F" />
+        </linearGradient>
+        <filter id="crm-bg-blur" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="46" />
+        </filter>
+        <filter id="crm-bg-grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
+          <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.035 0" />
+        </filter>
+      </defs>
+
+      <rect width="1920" height="1080" fill="url(#crm-bg-base)" />
+
+      {/* Ondas fluidas — faixas diagonais claras, bem desfocadas */}
+      <g filter="url(#crm-bg-blur)" fill="none" strokeLinecap="round">
+        <path
+          d="M 1150 -100 C 980 260, 820 480, 520 760 S 240 1050, 140 1180"
+          stroke="rgba(72,142,144,0.34)"
+          strokeWidth="80"
+        />
+        <path
+          d="M 1310 -60 C 1140 300, 950 560, 700 800 S 420 1080, 340 1200"
+          stroke="rgba(58,126,128,0.22)"
+          strokeWidth="150"
+        />
+        <path
+          d="M 880 -120 C 760 200, 640 420, 430 640 S 200 940, 120 1080"
+          stroke="rgba(46,110,112,0.18)"
+          strokeWidth="200"
+        />
+        {/* redemoinho sutil à direita, como na referência */}
+        <path
+          d="M 1240 480 C 1330 420, 1450 440, 1480 540 C 1505 630, 1420 690, 1330 660"
+          stroke="rgba(70,138,140,0.20)"
+          strokeWidth="60"
+        />
+        <path
+          d="M 1600 700 C 1700 640, 1820 660, 1880 760"
+          stroke="rgba(54,120,122,0.16)"
+          strokeWidth="110"
+        />
+      </g>
+
+      {/* vinheta suave nas bordas */}
+      <rect width="1920" height="1080" fill="url(#crm-bg-vignette)" />
+      <radialGradient id="crm-bg-vignette" cx="50%" cy="45%" r="75%">
+        <stop offset="60%" stopColor="rgba(0,0,0,0)" />
+        <stop offset="100%" stopColor="rgba(4,22,25,0.55)" />
+      </radialGradient>
+
+      {/* grão fino */}
+      <rect width="1920" height="1080" filter="url(#crm-bg-grain)" opacity="0.5" />
+    </svg>
+  );
+}
+
 function CRMLoginUI({
   loading,
   error,
@@ -107,8 +177,9 @@ function CRMLoginUI({
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted">
-      <div className="w-full max-w-md bg-card rounded-2xl shadow-lg p-8">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0B3236] p-6">
+      <FluidBackground />
+      <div className="relative w-full max-w-md bg-card rounded-2xl p-8 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.6)] border border-white/10">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary">Arthea</h1>
           <p className="text-muted-foreground mt-2">CRM da sua agência</p>
@@ -152,10 +223,7 @@ function CRMLoginUI({
           </button>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          Credenciais padrão: admin@arthea.com / admin123
-        </p>
-        <p className="text-center text-xs text-muted-foreground mt-4">
+        <p className="text-center text-xs text-muted-foreground mt-6">
           <a href="/politica-de-privacidade" className="underline hover:text-foreground">
             Política de privacidade
           </a>

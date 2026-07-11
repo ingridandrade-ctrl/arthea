@@ -14,7 +14,7 @@ export function PillChart({ cols }: { cols: PillChartCol[] }) {
 
   return (
     <div
-      className="grid gap-3 pt-6 pb-3 items-end min-h-[240px]"
+      className="grid gap-3 pt-10 pb-3 items-end min-h-[240px]"
       style={{ gridTemplateColumns: `repeat(${cols.length}, minmax(0, 1fr))` }}
     >
       {cols.map((c, i) => {
@@ -25,7 +25,7 @@ export function PillChart({ cols }: { cols: PillChartCol[] }) {
               <div
                 className={
                   c.highlight
-                    ? "w-full rounded-full bg-gradient-to-b from-brand/60 via-brand to-warning shadow-[0_8px_24px_-8px_rgb(29_112_112_/_0.4)]"
+                    ? "w-full rounded-full bg-gradient-to-b from-[#43BBB4] via-brand to-brand-dark shadow-[0_8px_24px_-8px_rgb(29_112_112_/_0.4)]"
                     : "w-full rounded-full border border-border"
                 }
                 style={{

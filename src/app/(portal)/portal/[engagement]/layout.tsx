@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getEffectivePortalClientId } from "@/lib/portal-viewer";
 import { prisma } from "@/lib/prisma";
 
 // Layout aninhado de cada frente — sobrescreve as CSS vars de accent pra que
@@ -12,7 +13,7 @@ export default async function EngagementLayout({
   params: { engagement: string };
 }) {
   const session = await getServerSession(authOptions);
-  const userId = (session?.user as any)?.id;
+  const userId = getEffectivePortalClientId(session);
   if (!userId) return <>{children}</>;
 
   const engagement = await prisma.clientEngagement.findUnique({

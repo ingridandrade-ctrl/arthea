@@ -1,9 +1,8 @@
 "use client";
 
 import type { BusinessType } from "@prisma/client";
-import { Wallet, Eye, MousePointerClick, Coins, Target, Search } from "lucide-react";
+import { Wallet, Eye, MousePointerClick, Coins, Search } from "lucide-react";
 import { KpiCard } from "./kpi-card";
-import { InsightsCard } from "./insights-card";
 import { useGoogleData, bucketByChannel } from "./use-google-data";
 import type { DateRange } from "./top-bar";
 
@@ -40,7 +39,7 @@ export function GoogleView({
 
   if (loading && !google) {
     return (
-      <div className="bg-card border border-border rounded-2xl p-16 text-center text-muted-foreground text-[13px]">
+      <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-16 text-center text-muted-foreground text-[13px]">
         Carregando dados Google Ads…
       </div>
     );
@@ -71,7 +70,7 @@ export function GoogleView({
   return (
     <>
       {/* Camada 1 — KPIs core universais */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <KpiCard
           icon={<Wallet className="w-3.5 h-3.5" strokeWidth={1.9} />}
           label="Investimento"
@@ -97,57 +96,50 @@ export function GoogleView({
         />
       </div>
 
-      {/* Insights curados + resumo de conversão */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        <div className="lg:col-span-2">
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
-                  Conversão · Google Ads
-                </h3>
-                <p className="text-[12px] text-muted-foreground mt-0.5">
-                  {businessType === "ECOMMERCE"
-                    ? "Vendas atribuídas + receita"
-                    : businessType === "INFOPRODUCT"
-                      ? "Leads e vendas do lançamento"
-                      : "Contatos qualificados via Search"}
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-              <ConvTile
-                label="Conversões"
-                value={num(s.conversions)}
-                sub={s.costPerConversion > 0 ? `${money(s.costPerConversion)} cada` : "—"}
-              />
-              <ConvTile
-                label="Custo/conv."
-                value={s.costPerConversion > 0 ? money(s.costPerConversion) : "—"}
-                sub="média ponderada"
-              />
-              <ConvTile
-                label="Receita"
-                value={s.conversionsValue > 0 ? moneyShort(s.conversionsValue) : "—"}
-                sub={s.roas > 0 ? `ROAS ${s.roas.toFixed(2)}×` : "sem tracking de valor"}
-                tone={s.roas >= 3 ? "ok" : s.roas > 0 ? "warn" : "neutral"}
-              />
-              <ConvTile
-                label="View-through"
-                value={s.viewThroughConversions > 0 ? num(s.viewThroughConversions) : "—"}
-                sub="conversões via YouTube"
-              />
-            </div>
+      {/* Resumo de conversão */}
+      <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-6 mb-4">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
+              Conversão · Google Ads
+            </h3>
+            <p className="text-[12px] text-muted-foreground mt-0.5">
+              {businessType === "ECOMMERCE"
+                ? "Vendas atribuídas + receita"
+                : businessType === "INFOPRODUCT"
+                  ? "Leads e vendas do lançamento"
+                  : "Contatos qualificados via Search"}
+            </p>
           </div>
         </div>
-        <div>
-          <InsightsCard engagementId={engagementId} showCurationLink />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          <ConvTile
+            label="Conversões"
+            value={num(s.conversions)}
+            sub={s.costPerConversion > 0 ? `${money(s.costPerConversion)} cada` : "—"}
+          />
+          <ConvTile
+            label="Custo/conv."
+            value={s.costPerConversion > 0 ? money(s.costPerConversion) : "—"}
+            sub="média ponderada"
+          />
+          <ConvTile
+            label="Receita"
+            value={s.conversionsValue > 0 ? moneyShort(s.conversionsValue) : "—"}
+            sub={s.roas > 0 ? `ROAS ${s.roas.toFixed(2)}×` : "sem tracking de valor"}
+            tone={s.roas >= 3 ? "ok" : s.roas > 0 ? "warn" : "neutral"}
+          />
+          <ConvTile
+            label="View-through"
+            value={s.viewThroughConversions > 0 ? num(s.viewThroughConversions) : "—"}
+            sub="conversões via YouTube"
+          />
         </div>
       </div>
 
       {/* Camada 2 específica: canais que estão puxando o resultado */}
       {buckets.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-6 mb-4">
+        <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-6 mb-4">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
@@ -164,7 +156,7 @@ export function GoogleView({
               return (
                 <div
                   key={b.channelType}
-                  className="bg-muted/40 border border-border rounded-xl p-4"
+                  className="bg-surface rounded-2xl p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
@@ -174,7 +166,7 @@ export function GoogleView({
                       {share.toFixed(0)}% do gasto
                     </span>
                   </div>
-                  <div className="text-[22px] font-semibold text-foreground leading-none tabular-nums tracking-[-0.02em]">
+                  <div className="text-[26px] font-semibold text-foreground leading-none tabular-nums tracking-[-0.02em]">
                     {moneyShort(b.cost)}
                   </div>
                   <div className="text-[11.5px] text-muted-foreground mt-2 flex gap-3 flex-wrap">
@@ -191,7 +183,7 @@ export function GoogleView({
 
       {/* Top search terms convertendo */}
       {topTerms.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-6 mb-4">
+        <div className="bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-6 mb-4">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center">
@@ -211,7 +203,7 @@ export function GoogleView({
             {topTerms.map((t, i) => (
               <div
                 key={`${t.searchTerm}-${i}`}
-                className="grid grid-cols-[24px_1fr_auto] items-center gap-3 py-2 px-3 rounded-lg hover:bg-muted/40 transition"
+                className="grid grid-cols-[24px_1fr_auto] items-center gap-3 py-2 px-3 rounded-lg hover:bg-surface transition"
               >
                 <span className="text-[13px] text-muted-foreground font-serif italic">
                   {String(i + 1).padStart(2, "0")}
@@ -253,11 +245,11 @@ function ConvTile({
   tone?: "ok" | "warn" | "neutral";
 }) {
   return (
-    <div className="bg-muted/40 border border-border rounded-xl p-4">
+    <div className="bg-surface rounded-2xl p-4">
       <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
         {label}
       </div>
-      <div className="text-[22px] font-semibold text-foreground leading-none mt-1 tabular-nums tracking-[-0.025em]">
+      <div className="text-[26px] font-semibold text-foreground leading-none mt-1 tabular-nums tracking-[-0.025em]">
         {value}
       </div>
       <div className={`text-[10.5px] mt-1.5 leading-tight ${

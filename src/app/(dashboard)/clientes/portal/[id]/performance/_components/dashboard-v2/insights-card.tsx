@@ -37,7 +37,7 @@ export function InsightsCard({
   }, [engagementId]);
 
   return (
-    <div className="relative bg-card border border-border rounded-2xl p-6 overflow-hidden min-h-[280px]">
+    <div className="relative bg-card rounded-2xl border border-black/5 shadow-[0_1px_2px_rgb(0_0_0_/_0.03),0_8px_24px_-16px_rgb(0_0_0_/_0.08)] p-6 overflow-hidden min-h-[280px]">
       {/* Halo — único da página, marca o card de análise */}
       <div
         className="absolute -top-1/3 -right-1/5 w-[340px] h-[340px] pointer-events-none opacity-70"

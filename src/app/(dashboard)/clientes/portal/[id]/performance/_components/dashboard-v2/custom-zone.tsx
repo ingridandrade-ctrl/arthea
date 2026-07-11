@@ -93,12 +93,12 @@ export function CustomZone({
             return (
               <div
                 key={m.id}
-                className="bg-muted/40 border border-border rounded-xl p-4"
+                className="bg-surface rounded-2xl p-4"
               >
                 <div className="text-[10.5px] uppercase tracking-[0.08em] text-muted-foreground font-semibold">
                   {m.label}
                 </div>
-                <div className="text-[22px] font-semibold text-foreground leading-none mt-1 tabular-nums tracking-[-0.02em]">
+                <div className="text-[26px] font-semibold text-foreground leading-none mt-1 tabular-nums tracking-[-0.02em]">
                   {formatMetric(value ?? 0, m.unit)}
                 </div>
                 <div className="text-[10.5px] text-muted-foreground mt-1.5 leading-tight">
