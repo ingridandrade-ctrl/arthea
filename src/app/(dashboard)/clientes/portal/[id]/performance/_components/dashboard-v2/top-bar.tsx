@@ -42,6 +42,7 @@ export function DashboardTopBar({
   onCompareChange,
   onRefresh,
   onExport,
+  showActions = true,
 }: {
   brand: string;
   subtitle?: string;
@@ -51,6 +52,7 @@ export function DashboardTopBar({
   onCompareChange: (c: ComparePeriod) => void;
   onRefresh?: () => void;
   onExport?: () => void;
+  showActions?: boolean;
 }) {
   const [rangeOpen, setRangeOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
@@ -136,24 +138,28 @@ export function DashboardTopBar({
           )}
         </div>
 
-        <span className="w-px h-5 bg-border mx-1" />
+        {showActions && (
+          <>
+            <span className="w-px h-5 bg-border mx-1" />
 
-        <button
-          type="button"
-          onClick={onRefresh}
-          className="inline-flex items-center gap-2 px-3.5 py-2 bg-card border border-border rounded-full text-[13px] font-medium text-foreground/80 hover:text-foreground hover:border-foreground/20 transition"
-        >
-          <RefreshCw className="w-3.5 h-3.5 opacity-70" strokeWidth={1.8} />
-          Atualizar
-        </button>
-        <button
-          type="button"
-          onClick={onExport}
-          className="inline-flex items-center gap-2 px-3.5 py-2 bg-foreground text-background rounded-full text-[13px] font-medium hover:opacity-90 transition"
-        >
-          <Download className="w-3.5 h-3.5" strokeWidth={1.8} />
-          Exportar
-        </button>
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="inline-flex items-center gap-2 px-3.5 py-2 bg-card border border-border rounded-full text-[13px] font-medium text-foreground/80 hover:text-foreground hover:border-foreground/20 transition"
+            >
+              <RefreshCw className="w-3.5 h-3.5 opacity-70" strokeWidth={1.8} />
+              Atualizar
+            </button>
+            <button
+              type="button"
+              onClick={onExport}
+              className="inline-flex items-center gap-2 px-3.5 py-2 bg-foreground text-background rounded-full text-[13px] font-medium hover:opacity-90 transition"
+            >
+              <Download className="w-3.5 h-3.5" strokeWidth={1.8} />
+              Exportar
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
