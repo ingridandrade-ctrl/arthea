@@ -65,6 +65,7 @@ export function DashboardV2({
   initialCompare,
   hasConfig,
   initialPlatforms,
+  viewer = "admin",
 }: {
   engagementId: string;
   clientName: string;
@@ -74,6 +75,8 @@ export function DashboardV2({
   initialCompare: ComparePeriod;
   hasConfig: boolean;
   initialPlatforms: Platform[];
+  // "client" = área de membros: sem setup, sem links de admin, sem diagnóstico interno
+  viewer?: "admin" | "client";
 }) {
   const [configured, setConfigured] = useState(hasConfig);
   const [businessType, setBusinessType] = useState<BusinessType>(initialBusinessType);
@@ -90,8 +93,8 @@ export function DashboardV2({
   const s = meta?.summary;
   const vids = videoAds(meta);
 
-  // ─── Setup inicial: engagement sem config ainda ────────────────
-  if (!configured) {
+  // ─── Setup inicial: engagement sem config ainda (só admin configura) ──
+  if (!configured && viewer === "admin") {
     return (
       <div className="max-w-[1280px] mx-auto px-7 py-12 pb-24">
         <DashboardSetup
@@ -123,6 +126,7 @@ export function DashboardV2({
         compare={compare}
         onDateRangeChange={setDateRange}
         onCompareChange={setCompare}
+        showActions={viewer === "admin"}
       />
 
       {/* Cabeçalho contido — nome real do cliente */}
@@ -138,14 +142,16 @@ export function DashboardV2({
             )}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setConfigured(false)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11.5px] text-muted-foreground hover:text-foreground border border-border hover:border-foreground/30 transition"
-        >
-          <Settings2 className="w-3 h-3" strokeWidth={1.8} />
-          configurar
-        </button>
+        {viewer === "admin" && (
+          <button
+            type="button"
+            onClick={() => setConfigured(false)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11.5px] text-muted-foreground hover:text-foreground border border-border hover:border-foreground/30 transition"
+          >
+            <Settings2 className="w-3 h-3" strokeWidth={1.8} />
+            configurar
+          </button>
+        )}
       </div>
 
       {showTabs && <PlatformTabs value={activePlatform} onChange={setPlatform} />}
@@ -194,10 +200,12 @@ export function DashboardV2({
                 compareLabel={COMPARE_LABEL[compare]}
               />
 
-              {/* Saúde da campanha — full width */}
-              <div className="mb-5">
-                <HealthPanel summary={s} />
-              </div>
+              {/* Saúde da campanha — diagnóstico interno, só admin */}
+              {viewer === "admin" && (
+                <div className="mb-5">
+                  <HealthPanel summary={s} />
+                </div>
+              )}
 
               {/* Análise de vídeo — universal */}
               <div className="mb-5">
@@ -239,7 +247,7 @@ export function DashboardV2({
 
               {/* Camada 3 — custom */}
               <div className="mb-5">
-                <CustomZone engagementId={engagementId} summary={s} showConfigLink />
+                <CustomZone engagementId={engagementId} summary={s} showConfigLink={viewer === "admin"} />
               </div>
             </>
           )}
@@ -248,7 +256,7 @@ export function DashboardV2({
 
       {/* Análise pela Arthea — sempre no rodapé, embaixo de tudo */}
       <div className="mt-2">
-        <InsightsCard engagementId={engagementId} showCurationLink />
+        <InsightsCard engagementId={engagementId} showCurationLink={viewer === "admin"} />
       </div>
     </div>
   );
