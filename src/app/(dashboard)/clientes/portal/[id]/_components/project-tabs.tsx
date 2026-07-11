@@ -10,7 +10,7 @@ export function ProjectTabs({ projectId }: { projectId: string }) {
   const base = `/clientes/portal/${projectId}`;
 
   const tabs = [
-    { label: "Conteúdo", href: base, icon: FolderKanban, exact: true },
+    { label: "Entregáveis", href: base, icon: FolderKanban, exact: true },
     { label: "Performance", href: `${base}/performance`, icon: BarChart3 },
     { label: "Análise", href: `${base}/analise`, icon: Sparkles },
     { label: "Configuração", href: `${base}/config-dashboard`, icon: Settings2 },

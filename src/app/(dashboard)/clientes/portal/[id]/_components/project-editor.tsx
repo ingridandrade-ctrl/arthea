@@ -83,9 +83,93 @@ function useToast() {
   return { show, node };
 }
 
-export function ProjectEditor({ project }: { project: any }) {
+// Cabeçalho de seção nas páginas empilhadas (sem sub-abas)
+function ConfigSection({
+  title,
+  desc,
+  children,
+  first = false,
+}: {
+  title: string;
+  desc?: string;
+  children: React.ReactNode;
+  first?: boolean;
+}) {
+  return (
+    <section className={first ? "" : "pt-10 mt-10 border-t border-border"}>
+      <div className="mb-5">
+        <h2 className="text-[17px] font-semibold tracking-tight">{title}</h2>
+        {desc && <p className="text-[12.5px] text-muted-foreground mt-0.5">{desc}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export function ProjectEditor({
+  project,
+  mode = "full",
+}: {
+  project: any;
+  // "entregaveis": página principal do projeto (Entregáveis + Referências)
+  // "config": setup do projeto empilhado (Identidade, Acessos, Sobre você, Interno, Acervo)
+  // "full": legado com sub-abas (não usado nas rotas novas)
+  mode?: "full" | "entregaveis" | "config";
+}) {
   const [tab, setTab] = useState("geral");
   const scenesEnabled = !!project.client?.scenesEnabled;
+
+  if (mode === "entregaveis") {
+    return (
+      <div>
+        <EntregaveisTab project={project} />
+        <ConfigSection
+          title="Referências"
+          desc="Links e materiais de inspiração que o cliente vê no portal"
+        >
+          <ReferenciasTab project={project} />
+        </ConfigSection>
+      </div>
+    );
+  }
+
+  if (mode === "config") {
+    return (
+      <div>
+        <ConfigSection
+          first
+          title="Identidade do projeto"
+          desc="Nome, fase, cor e datas — o que define esse projeto"
+        >
+          <GeralTab project={project} />
+        </ConfigSection>
+        <ConfigSection
+          title="Acessos"
+          desc="Logins e senhas de ferramentas que aparecem pro cliente no portal"
+        >
+          <AcessosTab project={project} />
+        </ConfigSection>
+        <ConfigSection
+          title="Sobre você"
+          desc="O texto de apresentação que o cliente vê no dashboard do portal"
+        >
+          <ResumoTab project={project} />
+        </ConfigSection>
+        <ConfigSection
+          title="Interno"
+          desc="Contrato e notas privadas — o cliente não vê nada daqui"
+        >
+          <InternoTab project={project} />
+        </ConfigSection>
+        {scenesEnabled && (
+          <ConfigSection title="Acervo de cenas" desc="Gerencia as cenas do cliente">
+            <AcervoTab clientId={project.client.id} scenes={project.scenes || []} />
+          </ConfigSection>
+        )}
+      </div>
+    );
+  }
+
   const tabs = scenesEnabled
     ? [...BASE_TABS, { key: "acervo", label: "Acervo de cenas" }]
     : BASE_TABS;
