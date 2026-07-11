@@ -30,7 +30,14 @@ function presetRange(p: PeriodPreset): { from: string; to: string } {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   };
   if (p === "this_month") {
-    return { from: monthFirst(now.getFullYear(), now.getMonth()), to: today };
+    // Inclui o mês inteiro (não só até hoje) pra que contas pendentes
+    // com vencimento futuro dentro deste mês apareçam no filtro padrão.
+    // Antes: to=today deixava a usuária confusa achando que a conta
+    // "não subiu" quando na verdade estava filtrada fora da tela.
+    return {
+      from: monthFirst(now.getFullYear(), now.getMonth()),
+      to: monthLast(now.getFullYear(), now.getMonth()),
+    };
   }
   if (p === "last_month") {
     const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -143,7 +150,9 @@ export function LancamentosClient() {
     if (type) params.set("type", type);
     else params.delete("type");
     const qs = params.toString();
-    router.replace(qs ? `/financas/lancamentos?${qs}` : "/lancamentos");
+    // A rota é /lancamentos (o subdomínio financas.arthea.com.br já cobre
+    // o "financas"). Prefixar com /financas gera 404.
+    router.replace(qs ? `/lancamentos?${qs}` : "/lancamentos");
   }, [type]);
 
   function applyPreset(p: PeriodPreset) {
@@ -163,6 +172,23 @@ export function LancamentosClient() {
     setType("");
     setStatus("");
     setQ("");
+  }
+
+  // Se a movimentação recém salva cair fora do filtro atual de datas,
+  // expande o range pra incluí-la — evita o clássico "salvei mas não
+  // aparece na lista" quando o vencimento é depois do fim do período.
+  function expandFilterIfOutside(createdDate?: string) {
+    if (!createdDate || !/^\d{4}-\d{2}-\d{2}$/.test(createdDate)) return;
+    let changed = false;
+    if (from && createdDate < from) {
+      setFrom(createdDate);
+      changed = true;
+    }
+    if (to && createdDate > to) {
+      setTo(createdDate);
+      changed = true;
+    }
+    if (changed) setPeriod("custom");
   }
 
   const activeFilterCount =
@@ -590,8 +616,10 @@ export function LancamentosClient() {
           categories={categories}
           settings={settings}
           onClose={() => setCreating(false)}
-          onSaved={() => {
+          onSaved={(createdDate) => {
             setCreating(false);
+            expandFilterIfOutside(createdDate);
+            toast.success("Movimentação salva");
             loadTx();
           }}
         />
@@ -603,8 +631,10 @@ export function LancamentosClient() {
           categories={categories}
           settings={settings}
           onClose={() => setEditing(null)}
-          onSaved={() => {
+          onSaved={(createdDate) => {
             setEditing(null);
+            expandFilterIfOutside(createdDate);
+            toast.success("Movimentação atualizada");
             loadTx();
           }}
         />
@@ -923,7 +953,7 @@ function TransactionModal({
   categories: Category[];
   settings: Settings | null;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (createdDate?: string) => void;
 }) {
   const [type, setType] = useState<"INCOME" | "EXPENSE" | "TRANSFER">(
     transaction?.type || "EXPENSE"
@@ -990,34 +1020,49 @@ function TransactionModal({
     const url = transaction
       ? `/api/transactions/${transaction.id}`
       : "/api/transactions";
-    const res = await fetch(url, {
-      method: transaction ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type,
-        amount: numericAmount,
-        date,
-        description,
-        notes: notes || null,
-        owner,
-        paidByOwner: type === "EXPENSE" ? (paidByOwner || null) : null,
-        splitRatio:
-          type === "EXPENSE" && owner === "COUPLE"
-            ? Math.min(Math.max(splitPercentA, 0), 100) / 100
-            : null,
-        accountId,
-        toAccountId: type === "TRANSFER" ? toAccountId : null,
-        categoryId: type === "TRANSFER" ? null : categoryId || null,
-        paid: type === "EXPENSE" ? paid : true,
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setError(data?.error || "Erro ao salvar");
+    try {
+      const res = await fetch(url, {
+        method: transaction ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          amount: numericAmount,
+          date,
+          description,
+          notes: notes || null,
+          owner,
+          paidByOwner: type === "EXPENSE" ? (paidByOwner || null) : null,
+          splitRatio:
+            type === "EXPENSE" && owner === "COUPLE"
+              ? Math.min(Math.max(splitPercentA, 0), 100) / 100
+              : null,
+          accountId,
+          toAccountId: type === "TRANSFER" ? toAccountId : null,
+          categoryId: type === "TRANSFER" ? null : categoryId || null,
+          paid: type === "EXPENSE" ? paid : true,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data?.error || "Erro ao salvar");
+        setSaving(false);
+        return;
+      }
+      // Passa a data pro parent poder expandir o filtro se necessário
+      // (ex: conta pendente pra mês que vem cai fora do filtro atual).
+      onSaved(date);
+    } catch (err: any) {
+      // Se cair aqui é falha de rede / DB dormindo / timeout do serverless.
+      // Sem esse catch a promise rejeita silenciosa, saving fica travado
+      // em true e o usuário vê "nada acontecendo" ao clicar Salvar.
+      console.error("[transactions] submit failed", err);
+      setError(
+        err?.name === "AbortError"
+          ? "Servidor demorou pra responder. Tenta de novo."
+          : "Falha de conexão. Verifica sua internet e tenta de novo."
+      );
       setSaving(false);
-      return;
     }
-    onSaved();
   }
 
   return (
