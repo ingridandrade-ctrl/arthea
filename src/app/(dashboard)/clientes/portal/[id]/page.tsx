@@ -48,6 +48,7 @@ export default async function PortalClienteDetail({
   return (
     <ProjectEditor
       project={JSON.parse(JSON.stringify(projectWithExtras))}
+      mode="entregaveis"
     />
   );
 }
