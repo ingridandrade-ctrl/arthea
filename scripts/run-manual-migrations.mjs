@@ -13,6 +13,26 @@ import { join } from "node:path";
 
 const DIR = "prisma/migrations-manual";
 
+// Baseline: migrations aplicadas MANUALMENTE (via Neon SQL Editor) antes do
+// runner existir. São marcadas como aplicadas em qualquer banco, sempre —
+// senão o runner tenta reexecutá-las e quebra em "already exists".
+// Arquivos NOVOS (fora desta lista) rodam normalmente.
+const BASELINE = [
+  "2026-05-08_add_client_portal.sql",
+  "2026-05-12_engagement_dossier_refactor.sql",
+  "2026-05-12_engagement_internal_data.sql",
+  "2026-05-13_deliverable_kind.sql",
+  "2026-05-16_scenes_module.sql",
+  "2026-06-12_google_ads_module.sql",
+  "2026-06-15_client_links_and_service_template.sql",
+  "2026-06-15_deliverable_section.sql",
+  "2026-06-15_service_deliverable_templates.sql",
+  "2026-06-27_lead_source_string.sql",
+  "2026-06-27_lead_status_string.sql",
+  "2026-07-06_business_type_and_insights.sql",
+  "2026-07-07_dashboard_config_platforms.sql",
+];
+
 const client = new pg.Client({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL?.includes("localhost")
@@ -34,6 +54,14 @@ async function main() {
       applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+
+  // Auto-cura: garante a baseline marcada neste banco, seja ele qual for.
+  for (const f of BASELINE) {
+    await client.query(
+      `INSERT INTO "_arthea_migrations" (name) VALUES ($1) ON CONFLICT DO NOTHING`,
+      [f],
+    );
+  }
 
   const files = readdirSync(DIR)
     .filter((f) => f.endsWith(".sql"))
