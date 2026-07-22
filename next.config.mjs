@@ -79,6 +79,18 @@ const nextConfig = {
           source: "/propostas/gmb",
           destination: "/propostas/gmb.html",
         },
+        // Subdomínio do orçamento da Mirelle Buêno serve
+        // public/propostas/mirellebueno.html na raiz.
+        {
+          source: "/",
+          has: [{ type: "host", value: "mirellebueno.arthea.com.br" }],
+          destination: "/propostas/mirellebueno.html",
+        },
+        // URL limpa pro orçamento no domínio principal — sem o .html no fim.
+        {
+          source: "/propostas/mirellebueno",
+          destination: "/propostas/mirellebueno.html",
+        },
         // URL limpa pra proposta do Grupo Sansara em public/grupo-sansara —
         // clientes.arthea.com.br/grupo-sansara serve o index.html da pasta.
         {
