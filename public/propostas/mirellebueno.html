@@ -418,5 +418,27 @@
   </div>
 
 </div>
+
+<script>
+// Recarrega a página sozinha quando uma versão nova é publicada — cobre
+// quem ficou com a aba aberta durante uma atualização. Compara o ETag do
+// servidor a cada 60s e só recarrega quando ele muda.
+(function(){
+  if (location.protocol !== 'https:' && location.protocol !== 'http:') return;
+  var versaoAtual = null;
+  function verificar(){
+    fetch(location.href, { method: 'HEAD', cache: 'no-store' })
+      .then(function(r){
+        var tag = r.headers.get('etag') || r.headers.get('last-modified');
+        if (!tag) return;
+        if (versaoAtual === null) { versaoAtual = tag; return; }
+        if (tag !== versaoAtual) location.reload();
+      })
+      .catch(function(){});
+  }
+  verificar();
+  setInterval(verificar, 60000);
+})();
+</script>
 </body>
 </html>
