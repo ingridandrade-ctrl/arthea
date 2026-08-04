@@ -3,6 +3,7 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.arthea.com.br"),
   title: {
     default: "Arthea — agência de marketing digital",
     template: "%s · Arthea",
