@@ -79,14 +79,9 @@ const nextConfig = {
           source: "/propostas/gmb",
           destination: "/propostas/gmb.html",
         },
-        // Subdomínio do orçamento da Mirelle Buêno serve
-        // public/propostas/mirellebueno.html na raiz.
-        {
-          source: "/",
-          has: [{ type: "host", value: "mirellebueno.arthea.com.br" }],
-          destination: "/propostas/mirellebueno.html",
-        },
-        // URL limpa pro orçamento no domínio principal — sem o .html no fim.
+        // URL limpa pro orçamento da Mirelle Buêno no domínio principal —
+        // sem o .html no fim. O subdomínio mirellebueno.arthea.com.br foi
+        // movido pra outro projeto Vercel (ago/2026).
         {
           source: "/propostas/mirellebueno",
           destination: "/propostas/mirellebueno.html",

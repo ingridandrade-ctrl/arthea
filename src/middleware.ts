@@ -47,12 +47,7 @@ function isAnalisesHost(host: string | null) {
 
 function isPropostaHost(host: string | null) {
   if (!host) return false;
-  return (
-    host.startsWith("propostagmn.") ||
-    host.startsWith("propostagmb.") ||
-    // Orçamento da Mirelle Buêno — página estática pública por link.
-    host.startsWith("mirellebueno.")
-  );
+  return host.startsWith("propostagmn.") || host.startsWith("propostagmb.");
 }
 
 function isPublicPath(pathname: string) {
