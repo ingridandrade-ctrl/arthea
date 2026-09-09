@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireHousehold, HouseholdAuthError } from "@/lib/financas/session";
-import { parseInvoiceText } from "@/lib/financas/parse-invoice";
+import { parseInvoiceText, parseFailureResponse } from "@/lib/financas/parse-invoice";
 import { getMerchantHints } from "@/lib/financas/merchant-hints";
 
 export const runtime = "nodejs";
@@ -64,10 +64,8 @@ export async function POST(req: Request) {
     });
 
     if (!result.parsed) {
-      return NextResponse.json(
-        { error: "Não consegui interpretar a resposta da IA. Tente novamente." },
-        { status: 500 }
-      );
+      const { error, status } = parseFailureResponse(result.reason ?? "bad_json");
+      return NextResponse.json({ error, code: result.reason ?? "bad_json" }, { status });
     }
 
     return NextResponse.json({

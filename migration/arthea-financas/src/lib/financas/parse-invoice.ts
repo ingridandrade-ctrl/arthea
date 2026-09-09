@@ -1,6 +1,44 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// As rotas de parse têm maxDuration = 60s na Vercel. O default do SDK
+// (10 min + 2 retries) deixava a função ser morta pela Vercel antes de a
+// gente conseguir devolver um erro legível. 55s sem retry: falha limpa,
+// dentro do orçamento, com mensagem específica pro usuário.
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  timeout: 55_000,
+  maxRetries: 0,
+});
+
+export type ParseFailure = "max_tokens" | "bad_json" | "timeout" | "overloaded";
+
+export function parseFailureResponse(reason: ParseFailure): { error: string; status: number } {
+  switch (reason) {
+    case "max_tokens":
+      return {
+        status: 422,
+        error:
+          "Fatura muito longa pra analisar de uma vez (mais de ~150 compras). Use o modo 'Colar texto' e cole em duas partes.",
+      };
+    case "timeout":
+      return {
+        status: 504,
+        error:
+          "A análise demorou demais e foi interrompida. Tente um PDF só com as páginas de lançamentos, ou o modo 'Colar texto'. O arquivo continua selecionado.",
+      };
+    case "overloaded":
+      return {
+        status: 503,
+        error:
+          "A IA está sobrecarregada agora. Espera um minuto e tenta de novo — o arquivo continua selecionado.",
+      };
+    default:
+      return {
+        status: 500,
+        error: "Não consegui interpretar a resposta da IA. Tente novamente.",
+      };
+  }
+}
 
 export type ParsedRow = {
   date: string;
@@ -29,7 +67,7 @@ export type ParseContext = {
 export async function parseInvoiceText(
   rawText: string,
   ctx: ParseContext
-): Promise<{ parsed: ParsedRow[] | null }> {
+): Promise<{ parsed: ParsedRow[] | null; reason?: ParseFailure }> {
   const { cardName, partnerAName, partnerBName, categories, hints = [] } = ctx;
 
   const categoryList = categories.map((c) => `- ${c.id} | ${c.name}`).join("\n");
@@ -130,18 +168,32 @@ Casal: "${partnerAName}" (PARTNER_A) e "${partnerBName}" (PARTNER_B).
 
 ${rawText.slice(0, 80000)}`;
 
-  const response = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 8000,
-    system: systemPrompt,
-    messages: [{ role: "user", content: userMessage }],
-  });
+  let response: Anthropic.Message;
+  try {
+    response = await anthropic.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 8000,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
+    });
+  } catch (e: any) {
+    if (e instanceof Anthropic.APIConnectionTimeoutError) return { parsed: null, reason: "timeout" };
+    if (e instanceof Anthropic.APIError && (e.status === 529 || e.status === 429)) {
+      return { parsed: null, reason: "overloaded" };
+    }
+    throw e;
+  }
+
+  // Fatura longa (~170+ compras) estoura os 8000 tokens e o JSON vem
+  // cortado. Sem checar stop_reason isso virava um "Tente novamente" que
+  // nunca ia funcionar.
+  if (response.stop_reason === "max_tokens") return { parsed: null, reason: "max_tokens" };
 
   const textBlock = response.content.find((b) => b.type === "text");
-  if (!textBlock || textBlock.type !== "text") return { parsed: null };
+  if (!textBlock || textBlock.type !== "text") return { parsed: null, reason: "bad_json" };
 
   const arr = parseJsonArray(textBlock.text);
-  if (!arr) return { parsed: null };
+  if (!arr) return { parsed: null, reason: "bad_json" };
 
   const validIds = new Set(categories.map((c) => c.id));
   const cleaned: ParsedRow[] = [];
