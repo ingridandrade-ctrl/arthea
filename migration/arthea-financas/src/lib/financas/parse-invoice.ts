@@ -73,18 +73,19 @@ export async function parseInvoiceText(
   const categoryList = categories.map((c) => `- ${c.id} | ${c.name}`).join("\n");
   const today = new Date().toISOString().slice(0, 10);
 
+  // Só categoria. O dono é decidido no servidor (import-history) a partir do
+  // histórico real do casal — pedir pra IA "preferir o dono usado antes"
+  // brigava com o PASSO 2 (seção do portador) e perdia sempre.
+  const categoryHints = hints.filter((h) => h.categoryId).slice(0, 80);
   const hintsBlock =
-    hints.length > 0
+    categoryHints.length > 0
       ? `\n\nPADRÕES APRENDIDOS DAS COMPRAS ANTERIORES DESTE CASAL:
-Use estes padrões como FORTE referência ao categorizar. Se aparecer um estabelecimento parecido na fatura, prefira a mesma categoria/dono usados antes.
+Use estes padrões como FORTE referência ao categorizar. Se aparecer um estabelecimento parecido na fatura, prefira a mesma categoria usada antes.
 
-${hints
-  .slice(0, 80)
+${categoryHints
   .map(
     (h) =>
-      `- "${h.pattern}" → categoria "${h.categoryName ?? "sem categoria"}"${
-        h.categoryId ? ` (id: ${h.categoryId})` : ""
-      }, dono ${h.owner}, usado ${h.occurrences}x`
+      `- "${h.pattern}" → categoria "${h.categoryName}" (id: ${h.categoryId}), usado ${h.occurrences}x`
   )
   .join("\n")}`
       : "";

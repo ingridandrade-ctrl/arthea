@@ -1350,6 +1350,9 @@ type ParsedRow = {
   excluded?: boolean;
   matchStatus?: "new" | "matched";
   matchedTxId?: string | null;
+  // Preenchido pelo servidor quando dono/categoria vieram do histórico
+  // (parcela anterior da mesma compra, ou mesmo estabelecimento).
+  inherited?: { source: "installment" | "history"; label: string } | null;
 };
 
 // Cores por dono (tokens do tema, com variante dark em globals.css). Numa
@@ -1518,6 +1521,7 @@ function ImportInvoiceModal({
         categoryId: t.categoryId ?? null,
         owner: (t.owner as Owner) || "COUPLE",
         paidByOwner: null,
+        inherited: t.inherited ?? null,
         excluded: false,
       };
       if (existingInvoice) {
@@ -1617,7 +1621,10 @@ function ImportInvoiceModal({
   }
 
   function updateRow(i: number, patch: Partial<ParsedRow>) {
-    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+    // Mexeu no dono ou na categoria à mão → o selo "herdado" deixa de valer.
+    const p: Partial<ParsedRow> =
+      "owner" in patch || "categoryId" in patch ? { ...patch, inherited: null } : patch;
+    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...p } : r)));
   }
 
   const visibleRowsWithIdx = rows
@@ -1667,7 +1674,9 @@ function ImportInvoiceModal({
       if (!ok) return;
     }
     const visibleIdx = new Set(visibleRowsWithIdx.map((x) => x.i));
-    setRows((rs) => rs.map((r, i) => (visibleIdx.has(i) ? { ...r, owner } : r)));
+    setRows((rs) =>
+      rs.map((r, i) => (visibleIdx.has(i) ? { ...r, owner, inherited: null } : r))
+    );
   }
 
   function addManualRow() {
@@ -1699,6 +1708,7 @@ function ImportInvoiceModal({
 
   const total = rows.filter((r) => !r.excluded).reduce((s, r) => s + r.amount, 0);
   const includedCount = rows.filter((r) => !r.excluded).length;
+  const inheritedCount = rows.filter((r) => r.inherited).length;
 
   // Clique fora / Esc / X: na etapa de revisão (ou no meio de uma análise)
   // isso jogava fora 150 linhas editadas sem perguntar — PDF e IA de novo.
@@ -2152,6 +2162,11 @@ function ImportInvoiceModal({
               <strong>{includedCount}</strong> de <strong>{rows.length}</strong> compras
               selecionadas — total{" "}
               <strong className="tabular-nums">{formatCurrency(total)}</strong>
+              {inheritedCount > 0 && (
+                <span className="text-xs text-muted-foreground ml-2">
+                  · {inheritedCount} pré-classificada{inheritedCount === 1 ? "" : "s"} pelo histórico
+                </span>
+              )}
               {anyFilterActive && (
                 <span className="text-xs text-muted-foreground ml-2">
                   ({visibleRows.length} visíveis com o filtro)
@@ -2254,6 +2269,18 @@ function ImportInvoiceModal({
                           onChange={(e) => updateRow(i, { description: e.target.value })}
                           className="flex-1 px-1 py-0.5 rounded border border-border bg-background"
                         />
+                        {r.inherited && (
+                          <span
+                            title={
+                              r.inherited.source === "installment"
+                                ? "Dono e categoria copiados da parcela anterior desta mesma compra. Mude o chip pra sobrescrever."
+                                : "Dono e categoria copiados de compras anteriores neste estabelecimento. Mude o chip pra sobrescrever."
+                            }
+                            className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground whitespace-nowrap"
+                          >
+                            ⟲ {r.inherited.label}
+                          </span>
+                        )}
                         {reviewMode && (
                           <select
                             value={r.matchStatus ?? "new"}
