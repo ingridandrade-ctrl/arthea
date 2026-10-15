@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arthea × Atualle Boutique — Proposta de Tráfego Pago</title>
+<meta name="description" content="Proposta de tráfego pago, rastreamento de dados e consultoria de e-commerce da Arthea para a Atualle Boutique.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0D4A4A">
+<meta property="og:title" content="Arthea × Atualle Boutique">
+<meta property="og:description" content="Uma boutique consolidada em Mogi Mirim, agora pronta para levar sua curadoria ao e-commerce.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@1,600;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#1D7070;
+    --teal-dark:#155E5E;
+    --deep:#0D4A4A;
+    --deep-2:#0A3C3C;
+    --mint:#9BF0E0;
+    --cream:#F5EEDD;
+    --paper:#FAF9F6;
+    --ink:#2D2D2D;
+    --muted:#4B5563;
+    --muted-2:#6B7280;
+    --line:rgba(29,112,112,.12);
+    --sans:'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --serif:'Playfair Display', Georgia, serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;overflow-x:hidden;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    line-height:1.6;
+  }
+  img{max-width:100%;display:block;}
+  a{color:inherit;}
+  ul{list-style:none;margin:0;padding:0;}
+  h1,h2,h3,h4,p{margin:0;}
+  .serif{font-family:var(--serif);font-style:italic;font-weight:700;letter-spacing:-.01em;}
+  .wrap{width:100%;max-width:1120px;margin:0 auto;padding:0 24px;}
+  .wrap-narrow{max-width:900px;}
+  section{position:relative;overflow:hidden;}
+  .pad{padding:96px 0;}
+  @media (min-width:768px){ .pad{padding:128px 0;} .wrap{padding:0 48px;} }
+
+  /* ---------- Eyebrow / títulos ---------- */
+  .eyebrow{
+    display:flex;align-items:center;gap:12px;
+    font-size:10px;font-weight:700;letter-spacing:.4em;text-transform:uppercase;
+    color:var(--teal);margin-bottom:24px;
+  }
+  .eyebrow::before,.eyebrow::after{content:"";height:1px;width:24px;background:currentColor;opacity:.4;}
+  .eyebrow.center{justify-content:center;}
+  .eyebrow.left::after{display:none;}
+  .dark .eyebrow{color:var(--mint);}
+  .h-xl{
+    font-weight:800;letter-spacing:-.03em;line-height:1.1;
+    font-size:32px;
+  }
+  @media (min-width:768px){ .h-xl{font-size:52px;} }
+  @media (min-width:1024px){ .h-xl{font-size:60px;} }
+  .lead{font-size:16px;font-weight:300;line-height:1.75;color:var(--muted);text-wrap:pretty;}
+  @media (min-width:768px){ .lead{font-size:18px;} }
+  .dark{background:var(--deep);color:#fff;}
+  .dark .lead{color:rgba(245,238,221,.72);}
+  .center{text-align:center;}
+  .mx-auto{margin-left:auto;margin-right:auto;}
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    background:rgba(13,74,74,.92);
+    backdrop-filter:saturate(140%) blur(10px);
+    -webkit-backdrop-filter:saturate(140%) blur(10px);
+    transform:translateY(-100%);
+    transition:transform .4s ease;
+  }
+  .topbar.show{transform:none;}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px;}
+  .topbar-brand{display:flex;align-items:center;gap:10px;color:var(--cream);text-decoration:none;font-size:12px;font-weight:600;letter-spacing:.08em;white-space:nowrap;}
+  .topbar-brand img{height:52px;width:auto;margin:-10px -12px;}
+  .topbar-brand .x{font-family:var(--serif);font-style:italic;color:var(--mint);font-size:16px;}
+  .topbar-nav{display:none;gap:22px;}
+  .topbar-nav a{color:rgba(245,238,221,.65);text-decoration:none;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;transition:color .2s;}
+  .topbar-nav a:hover,.topbar-nav a.active{color:var(--mint);}
+  @media (min-width:960px){ .topbar-nav{display:flex;} }
+  .topbar-cta{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--mint);color:var(--deep);text-decoration:none;
+    font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+    padding:10px 16px;border-radius:999px;white-space:nowrap;
+  }
+  .progress{position:absolute;left:0;bottom:0;height:2px;background:var(--mint);width:0;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    min-height:100vh;min-height:100svh;
+    display:flex;align-items:center;justify-content:center;
+    padding:64px 0;
+    background:var(--paper);
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;pointer-events:none;opacity:.035;
+    background-image:linear-gradient(var(--teal) 1px,transparent 1px),linear-gradient(90deg,var(--teal) 1px,transparent 1px);
+    background-size:50px 50px;
+  }
+  .hero::after{
+    content:"";position:absolute;width:720px;height:720px;border-radius:50%;
+    left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;
+    background:radial-gradient(circle,rgba(155,240,224,.35) 0%,rgba(155,240,224,0) 65%);
+  }
+  .hero .wrap{position:relative;z-index:1;text-align:center;}
+  .hero-logo{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:64px;padding:0 10px;border-radius:999px;background:var(--deep);
+    margin-bottom:28px;box-shadow:0 14px 30px -10px rgba(13,74,74,.45);overflow:hidden;
+  }
+  .hero-logo img{width:150px;height:auto;}
+  .pill{
+    display:inline-block;
+    font-size:10px;font-weight:700;letter-spacing:.4em;text-transform:uppercase;
+    color:rgba(29,112,112,.8);
+    border:1px solid rgba(29,112,112,.2);
+    background:rgba(255,255,255,.6);
+    padding:9px 18px;border-radius:999px;margin-bottom:32px;
+  }
+  .hero h1{
+    font-weight:800;letter-spacing:-.04em;line-height:1.05;color:#2A2A2A;
+    font-size:44px;margin-bottom:32px;
+  }
+  .hero h1 .x{color:var(--teal);font-size:.6em;margin:0 .15em;}
+  .hero h1 .client{display:block;}
+  @media (min-width:768px){ .hero h1 .client{white-space:nowrap;} }
+  @media (min-width:768px){ .hero h1{font-size:72px;} }
+  @media (min-width:1024px){ .hero h1{font-size:88px;line-height:1;} }
+  .hero .lead{max-width:460px;margin:0 auto 44px;color:#4A4A4A;}
+  .btn{
+    display:inline-flex;align-items:center;gap:12px;
+    background:var(--teal);color:var(--paper);text-decoration:none;
+    padding:18px 36px;border-radius:999px;
+    font-weight:700;font-size:14px;
+    box-shadow:0 20px 40px -12px rgba(29,112,112,.4);
+    transition:transform .3s ease,background .3s ease;
+  }
+  .btn:hover{background:var(--teal-dark);transform:translateY(-3px);}
+  .btn svg{transition:transform .3s;}
+  .btn:hover svg{transform:translateY(3px);}
+  .hero-tags{
+    display:flex;flex-wrap:wrap;justify-content:center;gap:10px;
+    margin-top:56px;
+  }
+  .hero-tags span{
+    font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);
+    padding:8px 14px;border-radius:999px;background:rgba(29,112,112,.06);border:1px solid rgba(29,112,112,.1);
+  }
+
+  /* ---------- Base estratégica (pilares) ---------- */
+  .pillars{display:grid;grid-template-columns:1fr;gap:20px;max-width:1000px;margin:64px auto 0;}
+  @media (min-width:768px){ .pillars{grid-template-columns:1fr 1fr;gap:24px;} }
+  .pillar{
+    position:relative;overflow:hidden;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(155,240,224,.2);
+    border-radius:28px;padding:28px;
+    display:flex;flex-direction:column;gap:20px;align-items:flex-start;
+    transition:border-color .5s,background .5s;
+  }
+  @media (min-width:768px){ .pillar{flex-direction:row;} }
+  @media (min-width:768px){ .pillar{padding:40px;gap:24px;} }
+  .pillar:hover{border-color:rgba(155,240,224,.5);background:rgba(255,255,255,.1);}
+  .pillar::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--mint);transition:width .5s;}
+  .pillar:hover::after{width:100%;}
+  .pillar-icon{
+    flex-shrink:0;width:56px;height:56px;border-radius:50%;
+    background:var(--mint);color:var(--deep);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 24px rgba(155,240,224,.25);
+  }
+  .tag{display:block;font-size:10px;font-weight:900;letter-spacing:.25em;text-transform:uppercase;color:var(--mint);margin-bottom:8px;}
+  .pillar h3{font-family:var(--serif);font-style:italic;font-weight:700;font-size:24px;line-height:1.2;color:var(--cream);margin-bottom:12px;}
+  @media (min-width:768px){ .pillar h3{font-size:26px;} }
+  .pillar p{font-size:15px;font-weight:300;color:rgba(245,238,221,.72);margin-bottom:20px;}
+  .dots li{display:flex;gap:12px;align-items:flex-start;font-size:14px;font-weight:300;line-height:1.6;color:rgba(245,238,221,.85);}
+  .dots li + li{margin-top:10px;}
+  .dots li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--mint);margin-top:8px;flex-shrink:0;}
+  .quote{
+    max-width:760px;margin:72px auto 0;text-align:center;
+    font-family:var(--serif);font-style:italic;font-weight:600;
+    font-size:22px;line-height:1.45;color:var(--cream);
+  }
+  .quote em{color:var(--mint);font-style:italic;}
+  @media (min-width:768px){ .quote{font-size:30px;} }
+  .quote::before{content:"";display:block;width:40px;height:1px;background:var(--mint);opacity:.5;margin:0 auto 28px;}
+
+  /* ---------- Duas frentes ---------- */
+  .fronts{max-width:1000px;margin:72px auto 0;}
+  .fronts-head{text-align:center;max-width:620px;margin:0 auto 36px;}
+  .fronts-head h3{font-family:var(--serif);font-style:italic;font-weight:700;font-size:28px;line-height:1.2;color:var(--cream);margin-bottom:12px;}
+  @media (min-width:768px){ .fronts-head h3{font-size:36px;} }
+  .fronts-head p{font-size:15px;font-weight:300;line-height:1.7;color:rgba(245,238,221,.72);}
+  .fronts-grid{display:grid;grid-template-columns:1fr;gap:20px;}
+  @media (min-width:768px){ .fronts-grid{grid-template-columns:1fr 1fr;gap:24px;} }
+  .front{background:var(--paper);color:var(--ink);border-radius:28px;padding:28px;}
+  @media (min-width:768px){ .front{padding:40px;} }
+  .front-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;}
+  .front .pillar-icon{background:var(--deep);color:var(--mint);box-shadow:none;}
+  .front-label{font-size:10px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);padding:7px 12px;border-radius:999px;background:rgba(29,112,112,.08);}
+  .front h4{font-weight:800;letter-spacing:-.02em;font-size:22px;line-height:1.2;margin-bottom:10px;}
+  .front p{font-size:15px;font-weight:300;line-height:1.7;color:var(--muted);margin-bottom:18px;}
+  .front .dots li{color:var(--muted);}
+  .front .dots li::before{background:var(--teal);}
+
+  /* ---------- Entregáveis ---------- */
+  .modules-index{
+    display:flex;flex-wrap:wrap;gap:10px;margin-top:40px;
+  }
+  .modules-index a{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12px;font-weight:600;color:var(--teal);text-decoration:none;
+    padding:9px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);
+    transition:background .2s,color .2s,border-color .2s;
+  }
+  .modules-index a b{font-weight:900;opacity:.5;font-size:10px;letter-spacing:.1em;}
+  .modules-index a:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
+  .module{padding:88px 0;border-bottom:1px solid var(--line);scroll-margin-top:72px;}
+  .module:last-child{border-bottom:0;padding-bottom:0;}
+  @media (min-width:768px){ .module{padding:112px 0;} }
+  .module-num{display:inline-block;font-size:12px;font-weight:900;letter-spacing:.25em;color:rgba(29,112,112,.7);margin-bottom:16px;}
+  .module h2{font-weight:800;letter-spacing:-.03em;line-height:1.05;font-size:30px;margin-bottom:22px;}
+  @media (min-width:768px){ .module h2{font-size:48px;} }
+  @media (min-width:1024px){ .module h2{font-size:56px;} }
+  .module h2 .serif{color:var(--teal);}
+  .module .lead{max-width:640px;}
+  .module .lead strong{font-weight:600;color:var(--ink);}
+  .cards{display:grid;grid-template-columns:1fr;gap:16px;margin-top:48px;}
+  @media (min-width:768px){ .cards{grid-template-columns:1fr 1fr;gap:24px;} }
+  .card{
+    position:relative;overflow:hidden;
+    background:#fff;border-radius:20px;
+    border:1px solid rgba(29,112,112,.08);
+    box-shadow:0 2px 12px -4px rgba(29,112,112,.08);
+    padding:28px;
+    transition:box-shadow .5s,transform .5s;
+  }
+  @media (min-width:768px){ .card{padding:32px;} }
+  .card:hover{box-shadow:0 14px 34px -10px rgba(29,112,112,.2);transform:translateY(-2px);}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--teal);transform:scaleY(0);transform-origin:top;transition:transform .5s;}
+  .card:hover::before{transform:scaleY(1);}
+  .card h3{font-weight:800;letter-spacing:-.02em;font-size:17px;line-height:1.3;margin-bottom:12px;color:var(--ink);}
+  @media (min-width:768px){ .card h3{font-size:18px;} }
+  .card p{font-size:15px;font-weight:300;color:var(--muted);line-height:1.7;}
+  .card .list li{display:flex;gap:12px;font-size:15px;font-weight:300;color:var(--muted);line-height:1.65;}
+  .card .list li + li{margin-top:8px;}
+  .card .list li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--teal);margin-top:.65em;flex-shrink:0;}
+  .card .note{
+    margin-top:16px;padding:12px 14px;border-radius:12px;
+    background:rgba(29,112,112,.05);font-size:13px;font-style:italic;color:var(--muted-2);line-height:1.6;
+  }
+  .card.wide{grid-column:1/-1;}
+
+  .callout{
+    display:flex;flex-direction:column;gap:16px;
+    background:var(--teal);color:#fff;border-radius:20px;padding:24px;margin-top:40px;
+  }
+  @media (min-width:768px){ .callout{flex-direction:row;align-items:center;gap:24px;padding:32px;} }
+  .callout-icon{flex-shrink:0;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;}
+  .callout .tag{color:var(--mint);}
+  .callout p{font-size:15px;font-weight:300;line-height:1.7;color:rgba(255,255,255,.92);}
+  .callout strong{font-weight:700;}
+
+  .datapath{
+    background:#fff;border:1px solid rgba(29,112,112,.1);border-radius:20px;
+    padding:28px 20px;margin-top:20px;
+  }
+  .datapath .label{font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:rgba(29,112,112,.6);text-align:center;margin-bottom:24px;}
+  .flow{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  @media (min-width:768px){ .flow{flex-direction:row;justify-content:center;gap:14px;} }
+  .flow span.node{
+    padding:10px 18px;border-radius:999px;background:rgba(29,112,112,.06);border:1px solid rgba(29,112,112,.16);
+    font-size:13px;font-weight:700;color:var(--teal);white-space:nowrap;
+  }
+  .flow span.node.final{background:var(--teal);color:#fff;border-color:var(--teal);}
+  .flow .arrow{color:rgba(29,112,112,.45);display:flex;}
+  .flow .arrow svg{transform:rotate(90deg);}
+  @media (min-width:768px){ .flow .arrow svg{transform:none;} }
+  .footnote{font-size:14px;font-style:italic;font-weight:300;color:var(--muted-2);text-align:center;max-width:640px;margin:24px auto 0;line-height:1.7;}
+
+  /* ---------- Quem conduz ---------- */
+  .about{background:#fff;border-top:1px solid var(--line);}
+  .about-grid{display:grid;grid-template-columns:1fr;gap:48px;align-items:center;}
+  @media (min-width:960px){ .about-grid{grid-template-columns:1fr 1fr;gap:72px;} }
+  .about h2 .serif{color:var(--teal);}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .stat{
+    background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:24px 20px;
+  }
+  .stat b{display:block;font-family:var(--serif);font-style:italic;font-weight:700;font-size:34px;line-height:1.1;color:var(--teal);margin-bottom:6px;}
+  @media (min-width:768px){ .stat b{font-size:42px;} }
+  .stat span{font-size:13px;font-weight:400;color:var(--muted);line-height:1.5;}
+  .trophy{
+    grid-column:1/-1;display:flex;gap:16px;align-items:flex-start;
+    background:var(--deep);color:#fff;border-radius:20px;padding:24px;
+  }
+  .trophy .callout-icon{background:rgba(155,240,224,.15);color:var(--mint);}
+  .trophy p{font-size:14px;font-weight:300;line-height:1.7;color:rgba(245,238,221,.85);}
+  .trophy strong{color:var(--mint);font-weight:700;}
+
+  /* ---------- Jornada ---------- */
+  .journey-head{display:grid;grid-template-columns:1fr;gap:24px;align-items:end;margin-bottom:72px;}
+  @media (min-width:1024px){ .journey-head{grid-template-columns:1.2fr 1fr;gap:64px;margin-bottom:96px;} }
+  .journey-head h2{color:var(--cream);}
+  .journey-head h2 .serif{color:var(--mint);}
+  .journey-head .lead{border-left:1px solid rgba(255,255,255,.12);padding-left:24px;max-width:450px;}
+  .timeline{position:relative;}
+  .timeline::before{content:"";position:absolute;top:0;bottom:0;left:15px;width:1px;background:rgba(255,255,255,.1);}
+  @media (min-width:768px){ .timeline::before{left:50%;} }
+  .phase{position:relative;display:flex;margin-bottom:40px;}
+  .phase:last-child{margin-bottom:0;}
+  @media (min-width:768px){
+    .phase{margin-bottom:72px;align-items:center;}
+    .phase:nth-child(even){justify-content:flex-end;}
+  }
+  .phase-dot{
+    position:absolute;left:15px;top:36px;transform:translateX(-50%);
+    width:14px;height:14px;border-radius:50%;background:var(--mint);
+    border:3px solid var(--deep);z-index:2;
+    box-shadow:0 0 0 0 rgba(155,240,224,.5);animation:pulse 2.6s infinite;
+  }
+  @media (min-width:768px){ .phase-dot{left:50%;top:50%;transform:translate(-50%,-50%);} }
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(155,240,224,.45);}70%{box-shadow:0 0 0 14px rgba(155,240,224,0);}100%{box-shadow:0 0 0 0 rgba(155,240,224,0);}}
+  .phase-card{
+    position:relative;overflow:hidden;
+    margin-left:40px;width:calc(100% - 40px);
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+    border-radius:24px;padding:32px 26px;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    transition:border-color .4s,background .4s;
+  }
+  .phase-card:hover{border-color:rgba(155,240,224,.35);background:rgba(255,255,255,.06);}
+  @media (min-width:768px){ .phase-card{margin-left:0;width:46%;border-radius:32px;padding:40px;} }
+  .phase-card .ghost{position:absolute;top:-22px;right:-4px;font-weight:900;font-size:100px;line-height:1;color:rgba(255,255,255,.05);pointer-events:none;}
+  @media (min-width:768px){ .phase-card .ghost{font-size:128px;} }
+  .phase-top{display:flex;align-items:center;gap:16px;margin-bottom:24px;position:relative;}
+  .phase-icon{padding:12px;border-radius:12px;background:rgba(155,240,224,.1);border:1px solid rgba(155,240,224,.15);color:var(--mint);display:flex;}
+  .phase-when{display:block;font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--mint);margin-bottom:4px;}
+  .phase h3{font-family:var(--serif);font-style:italic;font-weight:700;font-size:22px;line-height:1.2;color:#fff;}
+  @media (min-width:768px){ .phase h3{font-size:24px;} }
+  .steps{position:relative;}
+  .steps li{display:flex;gap:12px;font-size:15px;font-weight:300;line-height:1.6;color:rgba(245,238,221,.9);}
+  .steps li + li{margin-top:12px;}
+  .steps li b{color:var(--mint);opacity:.45;font-weight:700;flex-shrink:0;font-size:13px;padding-top:2px;}
+  .warning{
+    display:flex;gap:14px;align-items:flex-start;
+    max-width:820px;margin:72px auto 0;
+    padding:22px 24px;border-radius:20px;
+    background:rgba(155,240,224,.06);border:1px solid rgba(155,240,224,.18);
+    font-size:14px;font-weight:300;line-height:1.7;color:rgba(245,238,221,.8);
+  }
+  .warning svg{color:var(--mint);flex-shrink:0;margin-top:2px;}
+  .warning strong{color:var(--cream);font-weight:600;}
+
+  /* ---------- Investimento ---------- */
+  .invest{background:linear-gradient(180deg,var(--deep) 0%,var(--deep-2) 100%);border-top:1px solid rgba(255,255,255,.06);}
+  .invest h2{font-weight:800;letter-spacing:-.03em;font-size:40px;line-height:1.1;margin-bottom:16px;}
+  @media (min-width:768px){ .invest h2{font-size:72px;} }
+  .price-card{
+    max-width:880px;margin:56px auto 0;
+    border-radius:28px;padding:28px;
+    background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.35);
+  }
+  @media (min-width:768px){ .price-card{padding:48px;} }
+  .price-head{display:flex;flex-direction:column;gap:20px;padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,.1);}
+  @media (min-width:768px){ .price-head{flex-direction:row;justify-content:space-between;align-items:flex-end;} }
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(155,240,224,.1);color:var(--mint);font-size:10px;font-weight:900;letter-spacing:.25em;text-transform:uppercase;margin-bottom:14px;}
+  .price-head .sub{font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.6);}
+  .price{display:flex;align-items:flex-end;gap:6px;}
+  .price .cur{font-size:18px;font-weight:500;color:rgba(255,255,255,.45);margin-bottom:10px;}
+  .price .val{font-family:var(--serif);font-style:italic;font-weight:700;font-size:56px;line-height:1;color:var(--mint);}
+  @media (min-width:768px){ .price .val{font-size:80px;} }
+  .price .per{font-size:15px;font-weight:300;color:rgba(255,255,255,.55);margin-bottom:10px;}
+  .incl-title{font-size:10px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;color:var(--mint);margin:28px 0 16px;}
+  .checks{display:grid;grid-template-columns:1fr;gap:12px 32px;}
+  @media (min-width:768px){ .checks{grid-template-columns:1fr 1fr;} }
+  .checks li{display:flex;gap:12px;align-items:flex-start;font-size:15px;font-weight:300;line-height:1.6;color:rgba(255,255,255,.92);}
+  .checks li svg{color:var(--mint);flex-shrink:0;margin-top:3px;}
+  .extra{
+    margin-top:32px;border-radius:20px;padding:24px;
+    background:rgba(155,240,224,.07);border:1px dashed rgba(155,240,224,.3);
+  }
+  .extra p{font-size:14px;font-weight:300;line-height:1.7;color:rgba(245,238,221,.8);}
+  .extra-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px;}
+  @media (min-width:768px){ .extra-grid{grid-template-columns:repeat(3,1fr);} }
+  .extra-grid div{background:rgba(0,0,0,.15);border-radius:14px;padding:16px;}
+  .extra-grid span{display:block;font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:6px;}
+  .extra-grid b{font-size:18px;font-weight:700;color:#fff;}
+  .extra-grid small{display:block;font-size:12px;font-weight:300;color:rgba(255,255,255,.55);margin-top:4px;line-height:1.5;}
+  .steps-price{display:grid;grid-template-columns:1fr;gap:16px;align-items:stretch;max-width:880px;margin:56px auto 0;}
+  @media (min-width:768px){ .steps-price{grid-template-columns:1fr auto 1fr;gap:20px;} }
+  .tier{border-radius:28px;padding:28px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.1);}
+  @media (min-width:768px){ .tier{padding:36px;} }
+  .tier:last-child{background:rgba(155,240,224,.06);border-color:rgba(155,240,224,.25);}
+  .tier .sub{font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:18px;}
+  .tier-note{font-size:14px;font-weight:300;line-height:1.7;color:rgba(245,238,221,.72);margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1);}
+  .tier-arrow{display:flex;align-items:center;justify-content:center;color:var(--mint);opacity:.6;}
+  .tier-arrow svg{transform:rotate(90deg);}
+  @media (min-width:768px){ .tier-arrow svg{transform:none;} }
+  .range{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;max-width:880px;margin:20px auto 0;font-size:14px;font-weight:300;color:rgba(245,238,221,.8);}
+  .range svg{color:var(--mint);flex-shrink:0;}
+  .range strong{color:var(--mint);font-weight:700;}
+  .price-card{margin-top:24px !important;}
+  .setup-card{margin-top:56px !important;}
+  @media (min-width:768px){ .price-right{text-align:right;} .price-right .price{justify-content:flex-end;} }
+  .pay-note{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:8px;}
+  .setup-why{font-size:14px;font-style:italic;font-weight:300;line-height:1.7;color:rgba(245,238,221,.6);margin-top:24px;}
+  .monthly-title{font-weight:800;letter-spacing:-.03em;font-size:28px;line-height:1.15;color:#fff;margin-top:6px;}
+  .monthly-title .serif{color:var(--mint);}
+  @media (min-width:768px){ .monthly-title{font-size:40px;} }
+  .total{max-width:880px;margin:24px auto 0;padding:22px 24px;border-radius:20px;text-align:center;background:var(--mint);color:var(--deep);}
+  .total .tag{color:var(--teal-dark);}
+  .total p{font-size:15px;font-weight:400;line-height:1.6;}
+  .total strong{font-weight:800;}
+  .external{max-width:880px;margin:72px auto 0;text-align:center;}
+  .external h3{font-family:var(--serif);font-style:italic;font-weight:700;font-size:26px;color:var(--cream);margin-bottom:8px;}
+  .external .lead{font-size:15px;margin-bottom:28px;}
+  .ext-list{display:grid;grid-template-columns:1fr;gap:10px;text-align:left;}
+  @media (min-width:768px){ .ext-list{grid-template-columns:1fr 1fr;} }
+  .ext-list li{
+    display:flex;gap:12px;align-items:center;
+    padding:14px 18px;border-radius:14px;
+    background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);
+    font-size:14px;font-weight:300;color:rgba(255,255,255,.62);
+  }
+  .ext-list li svg{color:rgba(255,255,255,.3);flex-shrink:0;}
+  .fine{max-width:620px;margin:32px auto 0;padding:18px 20px;border-radius:16px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);font-size:12px;font-style:italic;color:rgba(255,255,255,.45);line-height:1.7;text-align:center;}
+
+  /* ---------- CTA ---------- */
+  .cta{background:var(--deep-2);padding:96px 0 48px;text-align:center;border-top:1px solid rgba(255,255,255,.05);}
+  .cta::before{
+    content:"";position:absolute;width:640px;height:640px;border-radius:50%;left:50%;top:0;transform:translate(-50%,-40%);pointer-events:none;
+    background:radial-gradient(circle,rgba(155,240,224,.14) 0%,rgba(155,240,224,0) 65%);
+  }
+  .cta .wrap{position:relative;}
+  .cta h2{font-weight:800;letter-spacing:-.03em;line-height:1.1;font-size:34px;margin-bottom:20px;}
+  .cta h2 .serif{color:var(--mint);}
+  @media (min-width:768px){ .cta h2{font-size:60px;} }
+  .cta .lead{color:var(--mint);font-weight:500;max-width:560px;margin:0 auto 36px;}
+  .btn-mint{
+    display:inline-flex;align-items:center;justify-content:center;gap:12px;
+    background:var(--mint);color:var(--deep);text-decoration:none;
+    min-width:260px;height:56px;padding:0 28px;border-radius:999px;
+    font-weight:900;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    box-shadow:0 20px 40px -14px rgba(155,240,224,.45);
+    transition:transform .25s;
+  }
+  .btn-mint:hover{transform:scale(1.04);}
+  .contacts{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:40px;}
+  @media (min-width:768px){ .contacts{flex-direction:row;justify-content:center;gap:32px;} }
+  .contacts a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-size:13px;letter-spacing:.05em;color:rgba(255,255,255,.55);transition:color .2s;}
+  .contacts a:hover{color:var(--mint);}
+  .signoff{margin-top:72px;padding-top:32px;border-top:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .signoff img{height:72px;width:auto;opacity:.55;margin:-12px 0;}
+  .signoff p{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.3);font-weight:600;}
+
+  /* ---------- Revelar ao rolar ---------- */
+  .js .reveal{opacity:0;transform:translateY(22px);transition:opacity .8s ease,transform .8s ease;}
+  .js .reveal.in{opacity:1;transform:none;}
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    .js .reveal{opacity:1;transform:none;transition:none;}
+    .phase-dot{animation:none;}
+  }
+
+  /* ---------- Impressão / PDF ---------- */
+  @media print{
+    .topbar,.hero-tags,.btn,.modules-index{display:none !important;}
+    .hero{min-height:auto;padding:48px 0;}
+    .pad,.module{padding:48px 0;}
+    section,.card,.phase-card,.price-card{break-inside:avoid;}
+    .dark,.invest,.cta{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<!-- Ícones reutilizados -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M6 13l6 6 6-6"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 20l1.1-4.6A8.4 8.4 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5z"/></symbol>
+    <symbol id="i-megaphone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="m3 11 15-6v14L3 13v-2zM11.6 16.8a3 3 0 1 1-5.8-1.6"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15l4-4 3 3 5-6"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="m15.5 8.5-2 5-5 2 2-5z"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="m12 2 10 5-10 5L2 7l10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1zM12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2zM9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></symbol>
+    <symbol id="i-trending" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="m22 7-8.5 8.5-5-5L2 17M16 7h6v6"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M12 8v4M12 16h.01"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 22v-5M9 8V2M15 8V2M18 8v5a6 6 0 0 1-12 0V8z"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22M14 14.7V17c0 .6.5 1 1 1.2 1.1.6 2 2 2 3.8M18 2H6v7a6 6 0 0 0 12 0V2z"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="m22 7-10 6L2 7"/></symbol>
+  </defs>
+</svg>
+
+<!-- Barra fixa -->
+<header class="topbar" id="topbar">
+  <div class="wrap">
+    <a class="topbar-brand" href="#inicio" aria-label="Voltar ao início">
+      <img src="/assets/logo-arthea.svg" alt="Arthea">
+      <span class="x">×</span>
+      <span>ATUALLE BOUTIQUE</span>
+    </a>
+    <nav class="topbar-nav" aria-label="Seções da proposta">
+      <a href="#base">Estratégia</a>
+      <a href="#entregaveis">Entregáveis</a>
+      <a href="#jornada">Cronograma</a>
+      <a href="#investimento">Investimento</a>
+    </nav>
+    <a class="topbar-cta" href="#contato">Conversar</a>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero" id="inicio">
+  <div class="wrap wrap-narrow">
+    <div class="hero-logo reveal"><img src="/assets/logo-arthea.svg" alt="Arthea"></div>
+    <div class="reveal"><span class="pill">Proposta de Tráfego Pago</span></div>
+    <h1 class="reveal">Arthea <span class="serif x">×</span><span class="client">Atualle Boutique</span></h1>
+    <p class="lead reveal">Uma boutique consolidada em Mogi Mirim, agora pronta para levar sua curadoria ao e-commerce — com estratégia, dados e intenção.</p>
+    <div class="reveal">
+      <a class="btn" href="#base">Ver a proposta
+        <svg width="18" height="18"><use href="#i-down"/></svg>
+      </a>
+    </div>
+    <div class="hero-tags reveal" aria-hidden="true">
+      <span>Posicionamento</span><span>E-commerce</span><span>WhatsApp regional</span><span>Rastreamento</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BASE ESTRATÉGICA ================= -->
+<section class="dark pad" id="base">
+  <div class="wrap">
+    <div class="center">
+      <div class="eyebrow center reveal">Base Estratégica</div>
+      <h2 class="h-xl reveal" style="color:var(--cream);margin-bottom:24px;">Posicionamento, tráfego<br> <span class="serif" style="color:var(--mint);">e venda conectados.</span></h2>
+      <p class="lead reveal mx-auto" style="max-width:680px;">A Atualle já tem nome, clientela fiel e uma loja consolidada em Mogi Mirim. O próximo passo é levar essa marca para o digital sem perder o que já funciona: o anúncio leva a mensagem para mais gente, o e-commerce transforma essa atenção em venda, o WhatsApp regional segue abastecendo a loja e o rastreamento garante que nada se perca pelo caminho.</p>
+    </div>
+
+    <div class="pillars">
+      <article class="pillar reveal">
+        <div class="pillar-icon"><svg width="24" height="24"><use href="#i-message"/></svg></div>
+        <div>
+          <span class="tag">Pilar 01</span>
+          <h3>Mensagem de marca</h3>
+          <p>Tudo começa no posicionamento: quem é a Atualle e por que ela é diferente no universo da moda feminina.</p>
+          <ul class="dots">
+            <li>Posicionamento traduzido em tom de voz e narrativa</li>
+            <li>Conteúdo orgânico e criativos falando a mesma língua</li>
+            <li>Mensagem definida antes de investir o primeiro real em anúncio</li>
+          </ul>
+        </div>
+      </article>
+      <article class="pillar reveal">
+        <div class="pillar-icon"><svg width="24" height="24"><use href="#i-megaphone"/></svg></div>
+        <div>
+          <span class="tag">Pilar 02</span>
+          <h3>Amplificação paga</h3>
+          <p>O Meta Ads leva essa mensagem para muito mais gente.</p>
+          <ul class="dots">
+            <li>Duas frentes: vendas no e-commerce e WhatsApp regional para a loja</li>
+            <li>Campanhas separadas por etapa do funil: atração, vendas e remarketing</li>
+            <li>Criativo certo para a pessoa certa, no momento certo</li>
+            <li>Verba direcionada por dado, não por achismo</li>
+          </ul>
+        </div>
+      </article>
+      <article class="pillar reveal">
+        <div class="pillar-icon"><svg width="24" height="24"><use href="#i-bag"/></svg></div>
+        <div>
+          <span class="tag">Pilar 03</span>
+          <h3>E-commerce que comunica</h3>
+          <p>O site é extensão da boutique, não só um lugar de finalizar a compra.</p>
+          <ul class="dots">
+            <li>Página de produto e checkout com a mesma energia do anúncio</li>
+            <li>Elementos de confiança que reduzem a insegurança na hora de comprar</li>
+            <li>Experiência de navegação pensada para converter</li>
+          </ul>
+        </div>
+      </article>
+      <article class="pillar reveal">
+        <div class="pillar-icon"><svg width="24" height="24"><use href="#i-chart"/></svg></div>
+        <div>
+          <span class="tag">Pilar 04</span>
+          <h3>Rastreamento de dados</h3>
+          <p>Tudo que acontece no site, no anúncio e na loja vira informação para decisão.</p>
+          <ul class="dots">
+            <li>Pixel da Meta e API de Conversões via Nuvemshop</li>
+            <li>Google Tag Manager, GA4 e eventos de conversão no Google Ads</li>
+            <li>UTMs padronizadas e validação por compra-teste</li>
+            <li>Dados do Meta e do Google conversando sem perder nada pelo caminho</li>
+          </ul>
+        </div>
+      </article>
+    </div>
+
+    <div class="fronts">
+      <div class="fronts-head reveal">
+        <span class="tag">Sintonia comercial</span>
+        <h3>Duas frentes, um mesmo crescimento.</h3>
+        <p>O e-commerce abre um canal novo sem tirar o fôlego de quem já vende bem hoje. Por isso, a estrutura regional continua ativa enquanto o site ganha tração.</p>
+      </div>
+      <div class="fronts-grid">
+        <article class="front reveal">
+          <div class="front-top"><div class="pillar-icon"><svg width="24" height="24"><use href="#i-bag"/></svg></div><span class="front-label">Frente 01 · Nova</span></div>
+          <h4>Tráfego para o e-commerce</h4>
+          <p>Campanhas de vendas, catálogo e remarketing para levar a Atualle a clientes além de Mogi Mirim, com a loja virtual como destino.</p>
+          <ul class="dots">
+            <li>Foco em compra no site, com rastreamento completo</li>
+            <li>Catálogo integrado com estoque e preço atualizados</li>
+            <li>Remarketing para quem visitou, viu produto ou abandonou o carrinho</li>
+          </ul>
+        </article>
+        <article class="front reveal">
+          <div class="front-top"><div class="pillar-icon"><svg width="24" height="24"><use href="#i-message"/></svg></div><span class="front-label">Frente 02 · Mantida</span></div>
+          <h4>Tráfego regional para WhatsApp</h4>
+          <p>Campanhas segmentadas por localização em Mogi Mirim e região, levando a cliente para a conversa no WhatsApp e para a loja física.</p>
+          <ul class="dots">
+            <li>Preserva o volume de vendas que a loja já tem hoje</li>
+            <li>Atendimento próximo, do jeito que a cliente Atualle já conhece</li>
+            <li>Verba equilibrada entre as frentes conforme os resultados</li>
+            <li>Perfil do Google Meu Negócio otimizado, como bônus</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+
+    <p class="quote reveal">“A marca constrói a conexão. O tráfego amplia o alcance. <em>O e-commerce e o WhatsApp convertem a decisão.</em>”</p>
+  </div>
+</section>
+
+<!-- ================= ENTREGÁVEIS ================= -->
+<section class="pad" id="entregaveis" style="padding-bottom:96px;">
+  <div class="wrap">
+    <div class="eyebrow left reveal">Escopo de Trabalho</div>
+    <h2 class="h-xl reveal" style="margin-bottom:24px;">Entregáveis do <span class="serif" style="color:var(--teal);">Projeto Atualle</span></h2>
+    <p class="lead reveal" style="max-width:680px;">Uma estrutura completa de crescimento, unindo estratégia de marca, tráfego de alta performance, rastreamento e consultoria de e-commerce.</p>
+    <nav class="modules-index reveal" aria-label="Módulos">
+      <a href="#m1"><b>01</b> Diagnóstico</a>
+      <a href="#m2"><b>02</b> Setup inicial</a>
+      <a href="#m3"><b>03</b> Rastreamento</a>
+      <a href="#m4"><b>04</b> Mídia paga</a>
+      <a href="#m5"><b>05</b> Consultoria CRO</a>
+      <a href="#m6"><b>06</b> Suporte</a>
+    </nav>
+
+    <!-- 01 -->
+    <div class="module" id="m1">
+      <span class="module-num reveal">01</span>
+      <h2 class="reveal">Diagnóstico Estratégico <span class="serif">&amp; Comunicação de Marca</span></h2>
+      <p class="lead reveal">Antes de qualquer campanha, mergulhamos no cenário real da <strong>Atualle</strong>: marca, concorrência, cliente e métricas. Definimos juntos o que será medido e construímos uma voz que converta em cada etapa do funil.</p>
+      <div class="cards">
+        <div class="card reveal"><h3>Diagnóstico da Marca</h3><p>Imersão no universo da Atualle — peças, curadoria, comunicação, posicionamento, site, catálogo, redes e valores —, junto com vocês, pra entender o que a boutique quer transmitir.</p></div>
+        <div class="card reveal"><h3>Pesquisa Estratégica &amp; Benchmark</h3><p>Mapeamento dos concorrentes diretos e indiretos da Atualle no mercado de moda, pra evidenciar o diferencial da boutique no regional e no digital.</p></div>
+        <div class="card reveal"><h3>Mapeamento da Cliente</h3><p>Levantamento das dores, desejos e objeções da cliente Atualle — de quem já compra na loja física à nova cliente do e-commerce. Quem compra, por que volta e o que decide a compra.</p></div>
+        <div class="card reveal"><h3>Tom de Voz no Funil</h3><p>Definição do tom de voz com base no posicionamento e na linguagem que a Atualle quer seguir, adaptado pra cada etapa do funil de vendas dentro dos anúncios.</p></div>
+        <div class="card wide reveal"><h3>KPIs e Indicadores de Sucesso</h3><p>Definição, junto com vocês, das métricas de sucesso do projeto: ROAS, CAC, LTV, taxa de conversão e ticket médio no e-commerce e custo por conversa no WhatsApp regional — os números que vão guiar o projeto.</p></div>
+      </div>
+    </div>
+
+    <!-- 02 -->
+    <div class="module" id="m2">
+      <span class="module-num reveal">02</span>
+      <h2 class="reveal">Setup <span class="serif">Inicial</span></h2>
+      <p class="lead reveal">Toda a estrutura criada do zero. Montamos as contas, conectamos as plataformas e preparamos o terreno pra que a Atualle comece a rodar com segurança e escala.</p>
+      <div class="cards">
+        <div class="card reveal"><h3>Business Manager Meta</h3>
+          <ul class="list">
+            <li>Criação do Business Manager e verificação empresarial da Atualle junto ao CNPJ</li>
+            <li>Conexão de todos os ativos: página do Facebook, perfil do Instagram e número do WhatsApp</li>
+            <li>Verificação de domínio do site, que garante os eventos do Pixel pra conta certa</li>
+            <li>Configuração das contas de anúncio com permissões corretas e autenticação de dois fatores</li>
+            <li>Gerenciador de Eventos configurado, organizando o Pixel e a API de Conversões no mesmo painel</li>
+          </ul>
+        </div>
+        <div class="card reveal"><h3>Públicos e Segmentações</h3>
+          <ul class="list">
+            <li>Criação de públicos-alvo da marca</li>
+            <li>Públicos regionais por localização em Mogi Mirim e região</li>
+            <li>Públicos de remarketing do e-commerce: visitantes do site, carrinhos abandonados, pagamentos abandonados e compradoras</li>
+            <li>Públicos envolvidos nas redes sociais</li>
+            <li>Públicos semelhantes</li>
+            <li>Exclusões estratégicas de públicos</li>
+          </ul>
+        </div>
+        <div class="card reveal"><h3>Loja no Instagram</h3><p>Criação do Gerenciador de Comércios da Meta com a loja do Instagram pronta pra vender.</p></div>
+        <div class="card reveal"><h3>Catálogo Integrado</h3><p>Conexão do catálogo de produtos do e-commerce com o Meta Ads, pra anúncios de catálogo com estoque e preço sempre atualizados.</p></div>
+        <div class="card wide reveal"><h3>Suíte Google Completa</h3>
+          <ul class="list">
+            <li>Criação e configuração dos eventos de conversão no Google Ads</li>
+            <li>Criação e verificação do Google Merchant Center, com catálogo conectado</li>
+            <li>Criação do Search Console</li>
+            <li>Criação e configuração do Google Tag Manager</li>
+            <li>Criação e configuração do Google Analytics 4 (GA4)</li>
+          </ul>
+          <p class="note">Entregável de criação, pra deixar tudo pronto e funcionando. Manutenção e gestão de anúncios no Google Ads não estão inclusas.</p>
+        </div>
+        <div class="card wide reveal"><h3>Google Meu Negócio <span style="font-size:10px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);background:rgba(29,112,112,.08);padding:4px 10px;border-radius:999px;margin-left:6px;vertical-align:middle;">Bônus</span></h3>
+          <ul class="list">
+            <li>Otimização completa do perfil da loja física em Mogi Mirim: categorias, descrição estratégica, horários, produtos e contatos</li>
+            <li>Diretrizes de fotos e avaliações que transmitem confiança imediata</li>
+          </ul>
+          <p class="note">Entrega pontual, como bônus. Não inclui manutenção mensal do perfil.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 -->
+    <div class="module" id="m3">
+      <span class="module-num reveal">03</span>
+      <h2 class="reveal">Rastreamento <span class="serif">&amp; Dados</span></h2>
+      <p class="lead reveal">Antes de investir em anúncios, a estrutura precisa estar no lugar. Instalamos e validamos as ferramentas na Nuvemshop pra que cada real investido tenha <strong>destino e retorno mensurável</strong>.</p>
+      <div class="cards">
+        <div class="card reveal"><h3>Pixel da Meta</h3><p>Rastreamento do comportamento da cliente no navegador: o que ela vê, o que coloca no carrinho e o que compra.</p></div>
+        <div class="card reveal"><h3>API de Conversões via Nuvemshop</h3><p>Eventos enviados direto do servidor pela integração nativa da Nuvemshop, capturando o que o Pixel sozinho perde.</p></div>
+        <div class="card reveal"><h3>Google Tag Manager</h3><p>Orquestra e centraliza as tags do site num só lugar, sem depender de mexer no código a cada ajuste.</p></div>
+        <div class="card reveal"><h3>Google Analytics 4</h3><p>Análise completa do comportamento das visitantes: de onde vêm, o que acessam e onde abandonam a compra.</p></div>
+        <div class="card reveal"><h3>Eventos de E-commerce</h3><p>Conferência das etapas do funil de compra — visualização de produto, carrinho, checkout e compra — chegando corretamente nas plataformas.</p></div>
+        <div class="card reveal"><h3>UTMs e Validação</h3><p>UTMs padronizadas por campanha e criativo, e compra-teste pra garantir que tudo está sendo rastreado corretamente.</p></div>
+      </div>
+
+      <div class="datapath reveal">
+        <p class="label">Caminho dos dados</p>
+        <div class="flow">
+          <span class="node">Site Atualle (Nuvemshop)</span>
+          <span class="arrow"><svg width="18" height="18"><use href="#i-arrow"/></svg></span>
+          <span class="node">GTM</span>
+          <span class="arrow"><svg width="18" height="18"><use href="#i-arrow"/></svg></span>
+          <span class="node">Pixel + API / GA4</span>
+          <span class="arrow"><svg width="18" height="18"><use href="#i-arrow"/></svg></span>
+          <span class="node final">Decisão com dados</span>
+        </div>
+      </div>
+      <p class="footnote reveal">Pixel e API de Conversões trabalhando juntos recuperam eventos que o Pixel sozinho perde, especialmente em dispositivos iOS e navegadores com bloqueio de cookies.</p>
+    </div>
+
+    <!-- 04 -->
+    <div class="module" id="m4">
+      <span class="module-num reveal">04</span>
+      <h2 class="reveal">Gestão de <span class="serif">Mídia Paga</span></h2>
+      <p class="lead reveal">Toda a gestão roda dentro do Meta Ads — Instagram e Facebook — em duas frentes: vendas no e-commerce e tráfego regional para o WhatsApp. Estrutura de campanha por objetivo, funil organizado por etapa e otimização constante pra fazer cada real render mais.</p>
+      <div class="cards">
+        <div class="card reveal"><h3>Campanhas de Atração</h3><p>Reconhecimento de marca, engajamento e crescimento de seguidores, direcionadas para ampliar a base da Atualle.</p></div>
+        <div class="card reveal"><h3>Campanhas de Vendas</h3>
+          <ul class="list">
+            <li>Campanhas de vendas com criativos em vídeo e imagem</li>
+            <li>Campanhas de catálogo direcionadas para o e-commerce da Atualle</li>
+          </ul>
+        </div>
+        <div class="card reveal"><h3>Remarketing</h3><p>Campanhas pra quem já visitou o site, viu produto, abandonou o carrinho ou se envolveu com a Atualle.</p></div>
+        <div class="card wide reveal"><h3>Campanhas Regionais para WhatsApp</h3>
+          <ul class="list">
+            <li>Campanhas segmentadas por localização em Mogi Mirim e região, com destino ao WhatsApp da loja</li>
+            <li>Criativos que convidam para a conversa e para a visita à loja física</li>
+            <li>Acompanhamento do custo por conversa e do volume de atendimentos gerados</li>
+          </ul>
+          <p class="note">Mantém a estrutura regional ativa para não impactar as vendas da loja enquanto o e-commerce ganha tração.</p>
+        </div>
+        <div class="card reveal"><h3>Funil de Anúncio</h3>
+          <ul class="list">
+            <li>Organização das campanhas por etapa do funil</li>
+            <li>Direcionamento criativo de cada anúncio pra pessoa certa, na etapa certa da jornada</li>
+          </ul>
+        </div>
+        <div class="card reveal"><h3>Direcionamento Criativo</h3>
+          <ul class="list">
+            <li>Referências de anúncios alinhadas a cada etapa do funil</li>
+            <li>Copy dos anúncios alinhada ao posicionamento e ao tom de voz da marca</li>
+          </ul>
+        </div>
+        <div class="card reveal"><h3>Otimização e Escala</h3>
+          <ul class="list">
+            <li>Análise constante de resultado por campanha, conjunto e anúncio</li>
+            <li>Otimizações para ampliar os resultados de acordo com as análises</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 05 -->
+    <div class="module" id="m5">
+      <span class="module-num reveal">05</span>
+      <h2 class="reveal">Consultoria de <span class="serif">E-commerce (CRO)</span></h2>
+      <p class="lead reveal">Consultoria de e-commerce em paralelo ao tráfego pago, para otimizar o funil de compra da Atualle e melhorar a experiência da cliente.</p>
+      <div class="cards">
+        <div class="card reveal"><h3>Análise de Funil</h3><p>Sugestão de ferramentas de análise de funil do site pra melhorar a taxa de conversão.</p></div>
+        <div class="card reveal"><h3>Incentivo à Compra</h3><p>Sugestão de ferramentas de incentivo à compra.</p></div>
+        <div class="card reveal"><h3>Elementos de Confiança</h3><p>Sugestão de elementos de confiança na página de produto e no checkout.</p></div>
+        <div class="card reveal"><h3>Mecânicas de Oferta</h3><p>Sugestão de mecânicas de oferta e calibragem do valor de frete grátis conforme o ticket médio real.</p></div>
+        <div class="card wide reveal"><h3>Datas Comerciais</h3><p>Sugestões consultivas sobre campanhas sazonais e datas comerciais do varejo de moda.</p></div>
+      </div>
+    </div>
+
+    <!-- 06 -->
+    <div class="module" id="m6">
+      <span class="module-num reveal">06</span>
+      <h2 class="reveal">Suporte <span class="serif">e Relatórios</span></h2>
+      <p class="lead reveal">Acompanhamento próximo da performance e comunicação direta para manter o projeto sempre alinhado, com transparência e clareza em cada etapa.</p>
+      <div class="cards">
+        <div class="card reveal"><h3>Dashboard de Tráfego Pago</h3><p>Painel com os principais indicadores das campanhas, pra acompanhar a evolução de forma visual.</p></div>
+        <div class="card reveal"><h3>Relatório Mensal</h3><p>Relatório mensal com leitura estratégica dos resultados e próximos passos.</p></div>
+        <div class="card reveal"><h3>Reunião de Alinhamento</h3><p>Reunião mensal para alinhar performance, prioridades e decisões.</p></div>
+        <div class="card reveal"><h3>Suporte via WhatsApp</h3><p>Suporte em dias úteis, das 9h às 17h.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= QUEM CONDUZ ================= -->
+<section class="about pad" id="arthea">
+  <div class="wrap">
+    <div class="about-grid">
+      <div>
+        <div class="eyebrow left reveal">Quem conduz o projeto</div>
+        <h2 class="h-xl reveal" style="margin-bottom:24px;">Estratégia com quem <span class="serif">vive o campo de batalha.</span></h2>
+        <p class="lead reveal">Liderada pela estrategista <strong style="font-weight:600;color:var(--ink);">Ingrid Andrade</strong>, a Arthea une experiência técnica e atualização constante nas maiores mentorias de tráfego do país. Cada projeto é acompanhado de perto, do diagnóstico à otimização.</p>
+      </div>
+      <div class="stats">
+        <div class="stat reveal"><b>4 anos</b><span>de mercado e consistência</span></div>
+        <div class="stat reveal"><b>+30</b><span>clientes atendidos e validados</span></div>
+        <div class="stat reveal"><b>R$650k</b><span>investidos em tráfego pago</span></div>
+        <div class="stat reveal"><b>R$4M+</b><span>em vendas acompanhadas</span></div>
+        <div class="trophy reveal">
+          <div class="callout-icon"><svg width="22" height="22"><use href="#i-trophy"/></svg></div>
+          <p><strong>Grupo campeão do 4º Campeonato de Grupos do Subido PRO</strong>, a maior mentoria de tráfego da América Latina — vitória conquistada entre mais de 100 grupos de alta performance.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= JORNADA ================= -->
+<section class="dark pad" id="jornada">
+  <div class="wrap">
+    <div class="journey-head">
+      <div>
+        <div class="eyebrow left reveal">Passo a Passo</div>
+        <h2 class="h-xl reveal">Como vai funcionar<br> <span class="serif">na prática.</span></h2>
+      </div>
+      <p class="lead reveal">Organizamos cada fase para que a Atualle chegue lá com estrutura, não com pressa.</p>
+    </div>
+
+    <div class="timeline">
+      <div class="phase reveal">
+        <span class="phase-dot"></span>
+        <div class="phase-card">
+          <span class="ghost">01</span>
+          <div class="phase-top">
+            <div class="phase-icon"><svg width="22" height="22"><use href="#i-compass"/></svg></div>
+            <div><span class="phase-when">Fase 1 • Até 7 dias úteis</span><h3>Imersão &amp; Estrutura</h3></div>
+          </div>
+          <ul class="steps">
+            <li><b>01</b> Formulário de boas-vindas e onboarding</li>
+            <li><b>02</b> Reunião de alinhamento estratégico</li>
+            <li><b>03</b> Liberação de acessos às contas, ao site e às plataformas</li>
+            <li><b>04</b> Diagnóstico da marca, pesquisa estratégica, benchmark e mapeamento da cliente</li>
+            <li><b>05</b> Definição do tom de voz no funil</li>
+            <li><b>06</b> Setup do Business Manager e criação de toda a estrutura Google</li>
+            <li><b>07</b> Otimização do Google Meu Negócio (bônus)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase reveal">
+        <span class="phase-dot"></span>
+        <div class="phase-card">
+          <span class="ghost">02</span>
+          <div class="phase-top">
+            <div class="phase-icon"><svg width="22" height="22"><use href="#i-layers"/></svg></div>
+            <div><span class="phase-when">Fase 2 • Assim que o e-commerce estiver no ar</span><h3>Rastreamento de Dados</h3></div>
+          </div>
+          <ul class="steps">
+            <li><b>08</b> Pixel da Meta e API de Conversões via Nuvemshop</li>
+            <li><b>09</b> Google Tag Manager, GA4 e eventos de e-commerce</li>
+            <li><b>10</b> Padronização de UTMs, validação e conferência</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase reveal">
+        <span class="phase-dot"></span>
+        <div class="phase-card">
+          <span class="ghost">03</span>
+          <div class="phase-top">
+            <div class="phase-icon"><svg width="22" height="22"><use href="#i-rocket"/></svg></div>
+            <div><span class="phase-when">Fase 3 • Até 7 dias úteis após a Fase 1</span><h3>Ativação de Campanhas</h3></div>
+          </div>
+          <ul class="steps">
+            <li><b>11</b> Definição dos KPIs e indicadores de sucesso</li>
+            <li><b>12</b> Estruturação de públicos frios, quentes e de remarketing</li>
+            <li><b>13</b> Direcionamento criativo e copy alinhados ao posicionamento</li>
+            <li><b>14</b> Estratégia das campanhas de e-commerce (atração, vendas e remarketing) e das campanhas regionais para WhatsApp</li>
+            <li><b>15</b> Ativação das primeiras campanhas</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase reveal">
+        <span class="phase-dot"></span>
+        <div class="phase-card">
+          <span class="ghost">04</span>
+          <div class="phase-top">
+            <div class="phase-icon"><svg width="22" height="22"><use href="#i-trending"/></svg></div>
+            <div><span class="phase-when">Fase 4 • Contínuo</span><h3>Otimização &amp; Escala</h3></div>
+          </div>
+          <ul class="steps">
+            <li><b>16</b> Análise contínua de resultado por campanha, conjunto e anúncio</li>
+            <li><b>17</b> Otimização e escala conforme performance e metas definidas</li>
+            <li><b>18</b> Relatório mensal com leitura estratégica do tráfego pago</li>
+            <li><b>19</b> Reunião de alinhamento mensal e suporte via WhatsApp</li>
+            <li><b>20</b> Consultoria de e-commerce (CRO) para otimizar o funil de compra e a experiência da cliente</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning reveal">
+      <svg width="20" height="20"><use href="#i-alert"/></svg>
+      <p><strong>Aviso importante:</strong> algumas entregas dependem de fatores fora do nosso controle direto — a finalização e publicação do e-commerce, a liberação dos acessos às contas e ao site, o envio de fotos e vídeos das peças pela Atualle e a movimentação orgânica das redes sociais da boutique. Atrasos nesses pontos podem impactar o cronograma acima.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= INVESTIMENTO ================= -->
+<section class="invest dark pad" id="investimento">
+  <div class="wrap">
+    <div class="center">
+      <div class="eyebrow center reveal">Verba e Entregáveis</div>
+      <h2 class="reveal">Investimento</h2>
+      <p class="lead reveal mx-auto" style="max-width:620px;">O projeto começa com um setup inicial, em que estruturamos tudo antes de ativar qualquer campanha. A partir daí, a mensalidade cuida do crescimento — com um valor progressivo, pensado para o momento da Atualle.</p>
+    </div>
+
+    <div class="price-card setup-card reveal">
+      <div class="price-head">
+        <div>
+          <span class="chip">Setup único</span>
+          <p class="sub">Para estruturar a base do projeto</p>
+        </div>
+        <div class="price-right">
+          <div class="price"><span class="cur">R$</span><span class="val">1.650</span></div>
+          <p class="pay-note">Taxa única · paga no início do projeto</p>
+          <p class="pay-note" style="color:var(--mint);">Parcelável no cartão em até 12× (com juros da operadora)</p>
+        </div>
+      </div>
+      <p class="incl-title">O que entra no setup</p>
+      <ul class="checks">
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Estudo do projeto e desenvolvimento da estratégia de marca e posicionamento</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Diagnóstico da marca, benchmark, mapeamento da cliente e tom de voz no funil</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Estrutura Meta: Business Manager, contas de anúncio, públicos, Gerenciador de Comércios, loja no Instagram e catálogo integrado</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Criação de toda a estrutura Google: Google Ads (conversões), Merchant Center, Search Console, Tag Manager e GA4</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Rastreamento na Nuvemshop: Pixel da Meta, API de Conversões, GTM, GA4, UTMs e validação</li>
+      </ul>
+      <div class="extra">
+        <span class="tag">Bônus · Sem custo adicional</span>
+        <p><strong style="color:#fff;font-weight:700;">Otimização do Google Meu Negócio.</strong> Uma otimização completa do perfil da loja em Mogi Mirim — categorias, descrição estratégica, horários, produtos, fotos e contatos — pra que quem pesquisa moda feminina na região encontre a Atualle. Entrega pontual, sem manutenção mensal.</p>
+      </div>
+      <p class="setup-why">É nessa etapa que mergulhamos no negócio, desenvolvemos a estratégia e instalamos toda a estrutura. Aqui entra grande parte do diferencial do nosso método: anúncio sem base estratégica não escala.</p>
+    </div>
+
+    <div class="center" style="margin-top:72px;">
+      <span class="chip">Mensal recorrente</span>
+      <h3 class="monthly-title reveal">Assessoria mensal <span class="serif">progressiva</span></h3>
+    </div>
+
+    <div class="steps-price">
+      <div class="tier reveal">
+        <span class="chip">Contrato inicial</span>
+        <p class="sub">Meses 1 a 4</p>
+        <div class="price"><span class="cur">R$</span><span class="val">1.800</span><span class="per">/ mês</span></div>
+        <p class="tier-note">4 mensalidades, com a primeira vencendo em até 10 dias após o início do projeto. Ativação das campanhas e primeiros ciclos de otimização, enquanto o e-commerce ganha tração.</p>
+      </div>
+      <div class="tier-arrow reveal" aria-hidden="true"><svg width="22" height="22"><use href="#i-arrow"/></svg></div>
+      <div class="tier reveal">
+        <span class="chip">Renovação</span>
+        <p class="sub">A partir do 5º mês</p>
+        <div class="price"><span class="cur">R$</span><span class="val">2.200</span><span class="per">/ mês</span></div>
+        <p class="tier-note">Mediante renovação e comum acordo. Continuidade da gestão, otimização e escala das duas frentes.</p>
+      </div>
+    </div>
+    <p class="range reveal"><svg width="16" height="16"><use href="#i-chart"/></svg>Mensalidade de gestão válida para uma verba de mídia de <strong>até R$ 5.000 por mês</strong>.</p>
+
+    <div class="price-card reveal">
+      <p class="incl-title" style="margin-top:0;">Entregáveis inclusos na mensalidade</p>
+      <ul class="checks">
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Gestão de mídia paga no Meta Ads: e-commerce (atração, vendas, catálogo e remarketing) e campanhas regionais para WhatsApp</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Funil de anúncio por etapa, com direcionamento criativo e copy</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Otimização e escala constante por campanha, conjunto e criativo</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Definição e acompanhamento dos KPIs do projeto</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Consultoria de e-commerce (CRO): funil, confiança, ofertas e datas comerciais</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Dashboard, relatório mensal com leitura estratégica e reunião de alinhamento</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Suporte via WhatsApp em dias úteis, das 9h às 17h</li>
+      </ul>
+    </div>
+
+    <div class="total reveal">
+      <span class="tag">Investimento no contrato inicial</span>
+      <p><strong>R$ 1.650</strong> de setup (parcelável no cartão em até 12×, com juros da operadora) + <strong>4 mensalidades de R$ 1.800</strong>. O setup é pago no início do projeto e a primeira mensalidade vence em até 10 dias depois. Na renovação, a mensalidade passa a ser de R$ 2.200.</p>
+    </div>
+
+    <div class="external">
+      <h3 class="reveal">Responsabilidades externas</h3>
+      <p class="lead reveal">O que fica sob responsabilidade da Atualle ou de outros parceiros.</p>
+      <ul class="ext-list">
+        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Verba de mídia (paga direto nas plataformas, + 12,15% de imposto da Meta)</li>
+        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Produção de fotos e vídeos das peças</li>
+        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Branding, conceito e identidade visual</li>
+        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Gerenciamento de redes sociais</li>
+        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Desenvolvimento e manutenção do site e da plataforma de e-commerce</li>
+        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Gestão de anúncios no Google Ads e manutenção mensal do Google Meu Negócio</li>
+        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Estoque, atendimento no WhatsApp e logística dos pedidos</li>
+      </ul>
+      <p class="fine reveal">* A verba de mídia é paga diretamente pela Atualle às plataformas. Desde 01/01/2026 a Meta retém 12,15% de imposto: cada R$ 1.000 de mídia planejada debita R$ 1.138.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CTA ================= -->
+<section class="cta" id="contato">
+  <div class="wrap">
+    <div class="eyebrow center reveal" style="color:rgba(155,240,224,.6);">Próximo passo</div>
+    <h2 class="reveal" style="color:#fff;">Prontas para dar<br> <span class="serif">o próximo passo?</span></h2>
+    <p class="lead reveal">Vamos levar a Atualle de Mogi Mirim para o digital, com estratégia, dados e intenção.</p>
+    <div class="reveal">
+      <a class="btn-mint" href="https://wa.me/5519920002917?text=Ol%C3%A1%2C%20Ingrid!%20Quero%20conversar%20sobre%20a%20proposta%20Arthea%20%C3%97%20Atualle%20Boutique." target="_blank" rel="noopener noreferrer">
+        <svg width="18" height="18"><use href="#i-message"/></svg> Iniciar conversa
+      </a>
+    </div>
+    <div class="contacts reveal">
+      <a href="tel:+5519920002917"><svg width="15" height="15"><use href="#i-phone"/></svg>(19) 92000-2917</a>
+      <a href="mailto:ingridandrade@arthea.com.br"><svg width="15" height="15"><use href="#i-mail"/></svg>ingridandrade@arthea.com.br</a>
+    </div>
+    <div class="signoff">
+      <img src="/assets/logo-arthea.svg" alt="Arthea">
+      <p>Ingrid Andrade — Arthea</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var topbar=document.getElementById('topbar');
+  var progress=document.getElementById('progress');
+  var hero=document.getElementById('inicio');
+  var links=[].slice.call(document.querySelectorAll('.topbar-nav a'));
+  var sections=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+
+  function onScroll(){
+    var y=window.scrollY||window.pageYOffset;
+    var h=document.documentElement.scrollHeight-window.innerHeight;
+    progress.style.width=(h>0?(y/h*100):0)+'%';
+    topbar.classList.toggle('show',y>hero.offsetHeight*0.6);
+    var current=-1;
+    sections.forEach(function(s,i){ if(s && s.getBoundingClientRect().top<window.innerHeight*0.35) current=i; });
+    links.forEach(function(a,i){ a.classList.toggle('active',i===current); });
+  }
+  window.addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+
+  var items=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){
+    items.forEach(function(el){el.classList.add('in');});
+    return;
+  }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  },{rootMargin:'0px 0px -8% 0px',threshold:0.08});
+  items.forEach(function(el){io.observe(el);});
+})();
+</script>
+</body>
+</html>
