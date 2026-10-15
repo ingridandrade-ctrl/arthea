@@ -91,6 +91,18 @@ const nextConfig = {
           source: "/propostas/mirellebueno",
           destination: "/propostas/mirellebueno.html",
         },
+        // Subdomínio da proposta da Atualle Boutique serve
+        // public/propostas/atualle.html na raiz.
+        {
+          source: "/",
+          has: [{ type: "host", value: "atualle.arthea.com.br" }],
+          destination: "/propostas/atualle.html",
+        },
+        // URL limpa pra proposta no domínio principal — sem o .html no fim.
+        {
+          source: "/propostas/atualle",
+          destination: "/propostas/atualle.html",
+        },
         // URL limpa pra proposta do Grupo Sansara em public/grupo-sansara —
         // clientes.arthea.com.br/grupo-sansara serve o index.html da pasta.
         {
