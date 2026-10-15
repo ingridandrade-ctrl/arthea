@@ -213,13 +213,14 @@
   @media (min-width:768px){ .card h3{font-size:18px;} }
   .card p{font-size:15px;font-weight:500;color:#3D434B;line-height:1.7;}
   .card p.explain{font-size:14px;font-style:italic;color:var(--teal-dark);margin-bottom:14px;}
+  .card .note strong{font-weight:800;color:var(--teal-dark);}
   .card .list strong{font-weight:700;color:var(--ink);}
   .card .list li{display:flex;gap:12px;font-size:15px;font-weight:500;color:#3D434B;line-height:1.65;}
   .card .list li + li{margin-top:8px;}
   .card .list li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--teal);margin-top:.65em;flex-shrink:0;}
   .card .note{
     margin-top:16px;padding:12px 14px;border-radius:12px;
-    background:rgba(29,112,112,.05);font-size:13px;font-style:italic;color:var(--muted-2);line-height:1.6;
+    background:rgba(29,112,112,.07);font-size:14px;font-weight:600;color:var(--ink);line-height:1.7;border-left:3px solid var(--teal);
   }
   .card.wide{grid-column:1/-1;}
 
@@ -607,19 +608,22 @@
       <h2 class="reveal">Setup <span class="serif">&amp; Revisão</span></h2>
       <p class="lead reveal">A Atualle já tem Business Manager e ativos conectados. Por isso, começamos revisando toda a estrutura que existe: conferimos o que está certo, corrigimos o que for preciso e criamos o que ainda faltar, pra que a Atualle rode com segurança e escala.</p>
       <div class="cards">
-        <div class="card reveal"><h3>Business Manager e Contas de Anúncio</h3>
-          <p class="explain">O Business Manager é o painel central da Meta, onde ficam as contas de anúncio, a página do Facebook, o Instagram e o WhatsApp da loja.</p>
+        <div class="card wide reveal"><h3>Revisão Geral do Business Manager</h3>
+          <p class="explain">O Business Manager é o painel central da Meta. É dentro dele que ficam as contas de anúncio, o Gerenciador de Eventos, os públicos, o catálogo e os perfis da loja — por isso a revisão é completa, não só de um ponto.</p>
           <ul class="list">
-            <li>Revisão do Business Manager e dos ativos já conectados: Facebook, Instagram e WhatsApp</li>
-            <li>Revisão das contas de anúncio, permissões de acesso e autenticação de dois fatores</li>
-            <li>Conferência da verificação de domínio do site</li>
+            <li>Conferência da verificação do negócio e da verificação de domínio do site</li>
+            <li>Revisão dos ativos conectados: página do Facebook, perfil do Instagram e número do WhatsApp</li>
+            <li>Revisão das contas de anúncio, forma de pagamento, permissões de acesso e autenticação de dois fatores</li>
+            <li>Ajuste de tudo o que estiver incompleto ou fora do padrão, e criação do que ainda faltar</li>
           </ul>
         </div>
-        <div class="card reveal"><h3>Gerenciador de Eventos</h3>
-          <p class="explain">É onde a Meta recebe as informações do que acontece no site: visitas, carrinhos e compras.</p>
+        <div class="card reveal"><h3>Gerenciador de Eventos e Pixel</h3>
+          <p class="explain">É onde a Meta recebe as informações do que acontece no site: visitas, produtos vistos, carrinhos e compras.</p>
           <ul class="list">
-            <li>Revisão do Pixel e da API de Conversões no mesmo painel</li>
-            <li>Conferência de quais eventos estão chegando e do que precisa ser ajustado</li>
+            <li>Revisão do Pixel da Meta e da conexão com o Google Tag Manager</li>
+            <li>Criação e configuração dos eventos de e-commerce</li>
+            <li>Revisão da API de Conversões via Nuvemshop</li>
+            <li>Conferência de quais eventos estão chegando, deixando tudo certinho antes de anunciar</li>
           </ul>
         </div>
         <div class="card reveal"><h3>Públicos e Segmentações</h3>
@@ -632,7 +636,7 @@
             <li>Exclusões estratégicas de públicos</li>
           </ul>
         </div>
-        <div class="card reveal"><h3>Loja no Instagram e Catálogo</h3>
+        <div class="card wide reveal"><h3>Loja no Instagram e Catálogo</h3>
           <p class="explain">O Gerenciador de Comércios é o que permite marcar produtos nos posts e vender pelo Instagram. O catálogo alimenta os anúncios com as peças da loja.</p>
           <ul class="list">
             <li>Revisão do Gerenciador de Comércios e da lojinha do Instagram</li>
@@ -648,7 +652,7 @@
             <li><span><strong>Google Tag Manager</strong> — central que organiza os códigos de rastreamento do site</span></li>
             <li><span><strong>Google Analytics 4 (GA4)</strong> — mostra de onde vêm as visitantes e o que elas fazem no site</span></li>
           </ul>
-          <p class="note">Entregável de revisão e configuração, pra deixar tudo pronto e funcionando. Manutenção e gestão de anúncios no Google Ads não estão inclusas.</p>
+          <p class="note">Entregável de revisão e configuração, pra deixar tudo pronto e funcionando.<br><strong>Manutenção e gestão de anúncios no Google Ads não estão inclusas.</strong></p>
         </div>
         <div class="card wide reveal"><h3>Google Meu Negócio <span style="font-size:10px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);background:rgba(29,112,112,.08);padding:4px 10px;border-radius:999px;margin-left:6px;vertical-align:middle;">Bônus</span></h3>
           <ul class="list">
@@ -823,7 +827,7 @@
             <li><b>02</b> Liberação de acessos às contas, ao site e às plataformas</li>
             <li><b>03</b> Diagnóstico da marca, pesquisa estratégica, benchmark e mapeamento da cliente</li>
             <li><b>04</b> Estratégia de marca, posicionamento e tom de voz no funil</li>
-            <li><b>05</b> Revisão do Business Manager, das contas de anúncio e do Gerenciador de Eventos</li>
+            <li><b>05</b> Revisão geral do Business Manager: verificação, ativos, contas de anúncio e Gerenciador de Eventos</li>
             <li><b>06</b> Revisão do Gerenciador de Comércios, da lojinha do Instagram e do catálogo integrado</li>
             <li><b>07</b> Revisão da Suíte Google, criando e configurando o que faltar</li>
             <li><b>08</b> Otimização do Google Meu Negócio (bônus)</li>
@@ -915,7 +919,7 @@
       <ul class="checks">
         <li><svg width="16" height="16"><use href="#i-check"/></svg>Estudo do projeto e desenvolvimento da estratégia de marca e posicionamento</li>
         <li><svg width="16" height="16"><use href="#i-check"/></svg>Diagnóstico da marca, benchmark, mapeamento da cliente e tom de voz no funil</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Revisão da estrutura Meta: Business Manager, contas de anúncio, Gerenciador de Eventos, públicos, Gerenciador de Comércios e catálogo integrado</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Revisão geral da estrutura Meta: Business Manager e verificação, contas de anúncio, Gerenciador de Eventos e Pixel, públicos, Gerenciador de Comércios e catálogo</li>
         <li><svg width="16" height="16"><use href="#i-check"/></svg>Revisão de toda a estrutura Google, criando o que faltar: Google Ads (conversões), Merchant Center, Search Console, Tag Manager e GA4</li>
         <li><svg width="16" height="16"><use href="#i-check"/></svg>Rastreamento: Pixel da Meta via Google Tag Manager, API de Conversões via Nuvemshop, GA4, eventos e UTMs</li>
       </ul>
