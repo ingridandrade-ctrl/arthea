@@ -416,6 +416,17 @@
   .range svg{color:var(--mint);flex-shrink:0;}
   .range strong{color:var(--mint);font-weight:700;}
   .price-card{margin-top:24px !important;}
+  .setup-card{margin-top:56px !important;}
+  @media (min-width:768px){ .price-right{text-align:right;} .price-right .price{justify-content:flex-end;} }
+  .pay-note{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:8px;}
+  .setup-why{font-size:14px;font-style:italic;font-weight:300;line-height:1.7;color:rgba(245,238,221,.6);margin-top:24px;}
+  .monthly-title{font-weight:800;letter-spacing:-.03em;font-size:28px;line-height:1.15;color:#fff;margin-top:6px;}
+  .monthly-title .serif{color:var(--mint);}
+  @media (min-width:768px){ .monthly-title{font-size:40px;} }
+  .total{max-width:880px;margin:24px auto 0;padding:22px 24px;border-radius:20px;text-align:center;background:var(--mint);color:var(--deep);}
+  .total .tag{color:var(--teal-dark);}
+  .total p{font-size:15px;font-weight:400;line-height:1.6;}
+  .total strong{font-weight:800;}
   .external{max-width:880px;margin:72px auto 0;text-align:center;}
   .external h3{font-family:var(--serif);font-style:italic;font-weight:700;font-size:26px;color:var(--cream);margin-bottom:8px;}
   .external .lead{font-size:15px;margin-bottom:28px;}
@@ -941,7 +952,37 @@
     <div class="center">
       <div class="eyebrow center reveal">Verba e Entregáveis</div>
       <h2 class="reveal">Investimento</h2>
-      <p class="lead reveal mx-auto" style="max-width:600px;">Uma proposta progressiva, pensada para o momento da Atualle: um valor de entrada nos 4 primeiros meses, enquanto o e-commerce ganha tração, e o valor de continuidade a partir da renovação — com o mesmo escopo.</p>
+      <p class="lead reveal mx-auto" style="max-width:620px;">O projeto começa com um setup inicial, em que estruturamos tudo antes de ativar qualquer campanha. A partir daí, a mensalidade cuida do crescimento — com um valor progressivo, pensado para o momento da Atualle.</p>
+    </div>
+
+    <div class="price-card setup-card reveal">
+      <div class="price-head">
+        <div>
+          <span class="chip">Setup único</span>
+          <p class="sub">Para estruturar a base do projeto</p>
+        </div>
+        <div class="price-right">
+          <div class="price"><span class="cur">R$</span><span class="val">1.537</span></div>
+          <p class="pay-note">Taxa única · paga na assinatura do contrato</p>
+        </div>
+      </div>
+      <p class="incl-title">O que entra no setup</p>
+      <ul class="checks">
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Diagnóstico da marca, benchmark, mapeamento da cliente e tom de voz no funil</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Estrutura Meta: Business Manager, contas de anúncio, públicos, Gerenciador de Comércios, loja no Instagram e catálogo integrado</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Criação de toda a estrutura Google: Google Ads (conversões), Merchant Center, Search Console, Tag Manager e GA4</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Rastreamento na Nuvemshop: Pixel da Meta, API de Conversões, GTM, GA4, UTMs e validação</li>
+      </ul>
+      <div class="extra">
+        <span class="tag">Bônus · Sem custo adicional</span>
+        <p><strong style="color:#fff;font-weight:700;">Otimização do Google Meu Negócio.</strong> Uma otimização completa do perfil da loja em Mogi Mirim — categorias, descrição estratégica, horários, produtos, fotos e contatos — pra que quem pesquisa moda feminina na região encontre a Atualle. Entrega pontual, sem manutenção mensal.</p>
+      </div>
+      <p class="setup-why">É nessa etapa que mergulhamos no negócio, desenvolvemos a estratégia e instalamos toda a estrutura. Aqui entra grande parte do diferencial do nosso método: anúncio sem base estratégica não escala.</p>
+    </div>
+
+    <div class="center" style="margin-top:72px;">
+      <span class="chip">Mensal recorrente</span>
+      <h3 class="monthly-title reveal">Assessoria mensal <span class="serif">progressiva</span></h3>
     </div>
 
     <div class="steps-price">
@@ -949,7 +990,7 @@
         <span class="chip">Contrato inicial</span>
         <p class="sub">Meses 1 a 4</p>
         <div class="price"><span class="cur">R$</span><span class="val">1.800</span><span class="per">/ mês</span></div>
-        <p class="tier-note">4 mensalidades. Estruturação completa, ativação das campanhas e primeiros ciclos de otimização.</p>
+        <p class="tier-note">4 mensalidades. Ativação das campanhas e primeiros ciclos de otimização, enquanto o e-commerce ganha tração.</p>
       </div>
       <div class="tier-arrow reveal" aria-hidden="true"><svg width="22" height="22"><use href="#i-arrow"/></svg></div>
       <div class="tier reveal">
@@ -964,24 +1005,19 @@
     <div class="price-card reveal">
       <p class="incl-title" style="margin-top:0;">Entregáveis inclusos na mensalidade</p>
       <ul class="checks">
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Diagnóstico estratégico da marca, pesquisa de concorrência e benchmark</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Mapeamento da cliente Atualle, tom de voz no funil e definição de KPIs</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Setup inicial: Business Manager, Gerenciador de Comércios e loja no Instagram</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Públicos, segmentações, exclusões e catálogo integrado ao Meta Ads</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Criação de toda a estrutura Google: Google Ads (conversões), Merchant Center, Search Console, Tag Manager e GA4</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Rastreamento na Nuvemshop: Pixel da Meta, API de Conversões, GTM, GA4, UTMs e validação</li>
         <li><svg width="16" height="16"><use href="#i-check"/></svg>Gestão de mídia paga no Meta Ads: e-commerce (atração, vendas, catálogo e remarketing) e campanhas regionais para WhatsApp</li>
         <li><svg width="16" height="16"><use href="#i-check"/></svg>Funil de anúncio por etapa, com direcionamento criativo e copy</li>
         <li><svg width="16" height="16"><use href="#i-check"/></svg>Otimização e escala constante por campanha, conjunto e criativo</li>
+        <li><svg width="16" height="16"><use href="#i-check"/></svg>Definição e acompanhamento dos KPIs do projeto</li>
         <li><svg width="16" height="16"><use href="#i-check"/></svg>Consultoria de e-commerce (CRO): funil, confiança, ofertas e datas comerciais</li>
         <li><svg width="16" height="16"><use href="#i-check"/></svg>Dashboard, relatório mensal com leitura estratégica e reunião de alinhamento</li>
         <li><svg width="16" height="16"><use href="#i-check"/></svg>Suporte via WhatsApp em dias úteis, das 9h às 17h</li>
       </ul>
+    </div>
 
-      <div class="extra">
-        <span class="tag">Bônus · Sem custo adicional</span>
-        <p><strong style="color:#fff;font-weight:700;">Otimização do Google Meu Negócio.</strong> Uma otimização completa do perfil da loja em Mogi Mirim — categorias, descrição estratégica, horários, produtos, fotos e contatos — pra que quem pesquisa moda feminina na região encontre a Atualle. Entrega pontual, sem manutenção mensal.</p>
-      </div>
+    <div class="total reveal">
+      <span class="tag">Investimento no contrato inicial</span>
+      <p><strong>R$ 1.537</strong> de setup + <strong>4 mensalidades de R$ 1.800</strong>. Na renovação, a mensalidade passa a ser de R$ 2.200.</p>
     </div>
 
     <div class="external">
