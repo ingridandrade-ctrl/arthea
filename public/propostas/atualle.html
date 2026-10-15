@@ -75,11 +75,11 @@
 
   /* ---------- Hero ---------- */
   .hero{
-    min-height:100vh;min-height:100svh;
     display:flex;align-items:center;justify-content:center;
-    padding:64px 0;
+    padding:88px 0 80px;
     background:var(--paper);
   }
+  @media (min-width:768px){ .hero{padding:120px 0 112px;} }
   .hero::before{
     content:"";position:absolute;inset:0;pointer-events:none;opacity:.035;
     background-image:linear-gradient(var(--teal) 1px,transparent 1px),linear-gradient(90deg,var(--teal) 1px,transparent 1px);
