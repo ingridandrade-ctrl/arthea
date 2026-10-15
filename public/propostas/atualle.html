@@ -185,17 +185,6 @@
   .front .dots li::before{background:var(--teal);}
 
   /* ---------- Entregáveis ---------- */
-  .modules-index{
-    display:flex;flex-wrap:wrap;gap:10px;margin-top:40px;
-  }
-  .modules-index a{
-    display:inline-flex;align-items:center;gap:8px;
-    font-size:12px;font-weight:600;color:var(--teal);text-decoration:none;
-    padding:9px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);
-    transition:background .2s,color .2s,border-color .2s;
-  }
-  .modules-index a b{font-weight:900;opacity:.5;font-size:10px;letter-spacing:.1em;}
-  .modules-index a:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
   .module{padding:88px 0;border-bottom:1px solid var(--line);scroll-margin-top:72px;}
   .module:last-child{border-bottom:0;padding-bottom:0;}
   @media (min-width:768px){ .module{padding:112px 0;} }
@@ -441,7 +430,7 @@
 
   /* ---------- Impressão / PDF ---------- */
   @media print{
-    .btn,.modules-index{display:none !important;}
+    .btn{display:none !important;}
     .hero{min-height:auto;padding:48px 0;}
     .pad,.module{padding:48px 0;}
     section,.card,.phase-card,.price-card{break-inside:avoid;}
@@ -598,14 +587,6 @@
     <div class="eyebrow left reveal">Escopo de Trabalho</div>
     <h2 class="h-xl reveal" style="margin-bottom:24px;">Entregáveis do <span class="serif" style="color:var(--teal);">Projeto Atualle</span></h2>
     <p class="lead reveal" style="max-width:680px;">Uma estrutura completa de crescimento, unindo estratégia de marca, tráfego de alta performance, rastreamento e consultoria de e-commerce.</p>
-    <nav class="modules-index reveal" aria-label="Módulos">
-      <a href="#m1"><b>01</b> Diagnóstico</a>
-      <a href="#m2"><b>02</b> Setup e revisão</a>
-      <a href="#m3"><b>03</b> Rastreamento</a>
-      <a href="#m4"><b>04</b> Mídia paga</a>
-      <a href="#m5"><b>05</b> Consultoria CRO</a>
-      <a href="#m6"><b>06</b> Suporte</a>
-    </nav>
 
     <!-- 01 -->
     <div class="module" id="m1">
