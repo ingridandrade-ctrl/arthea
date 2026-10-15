@@ -185,17 +185,6 @@
   .front .dots li::before{background:var(--teal);}
 
   /* ---------- Entregáveis ---------- */
-  .modules-index{
-    display:flex;flex-wrap:wrap;gap:10px;margin-top:40px;
-  }
-  .modules-index a{
-    display:inline-flex;align-items:center;gap:8px;
-    font-size:12px;font-weight:600;color:var(--teal);text-decoration:none;
-    padding:9px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);
-    transition:background .2s,color .2s,border-color .2s;
-  }
-  .modules-index a b{font-weight:900;opacity:.5;font-size:10px;letter-spacing:.1em;}
-  .modules-index a:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
   .module{padding:88px 0;border-bottom:1px solid var(--line);scroll-margin-top:72px;}
   .module:last-child{border-bottom:0;padding-bottom:0;}
   @media (min-width:768px){ .module{padding:112px 0;} }
@@ -224,13 +213,14 @@
   @media (min-width:768px){ .card h3{font-size:18px;} }
   .card p{font-size:15px;font-weight:500;color:#3D434B;line-height:1.7;}
   .card p.explain{font-size:14px;font-style:italic;color:var(--teal-dark);margin-bottom:14px;}
+  .card .note strong{font-weight:800;color:var(--teal-dark);}
   .card .list strong{font-weight:700;color:var(--ink);}
   .card .list li{display:flex;gap:12px;font-size:15px;font-weight:500;color:#3D434B;line-height:1.65;}
   .card .list li + li{margin-top:8px;}
   .card .list li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--teal);margin-top:.65em;flex-shrink:0;}
   .card .note{
     margin-top:16px;padding:12px 14px;border-radius:12px;
-    background:rgba(29,112,112,.05);font-size:13px;font-style:italic;color:var(--muted-2);line-height:1.6;
+    background:rgba(29,112,112,.07);font-size:14px;font-weight:600;color:var(--ink);line-height:1.7;border-left:3px solid var(--teal);
   }
   .card.wide{grid-column:1/-1;}
 
@@ -410,6 +400,85 @@
   .ext-list li svg{color:var(--mint);flex-shrink:0;}
   .fine{max-width:620px;margin:32px auto 0;padding:18px 20px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;font-style:italic;color:rgba(255,255,255,.85);line-height:1.7;text-align:center;}
 
+  /* ---------- Investimento (claro) ---------- */
+  .inv{background:var(--deep);border-top:1px solid rgba(255,255,255,.08);}
+  .inv .eyebrow{color:var(--mint);}
+  .inv .h-xl{color:var(--cream);}
+  .inv .lead{color:rgba(245,238,221,.95);}
+  .inv .lead strong{color:var(--mint);font-weight:700;}
+  .inv-step{display:flex;align-items:center;gap:16px;max-width:960px;margin:72px auto 20px;}
+  .inv-num{flex-shrink:0;width:48px;height:48px;border-radius:50%;background:var(--mint);color:var(--deep);font-weight:800;font-size:20px;display:flex;align-items:center;justify-content:center;}
+  .inv-kicker{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--mint);}
+  .inv-step h3{font-weight:800;letter-spacing:-.02em;font-size:26px;line-height:1.2;color:#fff;}
+  @media (min-width:768px){ .inv-step h3{font-size:32px;} }
+  .inv-card{max-width:960px;margin:0 auto;background:#fff;border:1px solid rgba(29,112,112,.14);border-radius:28px;padding:24px;box-shadow:0 24px 50px -24px rgba(0,0,0,.4);}
+  @media (min-width:768px){ .inv-card{padding:40px;} }
+  .inv-head{display:flex;flex-direction:column;gap:20px;padding-bottom:24px;border-bottom:1px solid var(--line);}
+  @media (min-width:768px){ .inv-head{flex-direction:row;justify-content:space-between;align-items:center;} }
+  .inv-label{font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;}
+  .inv-desc{font-size:15px;font-weight:500;color:#3D434B;max-width:340px;}
+  .inv .price{display:flex;align-items:flex-end;gap:6px;}
+  .inv .price .cur{font-size:18px;font-weight:600;color:var(--muted);margin-bottom:10px;}
+  .inv .price .val{font-family:var(--serif);font-style:italic;font-weight:700;font-size:56px;line-height:1;color:var(--teal);}
+  @media (min-width:768px){ .inv .price .val{font-size:72px;} }
+  .inv .price .per{font-size:16px;font-weight:600;color:var(--muted);margin-bottom:10px;}
+  .inv-price{display:flex;flex-direction:column;gap:12px;}
+  @media (min-width:768px){ .inv-price{align-items:flex-end;} }
+  .pills{display:flex;flex-wrap:wrap;gap:8px;}
+  @media (min-width:768px){ .pills{justify-content:flex-end;} }
+  .pills span{font-size:12px;font-weight:700;color:var(--teal-dark);background:rgba(29,112,112,.08);border:1px solid rgba(29,112,112,.15);padding:6px 12px;border-radius:999px;}
+  .inv-sub{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);margin:28px 0 16px;}
+  .blocks{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media (min-width:768px){ .blocks{grid-template-columns:1fr 1fr;gap:16px;} }
+  .block{border-radius:20px;padding:22px;background:var(--paper);border:1px solid var(--line);}
+  .block.highlight{background:var(--teal);border-color:var(--teal);color:#fff;}
+  .block-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .block-icon{flex-shrink:0;width:40px;height:40px;border-radius:12px;background:rgba(29,112,112,.1);color:var(--teal);display:flex;align-items:center;justify-content:center;}
+  .block.highlight .block-icon{background:rgba(255,255,255,.18);color:#fff;}
+  .block-tag{font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;background:var(--mint);color:var(--deep);padding:5px 10px;border-radius:999px;}
+  .block h4{font-weight:800;font-size:18px;letter-spacing:-.01em;margin-bottom:10px;color:var(--ink);}
+  .block.highlight h4{color:#fff;}
+  .block ul li{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:500;line-height:1.55;color:#3D434B;}
+  .block ul li + li{margin-top:7px;}
+  .block ul li svg{color:var(--teal);flex-shrink:0;margin-top:3px;}
+  .block.highlight ul li{color:#fff;}
+  .block.highlight ul li svg{color:var(--mint);}
+  .bonus{display:flex;flex-direction:column;gap:10px;margin-top:16px;padding:18px 20px;border-radius:18px;background:rgba(155,240,224,.35);border:1px dashed rgba(29,112,112,.35);}
+  @media (min-width:768px){ .bonus{flex-direction:row;align-items:center;gap:16px;} }
+  .bonus-badge{align-self:flex-start;flex-shrink:0;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;background:var(--teal);color:#fff;padding:6px 12px;border-radius:999px;}
+  @media (min-width:768px){ .bonus-badge{align-self:center;} }
+  .bonus p{font-size:14px;font-weight:500;line-height:1.6;color:#2D3A3A;}
+  .bonus strong{font-weight:800;color:var(--ink);}
+  .tiers{display:grid;grid-template-columns:1fr;gap:16px;max-width:960px;margin:0 auto;}
+  @media (min-width:768px){ .tiers{grid-template-columns:1fr 1fr;gap:20px;} }
+  .tier2{background:#fff;border:1px solid rgba(29,112,112,.14);border-radius:24px;padding:26px;box-shadow:0 20px 50px -30px rgba(13,74,74,.35);}
+  .tier2.next{border:3px solid var(--mint);}
+  .tier2 .price{margin:6px 0 14px;}
+  .tier2-note{font-size:14px;font-weight:500;line-height:1.6;color:#3D434B;padding-top:14px;border-top:1px solid var(--line);}
+  .range2{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;max-width:960px;margin:18px auto 20px;font-size:15px;font-weight:500;color:var(--cream);}
+  .range2 svg{color:var(--mint);}
+  .range2 strong{color:var(--mint);font-weight:800;}
+  .monthly{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media (min-width:768px){ .monthly{grid-template-columns:1fr 1fr;} }
+  @media (min-width:1024px){ .monthly{grid-template-columns:1fr 1fr 1fr;} }
+  .m-item{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:18px;background:var(--paper);border:1px solid var(--line);}
+  .m-item h4{font-weight:800;font-size:15px;margin-bottom:4px;color:var(--ink);}
+  .m-item p{font-size:13.5px;font-weight:500;line-height:1.55;color:#3D434B;}
+  .summary{max-width:960px;margin:40px auto 0;border-radius:24px;padding:26px 24px;background:var(--teal);color:#fff;text-align:center;border:1px solid rgba(155,240,224,.35);box-shadow:0 24px 50px -24px rgba(0,0,0,.4);}
+  .summary-title{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--mint);margin-bottom:18px;}
+  .summary-grid{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  @media (min-width:768px){ .summary-grid{flex-direction:row;justify-content:center;gap:22px;} }
+  .summary-grid span{display:block;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85);}
+  .summary-grid b{display:block;font-family:var(--serif);font-style:italic;font-size:34px;line-height:1.2;color:var(--mint);}
+  .summary-grid small{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.92);}
+  .summary-grid .plus{font-size:26px;font-weight:300;color:rgba(155,240,224,.7);}
+  .ext2{max-width:960px;margin:72px auto 0;text-align:center;}
+  .ext2 h3{font-family:var(--serif);font-style:italic;font-weight:700;font-size:28px;color:var(--cream);margin-bottom:8px;}
+  .ext2 ul{display:grid;grid-template-columns:1fr;gap:10px;text-align:left;margin-top:24px;}
+  @media (min-width:768px){ .ext2 ul{grid-template-columns:1fr 1fr;} }
+  .ext2 li{display:flex;gap:12px;align-items:center;padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);font-size:14px;font-weight:500;color:var(--cream);}
+  .ext2 li svg{color:#F2A39B;flex-shrink:0;}
+  .fine2{max-width:640px;margin:24px auto 0;font-size:13px;font-style:italic;font-weight:500;color:rgba(245,238,221,.85);line-height:1.7;}
   /* ---------- CTA ---------- */
   .cta{background:var(--paper);padding:96px 0 48px;text-align:center;border-top:1px solid var(--line);}
   .cta::before{
@@ -421,6 +490,7 @@
   .cta h2{font-weight:800;letter-spacing:-.03em;line-height:1.1;font-size:34px;margin-bottom:20px;color:var(--ink);}
   .cta h2 .serif{color:var(--teal);}
   @media (min-width:768px){ .cta h2{font-size:60px;} }
+  .invest .lead strong{color:var(--mint);font-weight:700;}
   .cta .lead{color:var(--teal-dark);font-weight:600;max-width:560px;margin:0 auto 36px;}
   .contacts{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:40px;}
   @media (min-width:768px){ .contacts{flex-direction:row;justify-content:center;gap:32px;} }
@@ -441,7 +511,7 @@
 
   /* ---------- Impressão / PDF ---------- */
   @media print{
-    .btn,.modules-index{display:none !important;}
+    .btn{display:none !important;}
     .hero{min-height:auto;padding:48px 0;}
     .pad,.module{padding:48px 0;}
     section,.card,.phase-card,.price-card{break-inside:avoid;}
@@ -481,7 +551,6 @@
 <!-- ================= HERO ================= -->
 <section class="hero" id="inicio">
   <div class="wrap wrap-narrow">
-    <div class="hero-logo reveal"><img src="/assets/logo-arthea.svg" alt="Arthea"></div>
     <div class="reveal"><span class="pill">Proposta de Tráfego Pago</span></div>
     <h1 class="reveal">Arthea <span class="serif x">×</span><span class="client">Atualle Boutique</span></h1>
     <p class="lead reveal">Uma boutique consolidada em Mogi Mirim, agora pronta para levar sua curadoria ao e-commerce — com estratégia, dados e intenção.</p>
@@ -498,7 +567,7 @@
   <div class="wrap">
     <div class="center">
       <div class="eyebrow center reveal">Base Estratégica</div>
-      <h2 class="h-xl reveal" style="color:var(--cream);margin-bottom:24px;">Posicionamento, tráfego<br> <span class="serif" style="color:var(--mint);">e venda conectados.</span></h2>
+      <h2 class="h-xl reveal" style="color:var(--cream);margin-bottom:24px;">Posicionamento, tráfego<br> <span class="serif" style="color:var(--mint);">e vendas conectados.</span></h2>
       <p class="lead reveal mx-auto" style="max-width:680px;">A Atualle já tem nome, clientela fiel, uma loja consolidada em Mogi Mirim e presença digital ativa. O próximo passo é transformar essa presença em vendas no e-commerce, sem perder o que já funciona: o anúncio leva a mensagem para mais gente, o e-commerce transforma essa atenção em venda, o WhatsApp regional segue abastecendo a loja e o rastreamento garante que nada se perca pelo caminho.</p>
     </div>
 
@@ -553,7 +622,6 @@
             <li>Pixel da Meta via Google Tag Manager e API de Conversões via Nuvemshop</li>
             <li>Google Analytics 4 e eventos de conversão no Google Ads</li>
             <li>UTMs padronizadas e validação por compra-teste</li>
-            <li>Dados do Meta e do Google conversando sem perder nada pelo caminho</li>
           </ul>
         </div>
       </article>
@@ -584,7 +652,6 @@
             <li>Preserva o volume de vendas que a loja já tem hoje</li>
             <li>Atendimento próximo, do jeito que a cliente Atualle já conhece</li>
             <li>Verba equilibrada entre as frentes conforme os resultados</li>
-            <li>Perfil do Google Meu Negócio otimizado, como bônus</li>
           </ul>
         </article>
       </div>
@@ -600,14 +667,6 @@
     <div class="eyebrow left reveal">Escopo de Trabalho</div>
     <h2 class="h-xl reveal" style="margin-bottom:24px;">Entregáveis do <span class="serif" style="color:var(--teal);">Projeto Atualle</span></h2>
     <p class="lead reveal" style="max-width:680px;">Uma estrutura completa de crescimento, unindo estratégia de marca, tráfego de alta performance, rastreamento e consultoria de e-commerce.</p>
-    <nav class="modules-index reveal" aria-label="Módulos">
-      <a href="#m1"><b>01</b> Diagnóstico</a>
-      <a href="#m2"><b>02</b> Setup e revisão</a>
-      <a href="#m3"><b>03</b> Rastreamento</a>
-      <a href="#m4"><b>04</b> Mídia paga</a>
-      <a href="#m5"><b>05</b> Consultoria CRO</a>
-      <a href="#m6"><b>06</b> Suporte</a>
-    </nav>
 
     <!-- 01 -->
     <div class="module" id="m1">
@@ -628,19 +687,22 @@
       <h2 class="reveal">Setup <span class="serif">&amp; Revisão</span></h2>
       <p class="lead reveal">A Atualle já tem Business Manager e ativos conectados. Por isso, começamos revisando toda a estrutura que existe: conferimos o que está certo, corrigimos o que for preciso e criamos o que ainda faltar, pra que a Atualle rode com segurança e escala.</p>
       <div class="cards">
-        <div class="card reveal"><h3>Business Manager e Contas de Anúncio</h3>
-          <p class="explain">O Business Manager é o painel central da Meta, onde ficam as contas de anúncio, a página do Facebook, o Instagram e o WhatsApp da loja.</p>
+        <div class="card wide reveal"><h3>Revisão Geral do Business Manager</h3>
+          <p class="explain">O Business Manager é o painel central da Meta. É dentro dele que ficam as contas de anúncio, o Gerenciador de Eventos, os públicos, o catálogo e os perfis da loja — por isso a revisão é completa, não só de um ponto.</p>
           <ul class="list">
-            <li>Revisão do Business Manager e dos ativos já conectados: Facebook, Instagram e WhatsApp</li>
-            <li>Revisão das contas de anúncio, permissões de acesso e autenticação de dois fatores</li>
-            <li>Conferência da verificação de domínio do site</li>
+            <li>Conferência da verificação do negócio e da verificação de domínio do site</li>
+            <li>Revisão dos ativos conectados: página do Facebook, perfil do Instagram e número do WhatsApp</li>
+            <li>Revisão das contas de anúncio, forma de pagamento, permissões de acesso e autenticação de dois fatores</li>
+            <li>Ajuste de tudo o que estiver incompleto ou fora do padrão, e criação do que ainda faltar</li>
           </ul>
         </div>
-        <div class="card reveal"><h3>Gerenciador de Eventos</h3>
-          <p class="explain">É onde a Meta recebe as informações do que acontece no site: visitas, carrinhos e compras.</p>
+        <div class="card reveal"><h3>Gerenciador de Eventos e Pixel</h3>
+          <p class="explain">É onde a Meta recebe as informações do que acontece no site: visitas, produtos vistos, carrinhos e compras.</p>
           <ul class="list">
-            <li>Revisão do Pixel e da API de Conversões no mesmo painel</li>
-            <li>Conferência de quais eventos estão chegando e do que precisa ser ajustado</li>
+            <li>Revisão do Pixel da Meta e da conexão com o Google Tag Manager</li>
+            <li>Criação e configuração dos eventos de e-commerce</li>
+            <li>Revisão da API de Conversões via Nuvemshop</li>
+            <li>Conferência de quais eventos estão chegando, deixando tudo certinho antes de anunciar</li>
           </ul>
         </div>
         <div class="card reveal"><h3>Públicos e Segmentações</h3>
@@ -653,7 +715,7 @@
             <li>Exclusões estratégicas de públicos</li>
           </ul>
         </div>
-        <div class="card reveal"><h3>Loja no Instagram e Catálogo</h3>
+        <div class="card wide reveal"><h3>Loja no Instagram e Catálogo</h3>
           <p class="explain">O Gerenciador de Comércios é o que permite marcar produtos nos posts e vender pelo Instagram. O catálogo alimenta os anúncios com as peças da loja.</p>
           <ul class="list">
             <li>Revisão do Gerenciador de Comércios e da lojinha do Instagram</li>
@@ -669,7 +731,7 @@
             <li><span><strong>Google Tag Manager</strong> — central que organiza os códigos de rastreamento do site</span></li>
             <li><span><strong>Google Analytics 4 (GA4)</strong> — mostra de onde vêm as visitantes e o que elas fazem no site</span></li>
           </ul>
-          <p class="note">Entregável de revisão e configuração, pra deixar tudo pronto e funcionando. Manutenção e gestão de anúncios no Google Ads não estão inclusas.</p>
+          <p class="note">Entregável de revisão e configuração, pra deixar tudo pronto e funcionando.<br><strong>Manutenção e gestão de anúncios no Google Ads não estão inclusas.</strong></p>
         </div>
         <div class="card wide reveal"><h3>Google Meu Negócio <span style="font-size:10px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);background:rgba(29,112,112,.08);padding:4px 10px;border-radius:999px;margin-left:6px;vertical-align:middle;">Bônus</span></h3>
           <ul class="list">
@@ -739,10 +801,8 @@
         </div>
         <div class="card reveal"><h3>Direcionamento Criativo</h3>
           <ul class="list">
-            <li>Pesquisa de referências de anúncios</li>
-            <li>Referências de anúncios alinhadas a cada etapa do funil</li>
-            <li>Direcionamento dos anúncios por etapa do funil</li>
-            <li>Copy dos anúncios alinhada ao posicionamento e ao tom de voz da marca</li>
+            <li>Pesquisa de referências de anúncios alinhadas ao posicionamento e ao tom de voz da marca</li>
+            <li>Envio de referências de anúncios separadas por etapa do funil</li>
           </ul>
         </div>
         <div class="card reveal"><h3>Otimização e Escala</h3>
@@ -756,7 +816,7 @@
         <div class="callout-icon"><svg width="22" height="22"><use href="#i-alert"/></svg></div>
         <div>
           <span class="tag">Importante sobre os criativos</span>
-          <p>A Arthea faz a pesquisa de referências e o direcionamento criativo, mas <strong>não produz os criativos nem edita vídeos</strong>. Fotos, vídeos e artes dos anúncios precisam ser enviados prontos pela Atualle.</p>
+          <p>A Arthea faz a pesquisa de referências e envia o direcionamento criativo, mas <strong>não produz os criativos</strong> — ou seja, não cria as artes nem edita os vídeos. Fotos e vídeos dos anúncios precisam ser enviados prontos pela Atualle, seguindo as recomendações estratégicas.</p>
         </div>
       </div>
     </div>
@@ -767,11 +827,12 @@
       <h2 class="reveal">Consultoria de <span class="serif">E-commerce (CRO)</span></h2>
       <p class="lead reveal">Consultoria de e-commerce em paralelo ao tráfego pago: analisamos o site e orientamos a Atualle sobre o que melhorar para otimizar o funil de compra e a experiência da cliente.</p>
       <div class="cards">
-        <div class="card reveal"><h3>Análise de Funil</h3><p>Sugestão de ferramentas de análise de funil do site pra melhorar a taxa de conversão.</p></div>
-        <div class="card reveal"><h3>Incentivo à Compra</h3><p>Sugestão de ferramentas de incentivo à compra.</p></div>
-        <div class="card reveal"><h3>Elementos de Confiança</h3><p>Sugestão de elementos de confiança na página de produto e no checkout.</p></div>
-        <div class="card reveal"><h3>Mecânicas de Oferta</h3><p>Sugestão de mecânicas de oferta e calibragem do valor de frete grátis conforme o ticket médio real.</p></div>
-        <div class="card wide reveal"><h3>Datas Comerciais</h3><p>Sugestões consultivas sobre campanhas sazonais e datas comerciais do varejo de moda.</p></div>
+        <div class="card reveal"><h3>Análise do Funil de Compra</h3><p>Analisamos a jornada da cliente no site — da página de produto ao pagamento — com os dados do GA4 e da Nuvemshop, pra identificar em que ponto ela desiste da compra.</p></div>
+        <div class="card reveal"><h3>Página de Produto e Checkout</h3><p>Avaliamos fotos, descrições, tabela de medidas, frete, trocas e formas de pagamento, e apontamos o que aumenta a confiança da cliente na hora de comprar.</p></div>
+        <div class="card reveal"><h3>Navegação e Experiência Mobile</h3><p>Revisão de menu, categorias, busca e da versão no celular, com recomendações pra cliente encontrar e comprar com menos cliques.</p></div>
+        <div class="card reveal"><h3>Ofertas e Frete</h3><p>Análise do ticket médio pra recomendar mecânicas de oferta — como kits, compre junto e cupom de primeira compra — e o valor ideal de frete grátis.</p></div>
+        <div class="card reveal"><h3>Datas Comerciais</h3><p>Planejamento consultivo do calendário de datas da moda — Dia das Mães, Black Friday, Natal e troca de coleção — alinhado às campanhas.</p></div>
+        <div class="card reveal"><h3>Plano de Melhorias</h3><p>As análises viram uma lista priorizada de recomendações: o que fazer primeiro, por quê e qual o impacto esperado, pra equipe da Atualle executar.</p></div>
       </div>
       <div class="callout reveal">
         <div class="callout-icon"><svg width="22" height="22"><use href="#i-alert"/></svg></div>
@@ -806,13 +867,13 @@
         <p class="lead reveal">Liderada pela estrategista <strong style="font-weight:700;color:var(--ink);">Ingrid Andrade</strong>, a Arthea une experiência técnica e atualização constante nas maiores mentorias de tráfego do país. Cada projeto é acompanhado de perto, do diagnóstico à otimização.</p>
       </div>
       <div class="stats">
-        <div class="stat reveal"><b>4 anos</b><span>de mercado e consistência</span></div>
-        <div class="stat reveal"><b>+30</b><span>clientes atendidos e validados</span></div>
-        <div class="stat reveal"><b>R$650k</b><span>investidos em tráfego pago</span></div>
-        <div class="stat reveal"><b>R$4M+</b><span>em vendas acompanhadas</span></div>
+        <div class="stat reveal"><b>5 anos</b><span>de mercado e consistência</span></div>
+        <div class="stat reveal"><b>+30</b><span>clientes atendidos</span></div>
+        <div class="stat reveal"><b>+R$750k</b><span>investidos em tráfego pago</span></div>
+        <div class="stat reveal"><b>+R$4,5M</b><span>em vendas acompanhadas</span></div>
         <div class="trophy reveal">
           <div class="callout-icon"><svg width="22" height="22"><use href="#i-trophy"/></svg></div>
-          <p><strong>Grupo campeão do 4º Campeonato de Grupos do Subido PRO</strong>, a maior mentoria de tráfego da América Latina — vitória conquistada entre mais de 100 grupos de alta performance.</p>
+          <p><strong>Grupo campeão do 4º Campeonato de Grupos do Subido PRO</strong>, o único MBA de tráfego pago da América Latina — vitória conquistada entre mais de 100 grupos de alta performance.</p>
         </div>
       </div>
     </div>
@@ -837,17 +898,18 @@
           <span class="ghost">01</span>
           <div class="phase-top">
             <div class="phase-icon"><svg width="22" height="22"><use href="#i-compass"/></svg></div>
-            <div><span class="phase-when">Fase 1 • Até 7 dias úteis</span><h3>Imersão &amp; Estrutura</h3></div>
+            <div><span class="phase-when">Fase 1 • Até 10 dias úteis</span><h3>Imersão &amp; Estrutura</h3></div>
           </div>
           <ul class="steps">
             <li><b>01</b> Formulário de boas-vindas e onboarding</li>
             <li><b>02</b> Liberação de acessos às contas, ao site e às plataformas</li>
             <li><b>03</b> Diagnóstico da marca, pesquisa estratégica, benchmark e mapeamento da cliente</li>
             <li><b>04</b> Estratégia de marca, posicionamento e tom de voz no funil</li>
-            <li><b>05</b> Revisão do Business Manager, das contas de anúncio e do Gerenciador de Eventos</li>
-            <li><b>06</b> Revisão do Gerenciador de Comércios, da lojinha do Instagram e do catálogo integrado</li>
-            <li><b>07</b> Revisão da Suíte Google, criando e configurando o que faltar</li>
-            <li><b>08</b> Otimização do Google Meu Negócio (bônus)</li>
+            <li><b>05</b> Revisão geral do Business Manager: verificação, ativos, contas de anúncio e Gerenciador de Eventos</li>
+            <li><b>06</b> Revisão e estruturação dos públicos frios, quentes, regionais e de remarketing</li>
+            <li><b>07</b> Revisão do Gerenciador de Comércios, da lojinha do Instagram e do catálogo integrado</li>
+            <li><b>08</b> Revisão da Suíte Google, criando e configurando o que faltar</li>
+            <li><b>09</b> Otimização do Google Meu Negócio (bônus)</li>
           </ul>
         </div>
       </div>
@@ -858,12 +920,12 @@
           <span class="ghost">02</span>
           <div class="phase-top">
             <div class="phase-icon"><svg width="22" height="22"><use href="#i-layers"/></svg></div>
-            <div><span class="phase-when">Fase 2 • Assim que o e-commerce estiver no ar</span><h3>Rastreamento de Dados</h3></div>
+            <div><span class="phase-when">Fase 2 • Até 5 dias úteis após a Fase 1</span><h3>Rastreamento de Dados</h3></div>
           </div>
           <ul class="steps">
-            <li><b>09</b> Pixel da Meta via Google Tag Manager e API de Conversões via Nuvemshop</li>
-            <li><b>10</b> Google Analytics 4 e eventos de e-commerce</li>
-            <li><b>11</b> Padronização de UTMs e compra-teste</li>
+            <li><b>10</b> Pixel da Meta via Google Tag Manager e API de Conversões via Nuvemshop</li>
+            <li><b>11</b> Google Analytics 4 e eventos de e-commerce</li>
+            <li><b>12</b> Padronização de UTMs e compra-teste</li>
           </ul>
         </div>
       </div>
@@ -877,10 +939,10 @@
             <div><span class="phase-when">Fase 3 • Até 7 dias úteis após a Fase 1</span><h3>Ativação de Campanhas</h3></div>
           </div>
           <ul class="steps">
-            <li><b>12</b> Revisão e estruturação de públicos frios, quentes, regionais e de remarketing</li>
-            <li><b>13</b> Pesquisa de referências e direcionamento criativo por etapa do funil, com os criativos enviados prontos pela Atualle</li>
+            <li><b>13</b> Pesquisa de referências e direcionamento criativo por etapa do funil</li>
             <li><b>14</b> Estratégia das campanhas de e-commerce (atração, vendas e remarketing) e das campanhas regionais para WhatsApp</li>
-            <li><b>15</b> Ativação das primeiras campanhas</li>
+            <li><b>15</b> Recebimento dos criativos prontos pela Atualle</li>
+            <li><b>16</b> Ativação das primeiras campanhas</li>
           </ul>
         </div>
       </div>
@@ -894,11 +956,11 @@
             <div><span class="phase-when">Fase 4 • Contínuo</span><h3>Otimização &amp; Escala</h3></div>
           </div>
           <ul class="steps">
-            <li><b>16</b> Análise contínua de resultado por campanha, conjunto e anúncio</li>
-            <li><b>17</b> Otimização e escala conforme performance e metas definidas</li>
-            <li><b>18</b> Dashboard e relatório mensal com leitura estratégica do tráfego pago</li>
-            <li><b>19</b> Suporte via WhatsApp, por mensagem ou áudio</li>
-            <li><b>20</b> Consultoria de e-commerce (CRO): orientação sobre o que melhorar no funil de compra e na experiência da cliente</li>
+            <li><b>17</b> Análise contínua de resultado por campanha, conjunto e anúncio</li>
+            <li><b>18</b> Otimização e escala conforme performance e metas definidas</li>
+            <li><b>19</b> Dashboard e relatório mensal com leitura estratégica do tráfego pago</li>
+            <li><b>20</b> Suporte via WhatsApp, por mensagem ou áudio</li>
+            <li><b>21</b> Consultoria de e-commerce (CRO): análise do funil e plano de melhorias priorizado para o site</li>
           </ul>
         </div>
       </div>
@@ -912,93 +974,112 @@
 </section>
 
 <!-- ================= INVESTIMENTO ================= -->
-<section class="invest dark pad" id="investimento">
+<section class="inv pad" id="investimento">
   <div class="wrap">
     <div class="center">
       <div class="eyebrow center reveal">Verba e Entregáveis</div>
-      <h2 class="reveal">Investimento</h2>
-      <p class="lead reveal mx-auto" style="max-width:620px;">O projeto começa com um setup inicial, em que revisamos e estruturamos tudo antes de ativar qualquer campanha. A partir daí, a mensalidade cuida do crescimento — com um valor progressivo, pensado para o momento da Atualle.</p>
+      <h2 class="h-xl reveal" style="margin-bottom:20px;">Investimento</h2>
+      <p class="lead reveal mx-auto" style="max-width:640px;">O projeto começa com um setup inicial, em que fazemos o <strong>mapeamento da marca</strong> — a base de toda a estratégia — e revisamos e estruturamos tudo antes de ativar qualquer campanha. Depois disso, entra a mensalidade fixa, pensada para o momento da Atualle.</p>
     </div>
 
-    <div class="price-card setup-card reveal">
-      <div class="price-head">
+    <!-- ETAPA 1: SETUP -->
+    <div class="inv-step reveal"><span class="inv-num">1</span><div><p class="inv-kicker">Primeiro passo</p><h3>Setup inicial</h3></div></div>
+    <div class="inv-card reveal">
+      <div class="inv-head">
         <div>
-          <span class="chip">Setup único</span>
-          <p class="sub">Para estruturar a base do projeto</p>
+          <p class="inv-label">Setup único</p>
+          <p class="inv-desc">Para estruturar a base do projeto antes da primeira campanha.</p>
         </div>
-        <div class="price-right">
+        <div class="inv-price">
           <div class="price"><span class="cur">R$</span><span class="val">1.650</span></div>
-          <p class="pay-note">Taxa única · paga no início do projeto</p>
-          <p class="pay-note" style="color:var(--mint);">Parcelável no cartão em até 12× (com juros da operadora)</p>
+          <div class="pills"><span>Pago no início do projeto</span><span>Até 12× no cartão (juros da operadora)</span></div>
         </div>
       </div>
-      <p class="incl-title">O que entra no setup</p>
-      <ul class="checks">
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Estudo do projeto e desenvolvimento da estratégia de marca e posicionamento</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Diagnóstico da marca, benchmark, mapeamento da cliente e tom de voz no funil</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Revisão da estrutura Meta: Business Manager, contas de anúncio, Gerenciador de Eventos, públicos, Gerenciador de Comércios e catálogo integrado</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Revisão de toda a estrutura Google, criando o que faltar: Google Ads (conversões), Merchant Center, Search Console, Tag Manager e GA4</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Rastreamento: Pixel da Meta via Google Tag Manager, API de Conversões via Nuvemshop, GA4, eventos e UTMs</li>
-      </ul>
-      <div class="extra">
-        <span class="tag">Bônus · Sem custo adicional</span>
-        <p><strong style="color:#fff;font-weight:700;">Otimização do Google Meu Negócio.</strong> Uma otimização completa do perfil da loja em Mogi Mirim — categorias, descrição estratégica, horários, produtos, fotos e contatos — pra que quem pesquisa moda feminina na região encontre a Atualle. Entrega pontual, sem manutenção mensal.</p>
+
+      <p class="inv-sub">O que entra no setup</p>
+      <div class="blocks">
+        <div class="block highlight">
+          <div class="block-top"><span class="block-icon"><svg width="20" height="20"><use href="#i-compass"/></svg></span><span class="block-tag">A base de tudo</span></div>
+          <h4>Mapeamento da marca</h4>
+          <ul><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Estudo do projeto</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Estratégia de marca e posicionamento</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Diagnóstico, benchmark e mapeamento da cliente</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Tom de voz em cada etapa do funil</span></li></ul>
+        </div>
+        <div class="block">
+          <div class="block-top"><span class="block-icon"><svg width="20" height="20"><use href="#i-layers"/></svg></span></div>
+          <h4>Revisão geral da Meta</h4>
+          <ul><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Business Manager e verificação do negócio</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Contas de anúncio e permissões</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Gerenciador de Eventos e Pixel</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Públicos, lojinha do Instagram e catálogo</span></li></ul>
+        </div>
+        <div class="block">
+          <div class="block-top"><span class="block-icon"><svg width="20" height="20"><use href="#i-chart"/></svg></span></div>
+          <h4>Revisão da Suíte Google</h4>
+          <ul><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Google Ads (eventos de conversão)</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Merchant Center e Search Console</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Google Tag Manager e GA4</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>O que não estiver feito, criamos</span></li></ul>
+        </div>
+        <div class="block">
+          <div class="block-top"><span class="block-icon"><svg width="20" height="20"><use href="#i-plug"/></svg></span></div>
+          <h4>Rastreamento</h4>
+          <ul><li><svg width="14" height="14"><use href="#i-check"/></svg><span>Pixel da Meta via Google Tag Manager</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>API de Conversões via Nuvemshop</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>GA4 e eventos de e-commerce</span></li><li><svg width="14" height="14"><use href="#i-check"/></svg><span>UTMs e compra-teste</span></li></ul>
+        </div>
       </div>
-      <p class="setup-why">É nessa etapa que mergulhamos no negócio, desenvolvemos a estratégia e instalamos toda a estrutura. Aqui entra grande parte do diferencial do nosso método: anúncio sem base estratégica não escala.</p>
+
+      <div class="bonus">
+        <span class="bonus-badge">Bônus</span>
+        <p><strong>Otimização do Google Meu Negócio</strong> — perfil da loja em Mogi Mirim otimizado pra ser encontrado por quem busca moda feminina na região. Entrega pontual, sem manutenção mensal.</p>
+      </div>
     </div>
 
-    <div class="center" style="margin-top:72px;">
-      <span class="chip">Mensal recorrente</span>
-      <h3 class="monthly-title reveal">Assessoria mensal <span class="serif">progressiva</span></h3>
-    </div>
-
-    <div class="steps-price">
-      <div class="tier reveal">
-        <span class="chip">Contrato inicial</span>
-        <p class="sub">Meses 1 a 4</p>
+    <!-- ETAPA 2: MENSALIDADE -->
+    <div class="inv-step reveal"><span class="inv-num">2</span><div><p class="inv-kicker">Depois do setup</p><h3>Assessoria mensal</h3></div></div>
+    <div class="tiers">
+      <div class="tier2 reveal">
+        <p class="inv-label">Contrato inicial · meses 1 a 4</p>
         <div class="price"><span class="cur">R$</span><span class="val">1.800</span><span class="per">/ mês</span></div>
-        <p class="tier-note">4 mensalidades, com a primeira vencendo em até 10 dias após o início do projeto. Ativação das campanhas e primeiros ciclos de otimização, enquanto o e-commerce ganha tração.</p>
+        <p class="tier2-note">4 mensalidades. A primeira vence em até 10 dias após o início do projeto.</p>
       </div>
-      <div class="tier-arrow reveal" aria-hidden="true"><svg width="22" height="22"><use href="#i-arrow"/></svg></div>
-      <div class="tier reveal">
-        <span class="chip">Renovação</span>
-        <p class="sub">A partir do 5º mês</p>
+      <div class="tier2 next reveal">
+        <p class="inv-label">Renovação · a partir do 5º mês</p>
         <div class="price"><span class="cur">R$</span><span class="val">2.200</span><span class="per">/ mês</span></div>
-        <p class="tier-note">Mediante renovação e comum acordo. Continuidade da gestão, otimização e escala das duas frentes.</p>
+        <p class="tier2-note">Mediante renovação e comum acordo, com o mesmo escopo.</p>
       </div>
     </div>
-    <p class="range reveal"><svg width="16" height="16"><use href="#i-chart"/></svg>Mensalidade de gestão válida para uma verba de mídia de <strong>até R$ 5.000 por mês</strong>.</p>
+    <p class="range2 reveal"><svg width="16" height="16"><use href="#i-chart"/></svg>Mensalidade válida para uma verba de mídia de <strong>até R$ 5.000 por mês</strong></p>
 
-    <div class="price-card reveal">
-      <p class="incl-title" style="margin-top:0;">Entregáveis inclusos na mensalidade</p>
-      <ul class="checks">
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Gestão de mídia paga no Meta Ads: e-commerce (atração, vendas, catálogo e remarketing) e campanhas regionais para WhatsApp</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Funil de anúncio por etapa, com pesquisa de referências, direcionamento criativo e copy (criativos enviados prontos pela Atualle)</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Otimização e escala constante por campanha, conjunto e criativo</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Consultoria de e-commerce (CRO): orientação estratégica sobre funil, confiança, ofertas e datas comerciais</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Dashboard e relatório mensal com leitura estratégica</li>
-        <li><svg width="16" height="16"><use href="#i-check"/></svg>Suporte via WhatsApp em dias úteis, das 9h às 17h, por mensagem ou áudio</li>
-      </ul>
+    <div class="inv-card reveal">
+      <p class="inv-sub" style="margin-top:0;">O que entra na mensalidade</p>
+      <div class="monthly">
+        <div class="m-item"><span class="block-icon"><svg width="18" height="18"><use href="#i-megaphone"/></svg></span><div><h4>Gestão de Meta Ads</h4><p>E-commerce (atração, vendas, catálogo e remarketing) e campanhas regionais para WhatsApp.</p></div></div>
+        <div class="m-item"><span class="block-icon"><svg width="18" height="18"><use href="#i-compass"/></svg></span><div><h4>Direcionamento criativo</h4><p>Pesquisa e envio de referências por etapa do funil. Criativos enviados prontos pela Atualle.</p></div></div>
+        <div class="m-item"><span class="block-icon"><svg width="18" height="18"><use href="#i-trending"/></svg></span><div><h4>Otimização e escala</h4><p>Análise constante por campanha, conjunto e criativo.</p></div></div>
+        <div class="m-item"><span class="block-icon"><svg width="18" height="18"><use href="#i-bag"/></svg></span><div><h4>Consultoria de e-commerce</h4><p>Análise do funil e plano de melhorias priorizado para o site.</p></div></div>
+        <div class="m-item"><span class="block-icon"><svg width="18" height="18"><use href="#i-chart"/></svg></span><div><h4>Dashboard e relatório</h4><p>Relatório mensal com leitura estratégica dos resultados.</p></div></div>
+        <div class="m-item"><span class="block-icon"><svg width="18" height="18"><use href="#i-message"/></svg></span><div><h4>Suporte via WhatsApp</h4><p>Dias úteis, das 9h às 17h, por mensagem ou áudio.</p></div></div>
+      </div>
     </div>
 
-    <div class="total reveal">
-      <span class="tag">Investimento no contrato inicial</span>
-      <p><strong>R$ 1.650</strong> de setup (parcelável no cartão em até 12×, com juros da operadora) + <strong>4 mensalidades de R$ 1.800</strong>. O setup é pago no início do projeto e a primeira mensalidade vence em até 10 dias depois. Na renovação, a mensalidade passa a ser de R$ 2.200.</p>
+    <!-- RESUMO -->
+    <div class="summary reveal">
+      <p class="summary-title">Resumo do contrato inicial</p>
+      <div class="summary-grid">
+        <div><span>Setup único</span><b>R$ 1.650</b><small>No início · até 12× no cartão</small></div>
+        <div class="plus" aria-hidden="true">+</div>
+        <div><span>4 mensalidades</span><b>R$ 1.800</b><small>1ª em até 10 dias após o início</small></div>
+        <div class="plus" aria-hidden="true">→</div>
+        <div><span>Renovação</span><b>R$ 2.200</b><small>Por mês, a partir do 5º mês</small></div>
+      </div>
     </div>
 
-    <div class="external">
+    <!-- EXTERNOS -->
+    <div class="ext2">
       <h3 class="reveal">Responsabilidades externas</h3>
-      <p class="lead reveal">O que fica sob responsabilidade da Atualle ou de outros parceiros.</p>
-      <ul class="ext-list">
-        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Verba de mídia (paga direto nas plataformas, + 12,15% de imposto da Meta)</li>
-        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Produção de criativos, fotos e vídeos e edição de vídeos (o conteúdo precisa chegar pronto)</li>
+      <p class="lead reveal" style="font-size:16px;">O que fica com a Atualle ou com outros parceiros — não incluso nesta proposta.</p>
+      <ul>
+        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Verba de mídia, paga direto nas plataformas (+ 12,15% de imposto da Meta)</li>
+        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Produção de criativos, fotos e vídeos e edição de vídeos</li>
         <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Branding, conceito e identidade visual</li>
         <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Gerenciamento de redes sociais</li>
-        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Execução das melhorias no site: desenvolvimento, manutenção, ajustes e criação de banners</li>
-        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Gestão de anúncios no Google Ads e manutenção mensal do Google Meu Negócio (não inclusas — orçamento à parte)</li>
+        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Execução das melhorias no site: desenvolvimento, ajustes e banners</li>
+        <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Gestão de Google Ads e manutenção mensal do Google Meu Negócio (orçamento à parte)</li>
         <li class="reveal"><svg width="16" height="16"><use href="#i-x"/></svg>Estoque, atendimento no WhatsApp e logística dos pedidos</li>
       </ul>
-      <p class="fine reveal">* A verba de mídia é paga diretamente pela Atualle às plataformas. Desde 01/01/2026 a Meta retém 12,15% de imposto: cada R$ 1.000 de mídia planejada debita R$ 1.138.</p>
+      <p class="fine2 reveal">* A verba de mídia é paga diretamente pela Atualle às plataformas. Desde 01/01/2026 a Meta retém 12,15% de imposto: cada R$ 1.000 de mídia planejada debita R$ 1.138.</p>
     </div>
   </div>
 </section>
@@ -1017,10 +1098,6 @@
     <div class="contacts reveal">
       <a href="tel:+5519920002917"><svg width="15" height="15"><use href="#i-phone"/></svg>(19) 92000-2917</a>
       <a href="mailto:ingridandrade@arthea.com.br"><svg width="15" height="15"><use href="#i-mail"/></svg>ingridandrade@arthea.com.br</a>
-    </div>
-    <div class="signoff">
-      <div class="hero-logo"><img src="/assets/logo-arthea.svg" alt="Arthea"></div>
-      <p>Ingrid Andrade — Arthea</p>
     </div>
   </div>
 </section>
