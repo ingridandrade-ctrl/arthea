@@ -118,6 +118,13 @@ const nextConfig = {
           source: "/clientes/brasil-taping-bf26-x7k2",
           destination: "/clientes/brasil-taping-bf26-x7k2/index.html",
         },
+        // Mesmo documento no subdomínio de clientes:
+        // clientes.arthea.com.br/brasil-taping-bf26-x7k2
+        {
+          source: "/brasil-taping-bf26-x7k2",
+          has: [{ type: "host", value: "clientes.arthea.com.br" }],
+          destination: "/clientes/brasil-taping-bf26-x7k2/index.html",
+        },
       ],
     };
   },
@@ -147,6 +154,13 @@ const nextConfig = {
       {
         // Documento da Brasil Taping — acessado por link, fora de buscadores.
         source: "/clientes/brasil-taping-bf26-x7k2/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        source: "/brasil-taping-bf26-x7k2",
+        has: [{ type: "host", value: "clientes.arthea.com.br" }],
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
