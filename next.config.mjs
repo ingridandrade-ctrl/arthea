@@ -109,6 +109,15 @@ const nextConfig = {
           source: "/grupo-sansara",
           destination: "/grupo-sansara/index.html",
         },
+        // Documento da Brasil Taping (diagnóstico + Black Friday 2026) em
+        // public/clientes/brasil-taping-bf26-x7k2 — página estática autônoma,
+        // acessada só por link. O rewrite em beforeFiles ganha da rota
+        // dinâmica /clientes/[clientId] do painel; o middleware libera o
+        // caminho sem login.
+        {
+          source: "/clientes/brasil-taping-bf26-x7k2",
+          destination: "/clientes/brasil-taping-bf26-x7k2/index.html",
+        },
       ],
     };
   },
@@ -131,6 +140,13 @@ const nextConfig = {
       {
         // Proposta do Grupo Sansara — acessada por link, fora de buscadores.
         source: "/grupo-sansara/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        // Documento da Brasil Taping — acessado por link, fora de buscadores.
+        source: "/clientes/brasil-taping-bf26-x7k2/:path*",
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
