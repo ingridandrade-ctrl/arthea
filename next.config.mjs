@@ -109,6 +109,16 @@ const nextConfig = {
           source: "/grupo-sansara",
           destination: "/grupo-sansara/index.html",
         },
+        // Documento da Brasil Taping (diagnóstico + Black Friday 2026) em
+        // public/clientes/brasil-taping-bf26-x7k2 — página estática autônoma,
+        // acessada só por link em clientes.arthea.com.br/brasil-taping-bf26-x7k2.
+        // Só nesse host: no domínio principal o caminho não existe, e
+        // /clientes/* segue sendo o painel (com login).
+        {
+          source: "/brasil-taping-bf26-x7k2",
+          has: [{ type: "host", value: "clientes.arthea.com.br" }],
+          destination: "/clientes/brasil-taping-bf26-x7k2/index.html",
+        },
       ],
     };
   },
@@ -131,6 +141,14 @@ const nextConfig = {
       {
         // Proposta do Grupo Sansara — acessada por link, fora de buscadores.
         source: "/grupo-sansara/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        // Documento da Brasil Taping — acessado por link, fora de buscadores.
+        source: "/brasil-taping-bf26-x7k2",
+        has: [{ type: "host", value: "clientes.arthea.com.br" }],
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
