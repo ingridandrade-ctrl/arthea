@@ -59,16 +59,6 @@ function isPublicPath(pathname: string) {
   return pathname === "/login" || pathname.startsWith("/api/auth");
 }
 
-// Documentos estáticos de clientes em public/clientes/<slug>/ — páginas
-// autônomas acessadas só por link (sem login, sem layout do painel).
-// O rewrite correspondente fica no next.config.mjs. Cada slug entra aqui
-// explicitamente pra não abrir o resto de /clientes/*.
-const STATIC_CLIENT_DOCS = ["/clientes/brasil-taping-bf26-x7k2"];
-
-function isStaticClientDoc(pathname: string) {
-  return STATIC_CLIENT_DOCS.some((p) => pathname === p || pathname.startsWith(p + "/"));
-}
-
 function isPortalPath(pathname: string) {
   // /portal exato ou /portal/<algo> — NÃO inclui /portal-clientes (legado)
   return pathname === "/portal" || pathname.startsWith("/portal/");
@@ -108,11 +98,6 @@ export default withAuth(
 
     // ── Subdomínio proposta GMN — página comercial estática, pública.
     if (isPropostaHost(host)) {
-      return NextResponse.next();
-    }
-
-    // ── Documentos estáticos de clientes — públicos por link.
-    if (isStaticClientDoc(req.nextUrl.pathname)) {
       return NextResponse.next();
     }
 
@@ -163,8 +148,6 @@ export default withAuth(
         // Subdomínio proposta GMN é público (página comercial por link).
         if (isPropostaHost(host)) return true;
         if (isPublicPath(pathname)) return true;
-        // Documentos estáticos de clientes (public/clientes/<slug>) são públicos.
-        if (isStaticClientDoc(pathname)) return true;
         return !!token;
       },
     },
