@@ -80,9 +80,9 @@ Ferramentas: plataforma Arthea
 
 ### 08D. Resultados dentro do CRM do cliente (decidido em 2026-11-06)
 
-O cliente vê a mesma visão de resultado no CRM dele. No CRM que a Arthea constrói para o cliente: uma tela de resultados no próprio CRM (entra no projeto do CRM). No RD Station e outros CRMs de terceiros, onde não dá para criar telas: a confirmar se a plataforma grava de volta na oportunidade a campanha e o criativo de origem, para o cliente filtrar e montar relatórios no próprio CRM.
+Só no CRM que a Arthea constrói para o cliente: uma tela de resultados no próprio CRM (entra no projeto do CRM). Em CRMs de terceiros (RD Station etc.) a plataforma não grava nada: só lê. O cliente vê os resultados no dashboard do portal (etapa 08C).
 
-Ferramentas: CRM do cliente
+Ferramentas: CRM do cliente construído pela Arthea
 
 ## Fase 3 · Validação
 
