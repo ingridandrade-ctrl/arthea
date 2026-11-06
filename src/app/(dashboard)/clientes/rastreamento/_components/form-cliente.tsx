@@ -119,7 +119,7 @@ export function FormCliente({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Campo do código da campanha</label>
+          <label className="block text-sm font-medium mb-1">Campo do CRM com o código da campanha</label>
           <input
             className={input}
             placeholder="Ex.: Código da campanha"
@@ -128,7 +128,7 @@ export function FormCliente({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Campo do valor da venda</label>
+          <label className="block text-sm font-medium mb-1">Campo do CRM com o valor da venda</label>
           <input
             className={input}
             placeholder="Ex.: Valor da venda"
@@ -137,7 +137,10 @@ export function FormCliente({
           />
         </div>
       </div>
-      <p className="text-xs text-muted-foreground -mt-3">Os nomes exatamente como aparecem no CRM do cliente.</p>
+      <p className="text-xs text-muted-foreground -mt-3">
+        Escreva o nome do campo, exatamente como aparece no CRM do cliente — não o código em si. O código de cada
+        lead é lido do CRM automaticamente.
+      </p>
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={v.ativo} onChange={(e) => set("ativo", e.target.checked)} />

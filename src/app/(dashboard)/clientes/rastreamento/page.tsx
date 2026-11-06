@@ -15,7 +15,17 @@ export default async function RastreamentoPage() {
 
   const clientes = await prisma.rastreamentoCliente.findMany({
     where: { ownerId: user.id },
-    include: {
+    select: {
+      id: true,
+      nome: true,
+      crm: true,
+      ativo: true,
+      teste: true,
+      metaDatasetId: true,
+      crmCampoCodigo: true,
+      crmCampoValor: true,
+      crmTokenAtualizadoEm: true,
+      metaTokenAtualizadoEm: true,
       clientUser: { select: { name: true } },
       _count: { select: { etapas: true, eventos: true } },
     },
@@ -58,6 +68,9 @@ export default async function RastreamentoPage() {
               !c.metaDatasetId && "conjunto de dados do Meta",
               !c.crmCampoCodigo && "campo do código",
               !c.crmCampoValor && "campo do valor",
+              !c.crmTokenAtualizadoEm && "chave do CRM",
+              !c.metaTokenAtualizadoEm && "chave do Meta",
+              c._count.etapas === 0 && "etapas do funil",
             ].filter(Boolean) as string[];
             return (
               <Link

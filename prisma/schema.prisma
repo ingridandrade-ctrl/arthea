@@ -1367,6 +1367,12 @@ model RastreamentoCliente {
   crmCampoCodigo String?
   // Nome do campo do CRM com o valor da venda
   crmCampoValor  String?
+  // Chaves do cliente, cifradas (AES-256-GCM, ver src/lib/rastreamento/cifra.ts).
+  // Nunca saem do servidor.
+  crmTokenCifrado       String?
+  crmTokenAtualizadoEm  DateTime?
+  metaTokenCifrado      String?
+  metaTokenAtualizadoEm DateTime?
   ativo          Boolean              @default(true)
   // Dado sintético criado pelo botão de teste
   teste          Boolean              @default(false)
@@ -1387,6 +1393,8 @@ model RastreamentoEtapa {
   etapaCrm  String
   // "nenhum" | "lead_qualificado" | "compra"
   tipo      String              @default("nenhum")
+  // Posição na tela (ordem do funil)
+  ordem     Int                 @default(0)
   createdAt DateTime            @default(now())
   updatedAt DateTime            @updatedAt
 

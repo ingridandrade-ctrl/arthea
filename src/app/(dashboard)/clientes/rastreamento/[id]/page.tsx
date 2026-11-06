@@ -1,6 +1,10 @@
 import { notFound, redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { usuarioDoRastreamento, clienteDoDono } from "@/lib/rastreamento/acesso";
+import { nomeDoCrm } from "@/lib/rastreamento/crm";
 import { FormCliente } from "../_components/form-cliente";
+import { CredenciaisCard } from "../_components/credenciais-card";
+import { EtapasCard } from "../_components/etapas-card";
 import { opcoesDoFormulario } from "../_dados";
 
 export default async function EditarClienteRastreamentoPage({ params }: { params: { id: string } }) {
@@ -8,7 +12,15 @@ export default async function EditarClienteRastreamentoPage({ params }: { params
   if (!user) redirect("/inicio");
   const c = await clienteDoDono(user.id, params.id);
   if (!c) notFound();
-  const { clientes, crms } = await opcoesDoFormulario();
+  const [{ clientes, crms }, etapas] = await Promise.all([
+    opcoesDoFormulario(),
+    prisma.rastreamentoEtapa.findMany({
+      where: { clienteId: c.id },
+      select: { etapaCrm: true, tipo: true },
+      orderBy: [{ ordem: "asc" }, { createdAt: "asc" }],
+    }),
+  ]);
+  const crmNome = nomeDoCrm(c.crm);
 
   return (
     <div className="space-y-6">
@@ -32,6 +44,15 @@ export default async function EditarClienteRastreamentoPage({ params }: { params
           ativo: c.ativo,
         }}
       />
+      <CredenciaisCard
+        id={c.id}
+        crmNome={crmNome}
+        inicial={{
+          crmTokenAtualizadoEm: c.crmTokenAtualizadoEm?.toISOString() ?? null,
+          metaTokenAtualizadoEm: c.metaTokenAtualizadoEm?.toISOString() ?? null,
+        }}
+      />
+      <EtapasCard id={c.id} crmNome={crmNome} inicial={etapas} />
     </div>
   );
 }

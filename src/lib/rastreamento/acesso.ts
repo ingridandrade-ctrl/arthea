@@ -20,7 +20,10 @@ export async function usuarioDoRastreamento(): Promise<UsuarioRastreamento | nul
 // para "não existe" quanto para "é de outro usuário" — de propósito, para
 // não revelar a existência de cadastros alheios.
 export function clienteDoDono(ownerId: string, id: string) {
-  return prisma.rastreamentoCliente.findFirst({ where: { id, ownerId } });
+  return prisma.rastreamentoCliente.findFirst({
+    where: { id, ownerId },
+    select: { ...camposPublicos, clientUser: undefined },
+  });
 }
 
 const texto = (v: unknown, max = 200): string | null => {
@@ -81,7 +84,8 @@ export async function validarDadosCliente(
   return { ok: true, dados };
 }
 
-// Campos que podem ir para a tela. Tokens (etapa 3) nunca entram aqui.
+// Campos que podem ir para a tela. As chaves cifradas nunca entram aqui;
+// só a data em que cada uma foi cadastrada.
 export const camposPublicos = {
   id: true,
   nome: true,
@@ -91,6 +95,8 @@ export const camposPublicos = {
   crmCampoValor: true,
   ativo: true,
   teste: true,
+  crmTokenAtualizadoEm: true,
+  metaTokenAtualizadoEm: true,
   clientUserId: true,
   clientUser: { select: { id: true, name: true } },
   createdAt: true,

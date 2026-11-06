@@ -49,7 +49,7 @@ export async function POST() {
         crmCampoCodigo: ex.crmCampoCodigo,
         crmCampoValor: ex.crmCampoValor,
         teste: true,
-        etapas: { create: ex.etapas.map(([etapaCrm, tipo]) => ({ etapaCrm, tipo })) },
+        etapas: { create: ex.etapas.map(([etapaCrm, tipo], ordem) => ({ etapaCrm, tipo, ordem })) },
       },
     });
   }
