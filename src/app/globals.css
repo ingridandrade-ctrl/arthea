@@ -44,6 +44,15 @@
   --font-display: "Cormorant Garamond", "Fraunces", Georgia, serif;
 }
 
+/* === Painel da agência: --accent === */
+/* Várias telas do painel usam var(--accent), que antes só existia no portal
+   do cliente (definido por cliente em (portal)/layout.tsx). Aqui ele segue a
+   cor principal do tema (clara/escura). O portal continua com a cor dele. */
+.agency-theme {
+  --accent: var(--color-primary);
+  --accent-soft: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
 /* === Dark theme overrides === */
 .dark {
   --color-background: #0B1414;

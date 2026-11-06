@@ -19,7 +19,7 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen">
+      <div className="agency-theme flex min-h-screen">
         <Sidebar />
         <DashboardShell>
           <Header />
