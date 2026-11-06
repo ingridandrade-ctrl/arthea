@@ -34,6 +34,14 @@ Criar o endpoint que recebe a mudança de etapa, rejeita chamadas sem o segredo 
 
 Ferramentas: Lovable, RD Station CRM
 
+### 04A. Testar a API oficial do WhatsApp em coexistência (decidido em 2026-11-06)
+
+Com o cliente piloto de acordo, ligar o número dele à API oficial no modo coexistência, sem tirá-lo do app do celular. Receber as mensagens que chegam, ler o código da campanha na primeira mensagem e o identificador do clique no anúncio, e preencher o campo do código no CRM sozinho. O identificador do clique vai junto no evento enviado ao Meta. Se o teste não der certo, o atendente continua preenchendo o código.
+
+Antes de construir: a pessoa confirma com o cliente piloto e escolhe o caminho de ligação com o Meta.
+
+Ferramentas: API oficial do WhatsApp (coexistência), RD Station CRM
+
 ### 05. Montar o evento com hash e deduplicação
 
 Aplicar o mapeamento de etapas, normalizar o telefone para E.164, gerar o hash SHA-256 e gravar o evento com event_id igual a id da oportunidade mais tipo. Leads sem código de campanha seguem o fluxo, marcados como sem código.

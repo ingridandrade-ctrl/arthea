@@ -38,7 +38,7 @@ Plataforma que lê as etapas do RD Station e envia Compra com valor e Lead quali
 
 ## Fora do escopo
 
-- Migrar o atendimento para a WhatsApp Cloud API: os clientes recusaram sair do app do celular.
+- Migrar o atendimento para a WhatsApp Cloud API: os clientes recusaram sair do app do celular. (Exceção decidida em 2026-11-06: testar a API oficial em coexistência, sem tirar o atendente do celular. Ver etapa 04A em PLANO.md.)
 - Capturar o ctwa_clid ou ler mensagens do WhatsApp: a plataforma não vê as conversas.
 - Cadastrar o lead no RD Station automaticamente: o atendente continua cadastrando e preenchendo o código.
 - Gerenciar campanhas, orçamentos ou públicos no Meta Ads.
