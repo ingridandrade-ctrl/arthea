@@ -205,3 +205,12 @@ Premissas desta conta:
 - **2026-11-06 · Onde vive:** o projeto é construído como um módulo da plataforma Arthea (este repositório, publicado na Vercel), e não no Lovable. Usa o banco, o login da agência e a conexão com o Meta que a plataforma já tem. Não há projeto novo no Supabase. Onde este documento cita "Lovable", leia "plataforma Arthea"; o custo "Lovable: app, banco e funções" passa a ser o consumo da hospedagem e do banco atuais da plataforma.
 - **2026-11-06 · Isolamento por dono:** no lugar do RLS do Supabase, cada consulta do servidor filtra pelo usuário dono do cliente. A etapa 9 testa isso.
 - **2026-11-06 · Vários CRMs:** a leitura do CRM nasce como peça trocável, com a mesma interface para qualquer CRM. O piloto usa só o RD Station; outros CRMs entram um de cada vez, quando pedidos.
+- **2026-11-06 · Cliente ligado:** cada cliente do rastreamento é ligado a um cliente que já existe na área Clientes da plataforma, em vez de ter cadastro próprio.
+
+## Visão do produto (contexto, não é escopo deste plano)
+
+A Arthea vende tráfego pago com rastreamento de leads, tudo dentro do painel da Arthea:
+
+- **Tráfego pago com rastreamento:** este módulo. Mostra qual lead é qualificado e qual virou venda, e devolve isso ao Meta.
+- **CRM:** se o cliente já tem CRM próprio (RD Station, Kommo etc.), o rastreamento lê dele. Se não tem, a Arthea oferece um CRM para ele, que entra no rastreamento como mais um CRM. O CRM atual da plataforma é o da própria agência e ainda não separa dados por cliente; oferecer CRM a clientes é um projeto à parte, depois do piloto.
+- **Agentes de IA:** no futuro, agentes de IA trazidos do Subido, reconstruídos dentro da plataforma.
