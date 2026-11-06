@@ -212,7 +212,7 @@ Premissas desta conta:
 A Arthea vende tráfego pago com rastreamento de leads, tudo dentro do painel da Arthea:
 
 - **Tráfego pago com rastreamento:** este módulo. Mostra qual lead é qualificado e qual virou venda, e devolve isso ao Meta.
-- **CRM:** se o cliente já tem CRM próprio (RD Station, Kommo etc.), o rastreamento lê dele. Se não tem, a Arthea oferece um CRM para ele, que entra no rastreamento como mais um CRM. O CRM atual da plataforma é o da própria agência e ainda não separa dados por cliente; oferecer CRM a clientes é um projeto à parte, depois do piloto.
-- **Acesso do cliente ao CRM:** quando a Arthea oferecer CRM, o cliente acessa o próprio CRM (pelo portal do cliente que a plataforma já tem) e vê só os dados dele.
+- **CRM:** se o cliente já tem CRM próprio (RD Station, Kommo etc.), o rastreamento lê dele. Se não tem, a Arthea constrói um CRM para ele, que entra no rastreamento como mais um CRM. Projeto à parte, depois do piloto.
+- **O CRM é do cliente, não da Arthea:** é um produto separado da plataforma Arthea e do portal do cliente. O portal mostra o que a agência entrega; o CRM pertence 100% ao cliente, que acessa e usa. A decidir: se cada cliente recebe a própria cópia, nas contas dele (GitHub, hospedagem, banco), ou se fica hospedado pela Arthea com os dados em nome do cliente. O CRM atual da plataforma é o da própria agência e não é a base desse produto.
 - **Agentes de IA:** no futuro, agentes de IA inspirados nas soluções do Subido, construídos do zero dentro da plataforma.
 - **Tudo é da Arthea:** código, banco e dados ficam no GitHub e na hospedagem da Arthea. Nada depende do Subido nem do Lovable para funcionar. O Subido serve de referência e planejamento; não se copia código, marca ou material deles.
