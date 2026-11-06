@@ -23,6 +23,7 @@ import {
   Link2,
   ChevronsLeft,
   ChevronsRight,
+  Radar,
 } from "lucide-react";
 
 type NavItem = {
@@ -64,6 +65,7 @@ const SECTIONS: NavSection[] = [
       { name: "Clientes", href: "/clientes", icon: PanelsTopLeft, roles: ["ADMIN", "MANAGER"] },
       { name: "Projetos", href: "/projetos", icon: KanbanSquare, roles: ["ADMIN", "MANAGER"] },
       { name: "Saúde dos anúncios", href: "/clientes/anuncios", icon: BarChart3, roles: ["ADMIN", "MANAGER"] },
+      { name: "Rastreamento", href: "/clientes/rastreamento", icon: Radar, roles: ["ADMIN", "MANAGER"] },
     ],
   },
   {

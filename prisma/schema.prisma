@@ -102,6 +102,10 @@ model User {
   lead            Lead?              @relation("UserCreatedFromLead", fields: [leadId], references: [id])
   // Contratos no financeiro associados a esse User (cliente do portal)
   contracts       Contract[]         @relation("UserClientContracts")
+  // Rastreamento de vendas: clientes que este usuário da agência cadastrou
+  // (dono) e, quando o usuário é CLIENT, os cadastros ligados a ele.
+  rastreamentoClientesDono    RastreamentoCliente[] @relation("RastreamentoDono")
+  rastreamentoClientesLigados RastreamentoCliente[] @relation("RastreamentoClienteLigado")
 }
 
 model Service {
@@ -1340,4 +1344,90 @@ model AiConfig {
   botName          String   @default("Arthea IA")
   active           Boolean  @default(true)
   updatedAt        DateTime @updatedAt
+}
+
+// =========================================================================
+// RASTREAMENTO DE VENDAS — WhatsApp → CRM → API de Conversões do Meta
+// Plano em docs/rastreamento-vendas/. Cada cadastro pertence a um usuário da
+// agência (ownerId): toda consulta do módulo filtra por ele.
+// =========================================================================
+
+model RastreamentoCliente {
+  id             String               @id @default(cuid())
+  ownerId        String
+  owner          User                 @relation("RastreamentoDono", fields: [ownerId], references: [id], onDelete: Cascade)
+  // Cliente da área Clientes (User role=CLIENT) a que este cadastro pertence
+  clientUserId   String?
+  clientUser     User?                @relation("RastreamentoClienteLigado", fields: [clientUserId], references: [id], onDelete: SetNull)
+  nome           String
+  // Qual CRM o cliente usa: "rd_station" (outros entram depois)
+  crm            String               @default("rd_station")
+  metaDatasetId  String?
+  // Nome do campo personalizado do CRM com o código da campanha
+  crmCampoCodigo String?
+  // Nome do campo do CRM com o valor da venda
+  crmCampoValor  String?
+  ativo          Boolean              @default(true)
+  // Dado sintético criado pelo botão de teste
+  teste          Boolean              @default(false)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  etapas         RastreamentoEtapa[]
+  leads          RastreamentoLead[]
+  eventos        RastreamentoEvento[]
+
+  @@index([ownerId])
+  @@index([clientUserId])
+}
+
+model RastreamentoEtapa {
+  id        String              @id @default(cuid())
+  clienteId String
+  cliente   RastreamentoCliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  etapaCrm  String
+  // "nenhum" | "lead_qualificado" | "compra"
+  tipo      String              @default("nenhum")
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([clienteId, etapaCrm])
+}
+
+// Espelho das oportunidades lidas do CRM (telefone só em hash)
+model RastreamentoLead {
+  id             String              @id @default(cuid())
+  clienteId      String
+  cliente        RastreamentoCliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  crmDealId      String
+  telefoneHash   String?
+  // Últimos 4 dígitos, só para exibir mascarado no painel
+  telefoneFinal  String?
+  codigoCampanha String?
+  valor          Decimal?            @db.Decimal(14, 2)
+  moeda          String?
+  etapa          String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@unique([clienteId, crmDealId])
+}
+
+model RastreamentoEvento {
+  id           String              @id @default(cuid())
+  clienteId    String
+  cliente      RastreamentoCliente @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  crmDealId    String
+  // "lead_qualificado" | "compra"
+  tipo         String
+  // id da oportunidade + tipo: impede envio duplicado ao Meta
+  eventId      String              @unique
+  // "pendente" | "enviado" | "erro"
+  status       String              @default("pendente")
+  tentativas   Int                 @default(0)
+  erroMsg      String?
+  respostaMeta Json?
+  criadoEm     DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([clienteId, status])
 }

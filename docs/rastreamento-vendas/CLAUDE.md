@@ -25,8 +25,9 @@ Plataforma que lê as etapas do RD Station e envia Compra com valor e Lead quali
 
 ## Como o módulo é montado nesta plataforma
 
-- Código: telas em `src/app/(dashboard)/rastreamento/`, rotas do servidor em `src/app/api/rastreamento/`, lógica em `src/lib/rastreamento/`.
-- Banco: é o Postgres que a plataforma já usa. Não crie outro banco, nem projeto no Supabase ou no Lovable. Toda mudança entra em `prisma/schema.prisma` e num arquivo novo em `prisma/migrations-manual/` (nome com data), aplicado automaticamente na publicação. Só mudanças que acrescentam (tabelas e colunas novas); nunca apagar ou renomear o que existe. Nunca peça para a pessoa rodar SQL.
+- Código: telas em `src/app/(dashboard)/clientes/rastreamento/` (menu Clientes → Rastreamento), rotas do servidor em `src/app/api/rastreamento/`, lógica em `src/lib/rastreamento/`. Botões principais usam `bg-primary text-primary-foreground` (não `var(--accent)`, que só existe no portal).
+- Banco: é o Postgres que a plataforma já usa. Não crie outro banco, nem projeto no Supabase ou no Lovable. Tabelas e colunas novas entram só em `prisma/schema.prisma`: a publicação cria sozinha (`prisma db push`). Um arquivo em `prisma/migrations-manual/` só é preciso para transformar dados existentes. Os modelos do módulo começam com `Rastreamento`. Só mudanças que acrescentam; nunca apagar ou renomear o que existe, porque a publicação roda com `--accept-data-loss`. Não rode `prisma format` (reformata o arquivo inteiro). Nunca peça para a pessoa rodar SQL.
+- Testar antes de enviar: dá para subir um Postgres local (`/usr/lib/postgresql/16/bin`), aplicar o banco com `prisma db push`, criar usuários de teste e rodar `next start` para testar rotas e telas.
 - Isolamento por dono: o Prisma não usa RLS. Toda consulta do módulo filtra pelo usuário logado dono do cliente; nenhuma rota devolve dado de outro usuário. A etapa 9 testa isso.
 - Login: reaproveite o login da agência que já existe (NextAuth). Não crie outro.
 - Vários CRMs: a leitura do CRM fica em `src/lib/rastreamento/crm/`, um arquivo por CRM, todos com a mesma interface (buscar oportunidade, listar alteradas, validar webhook). O resto do módulo não sabe qual CRM é. RD Station primeiro; outros só quando a pessoa pedir.
