@@ -66,6 +66,24 @@ Criar o painel com filtro por cliente, tipo e status, lista de erros com a mensa
 
 Ferramentas: Lovable
 
+### 08B. Resultados por campanha e criativo, no painel da agência (decidido em 2026-11-06)
+
+Tela da agência com a visão das campanhas de cada cliente: para cada campanha e cada criativo, investimento (lido dos anúncios do Meta que a plataforma já acessa), leads, leads qualificados, compras, valor vendido, taxas de conversão, custo por lead qualificado, custo por venda e retorno (valor vendido dividido pelo investimento), além da conferência entre vendas no CRM e vendas enviadas ao Meta. O criativo é identificado pelo anúncio clicado (etapa 04A) ou, no plano B, por um código por criativo (ex.: BF26-C1) que também vai no nome do anúncio no Meta.
+
+Ferramentas: plataforma Arthea, API de Marketing do Meta
+
+### 08C. Resultados no dashboard do cliente, no portal (decidido em 2026-11-06)
+
+Parte "Vendas" no dashboard de performance do portal, só com resultado em linguagem de negócio (investimento, leads, qualificados, vendas, valor, custo por venda e retorno, por campanha e criativo), no mesmo seletor de período. Sem erros, reenvios, telefones ou nada técnico. A agência liga cliente por cliente, depois que os números do piloto baterem.
+
+Ferramentas: plataforma Arthea
+
+### 08D. Resultados dentro do CRM do cliente (decidido em 2026-11-06)
+
+O cliente vê a mesma visão de resultado no CRM dele. No CRM que a Arthea constrói para o cliente: uma tela de resultados no próprio CRM (entra no projeto do CRM). No RD Station e outros CRMs de terceiros, onde não dá para criar telas: a confirmar se a plataforma grava de volta na oportunidade a campanha e o criativo de origem, para o cliente filtrar e montar relatórios no próprio CRM.
+
+Ferramentas: CRM do cliente
+
 ## Fase 3 · Validação
 
 ### 09. Testar acesso cruzado e logs
